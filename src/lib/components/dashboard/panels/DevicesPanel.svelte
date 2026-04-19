@@ -7,6 +7,7 @@
 		activeBands,
 		isolatedDeviceMAC,
 		isolateDevice,
+		resetBands,
 		toggleBand as toggleGlobalBand
 	} from '$lib/stores/dashboard/dashboard-store';
 	import {
@@ -17,10 +18,15 @@
 		reconAlerts,
 		reconStatus,
 		reconTargets,
+		resetReconData,
 		weakSecurityTargets,
 		wpsTargets
 	} from '$lib/stores/dashboard/recon-store';
-	import { kismetStore, setWhitelistMAC } from '$lib/stores/tactical-map/kismet-store';
+	import {
+		clearAllKismetDevices,
+		kismetStore,
+		setWhitelistMAC
+	} from '$lib/stores/tactical-map/kismet-store';
 
 	import { filterAndSortDevices, type SortColumn } from './devices/device-filters';
 	import DeviceSubTabs from './devices/DeviceSubTabs.svelte';
@@ -112,6 +118,22 @@
 		expandedMAC = null;
 	}
 
+	/**
+	 * Clear the Wi-Fi panel: wipes ALL-tab device rows, intel-tab chip
+	 * counts, and resets every toolbar filter to its default.
+	 * Live WebSocket / recon updates will repopulate naturally when
+	 * Kismet emits new data.
+	 */
+	function clearAllFilters() {
+		searchQuery = '';
+		shouldHideNoSignal = true;
+		shouldShowOnlyWithClients = false;
+		resetBands();
+		clearIsolation();
+		clearAllKismetDevices();
+		resetReconData();
+	}
+
 	function triggerRecon() {
 		fetchReconData({ type: 'all', sort: 'signal' });
 	}
@@ -182,6 +204,7 @@
 		onToggleBand={toggleGlobalBand}
 		onToggleNoSignal={() => (shouldHideNoSignal = !shouldHideNoSignal)}
 		onToggleOnlyWithClients={() => (shouldShowOnlyWithClients = !shouldShowOnlyWithClients)}
+		onClearAll={clearAllFilters}
 	/>
 
 	<DeviceSubTabs

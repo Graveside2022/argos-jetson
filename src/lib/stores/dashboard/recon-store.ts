@@ -219,3 +219,16 @@ export async function fetchReconData(params?: ReconParams): Promise<void> {
 
 	await doReconFetch(buildReconUrl(params), fetchController.signal).catch(handleReconFetchError);
 }
+
+/**
+ * Empty the local recon cache and cancel any in-flight fetch.
+ * Status lands on 'ready' (not 'idle') so auto-refetch effects don't
+ * immediately repopulate intel chips from a stale server cache.
+ */
+export function resetReconData(): void {
+	fetchController?.abort();
+	fetchController = null;
+	reconData.set(EMPTY);
+	reconError.set(null);
+	reconStatus.set('ready');
+}

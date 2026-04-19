@@ -20,6 +20,7 @@
 		onToggleBand: (key: string) => void;
 		onToggleNoSignal: () => void;
 		onToggleOnlyWithClients: () => void;
+		onClearAll: () => void;
 	}
 
 	let {
@@ -35,7 +36,8 @@
 		onSearchChange,
 		onToggleBand,
 		onToggleNoSignal,
-		onToggleOnlyWithClients
+		onToggleOnlyWithClients,
+		onClearAll
 	}: Props = $props();
 
 	let kismetBusy = $state(false);
@@ -170,7 +172,7 @@
 
 	<div class="toolbar-separator"></div>
 
-	<button class="scan-btn scan-clear" onclick={() => onSearchChange('')} title="Clear search">
+	<button class="scan-btn scan-clear" onclick={onClearAll} title="Clear search + all filters">
 		Clear
 	</button>
 	{#if $kismetStore.status === 'running' || $kismetStore.status === 'stopping'}

@@ -186,3 +186,8 @@ export function toggleBand(key: string): void {
 		return next;
 	});
 }
+
+/** Reset the active band set to the default (all bands visible). */
+export function resetBands(): void {
+	activeBands.set(new Set(ALL_BANDS));
+}
