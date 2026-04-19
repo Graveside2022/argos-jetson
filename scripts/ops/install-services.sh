@@ -84,6 +84,7 @@ for name in "${SYSTEM_SERVICES[@]}"; do
   sed -e "s|__PROJECT_DIR__|$PROJECT_DIR|g" \
       -e "s|__SETUP_USER__|$SETUP_USER|g" \
       -e "s|__DRONEID_DIR__|$DRONEID_DIR|g" \
+      -e "s|__NODE_BIN__|$NODE_BIN|g" \
       "$svc" > "$SYSTEMD_DIR/$name"
   chmod 644 "$SYSTEMD_DIR/$name"
 done

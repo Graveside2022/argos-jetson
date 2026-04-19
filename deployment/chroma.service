@@ -17,8 +17,8 @@ ExecStart=/home/jetson2/.local/bin/chroma run \
   --path /var/lib/chroma
 Restart=on-failure
 RestartSec=5
-# Data dir must be pre-created and owned by jetson2:
-#   sudo mkdir -p /var/lib/chroma && sudo chown jetson2:jetson2 /var/lib/chroma
+# StateDirectory=chroma lets systemd auto-create /var/lib/chroma with
+# correct jetson2:jetson2 ownership on first start — no manual mkdir/chown.
 StateDirectory=chroma
 ReadWritePaths=/var/lib/chroma
 # Jetson memory hygiene (Orin is not RAM-starved, but still)

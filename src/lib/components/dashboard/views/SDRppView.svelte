@@ -74,15 +74,23 @@
 		if (stopping) return;
 		stopping = true;
 		try {
-			await fetch('/api/sdrpp/control', {
+			const res = await fetch('/api/sdrpp/control', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				credentials: 'same-origin',
 				body: JSON.stringify({ action: 'stop' })
 			});
+			if (!res.ok) {
+				serviceStatus = 'error';
+				errorMsg = `Stop failed: ${res.status}`;
+				return;
+			}
+			activeView.set('map');
+		} catch (err) {
+			serviceStatus = 'error';
+			errorMsg = `Stop failed: ${err instanceof Error ? err.message : String(err)}`;
 		} finally {
 			stopping = false;
-			activeView.set('map');
 		}
 	}
 
