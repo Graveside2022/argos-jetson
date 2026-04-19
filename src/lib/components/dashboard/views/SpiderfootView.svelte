@@ -11,7 +11,8 @@
 </script>
 
 <ToolViewWrapper title="SpiderFoot — OSINT Automation" onBack={goBack}>
-	<iframe src={spiderfootUrl} title="SpiderFoot OSINT Automation" class="spiderfoot-iframe" />
+	<iframe src={spiderfootUrl} title="SpiderFoot OSINT Automation" class="spiderfoot-iframe"
+	></iframe>
 </ToolViewWrapper>
 
 <style>

@@ -14,7 +14,7 @@ const execFileAsync = promisify(execFile);
 
 const SPIDERFOOT_PATH = process.env.SPIDERFOOT_PATH || '/usr/bin/spiderfoot';
 const SPIDERFOOT_PORT = 5002;
-const HEALTH_URL = `http://127.0.0.1:${SPIDERFOOT_PORT}`;
+const HEALTH_URL = `http://127.0.0.1:${SPIDERFOOT_PORT}/ping`;
 
 /** Result types for control operations */
 interface SpiderfootControlResult {
