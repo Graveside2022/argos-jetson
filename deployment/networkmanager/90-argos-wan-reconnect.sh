@@ -18,7 +18,8 @@ STAMP=/run/argos-wan-watchdog.stamp
 COOLDOWN=120
 NOW=$(date +%s)
 if [ -f "$STAMP" ]; then
-    LAST=$(cat "$STAMP" 2>/dev/null || echo 0)
+    LAST=$(grep -E '^[0-9]+$' "$STAMP" 2>/dev/null | head -n1)
+    [ -z "$LAST" ] && LAST=0
     AGE=$(( NOW - LAST ))
     if [ "$AGE" -lt "$COOLDOWN" ]; then
         logger -t argos-wan "cooldown active (${AGE}s < ${COOLDOWN}s); state=$STATE; skip"
