@@ -8,6 +8,11 @@
 		"lon": 0
 	},
 	"max_clients": 20,
+	"bot_ban_enabled": false,
+	"report_clients": false,
+	"report_radio": false,
+	"eibi_bookmarks_range": 0,
+	"repeater_range": 0,
 	"sdrs": {
 		"hackrf": {
 			"name": "HackRF One",
@@ -119,6 +124,69 @@
 					"start_freq": 155000000,
 					"start_mod": "nfm",
 					"tuning_step": 5000,
+					"antenna": "Omni"
+				},
+				"keyfob_315": {
+					"name": "Auto Keyfob 315 MHz (US)",
+					"center_freq": 315000000,
+					"samp_rate": 2000000,
+					"start_freq": 315000000,
+					"start_mod": "nfm",
+					"tuning_step": 1000,
+					"antenna": "Omni"
+				},
+				"ism_433_wide": {
+					"name": "ISM/Keyfob 433 MHz Wide (8 MHz)",
+					"center_freq": 433000000,
+					"samp_rate": 8000000,
+					"start_freq": 433920000,
+					"start_mod": "nfm",
+					"tuning_step": 1000,
+					"antenna": "Omni"
+				},
+				"ism_868": {
+					"name": "ISM 868 MHz (EU LoRa/MIOTY)",
+					"center_freq": 868000000,
+					"samp_rate": 10000000,
+					"start_freq": 868000000,
+					"start_mod": "nfm",
+					"tuning_step": 25000,
+					"antenna": "Omni"
+				},
+				"ism_915": {
+					"name": "ISM 915 MHz (US LoRa/RC)",
+					"center_freq": 915000000,
+					"samp_rate": 20000000,
+					"start_freq": 915000000,
+					"start_mod": "nfm",
+					"tuning_step": 25000,
+					"antenna": "Omni"
+				},
+				"adsb_1090": {
+					"name": "ADS-B 1090 MHz (Aircraft)",
+					"center_freq": 1090000000,
+					"samp_rate": 4000000,
+					"start_freq": 1090000000,
+					"start_mod": "am",
+					"tuning_step": 1000,
+					"antenna": "Omni"
+				},
+				"ism_2400": {
+					"name": "ISM 2.4 GHz (WiFi/BT/Drones)",
+					"center_freq": 2440000000,
+					"samp_rate": 20000000,
+					"start_freq": 2440000000,
+					"start_mod": "nfm",
+					"tuning_step": 100000,
+					"antenna": "Omni"
+				},
+				"drone_5800": {
+					"name": "Drone FPV 5.8 GHz",
+					"center_freq": 5800000000,
+					"samp_rate": 20000000,
+					"start_freq": 5800000000,
+					"start_mod": "nfm",
+					"tuning_step": 1000000,
 					"antenna": "Omni"
 				},
 				"wideband": {

@@ -10,7 +10,7 @@ import { resourceManager } from '$lib/server/hardware/resource-manager';
 import { HardwareDevice } from '$lib/server/hardware/types';
 import { delay } from '$lib/utils/delay';
 
-const CONTAINER_NAME = 'openwebrx-hackrf';
+const SERVICE_NAME = 'openwebrx';
 const TOOL_NAME = 'openwebrx';
 
 const ControlActionSchema = z.object({
@@ -19,18 +19,16 @@ const ControlActionSchema = z.object({
 type ControlBody = z.infer<typeof ControlActionSchema>;
 type ControlAction = ControlBody['action'];
 
-/** Check container running status and report the current HackRF owner. */
-async function getContainerStatus(): Promise<Response> {
+/** Read `systemctl is-active openwebrx` and return the current HackRF owner. */
+async function getServiceStatus(): Promise<Response> {
 	const owner = resourceManager.getOwner(HardwareDevice.HACKRF);
 	try {
-		const { stdout } = await execFileAsync('docker', [
-			'ps',
-			'--filter',
-			`name=${CONTAINER_NAME}`,
-			'--format',
-			'{{.State}}'
+		const { stdout } = await execFileAsync('/usr/bin/sudo', [
+			'/usr/bin/systemctl',
+			'is-active',
+			SERVICE_NAME
 		]);
-		const running = stdout.trim() === 'running';
+		const running = stdout.trim() === 'active';
 		return json({
 			success: true,
 			running,
@@ -38,6 +36,7 @@ async function getContainerStatus(): Promise<Response> {
 			owner
 		});
 	} catch {
+		// is-active returns non-zero when inactive — that is not an error here.
 		return json({ success: true, running: false, status: 'stopped', owner });
 	}
 }
@@ -54,37 +53,33 @@ function buildConflictResponse(claim: { owner?: string; message?: string }): Res
 	);
 }
 
-/** Run `docker <action> openwebrx-hackrf` and release the HackRF claim on failure. */
-async function runDockerAction(
+/** Run `sudo systemctl <action> openwebrx` and release the HackRF claim on failure. */
+async function runSystemctlAction(
 	action: Exclude<ControlAction, 'status'>,
 	message: string,
 	extra?: Record<string, unknown>
 ): Promise<Response> {
 	try {
-		await execFileAsync('docker', [action, CONTAINER_NAME]);
+		await execFileAsync('/usr/bin/sudo', ['/usr/bin/systemctl', action, SERVICE_NAME]);
 		if (action === 'start') await delay(2000);
 		if (action === 'stop') await releaseHackRfForWebRx(TOOL_NAME);
-		// Force an on-demand ResourceManager refresh so the next status read
-		// returns fresh data without waiting for the 30s background poll.
 		await resourceManager.refreshNow(HardwareDevice.HACKRF);
 		return json({ success: true, action, message, ...extra });
 	} catch (err) {
-		// Release the claim so the HackRF isn't orphaned in the registry
-		// when docker start (or any lifecycle command) fails mid-operation.
 		if (action === 'start') await releaseHackRfForWebRx(TOOL_NAME);
 		throw err;
 	}
 }
 
 /**
- * Execute a docker lifecycle command inside the shared WebRX lock.
+ * Execute a systemd lifecycle command inside the shared WebRX lock.
  *
  * `start` acquires the HackRF via ResourceManager (auto-stops the peer WebSDR
- * if it's currently holding the device). `stop` releases the HackRF after
- * the container is down. Any docker failure releases the claim so the
- * registry isn't left in an orphaned state.
+ * if it's currently holding the device). `stop` releases the HackRF after the
+ * unit is down. Any systemctl failure releases the claim so the registry
+ * isn't left in an orphaned state.
  */
-async function dockerLifecycle(
+async function systemctlLifecycle(
 	action: Exclude<ControlAction, 'status'>,
 	message: string,
 	extra?: Record<string, unknown>
@@ -94,7 +89,7 @@ async function dockerLifecycle(
 			const claim = await acquireHackRfForWebRx(TOOL_NAME);
 			if (!claim.success) return buildConflictResponse(claim);
 		}
-		return runDockerAction(action, message, extra);
+		return runSystemctlAction(action, message, extra);
 	});
 }
 
@@ -113,16 +108,17 @@ const LIFECYCLE_MESSAGES: Record<Exclude<ControlAction, 'status'>, string> = {
 
 /** Execute validated OpenWebRX action. */
 function executeAction(action: ControlAction): Promise<Response> {
-	if (action === 'status') return getContainerStatus();
-	return dockerLifecycle(action, LIFECYCLE_MESSAGES[action], LIFECYCLE_EXTRAS[action]);
+	if (action === 'status') return getServiceStatus();
+	return systemctlLifecycle(action, LIFECYCLE_MESSAGES[action], LIFECYCLE_EXTRAS[action]);
 }
 
 /**
  * POST /api/openwebrx/control
- * Control OpenWebRX Docker container. Shares a HackRF with NovaSDR via the
- * ResourceManager singleton — starting OpenWebRX while NovaSDR holds the
- * HackRF will auto-stop NovaSDR and reclaim, while starting OpenWebRX while
- * GSM Evil or any other non-peer tool holds it returns 409 Conflict.
+ * Control the native OpenWebRX+ systemd service (luarvique PPA). Shares a
+ * HackRF with NovaSDR/SDR++ via the ResourceManager singleton — starting
+ * OpenWebRX while a peer holds the HackRF auto-stops the peer and reclaims,
+ * while starting OpenWebRX while GSM Evil or any other non-peer tool holds
+ * it returns 409 Conflict.
  * Body: { action: 'start' | 'stop' | 'restart' | 'status' }
  */
 export const POST = createHandler(

@@ -182,7 +182,7 @@ export default class ZRLEDecoder {
 
 	_readRLELength() {
 		let length = 0;
-		let current = 0;
+		let current;
 		do {
 			current = this._inflator.inflate(1)[0];
 			length += current;

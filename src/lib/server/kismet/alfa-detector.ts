@@ -95,8 +95,10 @@ export class AlfaDetector {
 		}
 	}
 
-	/** Interfaces to skip when searching for external WiFi adapters */
-	private static readonly SKIP_INTERFACES = new Set(['lo', 'eth0', 'wlan0']);
+	/** Interfaces to skip when searching for external WiFi adapters.
+	 *  wlan0 = Pi internet iface; wlP1p1s0 = Jetson Orin onboard WiFi.
+	 *  Both must never be handed to Kismet/monitor-mode capture — would kill SSH. */
+	private static readonly SKIP_INTERFACES = new Set(['lo', 'eth0', 'wlan0', 'wlP1p1s0']);
 
 	/** Check if a network interface is wireless */
 	private static async isWirelessInterface(iface: string): Promise<boolean> {

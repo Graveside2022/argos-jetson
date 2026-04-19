@@ -33,14 +33,14 @@ test.describe('Accessibility - WCAG 2.1 AA Compliance', () => {
 
 		// Log violations if any
 		if (accessibilityScanResults.violations.length > 0) {
-			console.log('\n⚠️  Accessibility Violations Found:');
+			console.warn('\n⚠️  Accessibility Violations Found:');
 			accessibilityScanResults.violations.forEach((violation, index) => {
-				console.log(`\n${index + 1}. ${violation.id}: ${violation.description}`);
-				console.log(`   Impact: ${violation.impact}`);
-				console.log(`   Help: ${violation.helpUrl}`);
-				console.log(`   Elements: ${violation.nodes.length}`);
+				console.warn(`\n${index + 1}. ${violation.id}: ${violation.description}`);
+				console.warn(`   Impact: ${violation.impact}`);
+				console.warn(`   Help: ${violation.helpUrl}`);
+				console.warn(`   Elements: ${violation.nodes.length}`);
 				violation.nodes.forEach((node) => {
-					console.log(`     - ${node.html}`);
+					console.warn(`     - ${node.html}`);
 				});
 			});
 		}
@@ -120,7 +120,7 @@ test.describe('Keyboard Navigation', () => {
 		const focusableElements = page.locator(focusableSelector);
 		const count = await focusableElements.count();
 
-		console.log(`\nFound ${count} focusable elements`);
+		console.warn(`\nFound ${count} focusable elements`);
 
 		for (let i = 0; i < Math.min(count, 20); i++) {
 			await page.keyboard.press('Tab');

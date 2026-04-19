@@ -28,8 +28,10 @@ export async function pgrepKismet(): Promise<string> {
 	}
 }
 
-/** Interfaces to skip when scanning for external WiFi adapters */
-const SKIP_IFACES = new Set(['lo', 'eth0', 'wlan0', '']);
+/** Interfaces to skip when scanning for external WiFi adapters.
+ *  wlan0 = Pi internet iface; wlP1p1s0 = Jetson Orin onboard WiFi.
+ *  Both must never be handed to Kismet — would kill SSH/tailscale. */
+const SKIP_IFACES = new Set(['lo', 'eth0', 'wlan0', 'wlP1p1s0', '']);
 
 /** Check if a network interface has wireless capabilities */
 function isWirelessAdapter(iface: string): boolean {

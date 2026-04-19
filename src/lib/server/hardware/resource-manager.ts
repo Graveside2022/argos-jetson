@@ -266,6 +266,12 @@ class ResourceManager extends EventEmitter {
 			return { success: false, owner: 'mutex-timeout' };
 		}
 		try {
+			// Re-scan OS state before claiming so a stale cached "owner"
+			// (e.g. a transient pgrep self-match that has since exited)
+			// cannot block a legitimate acquire until the next 30s tick.
+			// Failure here (e.g. a flaky pgrep) falls through to tryClaim
+			// which reads whatever cache is present.
+			await this.dispatchRefresh(device).catch(() => undefined);
 			return this.tryClaim(toolName, device);
 		} finally {
 			this.releaseMutex(device);

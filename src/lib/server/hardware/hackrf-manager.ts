@@ -15,9 +15,22 @@ const HACKRF_PROCESS_CONFIGS: ProcessConfig[] = [
 	{ name: 'urh' },
 	{ name: 'TempestSDR' },
 	{ name: 'multimon-ng' },
-	// Python-wrapped tools: -f (full cmdline match) because their comm is "python3"
-	{ name: 'grgsm_livemon', displayName: 'GSM Evil', useCmdlineMatch: true },
-	{ name: 'grgsm_livemon_headless', displayName: 'GSM Evil', useCmdlineMatch: true }
+	// Python-wrapped tools: -f (full cmdline match) because their comm is "python3".
+	// cmdlinePattern anchors the match to a python interpreter invocation so that
+	// shell ancestors that happen to contain the bare tool name as an argument
+	// (e.g. `pgrep grgsm_livemon` in a debug shell) do not self-match.
+	{
+		name: 'grgsm_livemon',
+		displayName: 'GSM Evil',
+		useCmdlineMatch: true,
+		cmdlinePattern: 'python[0-9.]*[[:space:]].*grgsm_livemon'
+	},
+	{
+		name: 'grgsm_livemon_headless',
+		displayName: 'GSM Evil',
+		useCmdlineMatch: true,
+		cmdlinePattern: 'python[0-9.]*[[:space:]].*grgsm_livemon_headless'
+	}
 ];
 
 // Tool containers that actively use HackRF (ownership candidates)

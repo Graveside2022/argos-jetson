@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onDestroy, onMount } from 'svelte';
 
+	import Button from '$lib/components/ui/button/button.svelte';
 	import { activeView } from '$lib/stores/dashboard/dashboard-store';
 
 	import ToolViewWrapper from './ToolViewWrapper.svelte';
@@ -12,6 +13,7 @@
 	let errorMsg = $state('');
 	let wsUrl = $state('');
 	let vncKey = $state(0);
+	let stopping = $state(false);
 
 	function buildWsUrl(wsPort: number, wsPath: string): string {
 		const host = window.location.hostname;
@@ -68,6 +70,22 @@
 		activeView.set('map');
 	}
 
+	async function handleStop(): Promise<void> {
+		if (stopping) return;
+		stopping = true;
+		try {
+			await fetch('/api/sdrpp/control', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				credentials: 'same-origin',
+				body: JSON.stringify({ action: 'stop' })
+			});
+		} finally {
+			stopping = false;
+			activeView.set('map');
+		}
+	}
+
 	onMount(() => {
 		checkStatus();
 	});
@@ -77,7 +95,13 @@
 	});
 </script>
 
-<ToolViewWrapper title="SDR++ Spectrum Analyzer" onBack={goBack}>
+{#snippet stopAction()}
+	<Button variant="outline" size="sm" onclick={handleStop} disabled={stopping}>
+		{stopping ? 'Stopping…' : 'Stop'}
+	</Button>
+{/snippet}
+
+<ToolViewWrapper title="SDR++ Spectrum Analyzer" onBack={goBack} actions={stopAction}>
 	{#if serviceStatus === 'checking'}
 		<div class="sdrpp-status">
 			<div class="spinner" aria-hidden="true"></div>

@@ -326,6 +326,12 @@ $SETUP_USER ALL=(ALL) NOPASSWD: /usr/sbin/ip link set wlan0 *
 $SETUP_USER ALL=(ALL) NOPASSWD: /usr/bin/nmcli device reapply wlan0
 $SETUP_USER ALL=(ALL) NOPASSWD: /usr/bin/nmcli device disconnect wlan0
 $SETUP_USER ALL=(ALL) NOPASSWD: /usr/bin/nmcli device connect wlan0
+
+# OpenWebRX+ — native systemd service (luarvique PPA)
+$SETUP_USER ALL=(ALL) NOPASSWD: /usr/bin/systemctl start openwebrx
+$SETUP_USER ALL=(ALL) NOPASSWD: /usr/bin/systemctl stop openwebrx
+$SETUP_USER ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart openwebrx
+$SETUP_USER ALL=(ALL) NOPASSWD: /usr/bin/systemctl is-active openwebrx
 SUDOERS_EOF
 
   if visudo -c -f "${sudoers_file}.tmp" &>/dev/null; then

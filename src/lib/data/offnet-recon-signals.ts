@@ -22,11 +22,11 @@ export const spectrumAnalysis: ToolCategory = {
 		createTool(
 			{
 				id: 'openwebrx',
-				name: 'OpenWebRX',
+				name: 'OpenWebRX+',
 				description:
-					'Multi-user web-based SDR receiver with browser demodulation for multiple SDR hardware',
+					'Multi-user web-based SDR receiver (luarvique PPA native systemd service). Demodulation, waterfall, built-in digital mode decoders. Shares HackRF with NovaSDR/SDR++.',
 				icon: toolIcons.external,
-				deployment: 'docker'
+				deployment: 'native'
 			},
 			{ isInstalled: true, viewName: 'openwebrx', canOpen: true, shouldShowControls: true }
 		),

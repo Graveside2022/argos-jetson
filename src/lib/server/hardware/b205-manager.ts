@@ -10,8 +10,17 @@ const B205_PROCESS_CONFIGS: ProcessConfig[] = [
 	{ name: 'uhd_usrp_probe' },
 	{ name: 'uhd_fft' },
 	{ name: 'rx_samples_to_file' },
-	{ name: 'fpv_energy_scan.py', displayName: 'FPV Detect', useCmdlineMatch: true },
-	{ name: 'gnuradio-companion', useCmdlineMatch: true }
+	{
+		name: 'fpv_energy_scan.py',
+		displayName: 'FPV Detect',
+		useCmdlineMatch: true,
+		cmdlinePattern: 'python[0-9.]*[[:space:]].*fpv_energy_scan\\.py'
+	},
+	{
+		name: 'gnuradio-companion',
+		useCmdlineMatch: true,
+		cmdlinePattern: 'python[0-9.]*[[:space:]].*gnuradio-companion'
+	}
 ];
 
 const B205_USB_ID = '2500:0022';

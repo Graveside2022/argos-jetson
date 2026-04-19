@@ -62,6 +62,12 @@ services:
     devices:
       - "/dev/bus/usb:/dev/bus/usb"
     privileged: true
+    # The non-root `argos` user inside the image needs plugdev to open
+    # /dev/bus/usb/NNN/NNN (crw-rw---- root:plugdev). `privileged: true`
+    # grants all capabilities but does NOT attach supplementary groups —
+    # Docker only applies the gid from /etc/passwd unless group_add is set.
+    group_add:
+      - plugdev
     volumes:
       # Read-write: NovaSDR atomically persists a migrated config back to disk
       # on every start-up (adds any fields added in newer schema versions).

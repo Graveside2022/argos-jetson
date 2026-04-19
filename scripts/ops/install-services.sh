@@ -21,6 +21,13 @@ SETUP_HOME="$(eval echo ~"$SETUP_USER")"
 # DroneID directory (sibling to project)
 DRONEID_DIR="$(cd "$PROJECT_DIR/.." && pwd)/RemoteIDReceiver"
 
+# Node binary path — prefers the invoking user's node (nvm-aware) over /usr/bin/node.
+# Jetson runs node via nvm; RPi5 via apt. Resolving here keeps the unit portable.
+NODE_BIN="$(sudo -u "$SETUP_USER" bash -lc 'command -v node' 2>/dev/null || true)"
+if [[ -z "$NODE_BIN" ]]; then
+  NODE_BIN="/usr/bin/node"
+fi
+
 echo "Installing Argos systemd services..."
 echo "  Project:   $PROJECT_DIR"
 echo "  User:      $SETUP_USER"

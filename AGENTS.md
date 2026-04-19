@@ -8,7 +8,7 @@ Argos is a SvelteKit SDR & Network Analysis Console for Army EW training, deploy
 
 **Stack**: SvelteKit 2, Svelte 5 runes, TypeScript strict, Tailwind CSS 4, better-sqlite3, MapLibre GL, ws (WebSocket), node-pty
 
-For the detailed architecture map, see `docs/CODEBASE_MAP.md` — read it before starting any non-trivial work.
+Use `serena` symbolic tools + `Grep`/`Glob` to explore the current source. No static architecture map is maintained.
 
 ## Commands
 

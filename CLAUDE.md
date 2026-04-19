@@ -11,11 +11,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 SvelteKit SDR & Network Analysis Console for Army EW training on RPi 5. Wraps native CLI tools (hackrf_sweep, gpsd, Kismet, grgsm_livemon) into a real-time web dashboard with WebSocket push, MapLibre GL mapping, and MIL-STD-2525C symbology.
 
 **Stack**: SvelteKit 2 + Svelte 5 runes, TypeScript strict, Tailwind CSS v4, better-sqlite3, MapLibre GL, ws (WebSocket), node-pty
-**Structure**: 1,011 files across 19 API domains (66 routes, 53 using createHandler), 20 stores, 10 UI component families, 6 always-on MCP servers
+**Structure**: 1,011 files across 19 API domains (66 routes, 53 using createHandler), 20 stores, 10 UI component families, 7 always-on MCP servers
 
-For detailed architecture, module guide, data flows, and navigation guide, see [docs/CODEBASE_MAP.md](docs/CODEBASE_MAP.md).
-
-IMPORTANT: Use `docs/CODEBASE_MAP.md` as your primary reference when navigating the codebase. Read it before beginning unfamiliar work.
+Use `serena` symbolic tools + targeted `Grep`/`Glob` for codebase navigation. No static map file is maintained — read the current source.
 
 ## Mandatory Workflow Rules
 
@@ -47,40 +45,97 @@ When debugging any frontend, UI rendering, network, or browser-side issue: use t
 
 Before beginning any significant task, search claude-mem (`smart_search`) to check if this work (or equivalent) has been done in prior sessions. This prevents duplicate effort and surfaces prior decisions, failed approaches, and context that would otherwise be lost.
 
-### Rule 4 — CODEBASE_MAP.md as Navigation Reference
+### Rule 4 — Svelte MCP on every .svelte edit
 
-Use `docs/CODEBASE_MAP.md` (1,011 files, 1.5M tokens, mapped 2026-04-02) as the authoritative reference for file locations, module dependencies, data flows, and navigation guides. Do not reconstruct the file tree via `ls`/`find`/`glob` when the map already has the answer.
+Before writing or changing any Svelte component, call `mcp__svelte-remote__list-sections` → `get-documentation` → `svelte-autofixer`. Do not send Svelte code to the user unless `svelte-autofixer` returns clean. See the **Svelte MCP** section below for the full sequence.
+
+### Rule 5 — GitHub Access via Octocode Only
+
+For ANY GitHub interaction (repo structure, file content, search, PR history): use `mcp__octocode__*` tools ONLY. Do **not** use `gh` CLI. Do **not** use `WebFetch` on `github.com/*` URLs. Octocode respects token scopes, handles pagination cleanly, and avoids auth prompts that break in hooks.
+
+### Rule 6 — Docs via Context7 before WebFetch
+
+For ANY question about a third-party library, framework, SDK, or CLI tool (React, SvelteKit internals, Puppeteer, node-pty, better-sqlite3, etc.): call `mcp__plugin_context7-plugin_context7__resolve-library-id` then `query-docs`. Only fall back to `WebFetch` if context7 has no entry for the library. This avoids stale training-data answers.
 
 ## Active MCP Servers
 
-### Always-On (project-scoped)
+Verify current state with `claude mcp list`. Authoritative config: `~/.claude.json` (user scope) + each plugin's `.claude-plugin/plugin.json`.
 
-| Server                     | Purpose                                       | When to use                              |
-| -------------------------- | --------------------------------------------- | ---------------------------------------- |
-| `tailwindcss`              | Tailwind CSS v4 tooling                       | Any CSS/styling work                     |
-| `svelte-remote`            | Official Svelte 5 + SvelteKit docs, autofixer | All Svelte component work (**required**) |
-| `argos-system-inspector`   | Live system metrics, process state            | Diagnosing RPi resource issues           |
-| `argos-database-inspector` | SQLite schema, query execution, health        | Any database work                        |
-| `argos-api-debugger`       | Live API endpoint testing                     | Debugging API routes                     |
-| `chrome-devtools`          | Browser DOM, console, network, performance    | Frontend debugging (see Rule 2)          |
+### User + Plugin Scope (always on)
 
-All project MCP servers communicate with the running app at `localhost:5173` via HTTP — they cannot import SvelteKit internals. Requires `npm run dev` to be running.
+| Tool namespace                                       | Source                                            | Purpose                                                                                     | When to use                                                                                   |
+| ---------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `mcp__serena__*`                                     | user scope (`uv tool`)                            | LSP-backed symbol search, refactor, find-refs                                               | Known symbol name → prefer over Grep/Glob                                                     |
+| `mcp__octocode__*`                                   | user scope (`npx octocode-mcp`)                   | GitHub repo/file/code/PR search                                                             | Any `github.com` lookup (**Rule 5**)                                                          |
+| `mcp__svelte-remote__*`                              | user scope (`https://mcp.svelte.dev/mcp`)         | Official Svelte 5/SvelteKit docs + autofixer                                                | Every `.svelte` file change (**Rule 4**)                                                      |
+| `mcp__chrome-devtools__*`                            | user scope (`--browserUrl http://127.0.0.1:9222`) | Browser DOM/console/network/perf                                                            | Frontend debugging (**Rule 2**). Requires headless chromium pre-launched                      |
+| `mcp__plugin_claude-mem_mcp-search__*`               | plugin `claude-mem`                               | Cross-session memory + smart code search                                                    | Prior work check (**Rule 3**), `smart_search`, `timeline`, `smart_outline`, `knowledge-agent` |
+| `mcp__plugin_context-mode_context-mode__*`           | plugin `context-mode`                             | Keep raw tool output in sandbox (FTS5) to protect context window                            | `ctx_batch_execute`, `ctx_search`, `ctx_execute` for >20-line outputs                         |
+| `mcp__plugin_context7-plugin_context7__*`            | plugin `context7-plugin`                          | Live third-party library docs                                                               | Any library/framework question (**Rule 6**)                                                   |
+| `mcp__plugin_chrome-devtools-mcp_chrome-devtools__*` | plugin `chrome-devtools-mcp`                      | Duplicate namespace — **fails on Jetson aarch64** (defaults to `/opt/google/chrome/chrome`) | Ignore on Jetson; prefer user-scope `mcp__chrome-devtools__*`                                 |
 
-### On-Demand Profiles
+### Project-scoped (requires `npm run dev` on :5173)
 
-Activate with `--mcp-profile <name>`:
+| Server                     | Purpose                                | When to use                    |
+| -------------------------- | -------------------------------------- | ------------------------------ |
+| `tailwindcss`              | Tailwind CSS v4 tooling                | Any CSS/styling work           |
+| `argos-system-inspector`   | Live system metrics, process state     | Diagnosing RPi resource issues |
+| `argos-database-inspector` | SQLite schema, query execution, health | Any database work              |
+| `argos-api-debugger`       | Live API endpoint testing              | Debugging API routes           |
+
+These servers hit `localhost:5173` via HTTP; they cannot import SvelteKit internals. If the app runs via `argos-final.service` (`node build`), only HTTP API routes are available — Vite dev middleware (e.g. the terminal `/terminal-ws` plugin) is absent.
+
+### On-Demand Profiles (`--mcp-profile <name>`)
 
 | Profile    | Servers added                                                         | Use case                         |
 | ---------- | --------------------------------------------------------------------- | -------------------------------- |
 | `hardware` | `hardware-debugger`                                                   | HackRF, GPS, USB hardware issues |
 | `full`     | `hardware-debugger`, `streaming-inspector`, `gsm-evil`, `test-runner` | Full diagnostic suite            |
 
-### Global Plugins with MCP Tools
+### Jetson aarch64 — chrome-devtools wiring (non-obvious)
 
-| Plugin                 | Purpose                     | Key tools                                        |
-| ---------------------- | --------------------------- | ------------------------------------------------ |
-| `claude-mem` (v10.4.1) | Cross-session memory search | `smart_search`, `smart_outline`, `timeline`      |
-| `context-mode`         | Context window management   | `ctx_batch_execute`, `ctx_search`, `ctx_execute` |
+Google does NOT ship Chrome for aarch64 Linux. Snap Chromium is the only browser. Plugin-shipped chrome-devtools MCP launches `/opt/google/chrome/chrome` by default → fails. Fix path on Jetson:
+
+```bash
+# 1. Pre-launch headless snap Chromium with remote debugging
+/snap/bin/chromium --headless=new --remote-debugging-port=9222 \
+  --user-data-dir="$HOME/.chromium-debug-profile" --no-first-run --disable-gpu &
+
+# 2. Verify
+curl -s http://127.0.0.1:9222/json/version | head
+
+# 3. Register user-scope MCP that connects to the running instance (official docs/troubleshooting.md § sandboxes)
+claude mcp add -s user chrome-devtools -- npx -y chrome-devtools-mcp@latest \
+  --browserUrl http://127.0.0.1:9222
+
+# 4. /reload-plugins — plugin-scope namespace still fails, but user-scope `mcp__chrome-devtools__*` now works
+```
+
+The `--browserUrl` flag is camelCase (per `npx chrome-devtools-mcp --help`), not kebab-case despite what some README examples show.
+
+## Installed Plugins
+
+Verify with `/plugin list`. Install more with `/plugin install <name>` (marketplace must be added first via `/plugin marketplace add <repo>`).
+
+| Plugin                | Marketplace                          | Provides                                                                                                                                                                                                                                                                                                                                                                             |
+| --------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `context-mode`        | `context-mode`                       | MCP server (ctx\_\*) + skills `ctx-stats`, `ctx-doctor`, `ctx-upgrade`, `ctx-insight`, `ctx-purge`, `context-mode-ops`                                                                                                                                                                                                                                                               |
+| `claude-mem`          | `thedotmack`                         | MCP server (smart_search, timeline) + skills `mem-search`, `smart-explore`, `make-plan`, `do`, `knowledge-agent`, `timeline-report`, `version-bump`                                                                                                                                                                                                                                  |
+| `caveman`             | `caveman`                            | Token-compression skills `caveman`, `caveman-review`, `caveman-commit`, `compress`, `caveman-help`                                                                                                                                                                                                                                                                                   |
+| `superpowers`         | `claude-plugins-official`            | Rigorous workflow skills — `brainstorming`, `writing-plans`, `executing-plans`, `test-driven-development`, `systematic-debugging`, `using-git-worktrees`, `dispatching-parallel-agents`, `writing-skills`, `requesting-code-review`, `receiving-code-review`, `verification-before-completion`, `subagent-driven-development`, `finishing-a-development-branch`, `using-superpowers` |
+| `context7-plugin`     | `context7-marketplace`               | MCP server for library docs + skills `context7-mcp`, `context7-cli`, `find-docs`                                                                                                                                                                                                                                                                                                     |
+| `coderabbit`          | `claude-plugins-official`            | Skills `code-review`, `autofix` — run AI review on diffs                                                                                                                                                                                                                                                                                                                             |
+| `chrome-devtools-mcp` | `ChromeDevTools/chrome-devtools-mcp` | MCP server (duplicate namespace — see Jetson note above) + skills `chrome-devtools`, `troubleshooting`, `debug-optimize-lcp`, `a11y-debugging`, `memory-leak-debugging`, `chrome-devtools-cli`                                                                                                                                                                                       |
+| `svelte-skills`       | `spences10/svelte-skills-kit`        | 10 passive skills — `svelte-runes`, `svelte-components`, `svelte-styling`, `svelte-template-directives`, `sveltekit-data-flow`, `sveltekit-remote-functions`, `sveltekit-structure`, `svelte-deployment`, `layerchart-svelte5`, `ecosystem-guide`                                                                                                                                    |
+
+### How to use plugins properly
+
+- **Slash commands vs skills**: Some plugins expose slash commands (`/caveman`, `/ctx-stats`). Others are pure SKILL files that activate via keyword match. Ask `/plugin list` if uncertain.
+- **Skill invocation**: Call `Skill` tool with the name shown in the system-reminder `available-skills` list. Don't guess names — names not in that list will fail.
+- **MCP vs skill**: MCP = live tool calls that return data. Skill = prompt-time instructions loaded into context. Use MCP for data, skill for workflow discipline.
+- **Reload after edits**: Editing any plugin config or `.claude.json` requires `/reload-plugins` to respawn MCP server subprocesses with new args. Plain config reload does not update already-running subprocesses — kill stale `pgrep chrome-devtools-mcp` procs if needed.
+
+## Svelte MCP
 
 ## Svelte MCP
 
@@ -139,6 +194,10 @@ npm run db:rollback      # Rollback last migration
 npx tsc --noEmit src/lib/FILE.ts
 npx eslint src/lib/FILE.ts --config config/eslint.config.js
 npx vitest run src/lib/FILE.test.ts
+
+# Serena (installed via uv tool, connected via claude mcp add user scope)
+uv tool upgrade serena-agent --prerelease=allow   # Update Serena to latest
+export MCP_TIMEOUT=60000                          # Raise MCP boot timeout if Serena LSP slow on first init
 ```
 
 ## Architecture
@@ -152,6 +211,7 @@ npx vitest run src/lib/FILE.test.ts
 - **Direct SQLite**: `better-sqlite3` with WAL mode, no ORM. Migrations in `scripts/db-migrate.ts`. Repository pattern in `src/lib/server/db/`.
 - **Security middleware stack** in `src/hooks.server.ts`: Auth gate → Rate limiter (200/min API, 30/min hardware) → Body size limiter → CSP headers → Event loop monitor.
 - **MCP servers** (`src/lib/server/mcp/`): Communicate with the running app via HTTP API (localhost:5173) — they cannot import SvelteKit internals.
+- **OpenTelemetry opt-in**: OTel SDK gated behind `OTEL_ENABLED=1`. Default off. All OTel imports are dynamic inside the gate — static imports cause `ERR_AMBIGUOUS_MODULE_SYNTAX` because `require-in-the-middle` (used by OTel auto-instrumentation) intercepts `better-sqlite3` and confuses ESM/CJS boundaries. See `src/instrumentation.ts`.
 
 ### Data Flow
 
@@ -205,12 +265,10 @@ native/apm-runner/             # Navy APM propagation model (C + fork isolation)
 tactical/                      # AI kill chain framework (82 modules, 13 workflows)
 _bmad/                         # BMAD workflow suite (agents, skills, config)
 _bmad-output/                  # BMAD artifacts (planning, implementation, test)
-docs/                          # CODEBASE_MAP.md + general documentation
+docs/                          # General documentation
 specs/                         # Feature specifications (016-025)
 plans/                         # Architecture plans and roadmaps
 ```
-
-For full module guide, data flows, sequence diagrams, and detailed architecture, see [docs/CODEBASE_MAP.md](docs/CODEBASE_MAP.md).
 
 ## Code Conventions
 
@@ -263,7 +321,12 @@ Lucide for all navigation and status icons. Material Symbols Sharp for the botto
 
 ## Platform Constraints
 
-**Target hardware**: Raspberry Pi 5 (8GB RAM, ARM Cortex-A76). Memory is scarce.
+**Target hardware**:
+
+- **Primary**: Raspberry Pi 5 (8GB RAM, ARM Cortex-A76) on Kali Linux.
+- **Active port** (branch `install/jetson-port`): NVIDIA Jetson AGX Orin on Ubuntu 22.04 (aarch64). Jetson-specific quirks live in `jetson-port-notes.md`. Key deltas: CPU temp must read `/sys/class/thermal/thermal_zone*/temp` first (hwmon paths differ); HDMI boot needs explicit `modprobe nvidia-drm`; TigerVNC xstartup patched to surface snap-packaged Chromium; sudo pw documented in user memory.
+
+Memory is scarce on both platforms.
 
 **OOM risk**: `svelte-check` uses ~650MB. Never run multiple instances concurrently. The `git-quality-gate.sh` hook runs typecheck before commits; no auto-typecheck on every edit.
 
@@ -285,4 +348,16 @@ Lucide for all navigation and status icons. Material Symbols Sharp for the botto
 
 No `npm install` without user approval. Pin exact versions. No ORMs. No CSS frameworks beyond Tailwind. No state management libraries (Redux/Zustand). No lodash.
 
+**Native addons must stay in `dependencies`, NOT `devDependencies`.** This includes `better-sqlite3` and `node-pty`. `@sveltejs/adapter-node` externalizes only `dependencies` at build time; anything in `devDependencies` gets bundled into the ESM server chunk, which breaks native addons that expect CJS globals (`__filename`, `__dirname`). Symptom: `ReferenceError: __filename is not defined` at server startup.
+
 <!-- MANUAL ADDITIONS END -->
+
+## graphify
+
+This project has a graphify knowledge graph at graphify-out/.
+
+Rules:
+
+- Before answering architecture or codebase questions, read graphify-out/GRAPH_REPORT.md for god nodes and community structure
+- If graphify-out/wiki/index.md exists, navigate it instead of reading raw files
+- After modifying code files in this session, run `graphify update .` to keep the graph current (AST-only, no API cost)

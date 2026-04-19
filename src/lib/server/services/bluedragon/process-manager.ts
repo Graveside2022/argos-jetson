@@ -3,6 +3,8 @@ import { once } from 'node:events';
 import { existsSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 
 import { errMsg } from '$lib/server/api/error-utils';
+import { resourceManager } from '$lib/server/hardware/resource-manager';
+import { HardwareDevice } from '$lib/server/hardware/types';
 import { WebSocketManager } from '$lib/server/kismet/web-socket-manager';
 import type {
 	BluedragonControlResult,
@@ -13,6 +15,23 @@ import type {
 } from '$lib/types/bluedragon';
 import { delay } from '$lib/utils/delay';
 import { logger } from '$lib/utils/logger';
+
+const BD_OWNER = 'bluedragon';
+
+async function releaseB205(): Promise<void> {
+	await resourceManager.release(BD_OWNER, HardwareDevice.B205).catch(() => undefined);
+}
+
+async function claimB205(): Promise<BluedragonControlResult | null> {
+	const claim = await resourceManager.acquire(BD_OWNER, HardwareDevice.B205);
+	if (claim.success) return null;
+	logger.warn('[bluedragon] B205 unavailable', { owner: claim.owner });
+	return {
+		success: false,
+		message: `B205mini is in use by ${claim.owner ?? 'another tool'}`,
+		error: `b205-locked-by:${claim.owner ?? 'unknown'}`
+	};
+}
 
 import { DeviceAggregator } from './device-aggregator';
 import { PcapStreamParser } from './pcap-stream-parser';
@@ -298,18 +317,8 @@ function clearRuntimeState(): void {
 	clearPidFile();
 }
 
-export async function startBluedragon(
-	profile: BluedragonProfile = 'volume',
-	options: BluedragonOptions = {}
-): Promise<BluedragonControlResult> {
-	if (state.status !== 'stopped') {
-		return {
-			success: false,
-			message: 'Blue Dragon is already running or transitioning',
-			error: `Current status: ${state.status}`
-		};
-	}
-
+/** Mark transition to 'starting' + reset frozen snapshot + log the kickoff. */
+function markStarting(profile: BluedragonProfile, options: BluedragonOptions): void {
 	state.status = 'starting';
 	state.frozenDevices = [];
 	state.frozenPacketCount = 0;
@@ -319,31 +328,73 @@ export async function startBluedragon(
 		flags: activeFlagSummary(options),
 		bin: BD_BIN
 	});
+}
 
+/** Spawn the bluedragon process and wire it into runtime state. */
+async function spawnAndAttach(
+	profile: BluedragonProfile,
+	options: BluedragonOptions
+): Promise<BluedragonControlResult> {
+	ensureFifo(BD_PCAP_PATH);
+	const proc = spawn(BD_BIN, buildArgs(profile, options), {
+		stdio: ['ignore', 'pipe', 'pipe']
+	});
+	await waitForSpawn(proc);
+	attachProcessListeners(proc);
+	initRuntimeState(proc, profile, options);
+	broadcastStatus();
+	return {
+		success: true,
+		message: 'Blue Dragon started',
+		details: `PID ${state.pid}, profile ${profile}`
+	};
+}
+
+/** Roll back runtime + B205 claim after a failed spawn. */
+async function handleStartFailure(err: unknown): Promise<BluedragonControlResult> {
+	logger.error('[bluedragon] Start failed', { err: errMsg(err) });
+	clearRuntimeState();
+	await releaseB205();
+	broadcastStatus();
+	return {
+		success: false,
+		message: 'Failed to start Blue Dragon',
+		error: errMsg(err)
+	};
+}
+
+/** Guard: reject starts while not stopped; null = ok to proceed. */
+function stateGuard(): BluedragonControlResult | null {
+	if (state.status === 'stopped') return null;
+	return {
+		success: false,
+		message: 'Blue Dragon is already running or transitioning',
+		error: `Current status: ${state.status}`
+	};
+}
+
+/** Spawn with failure rollback wrapped. */
+async function tryStart(
+	profile: BluedragonProfile,
+	options: BluedragonOptions
+): Promise<BluedragonControlResult> {
 	try {
-		ensureFifo(BD_PCAP_PATH);
-		const proc = spawn(BD_BIN, buildArgs(profile, options), {
-			stdio: ['ignore', 'pipe', 'pipe']
-		});
-		await waitForSpawn(proc);
-		attachProcessListeners(proc);
-		initRuntimeState(proc, profile, options);
-		broadcastStatus();
-		return {
-			success: true,
-			message: 'Blue Dragon started',
-			details: `PID ${state.pid}, profile ${profile}`
-		};
+		return await spawnAndAttach(profile, options);
 	} catch (err) {
-		logger.error('[bluedragon] Start failed', { err: errMsg(err) });
-		clearRuntimeState();
-		broadcastStatus();
-		return {
-			success: false,
-			message: 'Failed to start Blue Dragon',
-			error: errMsg(err)
-		};
+		return handleStartFailure(err);
 	}
+}
+
+export async function startBluedragon(
+	profile: BluedragonProfile = 'volume',
+	options: BluedragonOptions = {}
+): Promise<BluedragonControlResult> {
+	const rejected = stateGuard();
+	if (rejected) return rejected;
+	const conflict = await claimB205();
+	if (conflict) return conflict;
+	markStarting(profile, options);
+	return tryStart(profile, options);
 }
 
 async function terminateProcess(proc: ChildProcess): Promise<void> {
@@ -372,6 +423,7 @@ async function performStop(): Promise<void> {
 	freezeDeviceSnapshot();
 	if (state.process) await terminateProcess(state.process);
 	clearRuntimeState();
+	await releaseB205();
 }
 
 export async function stopBluedragon(): Promise<BluedragonControlResult> {

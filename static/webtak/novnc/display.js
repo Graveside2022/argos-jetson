@@ -14,7 +14,7 @@ export default class Display {
 	constructor(target) {
 		this._drawCtx = null;
 
-		this._renderQ = []; // queue drawing actions for in-oder rendering
+		this._renderQ = []; // queue drawing actions for in-order rendering
 		this._flushPromise = null;
 
 		// the full frame buffer (logical canvas) size
@@ -526,6 +526,9 @@ export default class Display {
 							return;
 						}
 						this.drawImage(a.img, a.x, a.y);
+						// This helps the browser free the memory right
+						// away, rather than ballooning
+						a.img.src = '';
 					} else {
 						a.img._noVNCDisplay = this;
 						a.img.addEventListener('load', this._resumeRenderQ);

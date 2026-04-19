@@ -342,10 +342,14 @@ const RECOVERY_PLANS: Record<string, Record<string, unknown>> = {
 				expected: 'Should show ALFA adapter'
 			},
 			{
-				action: 'Reset monitor mode',
+				action: 'Reset monitor mode (wlan1-scoped, SSH-safe)',
+				// NOTE: do NOT use `airmon-ng check kill` — it kills NetworkManager +
+				// wpa_supplicant globally, which drops the host internet iface (wlan0
+				// on Pi, wlP1p1s0 on Jetson) and severs any SSH/tailscale session.
+				// Scope everything to wlan1 (the Alfa) only.
 				command:
-					'sudo airmon-ng check kill && sudo airmon-ng stop wlan1mon && sudo airmon-ng start wlan1',
-				expected: 'Monitor interface created'
+					'sudo nmcli dev set wlan1 managed no 2>/dev/null; sudo ip link set wlan1 down && sudo iw dev wlan1 set type monitor && sudo ip link set wlan1 up',
+				expected: 'wlan1 is now in monitor mode (kismet_site.conf pins source=wlan1)'
 			},
 			{
 				action: 'Restart service',

@@ -1,9 +1,37 @@
 {
 	"receivers": [
 		{
-			"id": "hackrf0",
-			"enabled": true,
-			"name": "HackRF One",
+			"id": "ism-915",
+			"enabled": false,
+			"name": "ISM 915 MHz (LoRa / keyless / Z-Wave)",
+			"input": {
+				"sps": 8000000,
+				"frequency": 915000000,
+				"signal": "iq",
+				"fft_size": 2048,
+				"audio_sps": 12000,
+				"driver": {
+					"kind": "soapysdr",
+					"device": "driver=hackrf",
+					"channel": 0,
+					"format": "cs16",
+					"gains": {
+						"LNA": 32,
+						"VGA": 30,
+						"AMP": 14
+					},
+					"settings": {}
+				},
+				"defaults": {
+					"frequency": 915000000,
+					"modulation": "NFM"
+				}
+			}
+		},
+		{
+			"id": "ism-2g4",
+			"enabled": false,
+			"name": "ISM 2.4 GHz (Wi-Fi / BLE / Zigbee)",
 			"input": {
 				"sps": 8000000,
 				"frequency": 2437000000,
@@ -16,14 +44,238 @@
 					"channel": 0,
 					"format": "cs16",
 					"gains": {
-						"LNA": 32.0,
-						"VGA": 30.0,
-						"AMP": 14.0
+						"LNA": 32,
+						"VGA": 30,
+						"AMP": 0
 					},
 					"settings": {}
 				},
 				"defaults": {
 					"frequency": 2437000000,
+					"modulation": "USB"
+				}
+			}
+		},
+		{
+			"id": "fpv-5g8",
+			"enabled": true,
+			"name": "FPV video 5.8 GHz (analog + digital)",
+			"input": {
+				"sps": 8000000,
+				"frequency": 5800000000,
+				"signal": "iq",
+				"fft_size": 2048,
+				"audio_sps": 12000,
+				"driver": {
+					"kind": "soapysdr",
+					"device": "driver=hackrf",
+					"channel": 0,
+					"format": "cs16",
+					"gains": {
+						"LNA": 40,
+						"VGA": 40,
+						"AMP": 14
+					},
+					"settings": {}
+				},
+				"defaults": {
+					"frequency": 5800000000,
+					"modulation": "USB"
+				}
+			}
+		},
+		{
+			"id": "wifi-5g-unii1",
+			"enabled": false,
+			"name": "Wi-Fi 5 GHz UNII-1 (ch 36-48)",
+			"input": {
+				"sps": 8000000,
+				"frequency": 5200000000,
+				"signal": "iq",
+				"fft_size": 2048,
+				"audio_sps": 12000,
+				"driver": {
+					"kind": "soapysdr",
+					"device": "driver=hackrf",
+					"channel": 0,
+					"format": "cs16",
+					"gains": {
+						"LNA": 40,
+						"VGA": 40,
+						"AMP": 14
+					},
+					"settings": {}
+				},
+				"defaults": {
+					"frequency": 5200000000,
+					"modulation": "USB"
+				}
+			}
+		},
+		{
+			"id": "gps-l1",
+			"enabled": false,
+			"name": "GPS L1 (1575.42 MHz)",
+			"input": {
+				"sps": 8000000,
+				"frequency": 1575420000,
+				"signal": "iq",
+				"fft_size": 2048,
+				"audio_sps": 12000,
+				"driver": {
+					"kind": "soapysdr",
+					"device": "driver=hackrf",
+					"channel": 0,
+					"format": "cs16",
+					"gains": {
+						"LNA": 40,
+						"VGA": 40,
+						"AMP": 14
+					},
+					"settings": {}
+				},
+				"defaults": {
+					"frequency": 1575420000,
+					"modulation": "USB"
+				}
+			}
+		},
+		{
+			"id": "fm-broadcast",
+			"enabled": false,
+			"name": "FM broadcast (88-108 MHz)",
+			"input": {
+				"sps": 8000000,
+				"frequency": 98000000,
+				"signal": "iq",
+				"fft_size": 2048,
+				"audio_sps": 12000,
+				"driver": {
+					"kind": "soapysdr",
+					"device": "driver=hackrf",
+					"channel": 0,
+					"format": "cs16",
+					"gains": {
+						"LNA": 24,
+						"VGA": 20,
+						"AMP": 0
+					},
+					"settings": {}
+				},
+				"defaults": {
+					"frequency": 100300000,
+					"modulation": "WFM"
+				}
+			}
+		},
+		{
+			"id": "airband-vhf",
+			"enabled": false,
+			"name": "VHF airband (118-137 MHz, AM)",
+			"input": {
+				"sps": 8000000,
+				"frequency": 127000000,
+				"signal": "iq",
+				"fft_size": 2048,
+				"audio_sps": 12000,
+				"driver": {
+					"kind": "soapysdr",
+					"device": "driver=hackrf",
+					"channel": 0,
+					"format": "cs16",
+					"gains": {
+						"LNA": 32,
+						"VGA": 30,
+						"AMP": 14
+					},
+					"settings": {}
+				},
+				"defaults": {
+					"frequency": 124500000,
+					"modulation": "AM"
+				}
+			}
+		},
+		{
+			"id": "ham-2m",
+			"enabled": false,
+			"name": "2 m amateur (144-148 MHz)",
+			"input": {
+				"sps": 8000000,
+				"frequency": 146000000,
+				"signal": "iq",
+				"fft_size": 2048,
+				"audio_sps": 12000,
+				"driver": {
+					"kind": "soapysdr",
+					"device": "driver=hackrf",
+					"channel": 0,
+					"format": "cs16",
+					"gains": {
+						"LNA": 40,
+						"VGA": 30,
+						"AMP": 14
+					},
+					"settings": {}
+				},
+				"defaults": {
+					"frequency": 146520000,
+					"modulation": "NFM"
+				}
+			}
+		},
+		{
+			"id": "frs-gmrs",
+			"enabled": false,
+			"name": "FRS / GMRS (462-467 MHz)",
+			"input": {
+				"sps": 8000000,
+				"frequency": 464500000,
+				"signal": "iq",
+				"fft_size": 2048,
+				"audio_sps": 12000,
+				"driver": {
+					"kind": "soapysdr",
+					"device": "driver=hackrf",
+					"channel": 0,
+					"format": "cs16",
+					"gains": {
+						"LNA": 32,
+						"VGA": 30,
+						"AMP": 14
+					},
+					"settings": {}
+				},
+				"defaults": {
+					"frequency": 462562500,
+					"modulation": "NFM"
+				}
+			}
+		},
+		{
+			"id": "p25-lmr-800",
+			"enabled": false,
+			"name": "P25 / LMR 800 MHz public safety",
+			"input": {
+				"sps": 8000000,
+				"frequency": 854000000,
+				"signal": "iq",
+				"fft_size": 2048,
+				"audio_sps": 12000,
+				"driver": {
+					"kind": "soapysdr",
+					"device": "driver=hackrf",
+					"channel": 0,
+					"format": "cs16",
+					"gains": {
+						"LNA": 32,
+						"VGA": 30,
+						"AMP": 14
+					},
+					"settings": {}
+				},
+				"defaults": {
+					"frequency": 854000000,
 					"modulation": "NFM"
 				}
 			}

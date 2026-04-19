@@ -38,15 +38,19 @@ async function sparrowJson<T>(path: string, fallback: T): Promise<T> {
 	}
 }
 
+/** Interfaces that carry host internet and must never be exposed to capture tools.
+ *  wlan0 = Pi Broadcom onboard; wlP1p1s0 = Jetson Orin onboard WiFi. */
+const INTERNET_IFACES = new Set(['wlan0', 'wlP1p1s0']);
+
 /** GET /wireless/interfaces — list available WiFi interfaces.
- *  Filters out wlan0 which is reserved for internet connectivity. */
+ *  Filters out host-internet ifaces so sparrow cannot put SSH uplink in monitor mode. */
 export async function getWirelessInterfaces(): Promise<string[]> {
 	const data = await sparrowJson<Record<string, unknown>>('/wireless/interfaces', {
 		interfaces: []
 	});
 	const ifaces = data.interfaces;
 	if (!Array.isArray(ifaces)) return [];
-	return (ifaces as string[]).filter((iface) => iface !== 'wlan0');
+	return (ifaces as string[]).filter((iface) => !INTERNET_IFACES.has(iface));
 }
 
 /** GET /wireless/networks/<interface> — scan results for a WiFi interface */

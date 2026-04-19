@@ -11,13 +11,23 @@ WorkingDirectory=__PROJECT_DIR__
 EnvironmentFile=__PROJECT_DIR__/.env
 Environment="NODE_ENV=production"
 Environment="NODE_OPTIONS=--max-old-space-size=1024"
-ExecStart=/usr/bin/node build
+# Pre-spawn tmux-0 on startup so the dashboard Terminal panel opens instantly.
+Environment="ARGOS_TERMINAL_PRESPAWN=1"
+# Custom entrypoint: adapter-node's build/index.js has no 'upgrade' listener, so
+# WebSocket routes (e.g. /terminal-ws) would 404. scripts/ops/prod-server.ts
+# imports the polka handler from build/ and wires the WS upgrade events.
+ExecStart=__NODE_BIN__ --import tsx __PROJECT_DIR__/scripts/ops/prod-server.ts
 Restart=on-failure
 RestartSec=10
 StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=argos
-NoNewPrivileges=true
+# NoNewPrivileges is intentionally NOT set: Argos control endpoints
+# (openwebrx, bluehood, sparrow, kismet, etc.) must invoke `sudo systemctl`
+# to start/stop their native peer services. NoNewPrivileges=true blocks
+# sudo's setuid and breaks all such lifecycle endpoints. Privilege is
+# instead scoped via narrow NOPASSWD rules in /etc/sudoers.d/argos and
+# /etc/sudoers.d/argos-openwebrx.
 PrivateTmp=true
 
 [Install]

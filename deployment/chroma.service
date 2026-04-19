@@ -1,0 +1,33 @@
+[Unit]
+Description=ChromaDB vector server (claude-mem backend)
+Documentation=https://docs.trychroma.com/docs/cli/run
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=jetson2
+Group=jetson2
+# pipx installs chroma to ~/.local/bin; adjust if using system pip
+Environment=PATH=/home/jetson2/.local/bin:/usr/local/bin:/usr/bin:/bin
+# Bind loopback only; claude-mem connects at 127.0.0.1:8000
+ExecStart=/home/jetson2/.local/bin/chroma run \
+  --host 127.0.0.1 \
+  --port 8000 \
+  --path /var/lib/chroma
+Restart=on-failure
+RestartSec=5
+# Data dir must be pre-created and owned by jetson2:
+#   sudo mkdir -p /var/lib/chroma && sudo chown jetson2:jetson2 /var/lib/chroma
+StateDirectory=chroma
+ReadWritePaths=/var/lib/chroma
+# Jetson memory hygiene (Orin is not RAM-starved, but still)
+MemoryHigh=2G
+MemoryMax=3G
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+
+[Install]
+WantedBy=multi-user.target
