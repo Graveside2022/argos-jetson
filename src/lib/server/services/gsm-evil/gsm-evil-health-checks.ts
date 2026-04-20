@@ -1,5 +1,4 @@
-import Database from 'better-sqlite3';
-
+import { hasRecentImsiData, isGsmDatabaseAccessible } from '$lib/server/db/gsm-evil-repository';
 import { env } from '$lib/server/env';
 import { execFileAsync } from '$lib/server/exec';
 import { safe } from '$lib/server/result';
@@ -193,38 +192,6 @@ export async function checkGsmtapPort(health: GsmEvilHealth): Promise<void> {
 	}
 }
 
-/** Test database connectivity by opening and immediately closing the GSM database. */
-async function checkDatabaseAccessibility(dbPath: string): Promise<boolean> {
-	try {
-		const db = new Database(dbPath, { readonly: true });
-		db.close();
-		return true;
-	} catch (error: unknown) {
-		const msg = error instanceof Error ? error.message : String(error);
-		logger.warn('[gsm-evil-health] Database connectivity test failed', { error: msg });
-		return false;
-	}
-}
-
-/** Query the GSM database for IMSI records captured in the last 10 minutes. */
-function checkRecentData(dbPath: string): boolean {
-	const db = new Database(dbPath, { readonly: true });
-	try {
-		const row = db
-			.prepare(
-				"SELECT COUNT(*) as count FROM imsi_data WHERE datetime(date_time) > datetime('now', '-10 minutes')"
-			)
-			.get() as { count: number } | undefined;
-		return (row?.count ?? 0) > 0;
-	} catch (error: unknown) {
-		const msg = error instanceof Error ? error.message : String(error);
-		logger.warn('[gsm-evil-health] Recent data check failed', { error: msg });
-		return false;
-	} finally {
-		db.close();
-	}
-}
-
 /** Check database accessibility and recent data presence, updating the dataFlow section of health. */
 export async function checkDatabaseHealth(health: GsmEvilHealth): Promise<void> {
 	try {
@@ -233,9 +200,9 @@ export async function checkDatabaseHealth(health: GsmEvilHealth): Promise<void> 
 
 		if (!dbPath) return;
 
-		health.dataFlow.isDatabaseAccessible = await checkDatabaseAccessibility(dbPath);
+		health.dataFlow.isDatabaseAccessible = isGsmDatabaseAccessible(dbPath);
 		if (health.dataFlow.isDatabaseAccessible) {
-			health.dataFlow.hasRecentData = checkRecentData(dbPath);
+			health.dataFlow.hasRecentData = hasRecentImsiData(dbPath);
 		}
 	} catch (dbError: unknown) {
 		const msg = dbError instanceof Error ? dbError.message : String(dbError);
