@@ -21,6 +21,7 @@ import { execFileAsync } from '$lib/server/exec';
 import { delay } from '$lib/utils/delay';
 import { logger } from '$lib/utils/logger';
 
+import { resolveBin } from '../vnc-common/resolve-bin';
 import {
 	CHROMIUM_USER_DATA_DIR,
 	WEBTAK_DEPTH,
@@ -30,19 +31,60 @@ import {
 	WEBTAK_WS_PORT
 } from './webtak-vnc-types';
 
+const resolveChromiumBin = () =>
+	resolveBin(
+		[
+			process.env.ARGOS_WEBTAK_CHROMIUM_BIN,
+			'/snap/bin/chromium',
+			'/usr/bin/chromium',
+			'/usr/bin/chromium-browser'
+		],
+		'chromium',
+		'ARGOS_WEBTAK_CHROMIUM_BIN'
+	);
+
+const resolveXtigervncBin = () =>
+	resolveBin(
+		[process.env.ARGOS_VNC_XTIGERVNC_BIN, '/usr/bin/Xtigervnc', '/usr/local/bin/Xtigervnc'],
+		'Xtigervnc',
+		'ARGOS_VNC_XTIGERVNC_BIN'
+	);
+
+const resolveWebsockifyBin = () =>
+	resolveBin(
+		[process.env.ARGOS_VNC_WEBSOCKIFY_BIN, '/usr/bin/websockify', '/usr/local/bin/websockify'],
+		'websockify',
+		'ARGOS_VNC_WEBSOCKIFY_BIN'
+	);
+
 // ───────────────────────────── module state ──────────────────────────────
 
 let xvncProcess: ChildProcess | null = null;
 let chromiumProcess: ChildProcess | null = null;
 let websockifyProcess: ChildProcess | null = null;
 let currentUrl: string | null = null;
+// Latched error from any child's async 'error' event. Cleared at stack start.
+let spawnError: Error | null = null;
+
+function recordSpawnError(label: string, err: Error): void {
+	logger.error(`[webtak-vnc] ${label} error`, { error: err.message });
+	if (!spawnError) spawnError = new Error(`${label}: ${err.message}`);
+}
+
+export function clearSpawnError(): void {
+	spawnError = null;
+}
+
+export function getSpawnError(): Error | null {
+	return spawnError;
+}
 
 // ─────────────────────────────── spawn ──────────────────────────────────
 
 /** Spawn Xtigervnc as a combined X server + VNC server on `:99`. */
 export function spawnXtigervnc(): void {
 	xvncProcess = spawn(
-		'/usr/bin/Xtigervnc',
+		resolveXtigervncBin(),
 		[
 			WEBTAK_VNC_DISPLAY,
 			'-geometry',
@@ -64,7 +106,7 @@ export function spawnXtigervnc(): void {
 		xvncProcess = null;
 	});
 	xvncProcess.on('error', (err) => {
-		logger.error('[webtak-vnc] Xtigervnc error', { error: err.message });
+		recordSpawnError('Xtigervnc', err);
 		xvncProcess = null;
 	});
 }
@@ -85,7 +127,8 @@ export function spawnChromium(url: string): void {
 		`--user-data-dir=${CHROMIUM_USER_DATA_DIR}`,
 		url
 	];
-	chromiumProcess = spawn('/usr/bin/chromium', flags, {
+	const bin = resolveChromiumBin();
+	chromiumProcess = spawn(bin, flags, {
 		env: { ...process.env, DISPLAY: WEBTAK_VNC_DISPLAY },
 		stdio: 'ignore',
 		detached: true
@@ -96,7 +139,7 @@ export function spawnChromium(url: string): void {
 		chromiumProcess = null;
 	});
 	chromiumProcess.on('error', (err) => {
-		logger.error('[webtak-vnc] chromium error', { error: err.message });
+		recordSpawnError('chromium', err);
 		chromiumProcess = null;
 	});
 }
@@ -104,7 +147,7 @@ export function spawnChromium(url: string): void {
 /** Spawn websockify to bridge the VNC port to a WebSocket. */
 export function spawnWebsockify(): void {
 	websockifyProcess = spawn(
-		'/usr/bin/websockify',
+		resolveWebsockifyBin(),
 		[String(WEBTAK_WS_PORT), `localhost:${WEBTAK_VNC_PORT}`],
 		{ stdio: 'ignore', detached: true }
 	);
@@ -114,7 +157,7 @@ export function spawnWebsockify(): void {
 		websockifyProcess = null;
 	});
 	websockifyProcess.on('error', (err) => {
-		logger.error('[webtak-vnc] websockify error', { error: err.message });
+		recordSpawnError('websockify', err);
 		websockifyProcess = null;
 	});
 }

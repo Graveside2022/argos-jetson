@@ -16,6 +16,7 @@ import { execFileAsync } from '$lib/server/exec';
 import { delay } from '$lib/utils/delay';
 import { logger } from '$lib/utils/logger';
 
+import { resolveBin } from '../vnc-common/resolve-bin';
 import {
 	SDRPP_DEPTH,
 	SDRPP_GEOMETRY,
@@ -26,18 +27,47 @@ import {
 	SDRPP_WS_PORT
 } from './sdrpp-vnc-types';
 
+const resolveXtigervncBin = () =>
+	resolveBin(
+		[process.env.ARGOS_VNC_XTIGERVNC_BIN, '/usr/bin/Xtigervnc', '/usr/local/bin/Xtigervnc'],
+		'Xtigervnc',
+		'ARGOS_VNC_XTIGERVNC_BIN'
+	);
+
+const resolveWebsockifyBin = () =>
+	resolveBin(
+		[process.env.ARGOS_VNC_WEBSOCKIFY_BIN, '/usr/bin/websockify', '/usr/local/bin/websockify'],
+		'websockify',
+		'ARGOS_VNC_WEBSOCKIFY_BIN'
+	);
+
 // ───────────────────────────── module state ──────────────────────────────
 
 let xvncProcess: ChildProcess | null = null;
 let sdrppProcess: ChildProcess | null = null;
 let websockifyProcess: ChildProcess | null = null;
+// Latched error from any child's async 'error' event. Cleared at stack start.
+let spawnError: Error | null = null;
+
+function recordSpawnError(label: string, err: Error): void {
+	logger.error(`[sdrpp-vnc] ${label} error`, { error: err.message });
+	if (!spawnError) spawnError = new Error(`${label}: ${err.message}`);
+}
+
+export function clearSpawnError(): void {
+	spawnError = null;
+}
+
+export function getSpawnError(): Error | null {
+	return spawnError;
+}
 
 // ─────────────────────────────── spawn ──────────────────────────────────
 
 /** Spawn Xtigervnc as a combined X server + VNC server on `:97`. */
 export function spawnXtigervnc(): void {
 	xvncProcess = spawn(
-		'/usr/bin/Xtigervnc',
+		resolveXtigervncBin(),
 		[
 			SDRPP_VNC_DISPLAY,
 			'-geometry',
@@ -59,7 +89,7 @@ export function spawnXtigervnc(): void {
 		xvncProcess = null;
 	});
 	xvncProcess.on('error', (err) => {
-		logger.error('[sdrpp-vnc] Xtigervnc error', { error: err.message });
+		recordSpawnError('Xtigervnc', err);
 		xvncProcess = null;
 	});
 }
@@ -112,7 +142,7 @@ export function spawnSdrppGui(): void {
 		sdrppProcess = null;
 	});
 	sdrppProcess.on('error', (err) => {
-		logger.error('[sdrpp-vnc] sdrpp error', { error: err.message });
+		recordSpawnError('sdrpp', err);
 		sdrppProcess = null;
 	});
 }
@@ -120,7 +150,7 @@ export function spawnSdrppGui(): void {
 /** Spawn websockify to bridge the VNC port to a WebSocket. */
 export function spawnWebsockify(): void {
 	websockifyProcess = spawn(
-		'/usr/bin/websockify',
+		resolveWebsockifyBin(),
 		[String(SDRPP_WS_PORT), `localhost:${SDRPP_VNC_PORT}`],
 		{ stdio: 'ignore', detached: true }
 	);
@@ -130,7 +160,7 @@ export function spawnWebsockify(): void {
 		websockifyProcess = null;
 	});
 	websockifyProcess.on('error', (err) => {
-		logger.error('[sdrpp-vnc] websockify error', { error: err.message });
+		recordSpawnError('websockify', err);
 		websockifyProcess = null;
 	});
 }

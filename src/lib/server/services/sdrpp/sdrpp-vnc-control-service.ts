@@ -16,6 +16,8 @@ import { logger } from '$lib/utils/logger';
 
 import {
 	centerSdrppWindow,
+	clearSpawnError,
+	getSpawnError,
 	isStackAlive,
 	killAllProcesses,
 	killOrphansByPort,
@@ -67,20 +69,31 @@ function registerShutdownHandler(): void {
 // ─────────────────────────────── start ──────────────────────────────────
 
 async function spawnStackProcesses(): Promise<void> {
+	clearSpawnError();
+
 	logger.info('[sdrpp-vnc] spawning Xtigervnc');
 	spawnXtigervnc();
 	await delay(400);
+	assertNoSpawnError();
 
 	setVncBackground();
 
 	logger.info('[sdrpp-vnc] spawning SDR++');
 	spawnSdrppGui();
 	await delay(2500);
+	assertNoSpawnError();
 
 	centerSdrppWindow();
 
 	logger.info('[sdrpp-vnc] spawning websockify');
 	spawnWebsockify();
+	await delay(150);
+	assertNoSpawnError();
+}
+
+function assertNoSpawnError(): void {
+	const err = getSpawnError();
+	if (err) throw err;
 }
 
 async function cleanupFailedStart(): Promise<SdrppVncControlResult> {

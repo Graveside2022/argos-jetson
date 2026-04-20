@@ -16,6 +16,8 @@ import { logger } from '$lib/utils/logger';
 
 import {
 	centerSparrowWindow,
+	clearSpawnError,
+	getSpawnError,
 	isStackAlive,
 	isStackAliveByPort,
 	killAllProcesses,
@@ -53,20 +55,31 @@ function registerShutdownHandler(): void {
 // ─────────────────────────────── start ──────────────────────────────────
 
 async function spawnStackProcesses(): Promise<void> {
+	clearSpawnError();
+
 	logger.info('[sparrow-vnc] spawning Xtigervnc');
 	spawnXtigervnc();
 	await delay(400);
+	assertNoSpawnError();
 
 	setVncBackground();
 
 	logger.info('[sparrow-vnc] spawning sparrow-wifi.py');
 	spawnSparrowGui();
 	await delay(1500);
+	assertNoSpawnError();
 
 	centerSparrowWindow();
 
 	logger.info('[sparrow-vnc] spawning websockify');
 	spawnWebsockify();
+	await delay(150);
+	assertNoSpawnError();
+}
+
+function assertNoSpawnError(): void {
+	const err = getSpawnError();
+	if (err) throw err;
 }
 
 async function cleanupFailedStart(): Promise<SparrowVncControlResult> {

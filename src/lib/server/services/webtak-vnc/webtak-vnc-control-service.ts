@@ -17,7 +17,9 @@ import { delay } from '$lib/utils/delay';
 import { logger } from '$lib/utils/logger';
 
 import {
+	clearSpawnError,
 	getCurrentUrl,
+	getSpawnError,
 	isStackAlive,
 	killAllProcesses,
 	killOrphansByPort,
@@ -75,16 +77,27 @@ function validateStartUrl(url: string): WebtakVncControlResult | null {
 }
 
 async function spawnStackProcesses(url: string): Promise<void> {
+	clearSpawnError();
+
 	logger.info('[webtak-vnc] spawning Xtigervnc');
 	spawnXtigervnc();
 	await delay(400);
+	assertNoSpawnError();
 
 	logger.info('[webtak-vnc] spawning chromium', { url });
 	spawnChromium(url);
 	await delay(300);
+	assertNoSpawnError();
 
 	logger.info('[webtak-vnc] spawning websockify');
 	spawnWebsockify();
+	await delay(150);
+	assertNoSpawnError();
+}
+
+function assertNoSpawnError(): void {
+	const err = getSpawnError();
+	if (err) throw err;
 }
 
 async function cleanupFailedStart(): Promise<WebtakVncControlResult> {
