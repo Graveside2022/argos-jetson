@@ -98,7 +98,12 @@ const HARDWARE_PATH_PREFIXES = [
 	'/api/bluehood/',
 	'/api/dragonsync/',
 	'/api/trunk-recorder/',
-	'/api/hardware/'
+	'/api/hardware/',
+
+	// Sensitive SQL-query endpoint (Task #15): raw DB query path sanitized +
+	// readonly + LIMIT-clamped, but the factory-edge still runs arbitrary user
+	// SQL. Belongs on the 30/min tier, not the 200/min generic API budget.
+	'/api/database/query'
 ] as const;
 
 /**
