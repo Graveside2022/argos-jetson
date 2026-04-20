@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 INPUT=$(cat) || exit 0
 TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name' 2>/dev/null) || exit 0
 if [ "$TOOL_NAME" != "Bash" ]; then exit 0; fi

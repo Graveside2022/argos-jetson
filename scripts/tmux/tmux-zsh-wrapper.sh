@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 # Tmux + zsh wrapper for terminal
 
 TMUX_SESSION="argos-claude"

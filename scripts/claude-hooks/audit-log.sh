@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 INPUT=$(cat) || exit 0
 LOG_DIR="$HOME/.claude/sessions"
 mkdir -p "$LOG_DIR" 2>/dev/null || exit 0

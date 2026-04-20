@@ -5,7 +5,7 @@
 # Modes: single check (default), --daemon, --status, --stop
 #
 
-set -uo pipefail
+set -euo pipefail
 
 # Configuration
 ARGOS_SERVICE="argos.service"

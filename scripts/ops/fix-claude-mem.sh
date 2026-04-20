@@ -1,9 +1,8 @@
 #!/bin/bash
+set -euo pipefail
 # scripts/ops/fix-claude-mem.sh
 # Applies fixes for claude-mem process explosion and orphaned process issues.
 # Safe to run multiple times.
-
-set -e
 
 # Path to claude-mem plugins
 PLUGIN_DIR="$HOME/.claude/plugins/cache/thedotmack/claude-mem"

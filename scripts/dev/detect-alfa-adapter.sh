@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 # External WiFi Adapter Detection Script
 # Detects USB WiFi adapters (Alfa, etc.) for Kismet

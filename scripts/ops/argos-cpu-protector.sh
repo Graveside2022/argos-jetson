@@ -3,7 +3,7 @@
 # Monitors RPi 5 CPU temperature and throttle state.
 # Stops non-essential services at critical temps, resumes on recovery.
 # Usage: argos-cpu-protector.sh monitor
-set -uo pipefail
+set -euo pipefail
 
 LOG_TAG="argos-cpu-protector"
 THERMAL_ZONE="/sys/class/thermal/thermal_zone0/temp"

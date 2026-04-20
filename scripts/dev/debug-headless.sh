@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 # debug-headless.sh
 # Launches a headless Chromium instance inside Xvfb for remote debugging.
 # Usage: ./scripts/dev/debug-headless.sh [URL]

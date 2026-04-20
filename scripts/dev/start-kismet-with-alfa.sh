@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 # Dynamic Kismet Startup Script for Alfa Adapters
 # Automatically detects and configures any Alfa adapter

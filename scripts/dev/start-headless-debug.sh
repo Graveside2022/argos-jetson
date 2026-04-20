@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 # scripts/dev/start-headless-debug.sh
 # Automates setup of headless debugging proxy (socat) for Chromium
 

@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 # VS Code Terminal Profile: Tmux 0 (Default)
 # Independent tmux session for primary development work
 # Based on: scripts/tmux-zsh-wrapper.sh (legacy - retained for compatibility)

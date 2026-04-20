@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 # Dedicated script to spawn a terminal tab that immediately tails the system logs
 
 echo -e "\033[1;36m[ARGOS]\033[0m Tailing /tmp/argos-dev.log..."

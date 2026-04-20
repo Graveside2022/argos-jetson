@@ -4,7 +4,7 @@
 # Usage: ./scripts/ops/memory-health-check.sh
 # Exit 0 = all checks pass, exit 1 = one or more FAIL
 
-set -uo pipefail
+set -euo pipefail
 
 # Colors
 RED='\033[0;31m'

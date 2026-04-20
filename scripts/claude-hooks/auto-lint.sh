@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 # auto-lint.sh — PostToolUse hook for Edit|Write
 # Runs ESLint in reporting mode (no --fix) to surface complexity violations
 # that auto-format.sh can't fix (cyclomatic ≤5, cognitive ≤5).
@@ -21,7 +22,7 @@ if [ -f "$LOCKFILE" ]; then
     rm -f "$LOCKFILE"
 fi
 
-cd "$CLAUDE_PROJECT_DIR" || exit 0
+cd "${CLAUDE_PROJECT_DIR:-$PWD}" || exit 0
 
 # Acquire lock
 echo $$ > "$LOCKFILE"

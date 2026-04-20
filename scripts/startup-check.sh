@@ -3,7 +3,7 @@
 # Called by argos-startup.service (Type=oneshot) at boot.
 # Checks critical dependencies, cleans stale state, logs summary.
 # Always exits 0 — warnings are non-fatal.
-set -uo pipefail
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"

@@ -4,7 +4,7 @@
 # Usage: ./scripts/ops/stress-test-memory.sh
 # Cleans up all test artifacts before exiting.
 
-set -uo pipefail
+set -euo pipefail
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'

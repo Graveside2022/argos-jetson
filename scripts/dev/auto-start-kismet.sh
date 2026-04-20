@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 # Auto-start Kismet service
 # Generic startup script - no interface configuration

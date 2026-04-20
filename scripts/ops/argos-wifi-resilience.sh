@@ -3,7 +3,7 @@
 # Monitors wlan0 connectivity and reconnects on failure.
 # SAFETY: ONLY operates on wlan0. Never touches wlan1/wlan1mon (Kismet).
 # Usage: argos-wifi-resilience.sh monitor
-set -uo pipefail
+set -euo pipefail
 
 LOG_TAG="argos-wifi-resilience"
 MANAGED_IFACE="wlan0"

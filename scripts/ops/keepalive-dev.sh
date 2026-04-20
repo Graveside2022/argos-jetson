@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 # scripts/ops/keepalive-dev.sh
 # Monitors and restarts critical dev services (Argos Vite + Socat Debugger)
 #

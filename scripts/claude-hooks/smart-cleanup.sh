@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 # Smart cleanup on session stop — kill orphan vitest processes only
 # Vite is managed by argos-dev-monitor keepalive — never kill it here
 INPUT=$(cat 2>/dev/null) || true

@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 # cleanup-stale-daemons.sh — Kill orphaned claude-mem worker-service daemons
 # Runs on SessionStart to prevent stale bun workers from accumulating.
 #

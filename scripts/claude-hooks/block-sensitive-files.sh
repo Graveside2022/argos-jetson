@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 # block-sensitive-files.sh — PreToolUse hook for Edit|Write
 # Blocks edits to .env files, credentials, secrets, and other sensitive files.
 # Exit code 2 = block the tool call and surface the reason.

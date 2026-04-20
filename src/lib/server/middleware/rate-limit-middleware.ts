@@ -62,19 +62,51 @@ export function getRateLimitKey(event: Parameters<Handle>[0]['event'], prefix: s
 }
 
 /**
+ * Path prefixes that should be rate-limited on the 30 req/min hardware
+ * tier instead of the 200 req/min generic API tier.
+ *
+ * Scope: any endpoint that fronts a physical radio / scanner / capture tool
+ * or an external daemon wrapping one (HackRF, Alfa/Kismet, B205 mini,
+ * RTL-SDR, Bluetooth, GPS-fed recon). Bursts of these can stall hardware
+ * or exhaust process/FD budgets, so they get a smaller bucket.
+ *
+ * TODO(architecture): prefer per-route tier metadata on createHandler({
+ * tier: 'hardware' }) over this prefix list — the list drifts every time a
+ * new hardware domain is added (this patch alone added 9). Track as P2
+ * refactor; do not implement the decorator here.
+ */
+const HARDWARE_PATH_PREFIXES = [
+	// Existing hardware/control routes
+	'/api/hackrf/',
+	'/api/kismet/control/',
+	'/api/droneid/',
+	'/api/rf/',
+	'/api/openwebrx/control/',
+
+	// Expanded per Task #4 (P1 audit): gsm-evil now covered broadly (status,
+	// activity, frames, imsi, scan, etc. all touch the B205/OsmocomBB stack)
+	// — control subpath is subsumed by the domain-wide prefix.
+	'/api/gsm-evil/',
+
+	// Hardware-adjacent recon / SDR / capture tools previously falling to
+	// the 200/min generic API budget.
+	'/api/sparrow/',
+	'/api/sightline/',
+	'/api/sdrpp/',
+	'/api/novasdr/',
+	'/api/bluedragon/',
+	'/api/bluehood/',
+	'/api/dragonsync/',
+	'/api/trunk-recorder/',
+	'/api/hardware/'
+] as const;
+
+/**
  * Check if a path is a hardware control endpoint.
  * Hardware control endpoints have stricter rate limits.
  */
 export function isHardwareControlPath(path: string): boolean {
-	const hwPatterns = [
-		'/api/hackrf/',
-		'/api/kismet/control/',
-		'/api/gsm-evil/control',
-		'/api/droneid/',
-		'/api/rf/',
-		'/api/openwebrx/control/'
-	];
-	return hwPatterns.some((p) => path.startsWith(p));
+	return HARDWARE_PATH_PREFIXES.some((p) => path.startsWith(p));
 }
 
 /** Check if this path should skip rate limiting (streaming/SSE endpoints and map tiles). */
