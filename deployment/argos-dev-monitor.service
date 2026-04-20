@@ -4,6 +4,7 @@ After=network.target
 
 [Service]
 Type=simple
+User=jetson2
 ExecStart=/bin/bash __PROJECT_DIR__/scripts/ops/keepalive-dev.sh
 WorkingDirectory=__PROJECT_DIR__
 Restart=always
