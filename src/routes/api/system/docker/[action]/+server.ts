@@ -1,12 +1,22 @@
 import { json } from '@sveltejs/kit';
 import path from 'path';
+import { z } from 'zod';
 
 import { createHandler } from '$lib/server/api/create-handler';
 import { execFileAsync } from '$lib/server/exec';
 import { delay } from '$lib/utils/delay';
 
 /** Containers that may be managed via this endpoint */
-const VALID_CONTAINERS = ['openwebrx-hackrf', 'bettercap'];
+const VALID_CONTAINERS = ['openwebrx-hackrf', 'bettercap'] as const;
+
+/**
+ * POST body schema. `container` is enum-locked to the known set so
+ * the factory rejects unknown values at the edge (400) — the handler
+ * body no longer needs a manual `VALID_CONTAINERS.includes` check.
+ */
+export const DockerContainerBodySchema = z.object({
+	container: z.enum(VALID_CONTAINERS).describe('Container name to operate on')
+});
 
 /** Derive the compose service name from a container name */
 function toServiceName(container: string): string {
@@ -70,22 +80,20 @@ async function executeAction(action: string, container: string): Promise<Respons
  * Actions: start, stop, restart
  * Body: { container: string } (e.g., "openwebrx-hackrf", "bettercap")
  */
-export const POST = createHandler(async ({ params, request }) => {
-	const action = params.action;
-	if (!action) {
-		return json({ success: false, error: 'Action required' }, { status: 400 });
-	}
+export const POST = createHandler(
+	async ({ params, request }) => {
+		const action = params.action;
+		if (!action) {
+			return json({ success: false, error: 'Action required' }, { status: 400 });
+		}
 
-	const body = await request.json();
-	const { container } = body;
+		// Body shape already validated by factory; parse is safe.
+		const parsed = DockerContainerBodySchema.safeParse(await request.json());
+		if (!parsed.success) {
+			return json({ success: false, error: 'Invalid container name' }, { status: 400 });
+		}
 
-	if (!container || typeof container !== 'string') {
-		return json({ success: false, error: 'Container name required' }, { status: 400 });
-	}
-
-	if (!VALID_CONTAINERS.includes(container)) {
-		return json({ success: false, error: 'Invalid container name' }, { status: 400 });
-	}
-
-	return await executeAction(action, container);
-});
+		return await executeAction(action, parsed.data.container);
+	},
+	{ validateBody: DockerContainerBodySchema }
+);

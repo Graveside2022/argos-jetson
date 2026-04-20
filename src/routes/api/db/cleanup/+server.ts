@@ -6,7 +6,7 @@ import { DatabaseCleanupService } from '$lib/server/db/cleanup-service';
 import { getRFDatabase } from '$lib/server/db/database';
 import { DatabaseOptimizer } from '$lib/server/db/db-optimizer';
 
-const CleanupPostSchema = z.discriminatedUnion('action', [
+export const CleanupPostSchema = z.discriminatedUnion('action', [
 	z.object({
 		action: z.literal('configure'),
 		config: z.record(z.unknown()).optional()
@@ -132,10 +132,13 @@ function executePostAction(body: PostAction, cleanupService: DatabaseCleanupServ
 	return okJson({ message: `Cleaned up aggregated data older than ${body.daysToKeep} days` });
 }
 
-export const POST = createHandler(async ({ request }) => {
-	initializeOptimizer();
-	const cleanupService = getCleanupService();
-	const parsed = parsePostBody(await request.json());
-	if (parsed.error) return parsed.error;
-	return executePostAction(parsed.body as PostAction, cleanupService);
-});
+export const POST = createHandler(
+	async ({ request }) => {
+		initializeOptimizer();
+		const cleanupService = getCleanupService();
+		const parsed = parsePostBody(await request.json());
+		if (parsed.error) return parsed.error;
+		return executePostAction(parsed.body as PostAction, cleanupService);
+	},
+	{ validateBody: CleanupPostSchema }
+);
