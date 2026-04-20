@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { createHandler } from '$lib/server/api/create-handler';
 import { errMsg } from '$lib/server/api/error-utils';
 import { CertManager } from '$lib/server/tak/cert-manager';
+import { withTlsDisabled } from '$lib/server/tak/tls-mutex';
 import { logger } from '$lib/utils/logger';
 
 const EnrollSchema = z.object({
@@ -52,25 +53,6 @@ function matchEnrollmentError(msg: string, hostname: string, port: number): Resp
 		}
 	}
 	return null;
-}
-
-/**
- * Temporarily disable Node TLS verification, run the callback,
- * then restore the original setting. Required for TAK server
- * self-signed certificate enrollment.
- */
-async function withTlsDisabled<T>(fn: () => Promise<T>): Promise<T> {
-	const prev = process.env.NODE_TLS_REJECT_UNAUTHORIZED;
-	process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-	try {
-		return await fn();
-	} finally {
-		if (prev === undefined) {
-			delete process.env.NODE_TLS_REJECT_UNAUTHORIZED;
-		} else {
-			process.env.NODE_TLS_REJECT_UNAUTHORIZED = prev;
-		}
-	}
 }
 
 /** Validate the request body against the enrollment schema. */

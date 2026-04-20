@@ -148,7 +148,11 @@ export class TakService extends EventEmitter {
 		certs: { cert: string; key: string; ca?: string }
 	): Promise<void> {
 		const url = new URL(`ssl://${config.hostname}:${config.port}`);
-		process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+		// NOTE: TAK.connect_ssl passes `rejectUnauthorized` through to
+		// `tls.connect`, so the explicit `rejectUnauthorized: false` below is
+		// sufficient. No process-wide `NODE_TLS_REJECT_UNAUTHORIZED` mutation
+		// is required — that would disable TLS verification for every outbound
+		// TLS connection in the process (see P0 security fix).
 		this.tak = await TAK.connect(url, { ...certs, rejectUnauthorized: false });
 		this.setupEventHandlers();
 		this.reconnectAttempt = 0;
