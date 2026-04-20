@@ -11,7 +11,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 SvelteKit SDR & Network Analysis Console for Army EW training on RPi 5. Wraps native CLI tools (hackrf_sweep, gpsd, Kismet, grgsm_livemon) into a real-time web dashboard with WebSocket push, MapLibre GL mapping, and MIL-STD-2525C symbology.
 
 **Stack**: SvelteKit 2 + Svelte 5 runes, TypeScript strict, Tailwind CSS v4, better-sqlite3, MapLibre GL, ws (WebSocket), node-pty
-**Structure**: 1,011 files across 19 API domains (66 routes, 53 using createHandler), 20 stores, 10 UI component families, 7 always-on MCP servers
+**Structure**: 36 API domains (118 routes, 107 using createHandler), 23 stores, 10 UI component families, 7 always-on MCP servers
 
 Use `serena` symbolic tools + targeted `Grep`/`Glob` for codebase navigation. No static map file is maintained — read the current source.
 
@@ -212,12 +212,12 @@ Hardware (HackRF/Alfa/GPS)
 ```
 src/
 ├── routes/                    # SvelteKit file-based routing
-│   ├── api/                   # 19 API domains (hackrf, kismet, gsm-evil, gps, tak, etc.)
+│   ├── api/                   # 36 API domains (hackrf, kismet, gsm-evil, gps, tak, etc.)
 │   ├── dashboard/             # Dashboard page
 │   ├── gsm-evil/              # GSM monitoring page
 │   └── +page.svelte           # Root page
 ├── lib/
-│   ├── server/                # Server-only code (153 files)
+│   ├── server/                # Server-only code (223 files)
 │   │   ├── auth/              # Fail-closed API key + HMAC session cookie
 │   │   ├── api/               # createHandler factory + error utilities
 │   │   ├── security/          # Rate limiter, CORS, input sanitizer, audit log
@@ -231,8 +231,8 @@ src/
 │   │   ├── gsm/               # GSM L3 decoder (pure, no process spawning)
 │   │   ├── mcp/               # 7 MCP servers + dynamic server + API client
 │   │   └── agent/             # AgentRuntime + tool dispatch (Claude Sonnet 4)
-│   ├── components/            # Svelte 5 components (153 files, 10 families)
-│   ├── stores/                # 20 Svelte stores (Zod-validated, legacy + runes)
+│   ├── components/            # Svelte 5 components (136 files, 10 families)
+│   ├── stores/                # 23 Svelte stores (Zod-validated, legacy + runes)
 │   ├── types/                 # TypeScript type definitions
 │   ├── schemas/               # Zod validation schemas
 │   ├── websocket/             # Client-side WebSocket base class + reconnect

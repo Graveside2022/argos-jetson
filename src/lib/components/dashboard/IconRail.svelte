@@ -180,13 +180,14 @@
 
 	.rail-btn {
 		width: 48px;
-		height: 32px;
+		/* WCAG 2.5.5 minimum tap target — 44×44. Width already 48, height was 32; bumped to 44. */
+		height: 44px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		border: none;
 		background: transparent;
-		color: #808080;
+		color: var(--foreground-secondary);
 		cursor: pointer;
 		border-radius: 4px;
 		position: relative;
@@ -205,23 +206,23 @@
 
 	.rail-btn.active {
 		color: var(--primary);
-		background-color: #ffffff14;
+		background-color: color-mix(in srgb, var(--foreground) 8%, transparent);
 	}
 
-	/* Logo icon — always white, no active state */
+	/* Logo icon — always foreground, no active state */
 	.rail-logo {
-		color: #ffffff;
+		color: var(--foreground);
 	}
 
 	.rail-logo:hover {
-		color: #ffffff;
+		color: var(--foreground);
 	}
 
 	/* Separator line between Layers and Settings */
 	.rail-separator {
 		width: 24px;
 		height: 1px;
-		background: #ffffff1a;
+		background: color-mix(in srgb, var(--foreground) 10%, transparent);
 		margin: 2px 0;
 	}
 

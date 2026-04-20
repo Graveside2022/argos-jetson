@@ -1,85 +1,89 @@
+/**
+ * Dev-tools ad-hoc SELECT runner.
+ *
+ * Gated: `if (!dev)` early-returns a disabled response in production.
+ *
+ * Defense-in-depth stack (all layers must pass before a query runs):
+ *
+ *   1. Zod body schema       — factory `validateBody:` rejects malformed inputs
+ *   2. SQL sanitizer         — strips comments + string literals, then enforces
+ *                              SELECT-only + whole-word DML/DDL blocklist +
+ *                              sqlite_internals-table ban + multi-statement ban
+ *   3. LIMIT wrapper         — wraps query as `SELECT * FROM (<q>) LIMIT 1000`
+ *                              so the clamp survives string-literal bypass
+ *   4. Readonly DB handle    — driver opens the DB with `readonly: true`; even
+ *                              a sanitizer bypass can't write
+ *   5. Error opacity         — driver errors log full detail server-side but
+ *                              the client sees a generic message (no schema leak)
+ *
+ * The Zod schema + sanitizer live in `./query-sanitizer` so the security
+ * logic is unit-testable without the SvelteKit runtime.
+ */
+
 import { dev } from '$app/environment';
 import { createHandler } from '$lib/server/api/create-handler';
-import { errMsg } from '$lib/server/api/error-utils';
-import { getRFDatabase } from '$lib/server/db/database';
+import { runReadOnlyQuery } from '$lib/server/db/query-runner-repository';
+import { logger } from '$lib/utils/logger';
 
-const DANGEROUS_KEYWORDS = [
-	'drop ', 'delete ', 'update ', 'insert ',
-	'alter ', 'create ', 'pragma ', 'attach ', 'detach '
-];
+import {
+	applyLimitClamp,
+	findSanitizerViolation,
+	MAX_ROWS,
+	type QueryRequest,
+	QueryRequestSchema
+} from './query-sanitizer';
 
-/** Check if query contains dangerous SQL keywords. Returns the keyword or null. */
-function findDangerousKeyword(queryLower: string): string | null {
-	for (const keyword of DANGEROUS_KEYWORDS) {
-		if (queryLower.includes(keyword)) return keyword.trim();
-	}
-	return null;
+// Re-export the schema + helpers under underscore-prefixed names for tests.
+export { QueryRequestSchema as _QueryRequestSchema } from './query-sanitizer';
+export { findSanitizerViolation as _findSanitizerViolation } from './query-sanitizer';
+export { applyLimitClamp as _applyLimitClamp } from './query-sanitizer';
+export { MAX_ROWS as _MAX_ROWS } from './query-sanitizer';
+
+interface SafeSuccess {
+	success: true;
+	query: string;
+	row_count: number;
+	execution_time_ms: number;
+	results: unknown[];
+}
+interface SafeReject {
+	success: false;
+	error: string;
 }
 
-/** Validate the query is a safe SELECT. Returns error message or null. */
-function validateQuery(query: unknown): string | null {
-	if (!query || typeof query !== 'string') return 'Query is required and must be a string';
-	const lower = (query as string).toLowerCase().trim();
-	const dangerous = findDangerousKeyword(lower);
-	if (dangerous) return `Query contains disallowed keyword: ${dangerous}. Use read-only SELECT queries only.`;
-	if (!lower.startsWith('select ')) return 'Only SELECT queries are allowed';
-	return null;
+function reject(error: string): SafeReject {
+	return { success: false, error };
 }
 
-/** Enforce LIMIT clause, capping at 1000. Returns final query or error. */
-function enforceLimit(query: string): { query?: string; error?: string } {
-	const lower = query.toLowerCase().trim();
-	if (!lower.includes('limit ')) {
-		return { query: `${query.trim().replace(/;$/, '')} LIMIT 1000` };
-	}
-	const limitMatch = lower.match(/limit\s+(\d+)/);
-	if (limitMatch && parseInt(limitMatch[1]) > 1000) {
-		return { error: 'LIMIT cannot exceed 1000 rows' };
-	}
-	return { query };
-}
-
-/** Execute a prepared SELECT query with optional params. */
-function executeQuery(finalQuery: string, params: unknown[]): { results: unknown[]; duration: number } {
-	const db = getRFDatabase().rawDb;
-	const startTime = Date.now();
-	const results = params.length > 0
-		? db.prepare(finalQuery).all(...params)
-		: db.prepare(finalQuery).all();
-	return { results, duration: Date.now() - startTime };
-}
-
-/** Validate and prepare the query, returning error response or final query. */
-function prepareQuery(query: unknown): { finalQuery?: string; errorMsg?: string } {
-	const valErr = validateQuery(query);
-	if (valErr) return { errorMsg: valErr };
-	const limitResult = enforceLimit(query as string);
-	if (limitResult.error) return { errorMsg: limitResult.error };
-	return { finalQuery: limitResult.query };
-}
-
-// Safe query execution with limits and validation — dev mode only (security: blocklist is bypassable)
-export const POST = createHandler(async ({ request }) => {
-	if (!dev) {
-		return { success: false, error: 'Query endpoint is only available in development mode' };
-	}
-
+function runSanitizedQuery(body: QueryRequest): SafeSuccess | SafeReject {
+	const violation = findSanitizerViolation(body.query);
+	if (violation) return reject(violation);
+	const finalQuery = applyLimitClamp(body.query, MAX_ROWS);
 	try {
-		const body = await request.json();
-		const { query, params = [] } = body;
-
-		const prepared = prepareQuery(query);
-		if (prepared.errorMsg) return { success: false, error: prepared.errorMsg };
-
-		const { results, duration } = executeQuery(prepared.finalQuery as string, params);
+		const { rows, durationMs } = runReadOnlyQuery(finalQuery, body.params);
 		return {
 			success: true,
-			query: prepared.finalQuery,
-			row_count: results.length,
-			execution_time_ms: duration,
-			results
+			query: finalQuery,
+			row_count: rows.length,
+			execution_time_ms: durationMs,
+			results: rows
 		};
 	} catch (error) {
-		return { success: false, error: errMsg(error) };
+		logger.warn('database/query: execution failed', {
+			query: finalQuery,
+			error: error instanceof Error ? error.message : String(error)
+		});
+		return reject('Query failed to execute');
 	}
-});
+}
+
+export const POST = createHandler(
+	async ({ request }) => {
+		if (!dev) return reject('Query endpoint is only available in development mode');
+		// The factory already validated via `validateBody`; the re-parse sees the
+		// same payload (upstream uses `request.clone().json()`).
+		const body = (await request.json()) as QueryRequest;
+		return runSanitizedQuery(body);
+	},
+	{ validateBody: QueryRequestSchema, method: 'POST /api/database/query' }
+);

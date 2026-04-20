@@ -305,7 +305,7 @@
 	.btn-ghost {
 		background: transparent;
 		border: 1px dashed var(--border);
-		color: var(--muted-foreground, #9ca3af);
+		color: var(--muted-foreground);
 		padding: 0.25rem 0.75rem;
 		font-family: 'Fira Code', monospace;
 		font-size: 11px;
@@ -316,8 +316,8 @@
 		cursor: not-allowed;
 	}
 	.btn-ghost.danger:not(:disabled) {
-		border-color: #c45b4a;
-		color: #c45b4a;
+		border-color: var(--error-desat);
+		color: var(--error-desat);
 	}
 	.status {
 		display: flex;
@@ -330,17 +330,17 @@
 		width: 8px;
 		height: 8px;
 		border-radius: 50%;
-		background: var(--muted-foreground, #555);
+		background: var(--inactive);
 	}
 	.status-dot.on {
-		background: #8bbfa0;
+		background: var(--success);
 	}
 	.status-text {
 		font-weight: 600;
 		letter-spacing: 1.2px;
 	}
 	.status-meta {
-		color: var(--muted-foreground, #9ca3af);
+		color: var(--muted-foreground);
 		font-size: 10px;
 	}
 	.actions {
@@ -364,17 +364,17 @@
 		cursor: not-allowed;
 	}
 	.btn-start:not(:disabled) {
-		border-color: #8bbfa0;
-		color: #8bbfa0;
+		border-color: var(--success);
+		color: var(--success);
 	}
 	.btn-stop:not(:disabled) {
-		border-color: #d4a054;
-		color: #d4a054;
+		border-color: var(--warning);
+		color: var(--warning);
 	}
 	.error {
 		padding: 0.5rem 1rem;
-		background: rgba(196, 91, 74, 0.15);
-		color: #ff5c33;
+		background: color-mix(in srgb, var(--error-desat) 15%, transparent);
+		color: var(--destructive);
 		font-family: 'Fira Code', monospace;
 		font-size: 11px;
 	}
@@ -402,7 +402,7 @@
 	.preset-summary dt {
 		text-transform: uppercase;
 		letter-spacing: 1.2px;
-		color: var(--muted-foreground, #9ca3af);
+		color: var(--muted-foreground);
 	}
 	.preset-summary dd {
 		margin: 0;
@@ -416,7 +416,7 @@
 		width: 100%;
 		height: 100%;
 		border: 0;
-		background: #000;
+		background: var(--background);
 	}
 	.iframe-placeholder {
 		display: flex;
@@ -427,6 +427,6 @@
 		gap: 0.5rem;
 		font-family: 'Fira Code', monospace;
 		font-size: 11px;
-		color: var(--muted-foreground, #9ca3af);
+		color: var(--muted-foreground);
 	}
 </style>
