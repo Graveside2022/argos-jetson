@@ -1435,6 +1435,16 @@ install_bluehood() {
   # Jetson jammy ships 3.10 → install python3.11 from jammy universe + venv.
   # Argos control-service expects port 8085 (env.ts:BLUEHOOD_PORT default).
 
+  # Abort if operator selected bluetooth_disable elsewhere — enabling here would
+  # silently undo that decision. Matches the verify rule's two signals.
+  if grep -q 'dtoverlay=disable-bt' /boot/firmware/config.txt 2>/dev/null || \
+     ! systemctl is-enabled --quiet bluetooth 2>/dev/null; then
+    echo "  ERROR: bluetooth_disable appears active (config.txt overlay or unit disabled)."
+    echo "         Bluehood requires BlueZ. Pick one: skip install_bluehood OR re-enable"
+    echo "         bluetooth via: systemctl enable bluetooth && remove dtoverlay=disable-bt"
+    return 1
+  fi
+
   _ensure_pkgs bluez python3.11 python3.11-venv python3.11-dev python3-pip git build-essential
 
   if ! systemctl is-active --quiet bluetooth 2>/dev/null; then
