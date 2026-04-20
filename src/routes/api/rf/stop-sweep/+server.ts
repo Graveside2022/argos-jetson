@@ -8,19 +8,25 @@ import { safeParseWithHandling } from '$lib/utils/validation-error';
 
 import type { RequestHandler } from './$types';
 
-export const POST = createHandler(async ({ request }) => {
-	const rawBody = await request.json();
-	const validated = safeParseWithHandling(StopSweepRequestSchema, rawBody, 'user-action');
-	if (!validated)
-		return json({ status: 'error', message: 'Invalid stop sweep request' }, { status: 400 });
+export const POST = createHandler(
+	async ({ request }) => {
+		const rawBody = await request.json();
+		const validated = safeParseWithHandling(StopSweepRequestSchema, rawBody, 'user-action');
+		if (!validated)
+			return json(
+				{ status: 'error', message: 'Invalid stop sweep request' },
+				{ status: 400 }
+			);
 
-	await sweepManager.stopSweep();
-	return {
-		status: 'success',
-		message: 'Sweep stopped successfully',
-		device: validated.deviceType || 'hackrf'
-	};
-});
+		await sweepManager.stopSweep();
+		return {
+			status: 'success',
+			message: 'Sweep stopped successfully',
+			device: validated.deviceType || 'hackrf'
+		};
+	},
+	{ validateBody: StopSweepRequestSchema }
+);
 
 // Add CORS headers
 export const OPTIONS: RequestHandler = ({ request }) => {

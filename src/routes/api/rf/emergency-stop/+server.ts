@@ -8,23 +8,26 @@ import { safeParseWithHandling } from '$lib/utils/validation-error';
 
 import type { RequestHandler } from './$types';
 
-export const POST = createHandler(async ({ request }) => {
-	const rawBody = await request.json();
-	const validated = safeParseWithHandling(EmergencyStopRequestSchema, rawBody, 'user-action');
-	if (!validated)
-		return json(
-			{ status: 'error', message: 'Invalid emergency stop request' },
-			{ status: 400 }
-		);
+export const POST = createHandler(
+	async ({ request }) => {
+		const rawBody = await request.json();
+		const validated = safeParseWithHandling(EmergencyStopRequestSchema, rawBody, 'user-action');
+		if (!validated)
+			return json(
+				{ status: 'error', message: 'Invalid emergency stop request' },
+				{ status: 400 }
+			);
 
-	await sweepManager.emergencyStop();
-	return {
-		status: 'success',
-		message: 'HackRF emergency stop executed',
-		device: 'hackrf',
-		stopped: true
-	};
-});
+		await sweepManager.emergencyStop();
+		return {
+			status: 'success',
+			message: 'HackRF emergency stop executed',
+			device: 'hackrf',
+			stopped: true
+		};
+	},
+	{ validateBody: EmergencyStopRequestSchema }
+);
 
 // Add CORS headers
 export const OPTIONS: RequestHandler = ({ request }) => {

@@ -58,30 +58,36 @@ async function startSweepCycle(frequencies: FreqResult[], cycleTimeMs: number): 
 	);
 }
 
-export const POST = createHandler(async ({ request }) => {
-	const rawBody = await request.json();
-	const validated = safeParseWithHandling(StartSweepRequestSchema, rawBody, 'user-action');
-	if (!validated)
-		return json({ status: 'error', message: 'Invalid sweep configuration' }, { status: 400 });
+export const POST = createHandler(
+	async ({ request }) => {
+		const rawBody = await request.json();
+		const validated = safeParseWithHandling(StartSweepRequestSchema, rawBody, 'user-action');
+		if (!validated)
+			return json(
+				{ status: 'error', message: 'Invalid sweep configuration' },
+				{ status: 400 }
+			);
 
-	const { frequencies: frequencyRanges, cycleTime } = validated;
-	const frequencies = frequencyRanges
-		.map(toFrequency)
-		.filter((f): f is { value: number; unit: string } => f !== null);
+		const { frequencies: frequencyRanges, cycleTime } = validated;
+		const frequencies = frequencyRanges
+			.map(toFrequency)
+			.filter((f): f is { value: number; unit: string } => f !== null);
 
-	if (frequencies.length === 0) {
-		return json(
-			{
-				status: 'error',
-				message: 'No valid frequencies after parsing',
-				rawFrequencies: frequencyRanges
-			},
-			{ status: 400 }
-		);
-	}
+		if (frequencies.length === 0) {
+			return json(
+				{
+					status: 'error',
+					message: 'No valid frequencies after parsing',
+					rawFrequencies: frequencyRanges
+				},
+				{ status: 400 }
+			);
+		}
 
-	return await startSweepCycle(frequencies, cycleTime * 1000);
-});
+		return await startSweepCycle(frequencies, cycleTime * 1000);
+	},
+	{ validateBody: StartSweepRequestSchema }
+);
 
 // Add CORS headers
 export const OPTIONS: RequestHandler = ({ request }) => {
