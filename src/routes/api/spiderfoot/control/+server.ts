@@ -9,7 +9,7 @@ import {
 } from '$lib/server/services/spiderfoot/spiderfoot-control-service';
 import { safeParseWithHandling } from '$lib/utils/validation-error';
 
-const SpiderfootControlSchema = z.object({
+export const SpiderfootControlSchema = z.object({
 	action: z.enum(['start', 'stop', 'status']).describe('SpiderFoot control action')
 });
 
@@ -31,18 +31,21 @@ const ACTION_HANDLERS: Record<string, () => Promise<SpiderfootResult>> = {
  * Start, stop, or check status of SpiderFoot OSINT tool.
  * Body: { action: "start" | "stop" | "status" }
  */
-export const POST = createHandler(async ({ request }) => {
-	let rawBody: unknown;
-	try {
-		rawBody = await request.json();
-	} catch {
-		return error(400, 'Invalid JSON in request body');
-	}
-	const validated = safeParseWithHandling(SpiderfootControlSchema, rawBody, 'user-action');
-	if (!validated) return error(400, 'Invalid SpiderFoot control request');
+export const POST = createHandler(
+	async ({ request }) => {
+		let rawBody: unknown;
+		try {
+			rawBody = await request.json();
+		} catch {
+			return error(400, 'Invalid JSON in request body');
+		}
+		const validated = safeParseWithHandling(SpiderfootControlSchema, rawBody, 'user-action');
+		if (!validated) return error(400, 'Invalid SpiderFoot control request');
 
-	const { action } = validated;
-	const handler = ACTION_HANDLERS[action];
-	const result = await handler();
-	return action === 'status' ? json(result) : json(result, { status: resultStatus(result) });
-});
+		const { action } = validated;
+		const handler = ACTION_HANDLERS[action];
+		const result = await handler();
+		return action === 'status' ? json(result) : json(result, { status: resultStatus(result) });
+	},
+	{ validateBody: SpiderfootControlSchema }
+);

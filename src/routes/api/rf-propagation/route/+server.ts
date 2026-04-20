@@ -68,17 +68,20 @@ async function computeRouteSegments(validated: ValidatedRoute) {
 	return { segments, totalDistanceM };
 }
 
-export const POST = createHandler(async ({ request }) => {
-	const { validated, errorResponse } = await parseRouteRequest(request);
-	if (!validated) return errorResponse;
+export const POST = createHandler(
+	async ({ request }) => {
+		const { validated, errorResponse } = await parseRouteRequest(request);
+		if (!validated) return errorResponse;
 
-	try {
-		const { segments, totalDistanceM } = await computeRouteSegments(validated);
-		return { success: true, segments, totalDistanceM };
-	} catch (err: unknown) {
-		if (err instanceof CloudRFError) {
-			return json({ success: false, error: err.message }, { status: err.statusCode });
+		try {
+			const { segments, totalDistanceM } = await computeRouteSegments(validated);
+			return { success: true, segments, totalDistanceM };
+		} catch (err: unknown) {
+			if (err instanceof CloudRFError) {
+				return json({ success: false, error: err.message }, { status: err.statusCode });
+			}
+			throw err;
 		}
-		throw err;
-	}
-});
+	},
+	{ validateBody: RouteRequestSchema }
+);

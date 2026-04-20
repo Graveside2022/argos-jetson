@@ -14,7 +14,7 @@ import {
 } from '$lib/server/services/sparrow/sparrow-vnc-control-service';
 import { safeParseWithHandling } from '$lib/utils/validation-error';
 
-const SparrowControlSchema = z.object({
+export const SparrowControlSchema = z.object({
 	action: z.enum(['start', 'stop', 'status']).describe('Sparrow-WiFi control action')
 });
 
@@ -79,18 +79,21 @@ const ACTION_HANDLERS: Record<string, () => Promise<Response>> = {
  * Start, stop, or check status of Sparrow-WiFi (agent + VNC GUI stack).
  * Body: { action: "start" | "stop" | "status" }
  */
-export const POST = createHandler(async ({ request, url }) => {
-	let rawBody: unknown;
-	try {
-		rawBody = await request.json();
-	} catch {
-		throw error(400, 'Invalid JSON body');
-	}
-	const validated = safeParseWithHandling(SparrowControlSchema, rawBody, 'user-action');
-	if (!validated) throw error(400, 'Invalid Sparrow-WiFi control request');
+export const POST = createHandler(
+	async ({ request, url }) => {
+		let rawBody: unknown;
+		try {
+			rawBody = await request.json();
+		} catch {
+			throw error(400, 'Invalid JSON body');
+		}
+		const validated = safeParseWithHandling(SparrowControlSchema, rawBody, 'user-action');
+		if (!validated) throw error(400, 'Invalid Sparrow-WiFi control request');
 
-	const { action } = validated;
-	if (url.searchParams.get('mock') === 'true') return json(MOCK_RESPONSES[action]);
+		const { action } = validated;
+		if (url.searchParams.get('mock') === 'true') return json(MOCK_RESPONSES[action]);
 
-	return ACTION_HANDLERS[action]();
-});
+		return ACTION_HANDLERS[action]();
+	},
+	{ validateBody: SparrowControlSchema }
+);

@@ -1,11 +1,19 @@
 /**
- * Internal helpers for mission-store: prepared statement cache + row mappers.
- * Extracted to keep mission-store.ts under the 300-line file limit.
+ * Mission / capture / capture-emitter / report repository.
+ *
+ * All better-sqlite3 access for the reports-and-missions feature lives
+ * here. Prepared statements are memoized per-Database via a module-scoped
+ * WeakMap so the same compiled statements are reused across calls without
+ * leaking between DB instances; closing the DB lets the GC drop the
+ * cached entry.
+ *
+ * Callers (e.g. services/reports/mission-store.ts) receive row mappers +
+ * prepared-statement handles via stmts(db). They never see the raw SQL.
  */
 
 import type Database from 'better-sqlite3';
 
-import type { CaptureLoadout } from './loadout-hash';
+import type { CaptureLoadout } from '$lib/server/services/reports/loadout-hash';
 import type {
 	CaptureEmitterRow,
 	CaptureRole,
@@ -14,7 +22,7 @@ import type {
 	MissionType,
 	ReportRow,
 	ReportType
-} from './types';
+} from '$lib/server/services/reports/types';
 
 export type Stmts = {
 	insertMission: Database.Statement;

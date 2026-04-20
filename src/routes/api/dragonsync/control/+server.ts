@@ -13,13 +13,16 @@ async function parseJsonBody(request: Request): Promise<unknown> {
 	}
 }
 
-export const POST = createHandler(async ({ request }) => {
-	const rawBody = await parseJsonBody(request);
-	const validated = safeParseWithHandling(DragonSyncControlSchema, rawBody, 'user-action');
-	if (!validated) return error(400, 'Invalid DragonSync control request');
+export const POST = createHandler(
+	async ({ request }) => {
+		const rawBody = await parseJsonBody(request);
+		const validated = safeParseWithHandling(DragonSyncControlSchema, rawBody, 'user-action');
+		if (!validated) return error(400, 'Invalid DragonSync control request');
 
-	const { action } = validated;
-	const result = action === 'start' ? await startDragonSync() : await stopDragonSync();
+		const { action } = validated;
+		const result = action === 'start' ? await startDragonSync() : await stopDragonSync();
 
-	return json(result, { status: result.success ? 200 : 500 });
-});
+		return json(result, { status: result.success ? 200 : 500 });
+	},
+	{ validateBody: DragonSyncControlSchema }
+);

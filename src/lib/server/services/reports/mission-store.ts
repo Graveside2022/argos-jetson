@@ -1,15 +1,16 @@
 /**
- * Mission / capture / report repository.
+ * Mission / capture / report public API.
  *
  * Module of pure functions following the `network-repository` pattern:
- * every function takes the `db` handle as its first argument. Prepared
- * statements are cached per Database instance (see ./mission-store-internals)
- * so the same statements are reused across calls without leaking between DBs.
+ * every function takes the `db` handle as its first argument. The raw
+ * prepared-statement cache and row mappers now live in
+ * `$lib/server/db/mission-repository` — nothing in this file touches
+ * better-sqlite3 directly except via the stmts(db) helper imported from
+ * there, which keeps prepared-statement identity stable per-Database.
  */
 
 import type Database from 'better-sqlite3';
 
-import { type CaptureLoadout, hashLoadout } from './loadout-hash';
 import {
 	captureEmitterRowFromDb,
 	captureRowToCapture,
@@ -17,7 +18,9 @@ import {
 	reportRowToReport,
 	slugify,
 	stmts
-} from './mission-store-internals';
+} from '$lib/server/db/mission-repository';
+
+import { type CaptureLoadout, hashLoadout } from './loadout-hash';
 import type {
 	CaptureEmitterRow,
 	CaptureRole,
