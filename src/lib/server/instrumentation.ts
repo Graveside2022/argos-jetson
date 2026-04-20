@@ -100,6 +100,10 @@ async function bootstrapOtel(): Promise<void> {
 		resource: resourceFromAttributes({
 			[ATTR_SERVICE_NAME]: 'argos',
 			[ATTR_SERVICE_VERSION]: '1.0.0',
+			// Raw process.env read (not via $lib/server/env) — this file runs
+			// BEFORE env.ts so the OTel auto-instrumentation's
+			// `require-in-the-middle` hook can patch better-sqlite3 first.
+			// Importing env.ts here would invert boot order → ESM/CJS error.
 			'deployment.environment': process.env.NODE_ENV ?? 'development'
 		}),
 		traceExporter: new SanitizingExporter(
@@ -121,6 +125,8 @@ async function bootstrapOtel(): Promise<void> {
 	});
 }
 
+// Raw process.env read (not via $lib/server/env) — OTel gate must evaluate
+// before env.ts loads (see NODE_ENV comment above for rationale).
 if (process.env.OTEL_ENABLED === '1') {
 	await bootstrapOtel();
 }

@@ -8,11 +8,12 @@ import { type ChildProcess, spawn } from 'child_process';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
 
+import { env } from '$lib/server/env';
 import { logger } from '$lib/utils/logger';
 
 const execFileAsync = promisify(execFile);
 
-const SPIDERFOOT_PATH = process.env.SPIDERFOOT_PATH || '/usr/bin/spiderfoot';
+const SPIDERFOOT_PATH = env.SPIDERFOOT_PATH;
 const SPIDERFOOT_PORT = 5002;
 const HEALTH_URL = `http://127.0.0.1:${SPIDERFOOT_PORT}/ping`;
 

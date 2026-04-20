@@ -3,7 +3,9 @@
  * Communicates with running Argos app via authenticated API calls
  */
 
-const ARGOS_API = process.env.ARGOS_API_URL || 'http://localhost:5173';
+import { env } from '$lib/server/env';
+
+const ARGOS_API = env.ARGOS_API_URL;
 
 export interface ApiFetchOptions extends globalThis.RequestInit {
 	timeout?: number;
@@ -14,7 +16,7 @@ export interface ApiFetchOptions extends globalThis.RequestInit {
  */
 /** Build auth headers (API key if present). */
 function buildAuthHeaders(): Record<string, string> {
-	const apiKey = process.env.ARGOS_API_KEY || '';
+	const apiKey = env.ARGOS_API_KEY;
 	return apiKey ? { 'X-API-Key': apiKey } : {};
 }
 

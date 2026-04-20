@@ -3,6 +3,7 @@ import type { WebSocket } from 'ws';
 import { WebSocketServer } from 'ws';
 
 import { validateApiKey, validateSessionToken } from '$lib/server/auth/auth-middleware';
+import { env } from '$lib/server/env';
 import { logger } from '$lib/utils/logger';
 
 import type { WebSocketMessage } from './websocket-handlers';
@@ -16,7 +17,7 @@ import { activeIntervals, registerMessageHandlers } from './websocket-handlers';
 const ALLOWED_ORIGINS: string[] = [
 	'http://localhost:5173',
 	'http://127.0.0.1:5173',
-	`http://${process.env.HOSTNAME || 'localhost'}:5173`
+	`http://${env.HOSTNAME ?? 'localhost'}:5173`
 ];
 
 /** Info object passed to verifyClient by the ws library */

@@ -17,6 +17,7 @@
 import { type ChildProcess, spawn } from 'child_process';
 import { connect as netConnect } from 'net';
 
+import { env } from '$lib/server/env';
 import { execFileAsync } from '$lib/server/exec';
 import { delay } from '$lib/utils/delay';
 import { logger } from '$lib/utils/logger';
@@ -34,7 +35,7 @@ import {
 const resolveChromiumBin = () =>
 	resolveBin(
 		[
-			process.env.ARGOS_WEBTAK_CHROMIUM_BIN,
+			env.ARGOS_WEBTAK_CHROMIUM_BIN,
 			'/snap/bin/chromium',
 			'/usr/bin/chromium',
 			'/usr/bin/chromium-browser'
@@ -45,14 +46,14 @@ const resolveChromiumBin = () =>
 
 const resolveXtigervncBin = () =>
 	resolveBin(
-		[process.env.ARGOS_VNC_XTIGERVNC_BIN, '/usr/bin/Xtigervnc', '/usr/local/bin/Xtigervnc'],
+		[env.ARGOS_VNC_XTIGERVNC_BIN, '/usr/bin/Xtigervnc', '/usr/local/bin/Xtigervnc'],
 		'Xtigervnc',
 		'ARGOS_VNC_XTIGERVNC_BIN'
 	);
 
 const resolveWebsockifyBin = () =>
 	resolveBin(
-		[process.env.ARGOS_VNC_WEBSOCKIFY_BIN, '/usr/bin/websockify', '/usr/local/bin/websockify'],
+		[env.ARGOS_VNC_WEBSOCKIFY_BIN, '/usr/bin/websockify', '/usr/local/bin/websockify'],
 		'websockify',
 		'ARGOS_VNC_WEBSOCKIFY_BIN'
 	);

@@ -4,8 +4,7 @@
  * Provides tools for debugging Server-Sent Events (SSE) endpoints
  */
 
-import { config } from 'dotenv';
-
+import { env } from '$lib/server/env';
 import { logger } from '$lib/utils/logger';
 
 import { apiFetch } from '../shared/api-client';
@@ -19,8 +18,7 @@ import {
 	validateSweepData
 } from './streaming-inspector-tools';
 
-// Load .env for ARGOS_API_KEY
-config();
+// $lib/server/env loads dotenv + Zod-validates on import.
 
 class StreamingInspector extends BaseMCPServer {
 	protected tools: ToolDefinition[] = [
@@ -56,8 +54,8 @@ class StreamingInspector extends BaseMCPServer {
 				const duration = Math.min((args.duration_seconds as number) || 10, 60);
 				const validateData = args.validate_data !== false;
 
-				const apiUrl = process.env.ARGOS_API_URL || 'http://localhost:5173';
-				const apiKey = process.env.ARGOS_API_KEY || '';
+				const apiUrl = env.ARGOS_API_URL;
+				const apiKey = env.ARGOS_API_KEY;
 
 				if (!apiKey) {
 					return { status: 'ERROR', error: 'ARGOS_API_KEY not set in environment' };
@@ -192,8 +190,8 @@ class StreamingInspector extends BaseMCPServer {
 			execute: async (args: Record<string, unknown>) => {
 				const streamUrl = args.stream_url as string;
 				const timeout = (args.timeout_seconds as number) || 5;
-				const apiUrl = process.env.ARGOS_API_URL || 'http://localhost:5173';
-				const apiKey = process.env.ARGOS_API_KEY || '';
+				const apiUrl = env.ARGOS_API_URL;
+				const apiKey = env.ARGOS_API_KEY;
 
 				if (!apiKey) {
 					return { status: 'ERROR', error: 'ARGOS_API_KEY not set in environment' };

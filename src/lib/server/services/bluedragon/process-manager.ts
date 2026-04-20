@@ -3,6 +3,7 @@ import { once } from 'node:events';
 import { existsSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 
 import { errMsg } from '$lib/server/api/error-utils';
+import { env } from '$lib/server/env';
 import { resourceManager } from '$lib/server/hardware/resource-manager';
 import { HardwareDevice } from '$lib/server/hardware/types';
 import { WebSocketManager } from '$lib/server/kismet/web-socket-manager';
@@ -37,11 +38,11 @@ import { DeviceAggregator } from './device-aggregator';
 import { PcapStreamParser } from './pcap-stream-parser';
 
 const BD_BIN =
-	process.env.BD_BIN ??
+	env.BD_BIN ??
 	'/home/kali/Documents/Argos/Argos/tactical/blue-dragon/target/release/blue-dragon';
-const BD_PCAP_PATH = process.env.BD_PCAP_PATH ?? '/tmp/bd-live.fifo';
-const BD_INTERFACE = process.env.BD_INTERFACE ?? 'usrp-B205mini-329F4D0';
-const BD_PID_FILE = process.env.BD_PID_FILE ?? '/tmp/argos-bluedragon.pid';
+const BD_PCAP_PATH = env.BD_PCAP_PATH;
+const BD_INTERFACE = env.BD_INTERFACE;
+const BD_PID_FILE = env.BD_PID_FILE;
 const PARSER_START_DELAY_MS = 1000;
 const SIGINT_GRACE_MS = 2000;
 const SIGKILL_GRACE_MS = 500;

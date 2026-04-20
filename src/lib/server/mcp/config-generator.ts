@@ -3,12 +3,10 @@
  * Auto-generates MCP configs for the host Claude CLI
  */
 
-import { config } from 'dotenv';
-config();
-
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
 
+import { env } from '$lib/server/env';
 import { logger } from '$lib/utils/logger';
 
 import type { MCPConfiguration, MCPServerDefinition } from './types';
@@ -54,14 +52,14 @@ const MCP_SERVERS = [
 	}
 ] as const;
 
-const IS_DEV = process.env.NODE_ENV !== 'production';
+const IS_DEV = env.NODE_ENV !== 'production';
 
 /** Standard env vars passed to all MCP servers. */
 function mcpEnv(): Record<string, string> {
 	return {
-		NODE_ENV: process.env.NODE_ENV || 'development',
-		ARGOS_API_URL: process.env.PUBLIC_ARGOS_API_URL || 'http://localhost:5173',
-		ARGOS_API_KEY: process.env.ARGOS_API_KEY || ''
+		NODE_ENV: env.NODE_ENV,
+		ARGOS_API_URL: env.PUBLIC_ARGOS_API_URL,
+		ARGOS_API_KEY: env.ARGOS_API_KEY
 	};
 }
 

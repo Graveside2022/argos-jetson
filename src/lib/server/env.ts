@@ -72,7 +72,40 @@ const envSchema = z.object({
 
 	// Terminal WS pre-spawn toggle — dashboard Terminal panel pre-creates tmux-0.
 	// Default off in prod; dev vite plugin flips it on unless set to '0'.
-	ARGOS_TERMINAL_PRESPAWN: z.enum(['0', '1']).default('0')
+	ARGOS_TERMINAL_PRESPAWN: z.enum(['0', '1']).default('0'),
+
+	// Frontend-public variant of ARGOS_API_URL (Sprint 2 — env.ts consolidation).
+	// Distinct so downstream clients/MCP config generators can expose a URL
+	// reachable from outside the container without leaking an internal address.
+	PUBLIC_ARGOS_API_URL: z.string().url().default('http://localhost:5173'),
+
+	// Service binary paths (Sprint 2 — env.ts consolidation)
+	// Every field below was previously read directly via `process.env.*` in
+	// service-layer files; consolidating here gives us one Zod-validated
+	// singleton and removes ad-hoc nullish fallbacks scattered across consumers.
+	SPIDERFOOT_PATH: z.string().default('/usr/bin/spiderfoot'),
+	NPX_PATH: z.string().default('npx'),
+
+	// Optional binary overrides — empty string means "fall back to the
+	// consumer's PATH search / built-in default list". Kept optional so a
+	// stock install without these overrides continues to boot.
+	ARGOS_VNC_XTIGERVNC_BIN: z.string().optional(),
+	ARGOS_VNC_WEBSOCKIFY_BIN: z.string().optional(),
+	ARGOS_WEBTAK_CHROMIUM_BIN: z.string().optional(),
+	SIGHTLINE_DIR: z.string().optional(),
+
+	// Blue Dragon (SDR over USRP) runtime paths
+	BD_BIN: z.string().optional(),
+	BD_PCAP_PATH: z.string().default('/tmp/bd-live.fifo'),
+	BD_INTERFACE: z.string().default('usrp-B205mini-329F4D0'),
+	BD_PID_FILE: z.string().default('/tmp/argos-bluedragon.pid'),
+
+	// System-provided env vars (optional; consumers supply their own fallbacks).
+	// HOSTNAME → websocket-server default origin; XDG_RUNTIME_DIR → VNC runtime
+	// path for sparrow-wifi. Declared so the validated `env` export stays the
+	// single source of truth for `process.env` reads in src/lib/server/.
+	HOSTNAME: z.string().optional(),
+	XDG_RUNTIME_DIR: z.string().optional()
 });
 
 // Parse and validate environment variables at startup

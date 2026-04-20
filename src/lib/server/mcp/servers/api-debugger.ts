@@ -4,14 +4,11 @@
  * Tools for debugging API endpoints, WebSocket connections, and auth
  */
 
-import { config } from 'dotenv';
-
+import { env } from '$lib/server/env';
 import { logger } from '$lib/utils/logger';
 
 import { apiFetch } from '../shared/api-client';
 import { BaseMCPServer, type ToolDefinition } from '../shared/base-server';
-
-config();
 
 /** Status code to recommendation mapping. */
 const STATUS_CODE_RECS: Record<number, string> = {
@@ -111,7 +108,7 @@ function checkAuthError(err: unknown): DiagResult {
 async function checkStreamingEndpoint(): Promise<DiagResult> {
 	try {
 		const resp = await fetch('http://localhost:5173/api/hackrf/data-stream', {
-			headers: { 'X-API-Key': process.env.ARGOS_API_KEY || '' }
+			headers: { 'X-API-Key': env.ARGOS_API_KEY }
 		});
 		if (resp.headers.get('content-type') !== 'text/event-stream') {
 			return {

@@ -8,6 +8,7 @@ import { type ChildProcess, spawn } from 'child_process';
 import path from 'path';
 
 import { errMsg } from '$lib/server/api/error-utils';
+import { env } from '$lib/server/env';
 import { execFileAsync } from '$lib/server/exec';
 import { delay } from '$lib/utils/delay';
 import { logger } from '$lib/utils/logger';
@@ -26,7 +27,7 @@ export interface SightlineStatusResult {
 }
 
 const SIGHTLINE_PORT = 3001;
-const SIGHTLINE_DIR = process.env.SIGHTLINE_DIR || path.resolve(process.cwd(), '..', 'sightline');
+const SIGHTLINE_DIR = env.SIGHTLINE_DIR ?? path.resolve(process.cwd(), '..', 'sightline');
 const HEALTH_URL = `http://localhost:${SIGHTLINE_PORT}`;
 
 /** Singleton process reference */
@@ -64,16 +65,12 @@ function isProcessAlive(): boolean {
 
 /** Spawn the Sightline Next.js dev server process */
 function spawnSightlineProcess(): void {
-	sightlineProcess = spawn(
-		process.env.NPX_PATH || 'npx',
-		['next', 'dev', '-p', String(SIGHTLINE_PORT)],
-		{
-			cwd: SIGHTLINE_DIR,
-			stdio: 'ignore',
-			detached: true,
-			env: { ...process.env, NODE_ENV: 'development' }
-		}
-	);
+	sightlineProcess = spawn(env.NPX_PATH, ['next', 'dev', '-p', String(SIGHTLINE_PORT)], {
+		cwd: SIGHTLINE_DIR,
+		stdio: 'ignore',
+		detached: true,
+		env: { ...process.env, NODE_ENV: 'development' }
+	});
 
 	sightlineProcess.unref();
 

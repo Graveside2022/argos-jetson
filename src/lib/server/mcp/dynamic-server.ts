@@ -20,8 +20,8 @@ import {
 	ListToolsRequestSchema,
 	ReadResourceRequestSchema
 } from '@modelcontextprotocol/sdk/types.js';
-import { config } from 'dotenv';
 
+import { env } from '$lib/server/env';
 import { logger } from '$lib/utils/logger';
 
 import { createDeviceTools } from './dynamic-server-tools';
@@ -76,10 +76,8 @@ async function fetchResourceData(uri: string, fetcher: typeof apiFetch): Promise
 	return resp.json();
 }
 
-// Load .env for ARGOS_API_KEY (standalone process, not SvelteKit)
-config();
-
-const ARGOS_API = process.env.ARGOS_API_URL || 'http://localhost:5173';
+// $lib/server/env loads dotenv + Zod-validates on import (fail-closed on missing ARGOS_API_KEY).
+const ARGOS_API = env.ARGOS_API_URL;
 
 /**
  * Fetch helper with timeout and API key injection for Argos HTTP API calls.
@@ -87,7 +85,7 @@ const ARGOS_API = process.env.ARGOS_API_URL || 'http://localhost:5173';
  */
 async function apiFetch(path: string, options?: RequestInit): Promise<Response> {
 	const url = `${ARGOS_API}${path}`;
-	const apiKey = process.env.ARGOS_API_KEY || '';
+	const apiKey = env.ARGOS_API_KEY;
 	const resp = await fetch(url, {
 		...options,
 		signal: AbortSignal.timeout(15000),
