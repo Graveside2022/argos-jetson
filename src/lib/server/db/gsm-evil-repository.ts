@@ -44,20 +44,27 @@ interface ImsiCountRow {
  * within the last 10 minutes. Opens a short-lived read-only handle; the
  * handle is always closed before returning (even on query failure).
  */
+function queryImsiCount(db: Database.Database): number {
+	const row = db
+		.prepare(
+			"SELECT COUNT(*) as count FROM imsi_data WHERE datetime(date_time) > datetime('now', '-10 minutes')"
+		)
+		.get() as ImsiCountRow | undefined;
+	return row ? row.count : 0;
+}
+
 export function hasRecentImsiData(dbPath: string): boolean {
-	const db = new Database(dbPath, { readonly: true });
+	let db: Database.Database | null = null;
 	try {
-		const row = db
-			.prepare(
-				"SELECT COUNT(*) as count FROM imsi_data WHERE datetime(date_time) > datetime('now', '-10 minutes')"
-			)
-			.get() as ImsiCountRow | undefined;
-		return (row?.count ?? 0) > 0;
+		db = new Database(dbPath, { readonly: true });
+		return queryImsiCount(db) > 0;
 	} catch (error: unknown) {
 		const msg = error instanceof Error ? error.message : String(error);
 		logger.warn('[gsm-evil-repo] Recent data check failed', { error: msg });
 		return false;
 	} finally {
-		db.close();
+		// Only close if construction actually succeeded — prevents calling
+		// .close() on an undefined handle when the Database(...) ctor throws.
+		if (db) db.close();
 	}
 }

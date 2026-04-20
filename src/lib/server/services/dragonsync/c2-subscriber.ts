@@ -96,8 +96,10 @@ export function stopC2Subscriber(): void {
 		c2Reader = null;
 	}
 	if (c2Child && !c2Child.killed) {
+		// Send SIGTERM but do NOT null c2Child here — the 'exit' handler already
+		// nulls it once the process actually exits. Eager-nulling meant a
+		// subsequent stop() call on a still-running process would skip SIGTERM.
 		c2Child.kill('SIGTERM');
-		c2Child = null;
 	}
 	cachedC2.clear();
 }

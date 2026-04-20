@@ -139,15 +139,31 @@ export function missionRowToMission(row: Record<string, unknown>): Mission {
 	};
 }
 
+/**
+ * Safely parse a JSON-encoded DB column. Raw JSON.parse throws on malformed
+ * input with a cryptic `SyntaxError: Unexpected token ...` that does not
+ * identify the row or field — replace with a descriptive error so the
+ * capture/report import path points at the exact offending row.
+ */
+function parseJsonField<T>(value: unknown, fieldName: string, rowId: string): T {
+	try {
+		return JSON.parse(String(value)) as T;
+	} catch (err) {
+		const msg = err instanceof Error ? err.message : String(err);
+		throw new Error(`Invalid JSON in ${fieldName} for row ${rowId}: ${msg}`);
+	}
+}
+
 export function captureRowToCapture(row: Record<string, unknown>): CaptureRow {
+	const id = String(row.id);
 	return {
-		id: String(row.id),
+		id,
 		mission_id: String(row.mission_id),
 		role: row.role as CaptureRole,
 		start_dtg: Number(row.start_dtg),
 		end_dtg: row.end_dtg == null ? null : Number(row.end_dtg),
 		loadout_hash: String(row.loadout_hash),
-		loadout: JSON.parse(String(row.loadout_json)) as CaptureLoadout,
+		loadout: parseJsonField<CaptureLoadout>(row.loadout_json, 'loadout_json', id),
 		status: row.status as CaptureRow['status']
 	};
 }
@@ -159,7 +175,7 @@ export function reportRowToReport(row: Record<string, unknown>): ReportRow {
 		type: row.type as ReportType,
 		title: String(row.title),
 		generated_at: Number(row.generated_at),
-		capture_ids: JSON.parse(String(row.capture_ids)) as string[],
+		capture_ids: parseJsonField<string[]>(row.capture_ids, 'capture_ids', String(row.id)),
 		flagged_hostile: Number(row.flagged_hostile),
 		flagged_suspect: Number(row.flagged_suspect),
 		emitter_count: Number(row.emitter_count),

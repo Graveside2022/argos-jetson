@@ -17,7 +17,6 @@ import type {
 	BluedragonOptions,
 	BluedragonProfile
 } from '$lib/types/bluedragon';
-import { delay } from '$lib/utils/delay';
 import { logger } from '$lib/utils/logger';
 
 import { activeFlagSummary, buildArgs } from './args';
@@ -42,7 +41,13 @@ const SIGKILL_GRACE_MS = 500;
 const SPAWN_WAIT_MS = 1500;
 
 async function releaseB205(): Promise<void> {
-	await resourceManager.release(BD_OWNER, HardwareDevice.B205).catch(() => undefined);
+	await resourceManager.release(BD_OWNER, HardwareDevice.B205).catch((err) => {
+		logger.warn('[bluedragon] B205 release failed', {
+			err: errMsg(err),
+			owner: BD_OWNER,
+			device: HardwareDevice.B205
+		});
+	});
 }
 
 async function claimB205(): Promise<BluedragonControlResult | null> {
@@ -170,21 +175,50 @@ export async function startBluedragon(
 ): Promise<BluedragonControlResult> {
 	const rejected = stateGuard();
 	if (rejected) return rejected;
-	const conflict = await claimB205();
-	if (conflict) return conflict;
+
+	// Transition to 'starting' BEFORE the async claim so two concurrent callers
+	// that both pass stateGuard() can't both proceed to spawn. If the claim
+	// subsequently fails we roll back to 'stopped' below.
 	markStarting(profile, options);
+
+	const conflict = await claimB205();
+	if (conflict) {
+		state.status = 'stopped';
+		broadcastStatus();
+		return conflict;
+	}
 	return tryStart(profile, options);
 }
 
 async function terminateProcess(proc: ChildProcess): Promise<void> {
-	if (proc.killed) return;
-	proc.kill('SIGINT');
-	await delay(SIGINT_GRACE_MS);
-	if (!proc.killed) {
-		logger.warn('[bluedragon] SIGINT did not stop, sending SIGKILL');
-		proc.kill('SIGKILL');
-		await delay(SIGKILL_GRACE_MS);
+	// proc.killed flips to true the instant kill() dispatches the signal, so the
+	// original `if (!proc.killed)` fallback was dead code. Wait for the real
+	// 'exit' event (or exitCode becoming non-null) before escalating to SIGKILL.
+	if (proc.exitCode !== null || proc.signalCode !== null) return;
+
+	async function waitExit(timeoutMs: number): Promise<boolean> {
+		const ac = new AbortController();
+		let timer: ReturnType<typeof setTimeout> | null = null;
+		const timeout = new Promise<boolean>((resolve) => {
+			timer = setTimeout(() => resolve(false), timeoutMs);
+		});
+		const exitP = once(proc, 'exit', { signal: ac.signal }).then(() => true);
+		try {
+			return await Promise.race([exitP, timeout]);
+		} catch {
+			return proc.exitCode !== null || proc.signalCode !== null;
+		} finally {
+			if (timer) clearTimeout(timer);
+			ac.abort();
+		}
 	}
+
+	proc.kill('SIGINT');
+	if (await waitExit(SIGINT_GRACE_MS)) return;
+
+	logger.warn('[bluedragon] SIGINT did not stop, sending SIGKILL');
+	proc.kill('SIGKILL');
+	await waitExit(SIGKILL_GRACE_MS);
 }
 
 async function performStop(): Promise<void> {
@@ -194,6 +228,8 @@ async function performStop(): Promise<void> {
 	}
 	state.parser?.stop();
 	state.parser = null;
+	state.aggregator?.stop();
+	state.aggregator = null;
 	freezeDeviceSnapshot();
 	if (state.process) await terminateProcess(state.process);
 	clearRuntimeState();
@@ -215,6 +251,10 @@ export async function stopBluedragon(): Promise<BluedragonControlResult> {
 		return { success: true, message: 'Blue Dragon stopped' };
 	} catch (err) {
 		logger.error('[bluedragon] Stop failed', { err: errMsg(err) });
+		// Don't leave state stuck in 'stopping' — that blocks all future
+		// start/stop operations. Reset to 'stopped' so recovery attempts work.
+		state.status = 'stopped';
+		broadcastStatus();
 		return {
 			success: false,
 			message: 'Failed to stop Blue Dragon cleanly',

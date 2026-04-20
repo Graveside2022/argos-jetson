@@ -1,4 +1,7 @@
 #!/bin/bash
+# NB: pgrep exits 1 when no match. Under `set -euo pipefail` that terminates
+# the script before later cleanup branches can run. Guard every pgrep with
+# `|| true` so "no match" is treated as normal (empty loop) rather than fatal.
 set -euo pipefail
 # cleanup-stale-daemons.sh — Kill orphaned claude-mem worker-service daemons
 # Runs on SessionStart to prevent stale bun workers from accumulating.
@@ -32,21 +35,21 @@ while read -r pid ppid rss; do
         FREED_KB=$((FREED_KB + rss))
         kill "$pid" 2>/dev/null && KILLED=$((KILLED + 1))
         # Also kill any MCP server children that were parented to this worker
-        for child in $(pgrep -P "$pid" 2>/dev/null); do
+        for child in $(pgrep -P "$pid" 2>/dev/null || true); do
             child_rss=$(awk '/VmRSS/{print $2}' /proc/"$child"/status 2>/dev/null || echo 0)
             FREED_KB=$((FREED_KB + child_rss))
             kill "$child" 2>/dev/null && KILLED=$((KILLED + 1))
         done
     fi
-done < <(pgrep -f "worker-service\.cjs --daemon" -d $'\n' 2>/dev/null | while read -r p; do
+done < <(pgrep -f "worker-service\.cjs --daemon" -d $'\n' 2>/dev/null | (while read -r p; do
     awk '{print "'"$p"'", $4}' /proc/"$p"/stat 2>/dev/null | while read -r pid ppid; do
         rss=$(awk '/VmRSS/{print $2}' /proc/"$pid"/status 2>/dev/null || echo 0)
         echo "$pid $ppid $rss"
     done
-done)
+done) || true)
 
 # === Stale tshark/dumpcap (>1 hour) ===
-for pid in $(pgrep -f 'tshark|dumpcap' 2>/dev/null); do
+for pid in $(pgrep -f 'tshark|dumpcap' 2>/dev/null || true); do
     elapsed=$(ps -o etimes= -p "$pid" 2>/dev/null | tr -d ' ')
     if [ "${elapsed:-0}" -gt 3600 ]; then
         rss=$(awk '/VmRSS/{print $2}' /proc/"$pid"/status 2>/dev/null || echo 0)
@@ -56,7 +59,7 @@ for pid in $(pgrep -f 'tshark|dumpcap' 2>/dev/null); do
 done
 
 # === Stale puppeteer chromium (>2 hours) ===
-for pid in $(pgrep -f 'chromium.*user-data-dir=/tmp' 2>/dev/null); do
+for pid in $(pgrep -f 'chromium.*user-data-dir=/tmp' 2>/dev/null || true); do
     elapsed=$(ps -o etimes= -p "$pid" 2>/dev/null | tr -d ' ')
     if [ "${elapsed:-0}" -gt 7200 ]; then
         rss=$(awk '/VmRSS/{print $2}' /proc/"$pid"/status 2>/dev/null || echo 0)
@@ -66,7 +69,7 @@ for pid in $(pgrep -f 'chromium.*user-data-dir=/tmp' 2>/dev/null); do
 done
 
 # === Uncontrolled Jaeger (not in cgroup, >300 MB RSS) ===
-for pid in $(pgrep -f 'jaeger-all-in-one' 2>/dev/null); do
+for pid in $(pgrep -f 'jaeger-all-in-one' 2>/dev/null || true); do
     in_cgroup=$(grep -c 'jaeger' /proc/$pid/cgroup 2>/dev/null || echo 0)
     rss_kb=$(awk '/VmRSS/{print $2}' /proc/"$pid"/status 2>/dev/null || echo 0)
     rss_mb=$((rss_kb / 1024))

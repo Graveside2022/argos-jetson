@@ -18,9 +18,12 @@ FAIL=0
 WARN=0
 TEST_FILE="/tmp/argos-stress-test-$$"
 
-pass() { echo -e "  ${GREEN}PASS${RESET}  $1"; ((PASS++)); }
-fail() { echo -e "  ${RED}FAIL${RESET}  $1"; ((FAIL++)); }
-warn() { echo -e "  ${YELLOW}WARN${RESET}  $1"; ((WARN++)); }
+# NB: under `set -e`, post-increment `((X++))` returns the pre-value and exits
+# the script when X was 0. Pre-increment `((++X))` returns the new non-zero
+# value and stays safe.
+pass() { echo -e "  ${GREEN}PASS${RESET}  $1"; ((++PASS)); }
+fail() { echo -e "  ${RED}FAIL${RESET}  $1"; ((++FAIL)); }
+warn() { echo -e "  ${YELLOW}WARN${RESET}  $1"; ((++WARN)); }
 section() { echo -e "\n${CYAN}${BOLD}=== $1 ===${RESET}"; }
 
 cleanup() {

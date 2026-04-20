@@ -25,7 +25,8 @@ export const handleError: HandleClientError = ({ error, event, status }) => {
 	console.error('Unhandled client error occurred', errorDetails);
 
 	return {
-		message: 'An unexpected client error occurred. We have been notified.',
+		message:
+			'An unexpected client error occurred. Please try again or contact support if the issue persists.',
 		errorId
 	};
 };
