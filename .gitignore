@@ -290,8 +290,14 @@ map-data/*.csv
 /.quarto/
 **/*.quarto_ipynb
 
-# Blue Dragon — third-party Rust BLE sniffer, see plans/linear-knitting-flute.md
-tactical/blue-dragon/
+# Blue Dragon — Rust BLE sniffer artifacts ignored; first-party Python tooling tracked
+tactical/blue-dragon/target/
+tactical/blue-dragon/Cargo.lock
+tactical/blue-dragon/crates/
+!tactical/blue-dragon/tools/
+
+# Remediation rollback snapshots (local-only pre-flight state)
+.rollback/
 
 # Security — IDE settings with secrets
 .vscode/settings.json
