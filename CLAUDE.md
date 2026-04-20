@@ -19,41 +19,23 @@ Use `serena` symbolic tools + targeted `Grep`/`Glob` for codebase navigation. No
 
 These rules are non-negotiable. Follow them for every task.
 
-### Rule 1 — BMAD Agent Selection
-
-Before starting any new feature, planning, design, or review work, invoke the correct BMAD agent via the corresponding skill. Do not start implementation without a story/task from the BMAD workflow unless the user explicitly bypasses it.
-
-| Task Type                 | Agent               | Skill                                                                  |
-| ------------------------- | ------------------- | ---------------------------------------------------------------------- |
-| Requirements & research   | Analyst (Mary)      | `/bmad-agent-analyst`                                                  |
-| PRD, epics, stories       | PM (John)           | `/bmad-agent-pm`, `/bmad-create-prd`, `/bmad-create-epics-and-stories` |
-| Architecture & API design | Architect (Winston) | `/bmad-agent-architect`, `/bmad-create-architecture`                   |
-| UI/UX flows & design      | UX Designer (Sally) | `/bmad-agent-ux-designer`, `/bmad-create-ux-design`                    |
-| Sprint planning & stories | Scrum Master (Bob)  | `/bmad-agent-sm`, `/bmad-sprint-planning`, `/bmad-create-story`        |
-| Test strategy & reviews   | QA (Quinn)          | `/bmad-agent-qa`, `/bmad-code-review`, `/bmad-testarch-test-design`    |
-| Story implementation      | Dev (Amelia)        | `/bmad-agent-dev`, `/bmad-dev-story`                                   |
-| Documentation             | Tech Writer (Paige) | `/bmad-agent-tech-writer`                                              |
-| Rapid prototyping         | Quick-flow (Barry)  | `/bmad-agent-quick-flow-solo-dev`                                      |
-
-BMAD output goes to `_bmad-output/`. Config at `_bmad/bmm/config.yaml`. Use `/bmad-help` if unsure which agent to invoke.
-
-### Rule 2 — Chrome DevTools for Frontend Debugging
+### Rule 1 — Chrome DevTools for Frontend Debugging
 
 When debugging any frontend, UI rendering, network, or browser-side issue: use the `chrome-devtools` MCP server BEFORE writing speculative fixes. Inspect DOM state, console errors, network requests, and performance traces in the actual running app. Do not guess at UI bugs — observe them first.
 
-### Rule 3 — claude-mem Prior Work Check
+### Rule 2 — claude-mem Prior Work Check
 
 Before beginning any significant task, search claude-mem (`smart_search`) to check if this work (or equivalent) has been done in prior sessions. This prevents duplicate effort and surfaces prior decisions, failed approaches, and context that would otherwise be lost.
 
-### Rule 4 — Svelte MCP on every .svelte edit
+### Rule 3 — Svelte MCP on every .svelte edit
 
 Before writing or changing any Svelte component, call `mcp__svelte-remote__list-sections` → `get-documentation` → `svelte-autofixer`. Do not send Svelte code to the user unless `svelte-autofixer` returns clean. See the **Svelte MCP** section below for the full sequence.
 
-### Rule 5 — GitHub Access via Octocode Only
+### Rule 4 — GitHub Access via Octocode Only
 
 For ANY GitHub interaction (repo structure, file content, search, PR history): use `mcp__octocode__*` tools ONLY. Do **not** use `gh` CLI. Do **not** use `WebFetch` on `github.com/*` URLs. Octocode respects token scopes, handles pagination cleanly, and avoids auth prompts that break in hooks.
 
-### Rule 6 — Docs via Context7 before WebFetch
+### Rule 5 — Docs via Context7 before WebFetch
 
 For ANY question about a third-party library, framework, SDK, or CLI tool (React, SvelteKit internals, Puppeteer, node-pty, better-sqlite3, etc.): call `mcp__plugin_context7-plugin_context7__resolve-library-id` then `query-docs`. Only fall back to `WebFetch` if context7 has no entry for the library. This avoids stale training-data answers.
 
@@ -263,8 +245,7 @@ scripts/ops/                   # setup-host.sh (provisioning), install-services.
 deployment/                    # Systemd service files (10 services)
 native/apm-runner/             # Navy APM propagation model (C + fork isolation)
 tactical/                      # AI kill chain framework (82 modules, 13 workflows)
-_bmad/                         # BMAD workflow suite (agents, skills, config)
-_bmad-output/                  # BMAD artifacts (planning, implementation, test)
+_bmad-output/                  # Audit + remediation artifacts (read-only reference)
 docs/                          # General documentation
 specs/                         # Feature specifications (016-025)
 plans/                         # Architecture plans and roadmaps
