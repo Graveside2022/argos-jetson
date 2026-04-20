@@ -223,8 +223,9 @@ export class GlobalProtectService {
 		};
 
 		const proc = spawn(
-			'sudo',
+			'/usr/bin/sudo',
 			[
+				'-n',
 				OC_BIN,
 				'--protocol=gp',
 				`--user=${username}`,
@@ -303,7 +304,7 @@ export class GlobalProtectService {
 			this.ocProcess = null;
 		}
 		try {
-			await execFileAsync('sudo', ['/usr/bin/killall', 'openconnect']);
+			await execFileAsync('/usr/bin/sudo', ['-n', '/usr/bin/killall', 'openconnect']);
 			logger.info('[GlobalProtect] Killed existing openconnect processes');
 		} catch {
 			// No openconnect processes running — expected
