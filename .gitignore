@@ -290,11 +290,10 @@ map-data/*.csv
 /.quarto/
 **/*.quarto_ipynb
 
-# Blue Dragon — Rust BLE sniffer artifacts ignored; first-party Python tooling tracked
-tactical/blue-dragon/target/
-tactical/blue-dragon/Cargo.lock
-tactical/blue-dragon/crates/
-!tactical/blue-dragon/tools/
+# Blue Dragon — embedded third-party git repo from alphafox02/blue-dragon
+# Security patches applied via scripts/ops/apply-blue-dragon-patches.sh on install.
+# Patches are tracked in tactical/blue-dragon-patches/ (outside the embedded repo).
+tactical/blue-dragon/
 
 # Remediation rollback snapshots (local-only pre-flight state)
 .rollback/

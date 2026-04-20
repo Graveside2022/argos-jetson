@@ -1,6 +1,7 @@
 import type { Plugin, ViteDevServer } from 'vite';
 
-import { handleTerminalUpgrade, preSpawnDefaultSession } from '../src/lib/server/terminal/index';
+import { handleTerminalUpgrade } from '../src/lib/server/terminal/handler';
+import { preSpawnDefaultSession } from '../src/lib/server/terminal/session';
 
 export function terminalPlugin(): Plugin {
 	return {

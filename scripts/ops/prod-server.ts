@@ -2,10 +2,8 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { createServer } from 'node:http';
 
 import { handler } from '../../build/handler.js';
-import {
-	handleTerminalUpgrade,
-	preSpawnDefaultSession
-} from '../../src/lib/server/terminal/index.js';
+import { handleTerminalUpgrade } from '../../src/lib/server/terminal/handler.js';
+import { preSpawnDefaultSession } from '../../src/lib/server/terminal/session.js';
 
 const PORT = Number(process.env.PORT ?? 5173);
 const HOST = process.env.HOST ?? '0.0.0.0';
