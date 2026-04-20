@@ -10,7 +10,7 @@ import { performGsmScan } from '$lib/server/services/gsm-evil/gsm-scan-service';
  * - `frequency`: accepts string or number (coerced), in MHz
  * - `band`: optional GSM band hint (e.g. 'GSM900', 'DCS1800', 'ALL')
  */
-export const GsmScanRequestSchema = z.object({
+export const _GsmScanRequestSchema = z.object({
 	frequency: z.coerce.number().optional(),
 	band: z.string().max(16).optional()
 });
@@ -22,16 +22,13 @@ export const GsmScanRequestSchema = z.object({
  */
 export const POST = createHandler(
 	async ({ request }) => {
-		const parsed = GsmScanRequestSchema.safeParse(await request.json());
+		const parsed = _GsmScanRequestSchema.safeParse(await request.json());
 		if (!parsed.success) {
-			return json(
-				{ success: false, error: 'Invalid scan request' },
-				{ status: 400 }
-			);
+			return json({ success: false, error: 'Invalid scan request' }, { status: 400 });
 		}
 		const requestedFreq = parsed.data.frequency ?? null;
 		const result = await performGsmScan(requestedFreq);
 		return json(result, { status: result.success ? 200 : 500 });
 	},
-	{ validateBody: GsmScanRequestSchema }
+	{ validateBody: _GsmScanRequestSchema }
 );

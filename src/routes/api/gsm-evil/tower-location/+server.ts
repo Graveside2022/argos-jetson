@@ -16,7 +16,7 @@ import { logger } from '$lib/utils/logger';
  * - `lac`: Location Area Code (0–65535, uint16)
  * - `ci`: Cell Identity (0–268435455, uint28)
  */
-export const GsmTowerLocationRequestSchema = z.object({
+export const _GsmTowerLocationRequestSchema = z.object({
 	mcc: z.coerce.number().int().min(0).max(999),
 	mnc: z.coerce.number().int().min(0).max(999),
 	lac: z.coerce.number().int().min(0).max(65535),
@@ -212,27 +212,30 @@ async function resolveTowerLocation(params: CellParams): Promise<LocationResult>
 	return { found: false, message: 'Tower not found in database or API' };
 }
 
-export const POST = createHandler(async ({ request }) => {
-	const body = await request.json();
+export const POST = createHandler(
+	async ({ request }) => {
+		const body = await request.json();
 
-	let params: CellParams;
-	try {
-		params = validateCellParams(body);
-	} catch (validationError) {
-		return json(
-			{
-				success: false,
-				message: `Invalid parameter: ${(validationError as Error).message}`
-			},
-			{ status: 400 }
-		);
-	}
+		let params: CellParams;
+		try {
+			params = validateCellParams(body);
+		} catch (validationError) {
+			return json(
+				{
+					success: false,
+					message: `Invalid parameter: ${(validationError as Error).message}`
+				},
+				{ status: 400 }
+			);
+		}
 
-	const result = await resolveTowerLocation(params);
+		const result = await resolveTowerLocation(params);
 
-	if (!result.found && result.message === 'OPENCELLID_API_KEY not configured') {
-		return json({ success: false, message: result.message }, { status: 503 });
-	}
+		if (!result.found && result.message === 'OPENCELLID_API_KEY not configured') {
+			return json({ success: false, message: result.message }, { status: 503 });
+		}
 
-	return { success: true, ...result };
-}, { validateBody: GsmTowerLocationRequestSchema });
+		return { success: true, ...result };
+	},
+	{ validateBody: _GsmTowerLocationRequestSchema }
+);

@@ -10,7 +10,7 @@ import { logger } from '$lib/utils/logger';
  * Zod schema for GSM Evil control POST request
  * Task: T030 - Constitutional Audit Remediation (P1)
  */
-export const GsmEvilControlRequestSchema = z.object({
+export const _GsmEvilControlRequestSchema = z.object({
 	action: z.enum(['start', 'stop']).describe('Control action: start or stop GSM monitoring'),
 	frequency: z
 		.string()
@@ -49,41 +49,44 @@ const actionHandlers: Record<string, (frequency?: string) => Promise<Response>> 
  * Start or stop GSM Evil monitoring (grgsm_livemon_headless + GsmEvil2)
  * Body: { action: "start" | "stop", frequency?: string }
  */
-export const POST = createHandler(async ({ request }) => {
-	try {
-		const rawBody = await request.json();
+export const POST = createHandler(
+	async ({ request }) => {
+		try {
+			const rawBody = await request.json();
 
-		// Validate request body with Zod (T030)
-		const validationResult = GsmEvilControlRequestSchema.safeParse(rawBody);
+			// Validate request body with Zod (T030)
+			const validationResult = _GsmEvilControlRequestSchema.safeParse(rawBody);
 
-		if (!validationResult.success) {
+			if (!validationResult.success) {
+				return json(
+					{
+						success: false,
+						message: 'Invalid request body',
+						errors: validationResult.error.format()
+					},
+					{ status: 400 }
+				);
+			}
+
+			const { action, frequency } = validationResult.data;
+			const handler = actionHandlers[action];
+
+			if (!handler) {
+				return json({ success: false, message: 'Invalid action' }, { status: 400 });
+			}
+
+			return await handler(frequency);
+		} catch (error: unknown) {
+			logger.error('Control API error', { error: errMsg(error) });
 			return json(
 				{
 					success: false,
-					message: 'Invalid request body',
-					errors: validationResult.error.format()
+					message: 'Invalid request',
+					error: errMsg(error)
 				},
 				{ status: 400 }
 			);
 		}
-
-		const { action, frequency } = validationResult.data;
-		const handler = actionHandlers[action];
-
-		if (!handler) {
-			return json({ success: false, message: 'Invalid action' }, { status: 400 });
-		}
-
-		return await handler(frequency);
-	} catch (error: unknown) {
-		logger.error('Control API error', { error: errMsg(error) });
-		return json(
-			{
-				success: false,
-				message: 'Invalid request',
-				error: errMsg(error)
-			},
-			{ status: 400 }
-		);
-	}
-}, { validateBody: GsmEvilControlRequestSchema });
+	},
+	{ validateBody: _GsmEvilControlRequestSchema }
+);

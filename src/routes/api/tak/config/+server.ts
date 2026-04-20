@@ -7,7 +7,7 @@ import { loadTakConfig } from '$lib/server/tak/tak-db';
 import { TakService } from '$lib/server/tak/tak-service';
 import type { TakServerConfig } from '$lib/types/tak';
 
-export const TakConfigSchema = z.object({
+export const _TakConfigSchema = z.object({
 	id: z.string().uuid().optional(),
 	name: z.string().min(1).max(256),
 	hostname: z.string().min(1).max(253),
@@ -32,23 +32,26 @@ export const GET = createHandler(async () => {
 	return config ?? null;
 });
 
-export const POST = createHandler(async ({ request }) => {
-	const parsed = TakConfigSchema.safeParse(await request.json());
-	if (!parsed.success) {
-		return json(
-			{ success: false, error: parsed.error.issues.map((i) => i.message).join('; ') },
-			{ status: 400 }
-		);
-	}
+export const POST = createHandler(
+	async ({ request }) => {
+		const parsed = _TakConfigSchema.safeParse(await request.json());
+		if (!parsed.success) {
+			return json(
+				{ success: false, error: parsed.error.issues.map((i) => i.message).join('; ') },
+				{ status: 400 }
+			);
+		}
 
-	const config = parsed.data as TakServerConfig;
-	if (!config.id) {
-		config.id = crypto.randomUUID();
-	}
+		const config = parsed.data as TakServerConfig;
+		if (!config.id) {
+			config.id = crypto.randomUUID();
+		}
 
-	// saveConfig handles DB persistence + in-memory update + reconnect
-	const service = TakService.getInstance();
-	await service.saveConfig(config);
+		// saveConfig handles DB persistence + in-memory update + reconnect
+		const service = TakService.getInstance();
+		await service.saveConfig(config);
 
-	return { success: true, config };
-}, { validateBody: TakConfigSchema });
+		return { success: true, config };
+	},
+	{ validateBody: _TakConfigSchema }
+);

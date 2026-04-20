@@ -7,7 +7,7 @@ import { CertManager } from '$lib/server/tak/cert-manager';
 import { withTlsDisabled } from '$lib/server/tak/tls-mutex';
 import { logger } from '$lib/utils/logger';
 
-export const EnrollSchema = z.object({
+export const _EnrollSchema = z.object({
 	hostname: z.string().min(1).max(253),
 	port: z.number().int().min(1).max(65535).default(8446),
 	username: z.string().min(1).max(256),
@@ -56,8 +56,8 @@ function matchEnrollmentError(msg: string, hostname: string, port: number): Resp
 }
 
 /** Validate the request body against the enrollment schema. */
-function parseEnrollRequest(body: unknown): z.infer<typeof EnrollSchema> | Response {
-	const parsed = EnrollSchema.safeParse(body);
+function parseEnrollRequest(body: unknown): z.infer<typeof _EnrollSchema> | Response {
+	const parsed = _EnrollSchema.safeParse(body);
 	if (!parsed.success) {
 		return json(
 			{ success: false, error: parsed.error.issues.map((i) => i.message).join('; ') },
@@ -122,13 +122,16 @@ async function enrollAndSaveCerts(body: unknown): Promise<Response | Record<stri
 	};
 }
 
-export const POST = createHandler(async ({ request }) => {
-	try {
-		return await enrollAndSaveCerts(await request.json());
-	} catch (err) {
-		if (isInputValidationError(err)) {
-			return json({ success: false, error: err.message }, { status: 400 });
+export const POST = createHandler(
+	async ({ request }) => {
+		try {
+			return await enrollAndSaveCerts(await request.json());
+		} catch (err) {
+			if (isInputValidationError(err)) {
+				return json({ success: false, error: err.message }, { status: 400 });
+			}
+			throw err;
 		}
-		throw err;
-	}
-}, { validateBody: EnrollSchema });
+	},
+	{ validateBody: _EnrollSchema }
+);

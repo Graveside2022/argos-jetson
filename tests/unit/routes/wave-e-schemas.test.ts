@@ -19,11 +19,11 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import { GsmEvilControlRequestSchema } from '../../../src/routes/api/gsm-evil/control/+server';
-import { GsmScanRequestSchema } from '../../../src/routes/api/gsm-evil/scan/+server';
-import { GsmTowerLocationRequestSchema } from '../../../src/routes/api/gsm-evil/tower-location/+server';
-import { TakConfigSchema } from '../../../src/routes/api/tak/config/+server';
-import { EnrollSchema } from '../../../src/routes/api/tak/enroll/+server';
+import { _GsmEvilControlRequestSchema as GsmEvilControlRequestSchema } from '../../../src/routes/api/gsm-evil/control/+server';
+import { _GsmScanRequestSchema as GsmScanRequestSchema } from '../../../src/routes/api/gsm-evil/scan/+server';
+import { _GsmTowerLocationRequestSchema as GsmTowerLocationRequestSchema } from '../../../src/routes/api/gsm-evil/tower-location/+server';
+import { _TakConfigSchema as TakConfigSchema } from '../../../src/routes/api/tak/config/+server';
+import { _EnrollSchema as EnrollSchema } from '../../../src/routes/api/tak/enroll/+server';
 
 describe('TakConfigSchema (tak/config POST)', () => {
 	it('accepts a minimal TLS TAK server config', () => {
