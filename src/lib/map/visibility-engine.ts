@@ -1,6 +1,10 @@
+import { z } from 'zod';
+
 import { persistedWritable } from '$lib/stores/persisted-writable';
 
-export type VisibilityMode = 'dynamic' | 'all' | 'manual';
+/** Accepted visibility modes — the Zod schema is the single source of truth. */
+export const VisibilityModeSchema = z.enum(['dynamic', 'all', 'manual']);
+export type VisibilityMode = z.infer<typeof VisibilityModeSchema>;
 
 /** Signal strength threshold for "Dynamic Filter" mode (dBm). Devices weaker than this are hidden. */
 const DYNAMIC_RSSI_THRESHOLD = -80;
@@ -13,7 +17,7 @@ const DYNAMIC_RECENCY_SECS = 300;
  *  'dynamic' auto-squelches weak/stale signals.
  */
 export const visibilityMode = persistedWritable<VisibilityMode>('argos-visibility-mode-v2', 'all', {
-	validate: (v) => (['dynamic', 'all', 'manual'].includes(v) ? v : null)
+	schema: VisibilityModeSchema
 });
 
 /** Set of manually promoted device MACs — visible in all modes */

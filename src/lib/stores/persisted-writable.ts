@@ -3,6 +3,7 @@
  * Eliminates manual .subscribe() calls for persistence.
  */
 import { type Writable, writable } from 'svelte/store';
+import type { ZodType } from 'zod';
 
 import { browser } from '$app/environment';
 
@@ -11,29 +12,46 @@ interface PersistedWritableOptions<T> {
 	serialize?: (value: T) => string;
 	/** Custom deserializer (default: JSON.parse) */
 	deserialize?: (raw: string) => T;
-	/** Validate/transform the deserialized value; return null to use defaultValue */
+	/**
+	 * Zod schema — preferred validation path. Returned value is `schema.safeParse(parsed).data`
+	 * on success, falling back to `defaultValue` on failure. Supersedes the legacy `validate` shim.
+	 */
+	schema?: ZodType<T>;
+	/**
+	 * Transform/validate the deserialized value; return null to use defaultValue.
+	 * @deprecated Prefer `schema` with a `ZodType<T>`. Kept for callers that need
+	 * arbitrary post-deserialize transforms (e.g. merging defaults into a partial object).
+	 */
 	validate?: (value: T) => T | null;
 }
 
-/**
- * Creates a writable store that persists to localStorage.
- *
- * - Reads initial value from localStorage (falling back to defaultValue on parse error)
- * - Writes every change back to localStorage
- * - SSR-safe: returns defaultValue on server
- *
- * @param key - localStorage key
- * @param defaultValue - fallback when nothing is stored or parse fails
- * @param options - custom serialize/deserialize/validate
- */
+/** Normalized validator signature: `(parsed) => value-or-null`. */
+type Validator<T> = (parsed: unknown) => T | null;
+
+/** Pick whichever validation path the caller specified (schema wins over legacy validate). */
+function buildValidator<T>(options?: PersistedWritableOptions<T>): Validator<T> | undefined {
+	if (options?.schema) {
+		const schema = options.schema;
+		return (parsed) => {
+			const result = schema.safeParse(parsed);
+			return result.success ? result.data : null;
+		};
+	}
+	if (options?.validate) {
+		const validate = options.validate;
+		return (parsed) => validate(parsed as T);
+	}
+	return undefined;
+}
+
 /** Apply optional validation, returning defaultValue on null. */
 function applyValidation<T>(
-	parsed: T,
-	validate: ((v: T) => T | null) | undefined,
+	parsed: unknown,
+	validator: Validator<T> | undefined,
 	defaultValue: T
 ): T {
-	if (!validate) return parsed;
-	const validated = validate(parsed);
+	if (!validator) return parsed as T;
+	const validated = validator(parsed);
 	return validated !== null ? validated : defaultValue;
 }
 
@@ -42,13 +60,13 @@ function loadFromStorage<T>(
 	key: string,
 	defaultValue: T,
 	deserialize: (raw: string) => T,
-	validate?: (v: T) => T | null
+	validator: Validator<T> | undefined
 ): T {
 	if (!browser) return defaultValue;
 	try {
 		const raw = localStorage.getItem(key);
 		if (raw === null) return defaultValue;
-		return applyValidation(deserialize(raw) as T, validate, defaultValue);
+		return applyValidation(deserialize(raw), validator, defaultValue);
 	} catch {
 		return defaultValue;
 	}
@@ -75,6 +93,17 @@ function resolveDeserializer<T>(options?: PersistedWritableOptions<T>): (raw: st
 	return options?.deserialize ?? JSON.parse;
 }
 
+/**
+ * Creates a writable store that persists to localStorage.
+ *
+ * - Reads initial value from localStorage (falling back to defaultValue on parse error)
+ * - Writes every change back to localStorage
+ * - SSR-safe: returns defaultValue on server
+ *
+ * @param key - localStorage key
+ * @param defaultValue - fallback when nothing is stored or parse fails
+ * @param options - custom serialize/deserialize + Zod schema (preferred) or legacy validate
+ */
 export function persistedWritable<T>(
 	key: string,
 	defaultValue: T,
@@ -82,7 +111,8 @@ export function persistedWritable<T>(
 ): Writable<T> {
 	const serialize = resolveSerializer(options);
 	const deserialize = resolveDeserializer(options);
-	const store = writable<T>(loadFromStorage(key, defaultValue, deserialize, options?.validate));
+	const validator = buildValidator(options);
+	const store = writable<T>(loadFromStorage(key, defaultValue, deserialize, validator));
 	if (browser) store.subscribe((value) => saveToStorage(key, value, serialize));
 	return store;
 }
