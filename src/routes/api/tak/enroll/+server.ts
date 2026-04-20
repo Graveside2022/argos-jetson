@@ -7,7 +7,7 @@ import { CertManager } from '$lib/server/tak/cert-manager';
 import { withTlsDisabled } from '$lib/server/tak/tls-mutex';
 import { logger } from '$lib/utils/logger';
 
-const EnrollSchema = z.object({
+export const EnrollSchema = z.object({
 	hostname: z.string().min(1).max(253),
 	port: z.number().int().min(1).max(65535).default(8446),
 	username: z.string().min(1).max(256),
@@ -131,4 +131,4 @@ export const POST = createHandler(async ({ request }) => {
 		}
 		throw err;
 	}
-});
+}, { validateBody: EnrollSchema });

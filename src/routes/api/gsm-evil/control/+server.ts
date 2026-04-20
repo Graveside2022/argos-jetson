@@ -10,7 +10,7 @@ import { logger } from '$lib/utils/logger';
  * Zod schema for GSM Evil control POST request
  * Task: T030 - Constitutional Audit Remediation (P1)
  */
-const GsmEvilControlRequestSchema = z.object({
+export const GsmEvilControlRequestSchema = z.object({
 	action: z.enum(['start', 'stop']).describe('Control action: start or stop GSM monitoring'),
 	frequency: z
 		.string()
@@ -86,4 +86,4 @@ export const POST = createHandler(async ({ request }) => {
 			{ status: 400 }
 		);
 	}
-});
+}, { validateBody: GsmEvilControlRequestSchema });

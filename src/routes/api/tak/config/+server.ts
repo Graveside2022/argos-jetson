@@ -7,7 +7,7 @@ import { loadTakConfig } from '$lib/server/tak/tak-db';
 import { TakService } from '$lib/server/tak/tak-service';
 import type { TakServerConfig } from '$lib/types/tak';
 
-const TakConfigSchema = z.object({
+export const TakConfigSchema = z.object({
 	id: z.string().uuid().optional(),
 	name: z.string().min(1).max(256),
 	hostname: z.string().min(1).max(253),
@@ -51,4 +51,4 @@ export const POST = createHandler(async ({ request }) => {
 	await service.saveConfig(config);
 
 	return { success: true, config };
-});
+}, { validateBody: TakConfigSchema });

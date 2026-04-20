@@ -1,4 +1,5 @@
 <script lang="ts">
+	import PanelEmptyState from '$lib/components/ui/PanelEmptyState.svelte';
 	import type { KismetDevice } from '$lib/kismet/types';
 	import type { ReconAlert, ReconTarget } from '$lib/stores/dashboard/recon-store';
 	import { getSignalHex } from '$lib/utils/signal-utils';
@@ -303,7 +304,12 @@
 					</tr>
 				{:else}
 					<tr>
-						<td colspan="8" class="empty-row"> No priority targets detected </td>
+						<td colspan="8" class="empty-row">
+							<PanelEmptyState
+								title="No priority targets detected"
+								description="Kismet capture is healthy, but no devices match priority criteria yet."
+							/>
+						</td>
 					</tr>
 				{/each}
 			</tbody>

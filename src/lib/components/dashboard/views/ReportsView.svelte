@@ -11,6 +11,7 @@
 		X
 	} from '@lucide/svelte';
 
+	import PanelEmptyState from '$lib/components/ui/PanelEmptyState.svelte';
 	import { persistedWritable } from '$lib/stores/persisted-writable';
 
 	const reportsPreviewHeight = persistedWritable<number>('reportsPreviewHeight', 360, {});
@@ -368,14 +369,12 @@
 				</button>
 			</div>
 		{:else if filteredReports.length === 0}
-			<div class="state-card empty-card">
-				<p class="state-title">NO REPORTS</p>
-				<p class="state-detail">
-					{reports.length === 0
-						? 'No reports have been generated yet.'
-						: 'No reports match the current filter.'}
-				</p>
-			</div>
+			<PanelEmptyState
+				title="No reports"
+				description={reports.length === 0
+					? 'No reports have been generated yet.'
+					: 'No reports match the current filter.'}
+			/>
 		{:else}
 			<div class="grid" role="table" aria-label="Reports">
 				<div class="grid-head" role="row">

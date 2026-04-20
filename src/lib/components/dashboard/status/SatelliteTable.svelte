@@ -1,4 +1,5 @@
 <script lang="ts">
+	import PanelEmptyState from '$lib/components/ui/PanelEmptyState.svelte';
 	import type { Satellite } from '$lib/gps/types';
 
 	import { fetchSatelliteData } from './status-bar-data';
@@ -70,6 +71,11 @@
 			>
 		</div>
 	</div>
+{:else if satellitesExpanded}
+	<PanelEmptyState
+		title="No satellite data"
+		description="Waiting for GPS fix — ensure gpsd is running and the antenna has sky view"
+	/>
 {/if}
 
 <style>

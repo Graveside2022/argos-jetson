@@ -1,11 +1,27 @@
 import { json } from '@sveltejs/kit';
 import Database from 'better-sqlite3';
 import path from 'path';
+import { z } from 'zod';
 
 import { createHandler } from '$lib/server/api/create-handler';
 import { env } from '$lib/server/env';
 import { validateNumericParam } from '$lib/server/security/input-sanitizer';
 import { logger } from '$lib/utils/logger';
+
+/**
+ * Zod schema for GSM tower-location POST body.
+ * Coerces numeric strings → numbers and enforces GSM cell-identifier ranges.
+ * - `mcc`: Mobile Country Code (0–999)
+ * - `mnc`: Mobile Network Code (0–999)
+ * - `lac`: Location Area Code (0–65535, uint16)
+ * - `ci`: Cell Identity (0–268435455, uint28)
+ */
+export const GsmTowerLocationRequestSchema = z.object({
+	mcc: z.coerce.number().int().min(0).max(999),
+	mnc: z.coerce.number().int().min(0).max(999),
+	lac: z.coerce.number().int().min(0).max(65535),
+	ci: z.coerce.number().int().min(0).max(268435455)
+});
 
 interface TowerLocationData {
 	lat: number;
@@ -219,4 +235,4 @@ export const POST = createHandler(async ({ request }) => {
 	}
 
 	return { success: true, ...result };
-});
+}, { validateBody: GsmTowerLocationRequestSchema });

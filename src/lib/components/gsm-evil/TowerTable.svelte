@@ -3,6 +3,7 @@
 
 	import Badge from '$lib/components/ui/badge/badge.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
+	import PanelEmptyState from '$lib/components/ui/PanelEmptyState.svelte';
 	import TableRoot from '$lib/components/ui/table/table.svelte';
 	import TableBody from '$lib/components/ui/table/table-body.svelte';
 	import TableCell from '$lib/components/ui/table/table-cell.svelte';
@@ -260,15 +261,10 @@
 				</Table.Body>
 			</Table.Root>
 		{:else}
-			<div class="flex flex-col gap-1 p-8 font-mono text-sm">
-				<p class="text-muted-foreground">No IMSIs captured yet...</p>
-				<p class="text-muted-foreground/60">
-					Listening for mobile devices on {selectedFrequency} MHz
-				</p>
-				<p class="text-muted-foreground/60">
-					IMSI sniffer is active - devices will appear here
-				</p>
-			</div>
+			<PanelEmptyState
+				title="No IMSIs captured yet"
+				description="IMSI sniffer is active on {selectedFrequency} MHz — mobile devices will appear here as they attach."
+			/>
 		{/if}
 	</div>
 </div>

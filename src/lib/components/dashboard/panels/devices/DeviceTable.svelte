@@ -1,4 +1,5 @@
 <script lang="ts">
+	import PanelEmptyState from '$lib/components/ui/PanelEmptyState.svelte';
 	import type { KismetDevice } from '$lib/kismet/types';
 	import { isolatedDeviceMAC } from '$lib/stores/dashboard/dashboard-store';
 	import { kismetStore } from '$lib/stores/tactical-map/kismet-store';
@@ -140,9 +141,15 @@
 				<tr>
 					<td colspan="11" class="empty-row">
 						{#if $kismetStore.status !== 'running'}
-							Start Kismet to see devices
+							<PanelEmptyState
+								title="Start Kismet to see devices"
+								description="The Wi-Fi scanner is stopped. Start it from the Tools panel to begin capture."
+							/>
 						{:else}
-							No devices match filters
+							<PanelEmptyState
+								title="No devices match filters"
+								description="Clear or widen the active filter set to see captured devices."
+							/>
 						{/if}
 					</td>
 				</tr>

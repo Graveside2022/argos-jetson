@@ -8,6 +8,7 @@
 	import { onMount } from 'svelte';
 
 	import { browser } from '$app/environment';
+	import PanelEmptyState from '$lib/components/ui/PanelEmptyState.svelte';
 
 	let gsmStatus: 'stopped' | 'starting' | 'running' | 'stopping' = $state('stopped');
 	let gsmBusy = $state(false);
@@ -151,10 +152,10 @@
 			<p class="empty-sub">{error}</p>
 		</div>
 	{:else if signals.length === 0}
-		<div class="captures-empty">
-			<p class="empty-title">No captures recorded</p>
-			<p class="empty-sub">Start a scan to begin capturing signals</p>
-		</div>
+		<PanelEmptyState
+			title="No captures recorded"
+			description="Start a scan to begin capturing signals"
+		/>
 	{:else}
 		<div class="captures-table">
 			<div class="table-header">
