@@ -2,11 +2,10 @@ import { type ChildProcess, spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 
 import { getRFDatabase } from '$lib/server/db/database';
+import { loadGpConfig, saveGpConfig } from '$lib/server/db/globalprotect-repository';
 import { execFileAsync } from '$lib/server/exec';
 import type { GlobalProtectConfig, GlobalProtectStatus } from '$lib/types/globalprotect';
 import { logger } from '$lib/utils/logger';
-
-import { loadGpConfig, saveGpConfig } from './globalprotect-db';
 
 const OC_BIN = '/usr/sbin/openconnect';
 const TUN_DEVICE = 'tun0';
