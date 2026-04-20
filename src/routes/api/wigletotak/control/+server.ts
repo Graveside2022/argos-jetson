@@ -13,7 +13,7 @@ import {
 } from '$lib/server/services/wigletotak/wigletotak-control-service';
 import { safeParseWithHandling } from '$lib/utils/validation-error';
 
-const WigleTotakControlSchema = z.object({
+export const WigleTotakControlSchema = z.object({
 	action: z.enum(['start', 'stop', 'status']).describe('WigleToTAK control action')
 });
 
@@ -41,15 +41,18 @@ const ACTION_HANDLERS: Record<string, () => Promise<AnyResult>> = {
  * Start, stop, or check status of the WigleToTAK Flask process.
  * Body: { action: "start" | "stop" | "status" }
  */
-export const POST = createHandler(async ({ request, url }) => {
-	const rawBody = await request.json();
-	const validated = safeParseWithHandling(WigleTotakControlSchema, rawBody, 'user-action');
-	if (!validated) return error(400, 'Invalid WigleToTAK control request');
+export const POST = createHandler(
+	async ({ request, url }) => {
+		const rawBody = await request.json();
+		const validated = safeParseWithHandling(WigleTotakControlSchema, rawBody, 'user-action');
+		if (!validated) return error(400, 'Invalid WigleToTAK control request');
 
-	const { action } = validated;
-	if (url.searchParams.get('mock') === 'true') return json(MOCK_RESPONSES[action]);
+		const { action } = validated;
+		if (url.searchParams.get('mock') === 'true') return json(MOCK_RESPONSES[action]);
 
-	const handler = ACTION_HANDLERS[action];
-	const result = await handler();
-	return action === 'status' ? json(result) : json(result, { status: resultStatus(result) });
-});
+		const handler = ACTION_HANDLERS[action];
+		const result = await handler();
+		return action === 'status' ? json(result) : json(result, { status: resultStatus(result) });
+	},
+	{ validateBody: WigleTotakControlSchema }
+);

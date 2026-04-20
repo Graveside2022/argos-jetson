@@ -21,7 +21,7 @@ import {
 } from '$lib/server/services/webtak-vnc/webtak-vnc-control-service';
 import { safeParseWithHandling } from '$lib/utils/validation-error';
 
-const WebtakVncControlSchema = z.discriminatedUnion('action', [
+export const WebtakVncControlSchema = z.discriminatedUnion('action', [
 	z.object({
 		action: z.literal('start'),
 		url: z.string().url().describe('TAK server URL to load in the remote Chromium')
@@ -39,23 +39,26 @@ function resultStatus(result: WebtakVncResult): number {
 	return 'error' in result && result.error ? 400 : 500;
 }
 
-export const POST = createHandler(async ({ request }) => {
-	let rawBody: unknown;
-	try {
-		rawBody = await request.json();
-	} catch {
-		return error(400, 'Invalid JSON in request body');
-	}
-	const validated = safeParseWithHandling(WebtakVncControlSchema, rawBody, 'user-action');
-	if (!validated) return error(400, 'Invalid WebTAK VNC control request');
+export const POST = createHandler(
+	async ({ request }) => {
+		let rawBody: unknown;
+		try {
+			rawBody = await request.json();
+		} catch {
+			return error(400, 'Invalid JSON in request body');
+		}
+		const validated = safeParseWithHandling(WebtakVncControlSchema, rawBody, 'user-action');
+		if (!validated) return error(400, 'Invalid WebTAK VNC control request');
 
-	if (validated.action === 'start') {
-		const result = await startWebtakVnc(validated.url);
-		return json(result, { status: resultStatus(result) });
-	}
-	if (validated.action === 'stop') {
-		const result = await stopWebtakVnc();
-		return json(result, { status: resultStatus(result) });
-	}
-	return json(getWebtakVncStatus());
-});
+		if (validated.action === 'start') {
+			const result = await startWebtakVnc(validated.url);
+			return json(result, { status: resultStatus(result) });
+		}
+		if (validated.action === 'stop') {
+			const result = await stopWebtakVnc();
+			return json(result, { status: resultStatus(result) });
+		}
+		return json(getWebtakVncStatus());
+	},
+	{ validateBody: WebtakVncControlSchema }
+);
