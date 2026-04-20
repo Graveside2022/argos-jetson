@@ -6,7 +6,9 @@
 	import { buildTerminalTheme } from '$lib/components/dashboard/terminal/terminal-theme';
 	import { updateSessionConnection } from '$lib/stores/dashboard/terminal-store';
 	import { themeStore } from '$lib/stores/theme-store.svelte';
+	import { WebSocketEvent } from '$lib/types/enums';
 	import { logger } from '$lib/utils/logger';
+	import { BaseWebSocket } from '$lib/websocket/base';
 
 	import TerminalErrorOverlay from './TerminalErrorOverlay.svelte';
 
@@ -21,23 +23,54 @@
 
 	let terminalEl: HTMLDivElement | undefined = $state();
 	let connectionError = $state(false);
-	let _actualShell = $state(shell);
 
 	const WS_MAX_RETRIES = 5;
 	const WS_BASE_DELAY_MS = 500; // 500ms, 1s, 2s, 4s, 8s
 
+	/**
+	 * Terminal WebSocket transport — BaseWebSocket subclass preserving the
+	 * original retry semantics (500ms base, 2× backoff, 5 max attempts).
+	 * Heartbeat is disabled because the /terminal-ws protocol is a raw PTY
+	 * stream and has no ping/pong support on the server side (handler.ts).
+	 */
+	class TerminalWebSocket extends BaseWebSocket {
+		protected onConnected(): void {
+			/* wired via WebSocketEvent.Open listener below */
+		}
+		protected onDisconnected(): void {
+			/* wired via WebSocketEvent.Close listener below */
+		}
+		protected onError(_error: Error): void {
+			/* wired via WebSocketEvent.Error listener below */
+		}
+		protected sendHeartbeat(): void {
+			/* no-op: terminal wire protocol has no heartbeat */
+		}
+		protected startHeartbeat(): void {
+			/* no-op: override to prevent heartbeat timer from firing */
+		}
+		protected handleIncomingMessage(data: unknown): void {
+			// Raw PTY output arrives as strings that fail JSON.parse in
+			// BaseWebSocket.parseMessage → write straight to xterm.
+			// Control messages ({ type: 'ready' | 'reattached' | 'exit', ... })
+			// are routed via onMessage() handlers, so skip them here.
+			if (typeof data !== 'string') return;
+			terminal?.write(data);
+		}
+	}
+
 	// References for cleanup
 	let terminal: import('@xterm/xterm').Terminal | null = null;
 	let fitAddon: import('@xterm/addon-fit').FitAddon | null = null;
-	let ws: WebSocket | null = null;
+	let ws: TerminalWebSocket | null = null;
 	let resizeObserver: ResizeObserver | null = null;
-	let wsRetryTimer: ReturnType<typeof setTimeout> | null = null;
 	let destroyed = false;
+	let consecutiveCloses = 0;
 
 	// Focus terminal when becoming active; connect if not yet connected
 	$effect(() => {
 		if (isActive && terminal) {
-			if (!ws && !destroyed) connectWebSocket(0);
+			if (!ws && !destroyed) connectWebSocket();
 			requestAnimationFrame(() => {
 				terminal?.focus();
 				fitAddon?.fit();
@@ -59,20 +92,20 @@
 		return shellPath.split('/').pop() || 'terminal';
 	}
 
-	/** Send a resize message to the terminal WebSocket. */
-	function sendResize(sock: WebSocket) {
-		if (!terminal) return;
-		sock.send(JSON.stringify({ type: 'resize', cols: terminal.cols, rows: terminal.rows }));
+	/** Send a resize message over the active terminal WebSocket. */
+	function sendResize() {
+		if (!terminal || !ws?.isConnected()) return;
+		ws.send({ type: 'resize', cols: terminal.cols, rows: terminal.rows });
 	}
 
-	/** Handle a session-ready or reattached message. */
-	function handleSessionReady(msg: { shell: string }, sock: WebSocket, isReattach: boolean) {
-		_actualShell = msg.shell;
+	/** Handle a session-ready or reattached control message. */
+	function handleSessionReady(msg: unknown, isReattach: boolean) {
+		const shellName = (msg as { shell?: string }).shell ?? shell;
 		updateSessionConnection(sessionId, true);
-		onTitleChange?.(resolveShellName(msg.shell));
+		onTitleChange?.(resolveShellName(shellName));
 		if (isReattach)
 			terminal?.write('\r\n\x1b[90m[terminal reconnected - session restored]\x1b[0m\r\n');
-		sendResize(sock);
+		sendResize();
 	}
 
 	/** Handle the 'exit' control message. */
@@ -81,84 +114,49 @@
 		updateSessionConnection(sessionId, false);
 	}
 
-	/** Dispatch a parsed control message. Returns true if recognized. */
-	function dispatchControlMsg(msg: { type: string; shell?: string }, sock: WebSocket): boolean {
-		if (msg.type === 'ready') {
-			handleSessionReady(msg as { shell: string }, sock, false);
-			return true;
-		}
-		if (msg.type === 'reattached') {
-			handleSessionReady(msg as { shell: string }, sock, true);
-			return true;
-		}
-		if (msg.type === 'exit') {
-			handleSessionExit();
-			return true;
-		}
-		return false;
-	}
-
-	/** Try to parse and handle a control message. Returns true if handled. */
-	function handleControlMessage(data: string, sock: WebSocket): boolean {
-		try {
-			return dispatchControlMsg(JSON.parse(data), sock);
-		} catch {
-			return false;
-		}
-	}
-
-	/** Whether a reconnection attempt should be made. */
-	function shouldRetry(attempt: number): boolean {
-		return !destroyed && attempt < WS_MAX_RETRIES && !connectionError;
-	}
-
-	/** Handle WebSocket close with retry logic. */
-	function handleWebSocketClose(attempt: number) {
-		if (shouldRetry(attempt)) {
-			const delay = WS_BASE_DELAY_MS * Math.pow(2, attempt);
-			logger.warn('Terminal connection failed, retrying', {
-				sessionId,
-				attempt: attempt + 1,
-				maxRetries: WS_MAX_RETRIES,
-				delayMs: delay
-			});
-			wsRetryTimer = setTimeout(() => connectWebSocket(attempt + 1), delay);
-		} else if (!destroyed && attempt >= WS_MAX_RETRIES) {
-			logger.warn('Terminal retries exhausted, showing error', {
-				sessionId,
-				maxRetries: WS_MAX_RETRIES
-			});
-			connectionError = true;
-		}
-	}
-
-	function connectWebSocket(attempt: number) {
+	function connectWebSocket() {
 		if (destroyed) return;
 
 		const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-		const sock = new WebSocket(`${protocol}//${window.location.host}/terminal-ws`);
+		const sock = new TerminalWebSocket({
+			url: `${protocol}//${window.location.host}/terminal-ws`,
+			reconnectInterval: WS_BASE_DELAY_MS,
+			reconnectBackoffMultiplier: 2,
+			maxReconnectInterval: 30_000,
+			maxReconnectAttempts: WS_MAX_RETRIES,
+			heartbeatInterval: 30_000
+		});
 		ws = sock;
 
-		sock.onopen = () => {
+		sock.onMessage('ready', (data) => handleSessionReady(data, false));
+		sock.onMessage('reattached', (data) => handleSessionReady(data, true));
+		sock.onMessage('exit', () => handleSessionExit());
+
+		sock.on(WebSocketEvent.Open, () => {
 			connectionError = false;
+			consecutiveCloses = 0;
 			logger.info('Terminal WebSocket connected, sending init', { sessionId });
-			sock.send(JSON.stringify({ type: 'init', shell, sessionId }));
-		};
+			sock.send({ type: 'init', shell, sessionId });
+		});
 
-		sock.onmessage = (e) => {
-			if (typeof e.data !== 'string') return;
-			if (handleControlMessage(e.data, sock)) return;
-			terminal?.write(e.data);
-		};
-
-		sock.onerror = () => {
+		sock.on(WebSocketEvent.Close, () => {
 			updateSessionConnection(sessionId, false);
-		};
+			consecutiveCloses++;
+			if (!destroyed && consecutiveCloses > WS_MAX_RETRIES) {
+				logger.warn('Terminal retries exhausted, showing error', {
+					sessionId,
+					maxRetries: WS_MAX_RETRIES
+				});
+				connectionError = true;
+				sock.disconnect();
+			}
+		});
 
-		sock.onclose = () => {
+		sock.on(WebSocketEvent.Error, () => {
 			updateSessionConnection(sessionId, false);
-			handleWebSocketClose(attempt);
-		};
+		});
+
+		sock.connect();
 	}
 
 	onMount(async () => {
@@ -209,15 +207,15 @@
 
 		// Forward terminal input to backend
 		terminal.onData((data) => {
-			if (ws?.readyState === WebSocket.OPEN) {
-				ws.send(JSON.stringify({ type: 'input', data }));
+			if (ws?.isConnected()) {
+				ws.send({ type: 'input', data });
 			}
 		});
 
 		// Forward resize events to backend
 		terminal.onResize(({ cols, rows }) => {
-			if (ws?.readyState === WebSocket.OPEN) {
-				ws.send(JSON.stringify({ type: 'resize', cols, rows }));
+			if (ws?.isConnected()) {
+				ws.send({ type: 'resize', cols, rows });
 			}
 		});
 
@@ -231,16 +229,15 @@
 		// Only connect WebSocket for the active tab — inactive tabs connect lazily
 		// when the user switches to them (via the $effect above)
 		if (isActive) {
-			connectWebSocket(0);
+			connectWebSocket();
 			terminal.focus();
 		}
 	});
 
 	onDestroy(() => {
 		destroyed = true;
-		if (wsRetryTimer) clearTimeout(wsRetryTimer);
 		resizeObserver?.disconnect();
-		ws?.close();
+		ws?.destroy();
 		terminal?.dispose();
 	});
 </script>
