@@ -9,7 +9,7 @@ import {
 } from '$lib/server/services/kismet/kismet-control-service-extended';
 import { safeParseWithHandling } from '$lib/utils/validation-error';
 
-export const KismetControlSchema = z.object({
+export const _KismetControlSchema = z.object({
 	action: z.enum(['start', 'stop', 'status']).describe('Kismet control action')
 });
 
@@ -51,7 +51,7 @@ async function executeKismetAction(action: string) {
 export const POST = createHandler(
 	async ({ request, url }) => {
 		const rawBody = await request.json();
-		const validated = safeParseWithHandling(KismetControlSchema, rawBody, 'user-action');
+		const validated = safeParseWithHandling(_KismetControlSchema, rawBody, 'user-action');
 		if (!validated) return error(400, 'Invalid Kismet control request');
 
 		const { action } = validated;
@@ -59,5 +59,5 @@ export const POST = createHandler(
 
 		return await executeKismetAction(action);
 	},
-	{ validateBody: KismetControlSchema }
+	{ validateBody: _KismetControlSchema }
 );

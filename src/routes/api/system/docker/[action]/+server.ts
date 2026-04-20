@@ -14,7 +14,7 @@ const VALID_CONTAINERS = ['openwebrx-hackrf', 'bettercap'] as const;
  * the factory rejects unknown values at the edge (400) — the handler
  * body no longer needs a manual `VALID_CONTAINERS.includes` check.
  */
-export const DockerContainerBodySchema = z.object({
+export const _DockerContainerBodySchema = z.object({
 	container: z.enum(VALID_CONTAINERS).describe('Container name to operate on')
 });
 
@@ -88,12 +88,12 @@ export const POST = createHandler(
 		}
 
 		// Body shape already validated by factory; parse is safe.
-		const parsed = DockerContainerBodySchema.safeParse(await request.json());
+		const parsed = _DockerContainerBodySchema.safeParse(await request.json());
 		if (!parsed.success) {
 			return json({ success: false, error: 'Invalid container name' }, { status: 400 });
 		}
 
 		return await executeAction(action, parsed.data.container);
 	},
-	{ validateBody: DockerContainerBodySchema }
+	{ validateBody: _DockerContainerBodySchema }
 );

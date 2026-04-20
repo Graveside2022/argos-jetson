@@ -5,7 +5,7 @@ import { createHandler } from '$lib/server/api/create-handler';
 import { startBluedragon, stopBluedragon } from '$lib/server/services/bluedragon/process-manager';
 import { safeParseWithHandling } from '$lib/utils/validation-error';
 
-export const BluedragonOptionsSchema = z
+export const _BluedragonOptionsSchema = z
 	.object({
 		allChannels: z.boolean().optional(),
 		activeScan: z.boolean().optional(),
@@ -15,10 +15,10 @@ export const BluedragonOptionsSchema = z
 	.strict()
 	.optional();
 
-export const BluedragonControlSchema = z.object({
+export const _BluedragonControlSchema = z.object({
 	action: z.enum(['start', 'stop']).describe('Blue Dragon control action'),
 	profile: z.enum(['clean', 'volume', 'max']).optional().describe('Tuning profile'),
-	options: BluedragonOptionsSchema.describe('Optional capture toggles')
+	options: _BluedragonOptionsSchema.describe('Optional capture toggles')
 });
 
 async function parseJsonBody(request: Request): Promise<unknown> {
@@ -29,7 +29,7 @@ async function parseJsonBody(request: Request): Promise<unknown> {
 	}
 }
 
-type ControlInput = z.infer<typeof BluedragonControlSchema>;
+type ControlInput = z.infer<typeof _BluedragonControlSchema>;
 
 async function dispatchAction(input: ControlInput) {
 	if (input.action === 'start') {
@@ -41,11 +41,11 @@ async function dispatchAction(input: ControlInput) {
 export const POST = createHandler(
 	async ({ request }) => {
 		const rawBody = await parseJsonBody(request);
-		const validated = safeParseWithHandling(BluedragonControlSchema, rawBody, 'user-action');
+		const validated = safeParseWithHandling(_BluedragonControlSchema, rawBody, 'user-action');
 		if (!validated) throw error(400, 'Invalid Blue Dragon control request');
 
 		const result = await dispatchAction(validated);
 		return json(result, { status: result.success ? 200 : 500 });
 	},
-	{ validateBody: BluedragonControlSchema }
+	{ validateBody: _BluedragonControlSchema }
 );

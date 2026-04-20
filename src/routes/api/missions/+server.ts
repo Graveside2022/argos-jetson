@@ -11,7 +11,7 @@ import { createHandler } from '$lib/server/api/create-handler';
 import { getRFDatabase } from '$lib/server/db/database';
 import { createMission, setActiveMission } from '$lib/server/services/reports/mission-store';
 
-export const CreateMissionSchema = z.object({
+export const _CreateMissionSchema = z.object({
 	name: z.string().min(1).max(200),
 	type: z.enum(['sitrep-loop', 'emcon-survey']),
 	unit: z.string().max(100).nullable().optional(),
@@ -22,7 +22,7 @@ export const CreateMissionSchema = z.object({
 export const POST = createHandler(
 	async ({ request }) => {
 		const raw = await request.json().catch(() => null);
-		const parsed = CreateMissionSchema.safeParse(raw);
+		const parsed = _CreateMissionSchema.safeParse(raw);
 		if (!parsed.success) {
 			return json(
 				{ success: false, error: 'Invalid body', details: parsed.error.issues },
@@ -45,5 +45,5 @@ export const POST = createHandler(
 
 		return { success: true, mission };
 	},
-	{ validateBody: CreateMissionSchema }
+	{ validateBody: _CreateMissionSchema }
 );

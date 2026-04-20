@@ -14,7 +14,7 @@ import {
 } from '$lib/server/services/sparrow/sparrow-vnc-control-service';
 import { safeParseWithHandling } from '$lib/utils/validation-error';
 
-export const SparrowControlSchema = z.object({
+export const _SparrowControlSchema = z.object({
 	action: z.enum(['start', 'stop', 'status']).describe('Sparrow-WiFi control action')
 });
 
@@ -87,7 +87,7 @@ export const POST = createHandler(
 		} catch {
 			throw error(400, 'Invalid JSON body');
 		}
-		const validated = safeParseWithHandling(SparrowControlSchema, rawBody, 'user-action');
+		const validated = safeParseWithHandling(_SparrowControlSchema, rawBody, 'user-action');
 		if (!validated) throw error(400, 'Invalid Sparrow-WiFi control request');
 
 		const { action } = validated;
@@ -95,5 +95,5 @@ export const POST = createHandler(
 
 		return ACTION_HANDLERS[action]();
 	},
-	{ validateBody: SparrowControlSchema }
+	{ validateBody: _SparrowControlSchema }
 );

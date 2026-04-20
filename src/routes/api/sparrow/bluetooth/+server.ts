@@ -11,7 +11,7 @@ import {
 } from '$lib/server/services/sparrow/sparrow-proxy-service';
 import { safeParseWithHandling } from '$lib/utils/validation-error';
 
-export const SparrowBluetoothControlSchema = z.object({
+export const _SparrowBluetoothControlSchema = z.object({
 	action: z.enum(['start', 'stop']).describe('Bluetooth scan control action')
 });
 
@@ -49,7 +49,11 @@ function buildBtMessage(action: string, success: boolean): string {
 export const POST = createHandler(
 	async ({ request }) => {
 		const rawBody = await parseBody(request);
-		const validated = safeParseWithHandling(SparrowBluetoothControlSchema, rawBody, 'user-action');
+		const validated = safeParseWithHandling(
+			_SparrowBluetoothControlSchema,
+			rawBody,
+			'user-action'
+		);
 		if (!validated) throw error(400, 'Invalid Bluetooth control request');
 
 		const success =
@@ -57,5 +61,5 @@ export const POST = createHandler(
 
 		return json({ success, message: buildBtMessage(validated.action, success) });
 	},
-	{ validateBody: SparrowBluetoothControlSchema }
+	{ validateBody: _SparrowBluetoothControlSchema }
 );

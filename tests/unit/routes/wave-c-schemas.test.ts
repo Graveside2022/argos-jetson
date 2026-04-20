@@ -20,9 +20,9 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import { CleanupPostSchema } from '../../../src/routes/api/db/cleanup/+server';
-import { CreateMissionSchema } from '../../../src/routes/api/missions/+server';
-import { DockerContainerBodySchema } from '../../../src/routes/api/system/docker/[action]/+server';
+import { _CleanupPostSchema as CleanupPostSchema } from '../../../src/routes/api/db/cleanup/+server';
+import { _CreateMissionSchema as CreateMissionSchema } from '../../../src/routes/api/missions/+server';
+import { _DockerContainerBodySchema as DockerContainerBodySchema } from '../../../src/routes/api/system/docker/[action]/+server';
 
 describe('CreateMissionSchema (missions POST)', () => {
 	it('accepts a valid sitrep-loop mission', () => {

@@ -21,7 +21,7 @@ import {
 } from '$lib/server/services/webtak-vnc/webtak-vnc-control-service';
 import { safeParseWithHandling } from '$lib/utils/validation-error';
 
-export const WebtakVncControlSchema = z.discriminatedUnion('action', [
+export const _WebtakVncControlSchema = z.discriminatedUnion('action', [
 	z.object({
 		action: z.literal('start'),
 		url: z.string().url().describe('TAK server URL to load in the remote Chromium')
@@ -47,7 +47,7 @@ export const POST = createHandler(
 		} catch {
 			return error(400, 'Invalid JSON in request body');
 		}
-		const validated = safeParseWithHandling(WebtakVncControlSchema, rawBody, 'user-action');
+		const validated = safeParseWithHandling(_WebtakVncControlSchema, rawBody, 'user-action');
 		if (!validated) return error(400, 'Invalid WebTAK VNC control request');
 
 		if (validated.action === 'start') {
@@ -60,5 +60,5 @@ export const POST = createHandler(
 		}
 		return json(getWebtakVncStatus());
 	},
-	{ validateBody: WebtakVncControlSchema }
+	{ validateBody: _WebtakVncControlSchema }
 );

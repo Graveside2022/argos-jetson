@@ -13,7 +13,7 @@ import {
 } from '$lib/server/services/bluehood/bluehood-control-service';
 import { safeParseWithHandling } from '$lib/utils/validation-error';
 
-export const BluehoodControlSchema = z.object({
+export const _BluehoodControlSchema = z.object({
 	action: z.enum(['start', 'stop', 'status']).describe('BlueHood control action')
 });
 
@@ -45,7 +45,7 @@ const ACTION_HANDLERS: Record<string, () => Promise<AnyBluehoodResult>> = {
 export const POST = createHandler(
 	async ({ request, url }) => {
 		const rawBody = await request.json();
-		const validated = safeParseWithHandling(BluehoodControlSchema, rawBody, 'user-action');
+		const validated = safeParseWithHandling(_BluehoodControlSchema, rawBody, 'user-action');
 		if (!validated) return error(400, 'Invalid BlueHood control request');
 
 		const { action } = validated;
@@ -55,5 +55,5 @@ export const POST = createHandler(
 		const result = await handler();
 		return action === 'status' ? json(result) : json(result, { status: resultStatus(result) });
 	},
-	{ validateBody: BluehoodControlSchema }
+	{ validateBody: _BluehoodControlSchema }
 );

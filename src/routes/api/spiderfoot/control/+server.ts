@@ -9,7 +9,7 @@ import {
 } from '$lib/server/services/spiderfoot/spiderfoot-control-service';
 import { safeParseWithHandling } from '$lib/utils/validation-error';
 
-export const SpiderfootControlSchema = z.object({
+export const _SpiderfootControlSchema = z.object({
 	action: z.enum(['start', 'stop', 'status']).describe('SpiderFoot control action')
 });
 
@@ -39,7 +39,7 @@ export const POST = createHandler(
 		} catch {
 			return error(400, 'Invalid JSON in request body');
 		}
-		const validated = safeParseWithHandling(SpiderfootControlSchema, rawBody, 'user-action');
+		const validated = safeParseWithHandling(_SpiderfootControlSchema, rawBody, 'user-action');
 		if (!validated) return error(400, 'Invalid SpiderFoot control request');
 
 		const { action } = validated;
@@ -47,5 +47,5 @@ export const POST = createHandler(
 		const result = await handler();
 		return action === 'status' ? json(result) : json(result, { status: resultStatus(result) });
 	},
-	{ validateBody: SpiderfootControlSchema }
+	{ validateBody: _SpiderfootControlSchema }
 );

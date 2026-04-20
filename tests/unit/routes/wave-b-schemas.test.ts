@@ -10,17 +10,17 @@
  */
 import { describe, expect, it } from 'vitest';
 
+import { _DragonSyncControlSchema as DragonSyncControlSchema } from '../../../src/lib/schemas/dragonsync';
 import {
 	CoverageRequestSchema,
 	P2PRequestSchema,
 	RouteRequestSchema
 } from '../../../src/lib/schemas/rf-propagation';
-import { DragonSyncControlSchema } from '../../../src/lib/schemas/dragonsync';
-import { KismetControlSchema } from '../../../src/routes/api/kismet/control/+server';
-import { SightlineControlSchema } from '../../../src/routes/api/sightline/control/+server';
-import { SparrowBluetoothControlSchema } from '../../../src/routes/api/sparrow/bluetooth/+server';
-import { SparrowControlSchema } from '../../../src/routes/api/sparrow/control/+server';
-import { SpiderfootControlSchema } from '../../../src/routes/api/spiderfoot/control/+server';
+import { _KismetControlSchema as KismetControlSchema } from '../../../src/routes/api/kismet/control/+server';
+import { _SightlineControlSchema as SightlineControlSchema } from '../../../src/routes/api/sightline/control/+server';
+import { _SparrowBluetoothControlSchema as SparrowBluetoothControlSchema } from '../../../src/routes/api/sparrow/bluetooth/+server';
+import { _SparrowControlSchema as SparrowControlSchema } from '../../../src/routes/api/sparrow/control/+server';
+import { _SpiderfootControlSchema as SpiderfootControlSchema } from '../../../src/routes/api/spiderfoot/control/+server';
 
 describe('SightlineControlSchema', () => {
 	it('accepts { action: "status" }', () => {

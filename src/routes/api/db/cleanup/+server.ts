@@ -6,7 +6,7 @@ import { DatabaseCleanupService } from '$lib/server/db/cleanup-service';
 import { getRFDatabase } from '$lib/server/db/database';
 import { DatabaseOptimizer } from '$lib/server/db/db-optimizer';
 
-export const CleanupPostSchema = z.discriminatedUnion('action', [
+export const _CleanupPostSchema = z.discriminatedUnion('action', [
 	z.object({
 		action: z.literal('configure'),
 		config: z.record(z.unknown()).optional()
@@ -103,7 +103,7 @@ export const GET = createHandler(({ url }) => {
 
 /** Validate and parse POST body. Returns parsed body or error response. */
 function parsePostBody(rawBody: unknown) {
-	const result = CleanupPostSchema.safeParse(rawBody);
+	const result = _CleanupPostSchema.safeParse(rawBody);
 	if (!result.success) {
 		return {
 			error: json(
@@ -115,7 +115,7 @@ function parsePostBody(rawBody: unknown) {
 	return { body: result.data };
 }
 
-type PostAction = z.infer<typeof CleanupPostSchema>;
+type PostAction = z.infer<typeof _CleanupPostSchema>;
 
 /** Dispatch POST action to the correct handler. */
 function executePostAction(body: PostAction, cleanupService: DatabaseCleanupService) {
@@ -140,5 +140,5 @@ export const POST = createHandler(
 		if (parsed.error) return parsed.error;
 		return executePostAction(parsed.body as PostAction, cleanupService);
 	},
-	{ validateBody: CleanupPostSchema }
+	{ validateBody: _CleanupPostSchema }
 );

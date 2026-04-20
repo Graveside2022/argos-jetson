@@ -10,10 +10,10 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import { BluedragonControlSchema } from '../../../src/routes/api/bluedragon/control/+server';
-import { BluehoodControlSchema } from '../../../src/routes/api/bluehood/control/+server';
-import { WebtakVncControlSchema } from '../../../src/routes/api/webtak-vnc/control/+server';
-import { WigleTotakControlSchema } from '../../../src/routes/api/wigletotak/control/+server';
+import { _BluedragonControlSchema as BluedragonControlSchema } from '../../../src/routes/api/bluedragon/control/+server';
+import { _BluehoodControlSchema as BluehoodControlSchema } from '../../../src/routes/api/bluehood/control/+server';
+import { _WebtakVncControlSchema as WebtakVncControlSchema } from '../../../src/routes/api/webtak-vnc/control/+server';
+import { _WigleTotakControlSchema as WigleTotakControlSchema } from '../../../src/routes/api/wigletotak/control/+server';
 
 describe('BluedragonControlSchema', () => {
 	it('accepts a valid start action with profile + options', () => {

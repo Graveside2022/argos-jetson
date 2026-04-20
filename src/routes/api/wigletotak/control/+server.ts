@@ -13,7 +13,7 @@ import {
 } from '$lib/server/services/wigletotak/wigletotak-control-service';
 import { safeParseWithHandling } from '$lib/utils/validation-error';
 
-export const WigleTotakControlSchema = z.object({
+export const _WigleTotakControlSchema = z.object({
 	action: z.enum(['start', 'stop', 'status']).describe('WigleToTAK control action')
 });
 
@@ -44,7 +44,7 @@ const ACTION_HANDLERS: Record<string, () => Promise<AnyResult>> = {
 export const POST = createHandler(
 	async ({ request, url }) => {
 		const rawBody = await request.json();
-		const validated = safeParseWithHandling(WigleTotakControlSchema, rawBody, 'user-action');
+		const validated = safeParseWithHandling(_WigleTotakControlSchema, rawBody, 'user-action');
 		if (!validated) return error(400, 'Invalid WigleToTAK control request');
 
 		const { action } = validated;
@@ -54,5 +54,5 @@ export const POST = createHandler(
 		const result = await handler();
 		return action === 'status' ? json(result) : json(result, { status: resultStatus(result) });
 	},
-	{ validateBody: WigleTotakControlSchema }
+	{ validateBody: _WigleTotakControlSchema }
 );
