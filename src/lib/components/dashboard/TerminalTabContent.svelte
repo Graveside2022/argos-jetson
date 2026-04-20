@@ -98,9 +98,20 @@
 		ws.send({ type: 'resize', cols: terminal.cols, rows: terminal.rows });
 	}
 
+	/**
+	 * Safely extract `msg.shell` — msg may be null / primitive / missing
+	 * the field, so the raw cast threw or returned undefined. Falls back
+	 * to the outer `fallback` unless msg is an object with a string shell.
+	 */
+	function extractShellName(msg: unknown, fallback: string): string {
+		if (typeof msg !== 'object' || msg === null) return fallback;
+		const shellField = (msg as { shell?: unknown }).shell;
+		return typeof shellField === 'string' ? shellField : fallback;
+	}
+
 	/** Handle a session-ready or reattached control message. */
 	function handleSessionReady(msg: unknown, isReattach: boolean) {
-		const shellName = (msg as { shell?: string }).shell ?? shell;
+		const shellName = extractShellName(msg, shell);
 		updateSessionConnection(sessionId, true);
 		onTitleChange?.(resolveShellName(shellName));
 		if (isReattach)
