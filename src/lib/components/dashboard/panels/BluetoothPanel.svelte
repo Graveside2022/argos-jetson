@@ -8,6 +8,7 @@
 	import { onDestroy, onMount } from 'svelte';
 
 	import { browser } from '$app/environment';
+	import PanelEmptyState from '$lib/components/ui/PanelEmptyState.svelte';
 	import {
 		applyBluetoothDevices,
 		bluetoothStore,
@@ -284,12 +285,10 @@
 	{/if}
 
 	{#if $bluetoothStore.status === 'stopped' && $bluetoothStore.devices.size === 0}
-		<div class="empty">
-			<p class="empty-title">Blue Dragon not running</p>
-			<p class="empty-sub">
-				Select a profile and click Start to begin wideband BLE/BT capture
-			</p>
-		</div>
+		<PanelEmptyState
+			title="Blue Dragon not running"
+			description="Select a profile and click Start to begin wideband BLE/BT capture"
+		/>
 	{:else if $bluetoothStore.devices.size === 0}
 		<div class="empty">
 			<p class="empty-title">Capturing…</p>
