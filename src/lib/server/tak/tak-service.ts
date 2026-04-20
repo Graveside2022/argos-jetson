@@ -1,33 +1,45 @@
+/**
+ * TAK server client (thin orchestrator).
+ *
+ * Owns the singleton `TakService` EventEmitter + the connection lifecycle
+ * state machine. Delegates to peer modules:
+ *   - `./tak-connection` — config validation, certificate loading, TAK
+ *     socket construction, reconnect-backoff math.
+ *   - `./tak-outbound`   — per-UID CoT throttling (CotThrottler).
+ *   - `./tak-broadcast`  — WebSocket status/CoT fan-out.
+ *   - `./tak-sa-broadcaster` — periodic self-SA emission.
+ *   - `./tak-db`         — config persistence (loadTakConfig / saveTakConfig).
+ *
+ * Public surface (imported by routes + TakSaBroadcaster): the `TakService`
+ * class with `getInstance`, `initialize`, `reloadConfig`, `connect`,
+ * `disconnect`, `getStatus`, `sendCot`, `saveConfig`. Kept frozen across
+ * this refactor.
+ *
+ * @module
+ */
+
 import type CoT from '@tak-ps/node-cot';
 import { CoTParser } from '@tak-ps/node-cot';
-import TAK from '@tak-ps/node-tak';
+import type TAK from '@tak-ps/node-tak';
 import { EventEmitter } from 'events';
-import { readFile } from 'fs/promises';
 
 import { logger } from '$lib/utils/logger';
 
 import type { TakServerConfig, TakStatus } from '../../types/tak';
 import { RFDatabase } from '../db/database';
 import { broadcastTakCot, broadcastTakStatus } from './tak-broadcast';
+import {
+	computeReconnectDelay,
+	loadCertificates,
+	openTakConnection,
+	STALE_THRESHOLD_MS,
+	type TakCerts,
+	type ValidatedTakConfig,
+	validateTlsConfig
+} from './tak-connection';
 import { loadTakConfig, saveTakConfig } from './tak-db';
+import { CotThrottler } from './tak-outbound';
 import { TakSaBroadcaster } from './tak-sa-broadcaster';
-
-const COT_THROTTLE_MS = 1000;
-const RECONNECT_BASE_MS = 1000;
-const RECONNECT_MAX_MS = 30000;
-const STALE_THRESHOLD_MS = 120_000;
-
-/**
- * TakServerConfig with the optional cert/key paths proven non-empty.
- * Returned by `validateTlsConfig` so downstream methods don't need `!`.
- */
-type ValidatedTakConfig = TakServerConfig & { certPath: string; keyPath: string };
-
-interface ThrottleEntry {
-	lastSent: number;
-	pendingTimeout: NodeJS.Timeout | null;
-	pendingCot: CoT | null;
-}
 
 export class TakService extends EventEmitter {
 	private static instance: TakService;
@@ -35,18 +47,19 @@ export class TakService extends EventEmitter {
 	private config: TakServerConfig | null = null;
 	private db: RFDatabase;
 	private shouldConnect = false;
-	private throttleMap = new Map<string, ThrottleEntry>();
 	private messageCount = 0;
 	private connectedAt: number | null = null;
 	private lastActivityAt: number | null = null;
 	private reconnectAttempt = 0;
 	private reconnectTimeout: NodeJS.Timeout | null = null;
 	private saBroadcaster: TakSaBroadcaster;
+	private throttler: CotThrottler;
 
 	private constructor() {
 		super();
 		this.db = new RFDatabase();
 		this.saBroadcaster = new TakSaBroadcaster(this);
+		this.throttler = new CotThrottler(() => this.tak);
 	}
 
 	public static getInstance(): TakService {
@@ -106,64 +119,19 @@ export class TakService extends EventEmitter {
 		};
 	}
 
-	/** Validate that config has TLS certs configured; returns the narrowed config or null. */
-	private validateTlsConfig(): ValidatedTakConfig | null {
-		const cfg = this.config;
-		if (!cfg) {
-			logger.warn('[TakService] No configuration found');
-			return null;
-		}
-		if (!cfg.certPath || !cfg.keyPath) {
-			logger.warn('[TakService] TLS certificates not configured');
-			return null;
-		}
-		// TS can't widen the field-level narrowing back into the object type, so this
-		// assertion just expresses what the early-returns above already enforce.
-		return cfg as ValidatedTakConfig;
-	}
-
-	/** Load TLS certificate files from disk */
-	private async loadCertificates(
-		config: ValidatedTakConfig
-	): Promise<{ cert: string; key: string; ca?: string } | null> {
-		try {
-			const cert = await readFile(config.certPath, 'utf-8');
-			const key = await readFile(config.keyPath, 'utf-8');
-			const ca = config.caPath ? await readFile(config.caPath, 'utf-8') : undefined;
-			return { cert, key, ca };
-		} catch (err) {
-			logger.error('[TakService] Failed to load certificates', { error: String(err) });
-			broadcastTakStatus(
-				this.broadcastState(),
-				'error',
-				err instanceof Error ? err.message : 'Certificate load failed'
-			);
-			return null;
-		}
-	}
-
-	/** Establish the TAK TLS connection */
-	private async establishConnection(
-		config: ValidatedTakConfig,
-		certs: { cert: string; key: string; ca?: string }
-	): Promise<void> {
-		const url = new URL(`ssl://${config.hostname}:${config.port}`);
-		// NOTE: TAK.connect_ssl passes `rejectUnauthorized` through to
-		// `tls.connect`, so the explicit `rejectUnauthorized: false` below is
-		// sufficient. No process-wide `NODE_TLS_REJECT_UNAUTHORIZED` mutation
-		// is required — that would disable TLS verification for every outbound
-		// TLS connection in the process (see P0 security fix).
-		this.tak = await TAK.connect(url, { ...certs, rejectUnauthorized: false });
-		this.setupEventHandlers();
-		this.reconnectAttempt = 0;
-		logger.info('[TakService] Connection initiated');
-	}
-
 	/** Destroy existing TAK connection if any */
 	private destroyExisting(): void {
 		if (!this.tak) return;
 		this.tak.destroy();
 		this.tak = null;
+	}
+
+	/** Establish the TAK TLS connection + wire event handlers */
+	private async establishConnection(config: ValidatedTakConfig, certs: TakCerts): Promise<void> {
+		this.tak = await openTakConnection(config, certs);
+		this.setupEventHandlers();
+		this.reconnectAttempt = 0;
+		logger.info('[TakService] Connection initiated');
 	}
 
 	/** Handle a connection failure: log, broadcast, optionally reconnect */
@@ -178,15 +146,18 @@ export class TakService extends EventEmitter {
 	}
 
 	public async connect() {
-		const validated = this.validateTlsConfig();
+		const validated = validateTlsConfig(this.config);
 		if (!validated) return;
 		this.destroyExisting();
 
-		const certs = await this.loadCertificates(validated);
-		if (!certs) return;
+		const result = await loadCertificates(validated);
+		if (!result.ok) {
+			broadcastTakStatus(this.broadcastState(), 'error', result.error);
+			return;
+		}
 
 		try {
-			await this.establishConnection(validated, certs);
+			await this.establishConnection(validated, result.certs);
 		} catch (err) {
 			this.handleConnectError(err);
 		}
@@ -229,7 +200,6 @@ export class TakService extends EventEmitter {
 			this.emit('tak-socket-error', err);
 			this.saBroadcaster.stop();
 			broadcastTakStatus(this.broadcastState(), 'error', err.message);
-
 			this.connectedAt = null;
 			this.lastActivityAt = null;
 			if (this.shouldConnect) this.scheduleReconnect();
@@ -243,9 +213,7 @@ export class TakService extends EventEmitter {
 
 	private scheduleReconnect() {
 		if (this.reconnectTimeout) return;
-		const expDelay = RECONNECT_BASE_MS * Math.pow(2, this.reconnectAttempt);
-		const jitter = Math.random() * RECONNECT_BASE_MS;
-		const delay = Math.min(expDelay + jitter, RECONNECT_MAX_MS);
+		const delay = computeReconnectDelay(this.reconnectAttempt);
 		this.reconnectAttempt++;
 		logger.info('[TakService] Reconnecting', {
 			delayMs: Math.round(delay),
@@ -272,64 +240,15 @@ export class TakService extends EventEmitter {
 			clearTimeout(this.reconnectTimeout);
 			this.reconnectTimeout = null;
 		}
-		for (const entry of this.throttleMap.values()) {
-			if (entry.pendingTimeout) clearTimeout(entry.pendingTimeout);
-		}
-		this.throttleMap.clear();
+		this.throttler.clear();
 		this.connectedAt = null;
 		this.emit('status', 'disconnected');
 		broadcastTakStatus(this.broadcastState(), 'disconnected');
 	}
 
-	/** Send immediately and reset throttle entry */
-	private sendImmediate(uid: string, cot: CoT, entry: ThrottleEntry | undefined): void {
-		if (entry?.pendingTimeout) clearTimeout(entry.pendingTimeout);
-		this.throttleMap.set(uid, { lastSent: Date.now(), pendingTimeout: null, pendingCot: null });
-		if (!this.tak) return;
-		this.tak.write([cot]);
-	}
-
-	/** Schedule a deferred send after the throttle cooldown */
-	private scheduleDeferredSend(entry: ThrottleEntry, cot: CoT, now: number): void {
-		if (entry.pendingTimeout) clearTimeout(entry.pendingTimeout);
-		entry.pendingCot = cot;
-		entry.pendingTimeout = setTimeout(
-			() => {
-				if (this.tak?.open && entry.pendingCot) {
-					this.tak.write([entry.pendingCot]);
-					entry.lastSent = Date.now();
-					entry.pendingCot = null;
-					entry.pendingTimeout = null;
-				}
-			},
-			COT_THROTTLE_MS - (now - entry.lastSent)
-		);
-	}
-
-	/** Route a uid'd CoT to immediate-send or deferred-send based on throttle state. */
-	private dispatchThrottledCot(uid: string, cot: CoT): void {
-		const now = Date.now();
-		const entry = this.throttleMap.get(uid);
-		if (!entry) {
-			this.sendImmediate(uid, cot, undefined);
-			return;
-		}
-		if (now - entry.lastSent >= COT_THROTTLE_MS) {
-			this.sendImmediate(uid, cot, entry);
-			return;
-		}
-		this.scheduleDeferredSend(entry, cot, now);
-	}
-
 	/** Sends a CoT message, throttled to max 1 update/sec per entity UID. */
 	public sendCot(cot: CoT) {
-		if (!this.tak?.open) return;
-		const uid = cot.uid();
-		if (!uid) {
-			this.tak.write([cot]);
-			return;
-		}
-		this.dispatchThrottledCot(uid, cot);
+		this.throttler.send(cot);
 	}
 
 	public async saveConfig(config: TakServerConfig) {
