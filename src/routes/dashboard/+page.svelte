@@ -30,6 +30,7 @@
 	import SpiderfootView from '$lib/components/dashboard/views/SpiderfootView.svelte';
 	import ToolUnavailableView from '$lib/components/dashboard/views/ToolUnavailableView.svelte';
 	import ToolViewWrapper from '$lib/components/dashboard/views/ToolViewWrapper.svelte';
+	import UASScanView from '$lib/components/dashboard/views/UASScanView.svelte';
 	import WebTAKView from '$lib/components/dashboard/views/WebTAKView.svelte';
 	import WigleToTAKView from '$lib/components/dashboard/views/WigleToTAKView.svelte';
 	import {
@@ -39,6 +40,7 @@
 		bottomPanelHeight,
 		closeBottomPanel,
 		isBottomPanelOpen,
+		lastNonScanView,
 		openBottomPanel,
 		setBottomPanelHeight
 	} from '$lib/stores/dashboard/dashboard-store';
@@ -48,6 +50,7 @@
 		previousTab,
 		toggleTerminalPanel
 	} from '$lib/stores/dashboard/terminal-store';
+	import { uasStore } from '$lib/stores/dragonsync/uas-store';
 	import { startGpPolling, stopGpPolling } from '$lib/stores/globalprotect-store';
 	import { GPSService } from '$lib/tactical-map/gps-service';
 	import { KismetService } from '$lib/tactical-map/kismet-service';
@@ -74,6 +77,45 @@
 			mountedTabs = new Set([...mountedTabs, tab]);
 		}
 	});
+
+	// UAS scan auto-swap: when a scan starts, swap the center region from map to
+	// the UAS live-log terminal view. When the scan stops, revert to whichever
+	// non-scan view was last active (default 'map'). Also keeps lastNonScanView
+	// up-to-date so manual navigation during a scan is preserved.
+	let lastSeenScanStatus: string | null = null;
+	$effect(() => reconcileScanAutoSwap($uasStore.status, $activeView));
+
+	function reconcileScanAutoSwap(status: string, view: string): void {
+		if (view !== 'uas-scan') lastNonScanView.set(view as never);
+		if (lastSeenScanStatus === status) return;
+		applyScanTransition(status, view);
+		lastSeenScanStatus = status;
+	}
+
+	const ACTIVATING_STATUSES = new Set(['starting', 'running']);
+
+	function shouldActivate(status: string, view: string): boolean {
+		return ACTIVATING_STATUSES.has(status) && view !== 'uas-scan';
+	}
+
+	function shouldDeactivate(status: string, view: string): boolean {
+		return status === 'stopped' && lastSeenScanStatus !== null && view === 'uas-scan';
+	}
+
+	function deactivationTarget(): string {
+		const prev = $lastNonScanView;
+		return prev === 'uas-scan' ? 'map' : prev;
+	}
+
+	function applyScanTransition(status: string, view: string): void {
+		if (shouldActivate(status, view)) {
+			activeView.set('uas-scan');
+			return;
+		}
+		if (shouldDeactivate(status, view)) {
+			activeView.set(deactivationTarget() as never);
+		}
+	}
 
 	function goBackToMap() {
 		activeView.set('map');
@@ -148,6 +190,8 @@
 				<NovaSDRView />
 			{:else if $activeView === 'sdrpp'}
 				<SDRppView />
+			{:else if $activeView === 'uas-scan'}
+				<UASScanView />
 			{:else if $activeView === 'bettercap'}
 				<ToolViewWrapper title="Bettercap" onBack={goBackToMap}>
 					<iframe src="http://localhost:80" title="Bettercap" class="tool-iframe"

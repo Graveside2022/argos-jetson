@@ -1,7 +1,17 @@
 <!-- @constitutional-exemption Article-IV-4.3 issue:#11 — Component state handling (loading/error/empty UI) deferred to UX improvement phase -->
 <!-- @constitutional-exemption Article-IV-4.2 issue:#12 — Button pattern extraction deferred to component library refactor -->
 <script lang="ts">
-	import { FileText, House, List, Map, Radar, Settings, Waypoints, Zap } from '@lucide/svelte';
+	import {
+		FileText,
+		House,
+		List,
+		Map,
+		Radar,
+		RadioTower,
+		Settings,
+		Waypoints,
+		Zap
+	} from '@lucide/svelte';
 
 	import {
 		activeBottomTab,
@@ -12,15 +22,17 @@
 	} from '$lib/stores/dashboard/dashboard-store';
 	import { themeStore } from '$lib/stores/theme-store.svelte';
 
+	const VIEW_TOGGLE_IDS = new Set(['webtak', 'uas-scan']);
+
 	function handleClick(id: string) {
-		if (id === 'dashboard') {
-			toggleBottomTab('dashboard');
-		} else if (id === 'webtak') {
-			activeView.set($activeView === 'webtak' ? 'map' : 'webtak');
-			activePanel.set(null);
-		} else {
-			togglePanel(id);
-		}
+		if (id === 'dashboard') toggleBottomTab('dashboard');
+		else if (VIEW_TOGGLE_IDS.has(id)) toggleView(id);
+		else togglePanel(id);
+	}
+
+	function toggleView(id: string) {
+		activeView.set($activeView === id ? 'map' : (id as never));
+		activePanel.set(null);
 	}
 </script>
 
@@ -85,6 +97,17 @@
 			onclick={() => handleClick('webtak')}
 		>
 			<Radar size={18} />
+		</button>
+		<!-- UAS Scan (live log terminal view) -->
+		<button
+			class="rail-btn"
+			class:active={$activeView === 'uas-scan'}
+			title="UAS Scan — Live Log"
+			aria-label="UAS Scan"
+			aria-pressed={$activeView === 'uas-scan'}
+			onclick={() => handleClick('uas-scan')}
+		>
+			<RadioTower size={18} />
 		</button>
 		<!-- Logo (waypoints) — brand mark, always white -->
 		<button

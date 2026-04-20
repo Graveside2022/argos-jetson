@@ -8,6 +8,7 @@
 
 	import { browser } from '$app/environment';
 	import {
+		fetchUASC2Signals,
 		fetchUASDrones,
 		fetchUASFpvSignals,
 		fetchUASStatus,
@@ -15,7 +16,11 @@
 		stopDragonSyncFromUi,
 		uasStore
 	} from '$lib/stores/dragonsync/uas-store';
-	import type { DragonSyncDrone, DragonSyncFpvSignal } from '$lib/types/dragonsync';
+	import type {
+		DragonSyncC2Signal,
+		DragonSyncDrone,
+		DragonSyncFpvSignal
+	} from '$lib/types/dragonsync';
 	import { hzToChannel } from '$lib/utils/fpv-channels';
 
 	type SortKey =
@@ -77,6 +82,7 @@
 				void fetchUASStatus();
 				void fetchUASDrones();
 				void fetchUASFpvSignals();
+				void fetchUASC2Signals();
 			}, 2000);
 		} else if (!running && pollTimer) {
 			clearInterval(pollTimer);
@@ -93,6 +99,7 @@
 		void fetchUASStatus();
 		void fetchUASDrones();
 		void fetchUASFpvSignals();
+		void fetchUASC2Signals();
 	});
 	onDestroy(() => {
 		if (pollTimer) clearInterval(pollTimer);
@@ -226,6 +233,22 @@
 	function fpvRssiCls(dbm: number | null): string {
 		return dbm == null ? 'rssi-none' : rssiCls(dbm);
 	}
+
+	// --- C2 (sub-GHz drone-control link) helpers ---
+
+	function c2List(map: Map<string, DragonSyncC2Signal>): DragonSyncC2Signal[] {
+		return Array.from(map.values()).sort((a, b) => {
+			const ra = a.rssi ?? -999;
+			const rb = b.rssi ?? -999;
+			return rb - ra;
+		});
+	}
+
+	function c2LastSeen(sig: DragonSyncC2Signal): string {
+		const ts = sig.last_update_time;
+		if (!ts) return '--';
+		return ago(ts);
+	}
 </script>
 
 <div class="panel">
@@ -240,6 +263,9 @@
 		>
 		<span class="svc"
 			>FPV Scanner <span class="dot" class:up={$uasStore.fpvScannerRunning}></span></span
+		>
+		<span class="svc"
+			>C2 Scanner <span class="dot" class:up={$uasStore.c2ScannerRunning}></span></span
 		>
 		<span class="spacer"></span>
 		<span class="count">{$uasStore.droneCount} drones</span>
@@ -343,6 +369,48 @@
 								<td class="dim mono">{sig.lat.toFixed(6)}</td>
 								<td class="dim mono">{sig.lon.toFixed(6)}</td>
 								<td class="dim">{fpvLastSeen(sig)}</td>
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</div>
+		{/if}
+
+		{#if $uasStore.c2Signals.size > 0}
+			<div class="section-header">
+				C2 LINKS — sub-GHz drone control ({$uasStore.c2Signals.size})
+			</div>
+			<div class="table-wrap">
+				<table>
+					<thead>
+						<tr>
+							<th>FREQ</th>
+							<th>BAND</th>
+							<th>SOURCE</th>
+							<th>BW</th>
+							<th>RSSI</th>
+							<th>LAST SEEN</th>
+						</tr>
+					</thead>
+					<tbody>
+						{#each c2List($uasStore.c2Signals) as sig (sig.uid)}
+							<tr>
+								<td class="dim mono">{(sig.center_hz / 1e6).toFixed(3)} MHz</td>
+								<td class="dim mono"><span class="badge-band">{sig.band}</span></td>
+								<td
+									><span class="badge badge-energy"
+										>{sig.source.toUpperCase()}</span
+									></td
+								>
+								<td class="dim mono"
+									>{sig.bandwidth_hz
+										? `${(sig.bandwidth_hz / 1e6).toFixed(2)} MHz`
+										: '--'}</td
+								>
+								<td class="dim mono"
+									>{sig.rssi != null ? sig.rssi.toFixed(3) : '--'}</td
+								>
+								<td class="dim">{c2LastSeen(sig)}</td>
 							</tr>
 						{/each}
 					</tbody>

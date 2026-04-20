@@ -66,6 +66,7 @@ export const DragonSyncStatusResultSchema = z.object({
 	droneidGoRunning: z.boolean(),
 	dragonSyncRunning: z.boolean(),
 	fpvScannerRunning: z.boolean().default(false),
+	c2ScannerRunning: z.boolean().default(false),
 	status: z.enum(['stopped', 'starting', 'running', 'stopping']),
 	droneCount: z.number(),
 	apiReachable: z.boolean(),

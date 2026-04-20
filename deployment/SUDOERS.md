@@ -82,6 +82,32 @@ kali ALL=(ALL) NOPASSWD: /usr/bin/nmcli device connect wlan0
 | `nmcli`                  | WiFi resilience       | wlan0 reconnection escalation      |
 | `oom_score_adj`          | Vite OOM protect      | Set OOM score on Vite process tree |
 
+## DragonSync / UAS Detection — separate drop-in
+
+The UAS installer (`scripts/ops/install-dragonsync.sh`) writes its own drop-in at
+`/etc/sudoers.d/argos-dragonsync`. The Argos runtime user (auto-detected from
+`SUDO_USER`, e.g. `kali` / `jetson2`) needs start / stop / is-active for each of
+the three DragonSync units. These are **in addition** to the `stop` entries
+already present in `/etc/sudoers.d/argos` (used by the B205 arbiter to free the
+SDR before sparrow/kismet/bluehood claim it).
+
+```sudoers
+# /etc/sudoers.d/argos-dragonsync (written by install-dragonsync.sh)
+<argos-user> ALL=(ALL) NOPASSWD: /usr/bin/systemctl start zmq-decoder.service
+<argos-user> ALL=(ALL) NOPASSWD: /usr/bin/systemctl stop zmq-decoder.service
+<argos-user> ALL=(ALL) NOPASSWD: /usr/bin/systemctl is-active zmq-decoder.service
+<argos-user> ALL=(ALL) NOPASSWD: /usr/bin/systemctl start dragonsync.service
+<argos-user> ALL=(ALL) NOPASSWD: /usr/bin/systemctl stop dragonsync.service
+<argos-user> ALL=(ALL) NOPASSWD: /usr/bin/systemctl is-active dragonsync.service
+<argos-user> ALL=(ALL) NOPASSWD: /usr/bin/systemctl start wardragon-fpv-detect.service
+<argos-user> ALL=(ALL) NOPASSWD: /usr/bin/systemctl stop wardragon-fpv-detect.service
+<argos-user> ALL=(ALL) NOPASSWD: /usr/bin/systemctl is-active wardragon-fpv-detect.service
+```
+
+`<argos-user>` is whichever user ran `sudo install-dragonsync.sh` (the installer
+auto-detects via `$SUDO_USER`). On this Jetson that resolves to `jetson2`. On a
+Kali RPi5 it is `kali`.
+
 ## Installation
 
 ```bash
@@ -92,3 +118,4 @@ sudo chmod 0440 /etc/sudoers.d/argos
 ```
 
 The `scripts/ops/setup-host.sh` provisioning script handles this automatically.
+The UAS drop-in is provisioned by `scripts/ops/install-dragonsync.sh`.

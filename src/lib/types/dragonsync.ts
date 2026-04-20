@@ -50,10 +50,32 @@ export interface DragonSyncStatusResult {
 	droneidGoRunning: boolean;
 	dragonSyncRunning: boolean;
 	fpvScannerRunning: boolean;
+	c2ScannerRunning: boolean;
 	status: DragonSyncServiceStatus;
 	droneCount: number;
 	apiReachable: boolean;
 	error?: string;
+}
+
+/**
+ * Sub-GHz C2 (command-and-control) signal detected by argos-c2-scanner.
+ * Published by the HackRF sweep on ZMQ 4227. Schema mirrors FPV (for UI
+ * reuse) plus a `band` string identifying 433 / 868 / 915 ISM / L1 / legacy.
+ */
+export interface DragonSyncC2Signal {
+	uid: string;
+	source: 'c2-energy' | string;
+	alert_id: string;
+	description: string | null;
+	self_id: string | null;
+	center_hz: number;
+	bandwidth_hz: number;
+	rssi: number | null;
+	band: string;
+	lat: number;
+	lon: number;
+	alt: number;
+	last_update_time?: number;
 }
 
 export interface DragonSyncControlResult {

@@ -6,6 +6,7 @@ import {
 	DragonSyncStatusResultSchema
 } from '$lib/schemas/dragonsync';
 import type {
+	DragonSyncC2Signal,
 	DragonSyncDrone,
 	DragonSyncFpvSignal,
 	DragonSyncServiceStatus,
@@ -17,11 +18,13 @@ export interface UASState {
 	droneCount: number;
 	drones: Map<string, DragonSyncDrone>;
 	fpvSignals: Map<string, DragonSyncFpvSignal>;
+	c2Signals: Map<string, DragonSyncC2Signal>;
 	error: string | null;
 	lastUpdated: number | null;
 	droneidGoRunning: boolean;
 	dragonSyncRunning: boolean;
 	fpvScannerRunning: boolean;
+	c2ScannerRunning: boolean;
 	apiReachable: boolean;
 }
 
@@ -30,11 +33,13 @@ const INITIAL_STATE: UASState = {
 	droneCount: 0,
 	drones: new Map(),
 	fpvSignals: new Map(),
+	c2Signals: new Map(),
 	error: null,
 	lastUpdated: null,
 	droneidGoRunning: false,
 	dragonSyncRunning: false,
 	fpvScannerRunning: false,
+	c2ScannerRunning: false,
 	apiReachable: false
 };
 
@@ -52,10 +57,21 @@ export function applyUASStatus(status: DragonSyncStatusResult): void {
 		droneidGoRunning: status.droneidGoRunning,
 		dragonSyncRunning: status.dragonSyncRunning,
 		fpvScannerRunning: status.fpvScannerRunning,
+		c2ScannerRunning: status.c2ScannerRunning,
 		apiReachable: status.apiReachable,
 		error: status.error ?? null,
 		lastUpdated: Date.now()
 	}));
+}
+
+export function applyUASC2Signals(signals: DragonSyncC2Signal[]): void {
+	uasStore.update((s) => {
+		const map = new Map<string, DragonSyncC2Signal>();
+		for (const sig of signals) {
+			map.set(sig.uid, sig);
+		}
+		return { ...s, c2Signals: map, lastUpdated: Date.now() };
+	});
 }
 
 export function applyUASDrones(drones: DragonSyncDrone[]): void {
@@ -144,6 +160,23 @@ export async function fetchUASFpvSignals(): Promise<void> {
 		(d) => d.signals as DragonSyncFpvSignal[],
 		applyUASFpvSignals
 	);
+}
+
+/**
+ * GET /api/dragonsync/c2 — Argos-side cache fed by the c2-subscriber child
+ * process which SUBs tcp://127.0.0.1:4227 (argos-c2-scanner XPUB).
+ */
+export async function fetchUASC2Signals(): Promise<void> {
+	try {
+		const res = await fetch('/api/dragonsync/c2');
+		if (!res.ok) return;
+		const data = await res.json();
+		if (Array.isArray(data?.signals)) {
+			applyUASC2Signals(data.signals as DragonSyncC2Signal[]);
+		}
+	} catch {
+		// transient; next poller tick will retry
+	}
 }
 
 interface ControlResponse {

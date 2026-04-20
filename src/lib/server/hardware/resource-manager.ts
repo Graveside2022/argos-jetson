@@ -32,7 +32,8 @@ const KNOWN_TOOL_NAMES: ReadonlySet<string> = new Set([
 	'sdrpp',
 	'sparrow-wifi',
 	'wardragon-fpv-detect',
-	'uas-scanner'
+	'uas-scanner',
+	'c2-scanner'
 ]);
 
 class ResourceManager extends EventEmitter {

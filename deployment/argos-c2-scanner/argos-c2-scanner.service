@@ -1,0 +1,40 @@
+[Unit]
+Description=Argos C2 Scanner (HackRF sub-GHz drone command-and-control sweep)
+Documentation=file:///home/jetson2/code/Argos/deployment/argos-c2-scanner/c2_scan.py
+After=network.target dragonsync.service
+Wants=dragonsync.service
+
+# Coexist with other HackRF users — Argos ResourceManager claims HackRF for
+# 'c2-scanner' before start, releases after stop. If any OpenWebRX/GSM-Evil/
+# SDRpp is already holding HackRF, the UI will refuse to start c2-scanner.
+
+[Service]
+Type=simple
+User=__ARGOS_USER__
+Group=__ARGOS_GROUP__
+WorkingDirectory=/opt/argos-c2-scanner
+Environment=HOME=__ARGOS_HOME__
+# HackRF needs no master_clock_rate / recv_frame_size (no UHD). gr-osmosdr's
+# hackrf backend handles USB framing directly.
+ExecStart=/usr/bin/python3 /opt/argos-c2-scanner/c2_scan.py \
+  -z --zmq-endpoint tcp://127.0.0.1:4227 \
+  --monitor-endpoint tcp://127.0.0.1:4225 \
+  --osmosdr-args hackrf,bias=0 \
+  --samp-rate 2000000 --bandwidth 2000000 --gain 40
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=10
+KillMode=mixed
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=argos-c2-scanner
+
+# Realtime scheduling so the HackRF reader thread is not preempted by the
+# FPV scanner / map render / dragonsync poller.
+CPUSchedulingPolicy=fifo
+CPUSchedulingPriority=50
+Nice=-10
+AmbientCapabilities=CAP_SYS_NICE
+
+[Install]
+WantedBy=multi-user.target

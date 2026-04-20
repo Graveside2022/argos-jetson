@@ -106,7 +106,8 @@ export type ActiveView =
 	| 'logs-analytics'
 	| 'sparrow-wifi'
 	| 'sdrpp'
-	| 'trunk-recorder';
+	| 'trunk-recorder'
+	| 'uas-scan';
 
 const VALID_VIEWS: ReadonlySet<string> = new Set<ActiveView>([
 	'map',
@@ -131,12 +132,20 @@ const VALID_VIEWS: ReadonlySet<string> = new Set<ActiveView>([
 	'globalprotect',
 	'logs-analytics',
 	'sparrow-wifi',
-	'sdrpp'
+	'sdrpp',
+	'uas-scan'
 ]);
 
 export const activeView = persistedWritable<ActiveView>('activeView', 'map', {
 	deserialize: (raw) => (VALID_VIEWS.has(raw) ? (raw as ActiveView) : 'map')
 });
+
+/**
+ * Tracks the last non-UAS-scan view so the dashboard can auto-revert when the
+ * UAS scan stops. Not persisted — session-only so a refresh doesn't leave the
+ * operator stuck if they were mid-scan when the tab last closed.
+ */
+export const lastNonScanView = writable<ActiveView>('map');
 
 /** Toggle a panel: if already active, close it; otherwise open it */
 export function togglePanel(panel: string): void {
