@@ -1,0 +1,24 @@
+[Unit]
+Description=Bluehood Bluetooth Neighborhood Monitor
+Documentation=https://github.com/dannymcc/bluehood
+After=bluetooth.service network.target
+Wants=bluetooth.service
+# Kismet also claims hci0 in bluetooth datasource mode. Argos's
+# bluehood-control-service.ts already stops kismet before starting bluehood,
+# but Conflicts= enforces mutual exclusion at the systemd layer too.
+Conflicts=kismet.service argos-kismet.service
+
+[Service]
+Type=simple
+# venv python needed — Jetson jammy ships python3.10, bluehood pyproject
+# requires-python = ">=3.11". Installer creates /opt/bluehood/.venv via python3.11.
+ExecStart=/opt/bluehood/.venv/bin/python -m bluehood.daemon --port 8085 --adapter hci0
+WorkingDirectory=/opt/bluehood
+User=root
+Restart=on-failure
+RestartSec=10
+Environment=PYTHONUNBUFFERED=1
+Environment=BLUEHOOD_DATA_DIR=/var/lib/bluehood
+
+[Install]
+WantedBy=multi-user.target

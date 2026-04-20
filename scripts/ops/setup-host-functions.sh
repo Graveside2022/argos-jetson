@@ -249,6 +249,11 @@ check_component() {
                        ! systemctl is-enabled --quiet bluetooth 2>/dev/null ;;
     sudoers)         [[ -f /etc/sudoers.d/argos ]] && visudo -c -f /etc/sudoers.d/argos &>/dev/null ;;
     sparrow)         [[ -f /opt/sparrow-wifi/sparrowwifiagent.py ]] ;;
+    bluehood)        [[ -x /opt/bluehood/.venv/bin/python ]] && \
+                       /opt/bluehood/.venv/bin/python -c 'import bleak' 2>/dev/null && \
+                       [[ -f /etc/systemd/system/bluehood.service ]] ;;
+    wigletotak)      [[ -f "$SETUP_HOME/WigleToTAK/WigletoTAK.py" ]] && \
+                       grep -q 'WIGLETOTAK_PORT' "$SETUP_HOME/WigleToTAK/WigletoTAK.py" 2>/dev/null ;;
     gsm_evil)        [[ -d "$SETUP_HOME/gsmevil2/venv" ]] && \
                        "$SETUP_HOME/gsmevil2/venv/bin/python" -c 'import flask' 2>/dev/null ;;
     dev_monitor)     [[ -f "$SETUP_HOME/.config/systemd/user/argos-dev-monitor.service" ]] ;;
@@ -297,8 +302,21 @@ $SETUP_USER ALL=(ALL) NOPASSWD: /usr/bin/tshark
 $SETUP_USER ALL=(ALL) NOPASSWD: /usr/bin/lsof
 $SETUP_USER ALL=(ALL) NOPASSWD: /usr/bin/fuser
 # Sparrow-WiFi — GUI launch (scoped to specific script)
-$SETUP_USER ALL=(ALL) NOPASSWD: /usr/bin/python3 /opt/sparrow-wifi/sparrow-wifi.py
-$SETUP_USER ALL=(ALL) NOPASSWD: /usr/bin/python3 /opt/sparrow-wifi/sparrowwifiagent.py *
+# SETENV: required because Argos spawns with sudo -E to pass DISPLAY, QT_QPA_PLATFORM,
+# XDG_RUNTIME_DIR into the Qt GUI running on the headless Xtigervnc display.
+$SETUP_USER ALL=(ALL) NOPASSWD: SETENV: /usr/bin/python3 /opt/sparrow-wifi/sparrow-wifi.py
+$SETUP_USER ALL=(ALL) NOPASSWD: SETENV: /usr/bin/python3 /opt/sparrow-wifi/sparrowwifiagent.py *
+# Sparrow-WiFi — agent service lifecycle (Argos control buttons)
+$SETUP_USER ALL=(ALL) NOPASSWD: /usr/bin/systemctl start sparrow-wifi-agent
+$SETUP_USER ALL=(ALL) NOPASSWD: /usr/bin/systemctl stop sparrow-wifi-agent
+$SETUP_USER ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart sparrow-wifi-agent
+# Bluehood — BLE neighborhood scanner lifecycle (Argos control buttons)
+$SETUP_USER ALL=(ALL) NOPASSWD: /usr/bin/systemctl start bluehood
+$SETUP_USER ALL=(ALL) NOPASSWD: /usr/bin/systemctl stop bluehood
+$SETUP_USER ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart bluehood
+# Sparrow dependencies — wlan1 managed-mode reset before scan
+$SETUP_USER ALL=(ALL) NOPASSWD: /usr/bin/systemctl stop zmq-decoder.service
+$SETUP_USER ALL=(ALL) NOPASSWD: /usr/bin/systemctl stop wardragon-fpv-detect.service
 
 # Kismet — WiFi discovery service
 $SETUP_USER ALL=(ALL) NOPASSWD: /usr/bin/kismet
@@ -1354,27 +1372,186 @@ has_option() {\
 }
 
 install_sparrow() {
-  if [[ -f /opt/sparrow-wifi/sparrowwifiagent.py ]]; then
-    echo "  Sparrow-WiFi already installed"
-    return 0
+  local agent_installed=0
+  [[ -f /opt/sparrow-wifi/sparrowwifiagent.py ]] && agent_installed=1
+
+  # apt deps — headless agent + Qt GUI. Prefer apt over pip for Qt5 bindings:
+  # pip QScintilla/PyQtChart pull newer sipbuild requiring packaging.licenses which
+  # jammy's python3-packaging lacks → ModuleNotFoundError. apt packages side-step.
+  _ensure_pkgs python3-pip python3-dateutil python3-requests python3-tk python3-setuptools \
+               python3-pyqt5 python3-pyqt5.qtchart python3-pyqt5.qsci \
+               python3-numpy python3-matplotlib \
+               gpsd gpsd-clients \
+               aircrack-ng iw wireless-tools
+
+  if [[ $agent_installed -eq 0 ]]; then
+    echo "  Cloning Sparrow-WiFi to /opt/sparrow-wifi..."
+    git clone https://github.com/ghostop14/sparrow-wifi.git /opt/sparrow-wifi || {
+      echo "  ERROR: Failed to clone Sparrow-WiFi repository"
+      return 1
+    }
+  else
+    echo "  Sparrow-WiFi repo already present at /opt/sparrow-wifi"
   fi
 
-  _ensure_pkgs python3-pip python3-dateutil python3-requests
-
-  echo "  Cloning Sparrow-WiFi to /opt/sparrow-wifi..."
-  git clone https://github.com/ghostop14/sparrow-wifi.git /opt/sparrow-wifi || {
-    echo "  ERROR: Failed to clone Sparrow-WiFi repository"
-    return 1
-  }
-
-  echo "  Installing Python dependencies..."
+  # Pure-python pip deps — QScintilla intentionally NOT here (apt provides it).
+  # dronekit pulls pymavlink C-ext which sometimes fails on aarch64; keep it last
+  # and allow failure (Argos does not use drone features).
+  echo "  Installing Python pip deps..."
   pip3 install --break-system-packages flask flask-cors gps3 manuf scapy 2>/dev/null || \
     pip3 install flask flask-cors gps3 manuf scapy
+  pip3 install --break-system-packages dronekit 2>/dev/null || \
+    pip3 install dronekit 2>/dev/null || \
+    echo "  NOTE: dronekit install skipped (non-fatal — drone features disabled)"
 
   chown -R "$SETUP_USER":"$SETUP_USER" /opt/sparrow-wifi
 
+  # Install the Argos-shipped systemd unit. deployment/sparrow-wifi-agent.service
+  # has Conflicts= for wardragon-fpv-detect and zmq-decoder (PSU + wlan1 monitor-mode).
+  local UNIT_SRC="${PROJECT_DIR:-$PWD}/deployment/sparrow-wifi-agent.service"
+  if [[ -f "$UNIT_SRC" ]]; then
+    install -m 0644 "$UNIT_SRC" /etc/systemd/system/sparrow-wifi-agent.service
+    systemctl daemon-reload
+    echo "  sparrow-wifi-agent.service installed"
+  else
+    echo "  WARN: $UNIT_SRC not found — unit file not installed"
+  fi
+
+  # Verify imports — fail fast if any GUI dep missing. Argos Open button
+  # spawns sparrow-wifi.py (Qt GUI), which will segfault without QtChart.
+  echo "  Verifying Python imports..."
+  if ! python3 -c 'from PyQt5.QtChart import QChart; import gps3, manuf' 2>/dev/null; then
+    echo "  ERROR: Sparrow Python deps incomplete — check: python3-pyqt5.qtchart, gps3, manuf"
+    return 1
+  fi
+
   echo "  Sparrow-WiFi installed at /opt/sparrow-wifi"
-  echo "  To enable: sudo systemctl enable --now sparrow-wifi-agent"
+  echo "  Unit enabled=false by design — Argos startSparrow() manages lifecycle."
+  echo "  Manual smoke: sudo systemctl start sparrow-wifi-agent && curl -s http://127.0.0.1:8020/wireless/interfaces"
+}
+
+install_bluehood() {
+  # Bluehood = BLE neighborhood scanner. Upstream pyproject requires Python >=3.11,
+  # Jetson jammy ships 3.10 → install python3.11 from jammy universe + venv.
+  # Argos control-service expects port 8085 (env.ts:BLUEHOOD_PORT default).
+
+  _ensure_pkgs bluez python3.11 python3.11-venv python3.11-dev python3-pip git build-essential
+
+  if ! systemctl is-active --quiet bluetooth 2>/dev/null; then
+    systemctl enable --now bluetooth || true
+  fi
+
+  if [[ ! -d /opt/bluehood/.git ]]; then
+    echo "  Cloning bluehood to /opt/bluehood..."
+    git clone https://github.com/dannymcc/bluehood.git /opt/bluehood || {
+      echo "  ERROR: Failed to clone bluehood repository"
+      return 1
+    }
+  else
+    echo "  bluehood repo already present at /opt/bluehood"
+  fi
+
+  # venv under /opt/bluehood so systemd unit ExecStart is stable
+  if [[ ! -x /opt/bluehood/.venv/bin/python ]]; then
+    echo "  Creating python3.11 venv at /opt/bluehood/.venv..."
+    /usr/bin/python3.11 -m venv /opt/bluehood/.venv || {
+      echo "  ERROR: python3.11 venv creation failed"
+      return 1
+    }
+  fi
+
+  echo "  Installing bluehood into venv (bleak, aiosqlite, aiohttp, mac-vendor-lookup)..."
+  /opt/bluehood/.venv/bin/pip install --upgrade pip setuptools wheel >/dev/null
+  /opt/bluehood/.venv/bin/pip install -e /opt/bluehood || {
+    echo "  ERROR: pip install -e /opt/bluehood failed"
+    return 1
+  }
+
+  mkdir -p /var/lib/bluehood
+  chown root:root /var/lib/bluehood
+
+  # Custom unit (from repo) — upstream ships one but uses system python3 + default
+  # port 8080. Ours pins venv python + --port 8085 to match Argos contract.
+  local UNIT_SRC="${PROJECT_DIR:-$PWD}/deployment/bluehood.service"
+  if [[ -f "$UNIT_SRC" ]]; then
+    install -m 0644 "$UNIT_SRC" /etc/systemd/system/bluehood.service
+    systemctl daemon-reload
+    echo "  bluehood.service installed"
+  else
+    echo "  WARN: $UNIT_SRC not found — unit file not installed"
+    return 1
+  fi
+
+  # Verify deps inside the venv
+  echo "  Verifying bluehood venv imports..."
+  if ! /opt/bluehood/.venv/bin/python -c 'import bleak, aiosqlite, aiohttp, mac_vendor_lookup; from bluehood import daemon' 2>/dev/null; then
+    echo "  ERROR: bluehood venv deps incomplete"
+    return 1
+  fi
+
+  echo "  bluehood installed — port 8085, adapter hci0, DB at /var/lib/bluehood"
+  echo "  Unit enabled=false by design — Argos startBluehood() manages lifecycle."
+  echo "  Manual smoke: sudo systemctl start bluehood && curl -sI http://127.0.0.1:8085"
+}
+
+install_wigletotak() {
+  # WigleToTAK = Flask app that converts Kismet wiglecsv → TAK CoT broadcast.
+  # Argos spawns it directly as SETUP_USER (no systemd, no sudoers needed) —
+  # sees src/lib/server/services/wigletotak/wigletotak-control-service.ts.
+  # Upstream hardcodes port=8000; Argos probes $WIGLETOTAK_PORT (default 8081)
+  # because 8000 is reserved for Chroma. We patch WigletoTAK.py post-clone so
+  # the Flask port honors the env var Argos sets at spawn time.
+
+  local WGL_HOME="$SETUP_HOME/WigleToTAK"
+  local WGL_SCRIPT="$WGL_HOME/WigletoTAK.py"
+
+  _ensure_pkgs git python3-pip
+
+  if [[ ! -d "$WGL_HOME/.git" ]]; then
+    echo "  Cloning WigleToTAK to $WGL_HOME..."
+    sudo -u "$SETUP_USER" git clone https://github.com/canaryradio/WigleToTAK "$WGL_HOME" || {
+      echo "  ERROR: Failed to clone WigleToTAK"
+      return 1
+    }
+  else
+    echo "  WigleToTAK already present at $WGL_HOME"
+  fi
+
+  # Flask (system-wide already present from install_sparrow; re-ensure idempotently).
+  if ! sudo -u "$SETUP_USER" python3 -c 'import flask' 2>/dev/null; then
+    echo "  Installing Flask for $SETUP_USER..."
+    pip3 install --break-system-packages 'Flask>=3.0' 2>/dev/null || \
+      pip3 install 'Flask>=3.0'
+  fi
+
+  # Port patch — idempotent: only touch if unpatched. Adds `import os` if missing
+  # and rewrites app.run(..., port=8000, ...) to read WIGLETOTAK_PORT.
+  if ! grep -q "WIGLETOTAK_PORT" "$WGL_SCRIPT" 2>/dev/null; then
+    echo "  Patching $WGL_SCRIPT to honor WIGLETOTAK_PORT env..."
+    if ! grep -q '^import os' "$WGL_SCRIPT"; then
+      sed -i '1i import os' "$WGL_SCRIPT"
+    fi
+    sed -i "s|port=8000|port=int(os.environ.get('WIGLETOTAK_PORT', 8000))|" "$WGL_SCRIPT"
+    # Confirm patch landed exactly once
+    if ! grep -q "WIGLETOTAK_PORT" "$WGL_SCRIPT"; then
+      echo "  ERROR: port patch failed — manual edit needed"
+      return 1
+    fi
+  else
+    echo "  WigletoTAK.py already patched (WIGLETOTAK_PORT respected)"
+  fi
+
+  chown -R "$SETUP_USER":"$SETUP_USER" "$WGL_HOME"
+
+  echo "  Verifying Flask import..."
+  if ! sudo -u "$SETUP_USER" python3 -c 'import flask' 2>/dev/null; then
+    echo "  ERROR: Flask not importable for $SETUP_USER"
+    return 1
+  fi
+
+  echo "  WigleToTAK installed at $WGL_HOME"
+  echo "  Runs as user process (no systemd). Argos spawns via startWigleToTak()."
+  echo "  Manual smoke: WIGLETOTAK_PORT=8081 python3 $WGL_SCRIPT  (then curl http://127.0.0.1:8081)"
 }
 
 install_vnc() {
