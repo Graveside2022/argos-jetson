@@ -6,6 +6,13 @@ import type { KismetDeviceResponse } from './kismet-proxy-transform';
 import { transformDevice } from './kismet-proxy-transform';
 import type { DeviceFilter, DeviceStats, KismetDevice } from './types';
 
+/** Milliseconds per minute (time-window conversion for device-recency filters). */
+const MS_PER_MINUTE = 60 * 1000;
+/** Active-device window: seen within the last 5 minutes. */
+const ACTIVE_5MIN_WINDOW_MS = 5 * MS_PER_MINUTE;
+/** Active-device window: seen within the last 15 minutes. */
+const ACTIVE_15MIN_WINDOW_MS = 15 * MS_PER_MINUTE;
+
 interface KismetQueryRequest {
 	fields: string[];
 	regex?: Array<[string, string]>;
@@ -142,7 +149,7 @@ export class KismetProxy {
 	/** Check if device was seen within the time window */
 	private static matchesRecency(device: KismetDevice, seenWithin: number): boolean {
 		const lastSeenTime = new Date(device.lastSeen).getTime();
-		return lastSeenTime >= Date.now() - seenWithin * 60 * 1000;
+		return lastSeenTime >= Date.now() - seenWithin * MS_PER_MINUTE;
 	}
 
 	/** Check if a single device passes all filter criteria */
@@ -191,8 +198,8 @@ export class KismetProxy {
 		try {
 			const devices = await this.getDevices();
 			const now = Date.now();
-			const fiveMinAgo = now - 5 * 60 * 1000;
-			const fifteenMinAgo = now - 15 * 60 * 1000;
+			const fiveMinAgo = now - ACTIVE_5MIN_WINDOW_MS;
+			const fifteenMinAgo = now - ACTIVE_15MIN_WINDOW_MS;
 
 			const stats: DeviceStats = {
 				total: devices.length,

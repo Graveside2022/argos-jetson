@@ -11,6 +11,33 @@ import { validateSqlIdentifier } from '$lib/server/security/input-sanitizer';
 import { getHealthReport } from './db-health-report';
 import { getIndexAnalysis } from './db-index-analysis';
 
+// SQLite PRAGMA defaults (see https://sqlite.org/pragma.html)
+/** Default page cache size. Negative = KiB (−2000 = 2 MiB). */
+const DEFAULT_CACHE_SIZE_KIB = -2000;
+/** Default database page size in bytes (power of two, 4 KiB standard). */
+const DEFAULT_PAGE_SIZE_BYTES = 4096;
+/** Default memory-mapped I/O window in bytes (30 MB). */
+const DEFAULT_MMAP_SIZE_BYTES = 30_000_000;
+/** Default SQLite soft heap limit per connection (50 MiB). */
+const DEFAULT_MEMORY_LIMIT_BYTES = 50 * 1024 * 1024;
+/** Default WAL checkpoint trigger (pages between auto-checkpoints). */
+const DEFAULT_WAL_AUTOCHECKPOINT_PAGES = 1000;
+
+// Per-workload PRAGMA tunings applied by optimizeForWorkload()
+/** Read-heavy: 4 MiB cache, 256 MiB mmap, 8 KiB pages. */
+const READ_HEAVY_CACHE_KIB = -4000;
+const READ_HEAVY_MMAP_BYTES = 268_435_456;
+const READ_HEAVY_PAGE_SIZE_BYTES = 8192;
+/** Write-heavy: 1 MiB cache, aggressive 100-page WAL checkpoint, synchronous=OFF. */
+const WRITE_HEAVY_CACHE_KIB = -1000;
+const WRITE_HEAVY_WAL_AUTOCHECKPOINT_PAGES = 100;
+
+// Query-explain thresholds
+/** Average-query-time threshold (ms) above which shouldExplain() returns true. */
+const DEFAULT_EXPLAIN_THRESHOLD_MS = 50;
+/** Average-query-time threshold (ms) above which a query is reported as slow. */
+const DEFAULT_SLOW_QUERY_THRESHOLD_MS = 100;
+
 interface OptimizationConfig {
 	// Performance tuning
 	cacheSize: number;
@@ -46,16 +73,16 @@ export class DatabaseOptimizer {
 	constructor(db: DatabaseType, config?: Partial<OptimizationConfig>) {
 		this.db = db;
 		this.config = {
-			cacheSize: -2000,
-			pageSize: 4096,
-			mmapSize: 30000000,
+			cacheSize: DEFAULT_CACHE_SIZE_KIB,
+			pageSize: DEFAULT_PAGE_SIZE_BYTES,
+			mmapSize: DEFAULT_MMAP_SIZE_BYTES,
 			isWalMode: true,
 			synchronous: 'NORMAL',
 			shouldAnalyzeOnStart: true,
 			shouldAutoIndex: true,
 			shouldUseQueryPlanner: false,
 			tempStore: 'MEMORY',
-			memoryLimit: 50 * 1024 * 1024,
+			memoryLimit: DEFAULT_MEMORY_LIMIT_BYTES,
 			...config
 		};
 
@@ -66,7 +93,11 @@ export class DatabaseOptimizer {
 	private conditionalPragmas(): Array<[boolean, ...string[]]> {
 		const c = this.config;
 		return [
-			[c.isWalMode, 'journal_mode = WAL', 'wal_autocheckpoint = 1000'],
+			[
+				c.isWalMode,
+				'journal_mode = WAL',
+				`wal_autocheckpoint = ${DEFAULT_WAL_AUTOCHECKPOINT_PAGES}`
+			],
 			[c.mmapSize > 0, `mmap_size = ${c.mmapSize}`],
 			[!!c.memoryLimit, `soft_heap_limit = ${c.memoryLimit}`],
 			[c.shouldUseQueryPlanner, 'query_only = 0'],
@@ -220,12 +251,12 @@ export class DatabaseOptimizer {
 	}
 
 	/** Returns true if the named query's average execution time exceeds thresholdMs. */
-	shouldExplain(label: string, thresholdMs = 50): boolean {
+	shouldExplain(label: string, thresholdMs = DEFAULT_EXPLAIN_THRESHOLD_MS): boolean {
 		return (this.queryStats.get(label)?.avgTime ?? 0) > thresholdMs;
 	}
 
 	/** Get slow queries */
-	getSlowQueries(threshold: number = 100) {
+	getSlowQueries(threshold: number = DEFAULT_SLOW_QUERY_THRESHOLD_MS) {
 		return Array.from(this.queryStats.values())
 			.filter((stats) => stats.avgTime > threshold)
 			.sort((a, b) => b.avgTime - a.avgTime);
@@ -235,22 +266,22 @@ export class DatabaseOptimizer {
 	optimizeForWorkload(workload: 'read_heavy' | 'write_heavy' | 'mixed') {
 		switch (workload) {
 			case 'read_heavy':
-				this.db.pragma('cache_size = -4000');
-				this.db.pragma('mmap_size = 268435456');
+				this.db.pragma(`cache_size = ${READ_HEAVY_CACHE_KIB}`);
+				this.db.pragma(`mmap_size = ${READ_HEAVY_MMAP_BYTES}`);
 				this.db.pragma('synchronous = NORMAL');
-				this.db.pragma('page_size = 8192');
+				this.db.pragma(`page_size = ${READ_HEAVY_PAGE_SIZE_BYTES}`);
 				break;
 			case 'write_heavy':
-				this.db.pragma('cache_size = -1000');
+				this.db.pragma(`cache_size = ${WRITE_HEAVY_CACHE_KIB}`);
 				this.db.pragma('synchronous = OFF');
 				this.db.pragma('journal_mode = WAL');
-				this.db.pragma('wal_autocheckpoint = 100');
+				this.db.pragma(`wal_autocheckpoint = ${WRITE_HEAVY_WAL_AUTOCHECKPOINT_PAGES}`);
 				break;
 			case 'mixed':
-				this.db.pragma('cache_size = -2000');
+				this.db.pragma(`cache_size = ${DEFAULT_CACHE_SIZE_KIB}`);
 				this.db.pragma('synchronous = NORMAL');
 				this.db.pragma('journal_mode = WAL');
-				this.db.pragma('wal_autocheckpoint = 1000');
+				this.db.pragma(`wal_autocheckpoint = ${DEFAULT_WAL_AUTOCHECKPOINT_PAGES}`);
 				break;
 		}
 	}
