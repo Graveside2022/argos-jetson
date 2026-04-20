@@ -1,61 +1,11 @@
-import Database from 'better-sqlite3';
-import fs from 'fs';
 import path from 'path';
 
+import { type CellTower, findCellTowersInBoundingBox } from '$lib/server/db/cell-tower-repository';
 import { env } from '$lib/server/env';
 import { queryOpenCellID } from '$lib/server/services/cell-towers/opencellid-client';
 import { logger } from '$lib/utils/logger';
 
-interface TowerRow {
-	radio: string;
-	mcc: number;
-	net: number;
-	area: number;
-	cell: number;
-	lat: number;
-	lon: number;
-	range: number;
-	samples: number;
-	created: number;
-	updated: number;
-	averageSignal: number;
-}
-
-/** Coerce a falsy number to 0 */
-function n(val: number): number {
-	return val || 0;
-}
-
-/** Convert a SQLite TowerRow to a CellTower */
-function rowToTower(r: TowerRow): CellTower {
-	return {
-		radio: r.radio || 'Unknown',
-		mcc: r.mcc,
-		mnc: r.net,
-		lac: r.area,
-		ci: r.cell,
-		lat: r.lat,
-		lon: r.lon,
-		range: n(r.range),
-		samples: n(r.samples),
-		updated: n(r.updated),
-		avgSignal: n(r.averageSignal)
-	};
-}
-
-export interface CellTower {
-	radio: string;
-	mcc: number;
-	mnc: number;
-	lac: number;
-	ci: number;
-	lat: number;
-	lon: number;
-	range: number;
-	samples: number;
-	updated: number;
-	avgSignal: number;
-}
+export type { CellTower };
 
 export interface CellTowerResult {
 	success: boolean;
@@ -75,7 +25,8 @@ function calculateBoundingBox(lat: number, radiusKm: number) {
 }
 
 /**
- * Query local SQLite database for cell towers within bounding box
+ * Query a local OpenCellID SQLite snapshot via the repository.
+ * Returns `null` when the DB file does not exist or the query fails.
  */
 function tryQueryDb(
 	dbPath: string,
@@ -84,25 +35,16 @@ function tryQueryDb(
 	latDelta: number,
 	lonDelta: number
 ): CellTowerResult | null {
-	if (!fs.existsSync(dbPath)) return null;
 	try {
-		const db = new Database(dbPath, { readonly: true });
-		const rows = db
-			.prepare(
-				`SELECT radio, mcc, net, area, cell, lat, lon, range, samples, updated, averageSignal
-				FROM towers
-				WHERE lat BETWEEN ? AND ? AND lon BETWEEN ? AND ?
-				ORDER BY samples DESC
-				LIMIT 500`
-			)
-			.all(lat - latDelta, lat + latDelta, lon - lonDelta, lon + lonDelta);
-		db.close();
-		return {
-			success: true,
-			source: 'database',
-			towers: (rows as TowerRow[]).map(rowToTower),
-			count: rows.length
-		};
+		const towers = findCellTowersInBoundingBox(
+			dbPath,
+			lat - latDelta,
+			lat + latDelta,
+			lon - lonDelta,
+			lon + lonDelta
+		);
+		if (towers === null) return null;
+		return { success: true, source: 'database', towers, count: towers.length };
 	} catch (dbErr) {
 		logger.warn('[cell-tower] Database query failed', {
 			dbPath,
