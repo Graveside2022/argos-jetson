@@ -1436,9 +1436,10 @@ install_bluehood() {
   # Argos control-service expects port 8085 (env.ts:BLUEHOOD_PORT default).
 
   # Abort if operator selected bluetooth_disable elsewhere — enabling here would
-  # silently undo that decision. Matches the verify rule's two signals.
+  # silently undo that decision. Only match explicit "disabled" state so a fresh
+  # system where bluez is not yet installed still flows into _ensure_pkgs below.
   if grep -q 'dtoverlay=disable-bt' /boot/firmware/config.txt 2>/dev/null || \
-     ! systemctl is-enabled --quiet bluetooth 2>/dev/null; then
+     [[ "$(systemctl is-enabled bluetooth 2>/dev/null)" == "disabled" ]]; then
     echo "  ERROR: bluetooth_disable appears active (config.txt overlay or unit disabled)."
     echo "         Bluehood requires BlueZ. Pick one: skip install_bluehood OR re-enable"
     echo "         bluetooth via: systemctl enable bluetooth && remove dtoverlay=disable-bt"
