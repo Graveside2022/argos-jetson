@@ -1,0 +1,180 @@
+diff --git a/tools/ble_test_tx.py b/tools/ble_test_tx.py
+index 8c1e0c2..2cbe326 100644
+--- a/tools/ble_test_tx.py
++++ b/tools/ble_test_tx.py
+@@ -96,7 +96,7 @@ def main():
+             periph.set_tx_power(tx_level)
+             print(f"TX power: {args.tx_power}", file=sys.stderr)
+         else:
+-            print(f"TX power control not available via BLE connector, using default",
++            print("TX power control not available via BLE connector, using default",
+                   file=sys.stderr)
+     except Exception as e:
+         print(f"TX power set failed (using default): {e}", file=sys.stderr)
+@@ -108,8 +108,8 @@ def main():
+     )
+ 
+     print(f"Starting BLE peripheral: name='{args.name}'", file=sys.stderr)
+-    print(f"Advertising on channels 37/38/39 (2402/2426/2480 MHz)", file=sys.stderr)
+-    print(f"Press Ctrl-C to stop", file=sys.stderr)
++    print("Advertising on channels 37/38/39 (2402/2426/2480 MHz)", file=sys.stderr)
++    print("Press Ctrl-C to stop", file=sys.stderr)
+ 
+     try:
+         periph.enable_peripheral_mode(adv_data=adv_data)
+diff --git a/tools/phy_test_bench.py b/tools/phy_test_bench.py
+index e8ece8f..424e757 100644
+--- a/tools/phy_test_bench.py
++++ b/tools/phy_test_bench.py
+@@ -259,7 +259,7 @@ def main():
+             tx_proc.kill()
+             tx_proc.wait()
+ 
+-        print(f"  Butterfly stopped.")
++        print("  Butterfly stopped.")
+         print()
+         time.sleep(2)
+ 
+@@ -296,7 +296,7 @@ def main():
+         if weakest:
+             print(f"    Lowest gain OK: {weakest['rx_gain']} dB ({weakest['crc_pct']:.1f}% CRC, {weakest['ble']} pkts)")
+         else:
+-            print(f"    No packets received at any gain level")
++            print("    No packets received at any gain level")
+ 
+     print()
+ 
+diff --git a/tools/zmq_keygen.py b/tools/zmq_keygen.py
+index 01ced24..2e042d4 100644
+--- a/tools/zmq_keygen.py
++++ b/tools/zmq_keygen.py
+@@ -50,8 +50,8 @@ def main():
+ 
+     # Write server key file (secret + public, Z85-encoded)
+     with open(args.keyfile, "w") as f:
+-        f.write(f"# CurveZMQ server keypair for blue-dragon\n")
+-        f.write(f"# Keep this file secret!\n")
++        f.write("# CurveZMQ server keypair for blue-dragon\n")
++        f.write("# Keep this file secret!\n")
+         f.write(f"secret_key={secret_key.decode()}\n")
+         f.write(f"public_key={public_key.decode()}\n")
+     os.chmod(args.keyfile, 0o600)
+@@ -59,7 +59,7 @@ def main():
+     # Write public key file for distribution to subscribers
+     pubfile = args.keyfile + ".pub"
+     with open(pubfile, "w") as f:
+-        f.write(f"# CurveZMQ server public key - distribute to subscribers\n")
++        f.write("# CurveZMQ server public key - distribute to subscribers\n")
+         f.write(f"server_public_key={public_key.decode()}\n")
+     os.chmod(pubfile, 0o644)
+ 
+diff --git a/tools/zmq_subscriber.py b/tools/zmq_subscriber.py
+index c59057a..68b3d07 100644
+--- a/tools/zmq_subscriber.py
++++ b/tools/zmq_subscriber.py
+@@ -240,7 +240,7 @@ def main():
+         sub.setsockopt(zmq.CURVE_PUBLICKEY, client_public)
+         sub.setsockopt(zmq.CURVE_SECRETKEY, client_secret)
+         if not args.quiet:
+-            print(f"CURVE encryption enabled", file=sys.stderr)
++            print("CURVE encryption enabled", file=sys.stderr)
+ 
+     for endpoint in args.endpoints:
+         sub.bind(endpoint)
+diff --git a/tools/zmq_web_dashboard.py b/tools/zmq_web_dashboard.py
+index 751f56f..858a00d 100644
+--- a/tools/zmq_web_dashboard.py
++++ b/tools/zmq_web_dashboard.py
+@@ -41,6 +41,7 @@ import json
+ import math
+ import os
+ import queue
++import shlex
+ import signal
+ import sqlite3
+ import struct
+@@ -50,6 +51,7 @@ import threading
+ import time
+ from http.server import HTTPServer, BaseHTTPRequestHandler, ThreadingHTTPServer
+ from pathlib import Path
++from typing import Any, Dict
+ from urllib.parse import urlparse
+ from urllib.request import urlopen
+ from urllib.error import URLError
+@@ -246,7 +248,21 @@ class AlertManager:
+             if len(self.pending_browser_alerts) > 100:
+                 self.pending_browser_alerts = self.pending_browser_alerts[-100:]
+ 
+-    def _exec_cmd(self, alert_data):
++    def _exec_cmd(self, alert_data: Dict[str, Any]) -> None:
++        """Fire the configured alert command with alert fields exported as env vars.
++
++        The command string (``self.alert_cmd``) is split with :func:`shlex.split`
++        and executed with ``shell=False`` to avoid shell injection. All alert
++        values are passed through ``env`` rather than interpolated into argv,
++        so no alert field can influence the executed program or its arguments.
++
++        Semantics preserved from the prior ``shell=True`` implementation:
++        fire-and-forget (``Popen`` — no ``wait``/timeout), stdout/stderr
++        discarded to ``/dev/null``, and any launch failure is logged to stderr
++        without raising.
++        """
++        if not self.alert_cmd:
++            return
+         env = os.environ.copy()
+         env["ALERT_MAC"] = str(alert_data["mac"])
+         env["ALERT_NAME"] = str(alert_data.get("name", ""))
+@@ -256,7 +272,10 @@ class AlertManager:
+         env["ALERT_REASON"] = str(alert_data["reason"])
+         env["ALERT_IDENTITY"] = str(alert_data.get("identity") or "")
+         try:
+-            subprocess.Popen(self.alert_cmd, shell=True, env=env,
++            argv = shlex.split(self.alert_cmd)
++            if not argv:
++                return
++            subprocess.Popen(argv, shell=False, env=env,
+                              stdout=subprocess.DEVNULL,
+                              stderr=subprocess.DEVNULL)
+         except Exception as e:
+@@ -914,7 +933,7 @@ def bt_db_update(quiet=False):
+             return False
+ 
+     if not quiet:
+-        print(f"  Bluetooth numbers database updated.", file=sys.stderr)
++        print("  Bluetooth numbers database updated.", file=sys.stderr)
+     return True
+ 
+ 
+@@ -4060,12 +4079,12 @@ def main():
+     httpd = ThreadingHTTPServer(("0.0.0.0", args.port), DashboardHandler)
+     httpd.timeout = 1
+ 
+-    print(f"\n  Blue Dragon - Web Dashboard", file=sys.stderr)
++    print("\n  Blue Dragon - Web Dashboard", file=sys.stderr)
+     print(f"  {'='*40}", file=sys.stderr)
+     print(f"  Dashboard:  http://localhost:{args.port}", file=sys.stderr)
+     if args.write:
+         print(f"  PCAP file:  {args.write} (DLT 192 PPI, BLE+BT)", file=sys.stderr)
+-    print(f"  Privacy:    MAC addresses hidden by default", file=sys.stderr)
++    print("  Privacy:    MAC addresses hidden by default", file=sys.stderr)
+     if _irk_list:
+         print(f"  IRK file:   {args.irk_file} ({len(_irk_list)} key(s))", file=sys.stderr)
+     n = args.path_loss_exp
+@@ -4074,7 +4093,7 @@ def main():
+         n_known = len(state.db._known_keys)
+         print(f"  Database:   {state.db.path} ({n_known} known devices)", file=sys.stderr)
+     else:
+-        print(f"  Database:   disabled (--no-db)", file=sys.stderr)
++        print("  Database:   disabled (--no-db)", file=sys.stderr)
+     if static_positions:
+         for label, (lat, lon) in static_positions.items():
+             print(f"  Sensor pos: {label} ({lat}, {lon})", file=sys.stderr)
+@@ -4100,7 +4119,7 @@ def main():
+ 
+     if state.db:
+         state.db.close()
+-        print(f"Database saved.", file=sys.stderr)
++        print("Database saved.", file=sys.stderr)
+ 
+     print("Dashboard stopped.", file=sys.stderr)
+ 

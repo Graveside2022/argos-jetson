@@ -337,12 +337,12 @@ class WiFiRecon(TacticalModule):
         lines: list[str] = []
         w = lines.append  # shorthand
 
-        w(f"# WiFi Recon Report")
-        w(f"")
+        w("# WiFi Recon Report")
+        w("")
         w(f"**Generated:** {ts}")
         w(f"**Source:** `{os.path.basename(source)}`")
         w(f"**Total targets:** {len(targets)}")
-        w(f"")
+        w("")
 
         # Active filters
         active = {k: v for k, v in filters.items()
@@ -350,13 +350,13 @@ class WiFiRecon(TacticalModule):
                   and k not in ("min_signal", "max_age", "phy", "sort")}
         if active:
             w(f"**Active filters:** {', '.join(f'`{k}={v}`' for k, v in active.items())}")
-            w(f"")
+            w("")
 
         # ── Summary table ────────────────────────────────────────
-        w(f"## Summary")
-        w(f"")
-        w(f"| Metric | Count |")
-        w(f"|--------|------:|")
+        w("## Summary")
+        w("")
+        w("| Metric | Count |")
+        w("|--------|------:|")
         for dtype, cnt in sorted(summary["by_type"].items(), key=lambda x: -x[1]):
             w(f"| {dtype.upper()} | {cnt} |")
         w(f"| **Total** | **{len(targets)}** |")
@@ -364,35 +364,35 @@ class WiFiRecon(TacticalModule):
         w(f"| WPS enabled | {summary['wps_enabled_count']} |")
         w(f"| Cloaked/hidden | {summary['cloaked_count']} |")
         w(f"| Open (no encryption) | {summary['open_network_count']} |")
-        w(f"")
+        w("")
 
         # Encryption breakdown
         if summary["by_encryption"]:
-            w(f"### Encryption")
-            w(f"")
-            w(f"| Type | Count |")
-            w(f"|------|------:|")
+            w("### Encryption")
+            w("")
+            w("| Type | Count |")
+            w("|------|------:|")
             for enc, cnt in sorted(summary["by_encryption"].items(), key=lambda x: -x[1]):
                 w(f"| {enc} | {cnt} |")
-            w(f"")
+            w("")
 
         # Band breakdown
         if summary["by_band"]:
-            w(f"### Bands")
-            w(f"")
-            w(f"| Band | Count |")
-            w(f"|------|------:|")
+            w("### Bands")
+            w("")
+            w("| Band | Count |")
+            w("|------|------:|")
             for band, cnt in sorted(summary["by_band"].items(), key=lambda x: -x[1]):
                 w(f"| {band} | {cnt} |")
-            w(f"")
+            w("")
 
         # ── AP table ─────────────────────────────────────────────
         aps = [t for t in targets if t.get("type") == "ap"]
         if aps:
             w(f"## Access Points ({len(aps)})")
-            w(f"")
-            w(f"| # | SSID | BSSID | Signal | Ch | Band | Encryption | Manufacturer | Clients | WPS | Data | Beacon FP |")
-            w(f"|--:|------|-------|-------:|---:|------|------------|-------------|--------:|:---:|-----:|-----------|")
+            w("")
+            w("| # | SSID | BSSID | Signal | Ch | Band | Encryption | Manufacturer | Clients | WPS | Data | Beacon FP |")
+            w("|--:|------|-------|-------:|---:|------|------------|-------------|--------:|:---:|-----:|-----------|")
             for i, t in enumerate(aps, 1):
                 ssid = t.get("ssid", "") or "(hidden)"
                 mac = t["mac"]
@@ -412,18 +412,18 @@ class WiFiRecon(TacticalModule):
                 ac = t.get("associated_clients", [])
                 if ac:
                     w(f"|   | ↳ Clients: {', '.join(f'`{c}`' for c in ac[:10])} {'...' if len(ac) > 10 else ''} | | | | | | | | | | |")
-            w(f"")
+            w("")
             if any(t.get("cloaked") for t in aps):
-                w(f"> \\* = cloaked/hidden SSID")
-                w(f"")
+                w("> \\* = cloaked/hidden SSID")
+                w("")
 
         # ── Client table ─────────────────────────────────────────
         clients_list = [t for t in targets if t.get("type") == "client"]
         if clients_list:
             w(f"## Clients ({len(clients_list)})")
-            w(f"")
-            w(f"| # | MAC | Signal | Ch | Manufacturer | Connected To | Probed SSIDs | Data | Pkts |")
-            w(f"|--:|-----|-------:|---:|-------------|-------------|-------------|-----:|-----:|")
+            w("")
+            w("| # | MAC | Signal | Ch | Manufacturer | Connected To | Probed SSIDs | Data | Pkts |")
+            w("|--:|-----|-------:|---:|-------------|-------------|-------------|-----:|-----:|")
             for i, t in enumerate(clients_list, 1):
                 mac = t["mac"]
                 sig = t.get("signal_dbm", 0)
@@ -437,15 +437,15 @@ class WiFiRecon(TacticalModule):
                 data = self._human_bytes(t.get("bytes_data", 0))
                 pkts = t.get("packets_total", 0)
                 w(f"| {i} | `{mac}` | {sig_bar} {sig} | {ch} | {manuf} | {conn_to} | {probed} | {data} | {pkts} |")
-            w(f"")
+            w("")
 
         # ── Other device types ───────────────────────────────────
         others = [t for t in targets if t.get("type") not in ("ap", "client")]
         if others:
             w(f"## Other Devices ({len(others)})")
-            w(f"")
-            w(f"| # | MAC | Type | Signal | Ch | Manufacturer | Data |")
-            w(f"|--:|-----|------|-------:|---:|-------------|-----:|")
+            w("")
+            w("| # | MAC | Type | Signal | Ch | Manufacturer | Data |")
+            w("|--:|-----|------|-------:|---:|-------------|-----:|")
             for i, t in enumerate(others, 1):
                 mac = t["mac"]
                 dtype = t.get("type", "")
@@ -455,7 +455,7 @@ class WiFiRecon(TacticalModule):
                 manuf = (t.get("manufacturer", "") or "")[:20]
                 data = self._human_bytes(t.get("bytes_data", 0))
                 w(f"| {i} | `{mac}` | {dtype} | {sig_bar} {sig} | {ch} | {manuf} | {data} |")
-            w(f"")
+            w("")
 
         # ── Priority targets ─────────────────────────────────────
         priority = []
@@ -476,57 +476,57 @@ class WiFiRecon(TacticalModule):
                 priority.append((t, reasons))
 
         if priority:
-            w(f"## Priority Targets")
-            w(f"")
-            w(f"| SSID | MAC | Signal | Why |")
-            w(f"|------|-----|-------:|-----|")
+            w("## Priority Targets")
+            w("")
+            w("| SSID | MAC | Signal | Why |")
+            w("|------|-----|-------:|-----|")
             for t, reasons in priority:
                 ssid = t.get("ssid", "") or "(hidden)"
                 w(f"| {ssid} | `{t['mac']}` | {t.get('signal_dbm', 0)} dBm | {', '.join(reasons)} |")
-            w(f"")
+            w("")
 
         # ── Retry & Error Analysis ──────────────────────────────
         retry_targets = [t for t in targets if t.get("retry_bytes", 0) > 0 or t.get("packets_error", 0) > 0]
         if retry_targets:
-            w(f"## Retry & Error Analysis")
-            w(f"")
-            w(f"> High retry/error rates may indicate jamming, deauth attacks, or interference.")
-            w(f"")
-            w(f"| MAC | SSID | Type | Retry Bytes | Pkt Errors | Data | Ratio |")
-            w(f"|-----|------|------|------------:|----------:|---------:|------:|")
+            w("## Retry & Error Analysis")
+            w("")
+            w("> High retry/error rates may indicate jamming, deauth attacks, or interference.")
+            w("")
+            w("| MAC | SSID | Type | Retry Bytes | Pkt Errors | Data | Ratio |")
+            w("|-----|------|------|------------:|----------:|---------:|------:|")
             for t in sorted(retry_targets, key=lambda x: x.get("retry_bytes", 0), reverse=True)[:20]:
                 rb = t.get("retry_bytes", 0)
                 pe = t.get("packets_error", 0)
                 bd = t.get("bytes_data", 0)
                 ratio = f"{rb / bd * 100:.1f}%" if bd > 0 else "N/A"
                 w(f"| `{t['mac']}` | {t.get('ssid', '')[:20]} | {t.get('type', '')} | {self._human_bytes(rb)} | {pe} | {self._human_bytes(bd)} | {ratio} |")
-            w(f"")
+            w("")
 
         # ── Multi-Frequency Devices ────────────────────────────
         multi_freq = [t for t in targets if t.get("freq_map_khz") and len(t["freq_map_khz"]) > 1]
         if multi_freq:
-            w(f"## Multi-Frequency Devices")
-            w(f"")
-            w(f"> Devices seen on multiple frequencies (band steering, channel hopping).")
-            w(f"")
+            w("## Multi-Frequency Devices")
+            w("")
+            w("> Devices seen on multiple frequencies (band steering, channel hopping).")
+            w("")
             for t in multi_freq[:10]:
                 freqs = t["freq_map_khz"]
                 freq_str = ", ".join(f"{int(k) // 1000}MHz ({v}pkts)" for k, v in
                                      sorted(freqs.items(), key=lambda x: -x[1])[:5])
                 w(f"- `{t['mac']}` ({t.get('ssid', '') or t.get('type', '')}): {freq_str}")
-            w(f"")
+            w("")
 
         # ── GPS Movement (bounding box) ─────────────────────
         moving_devices = [t for t in targets if t.get("gps_bounds")]
         if moving_devices:
-            w(f"## GPS Movement Detected")
-            w(f"")
-            w(f"| MAC | Type | Min Lat | Max Lat | Min Lon | Max Lon |")
-            w(f"|-----|------|--------:|--------:|--------:|--------:|")
+            w("## GPS Movement Detected")
+            w("")
+            w("| MAC | Type | Min Lat | Max Lat | Min Lon | Max Lon |")
+            w("|-----|------|--------:|--------:|--------:|--------:|")
             for t in moving_devices[:15]:
                 b = t["gps_bounds"]
                 w(f"| `{t['mac']}` | {t.get('type', '')} | {b['min_lat']:.6f} | {b['max_lat']:.6f} | {b['min_lon']:.6f} | {b['max_lon']:.6f} |")
-            w(f"")
+            w("")
 
         # ── Beacon Fingerprint Duplicates (evil twin detection) ─
         bfp_map: dict[str, list[dict]] = {}
@@ -536,54 +536,54 @@ class WiFiRecon(TacticalModule):
                 bfp_map.setdefault(bfp, []).append(t)
         dupes = {k: v for k, v in bfp_map.items() if len(v) > 1}
         if dupes:
-            w(f"## Beacon Fingerprint Duplicates (Possible Evil Twins)")
-            w(f"")
-            w(f"> Multiple APs sharing the same beacon fingerprint may indicate cloned/rogue APs.")
-            w(f"")
+            w("## Beacon Fingerprint Duplicates (Possible Evil Twins)")
+            w("")
+            w("> Multiple APs sharing the same beacon fingerprint may indicate cloned/rogue APs.")
+            w("")
             for bfp, devs in dupes.items():
                 ssids = set(d.get("ssid", "") for d in devs if d.get("ssid"))
                 macs = [f"`{d['mac']}`" for d in devs]
                 w(f"- FP `{bfp}`: SSIDs={ssids or '(hidden)'} — MACs: {', '.join(macs)}")
-            w(f"")
+            w("")
 
         # ── Alerts ──────────────────────────────────────────────
         if alerts:
             w(f"## Kismet Alerts ({len(alerts)})")
-            w(f"")
+            w("")
             # Group by type
             alert_groups: dict[str, int] = {}
             for a in alerts:
                 at = a.get("type", "UNKNOWN")
                 alert_groups[at] = alert_groups.get(at, 0) + 1
-            w(f"| Alert Type | Count | Class |")
-            w(f"|------------|------:|-------|")
+            w("| Alert Type | Count | Class |")
+            w("|------------|------:|-------|")
             for at, cnt in sorted(alert_groups.items(), key=lambda x: -x[1]):
                 # Find class from first matching alert
                 cls = next((a.get("class", "") for a in alerts if a.get("type") == at), "")
                 w(f"| {at} | {cnt} | {cls} |")
-            w(f"")
+            w("")
             # Show recent alert details (last 10)
-            w(f"### Recent Alerts")
-            w(f"")
+            w("### Recent Alerts")
+            w("")
             for a in alerts[:10]:
                 from datetime import datetime, timezone
                 ts = a.get("timestamp", 0)
                 ts_str = datetime.fromtimestamp(ts, timezone.utc).strftime("%H:%M:%S") if ts else "?"
                 text = (a.get("text", ""))[:120]
                 w(f"- **[{ts_str}] {a.get('type', '')}**: {text}")
-            w(f"")
+            w("")
 
         # ── Signal legend ─────────────────────────────────────────
-        w(f"## Signal Legend")
-        w(f"")
-        w(f"| Icon | Range | Quality |")
-        w(f"|------|-------|---------|")
-        w(f"| ████ | > -50 dBm | Excellent (very close) |")
-        w(f"| ███░ | -50 to -65 | Good |")
-        w(f"| ██░░ | -65 to -75 | Fair |")
-        w(f"| █░░░ | -75 to -85 | Weak |")
-        w(f"| ░░░░ | < -85 dBm | Marginal |")
-        w(f"")
+        w("## Signal Legend")
+        w("")
+        w("| Icon | Range | Quality |")
+        w("|------|-------|---------|")
+        w("| ████ | > -50 dBm | Excellent (very close) |")
+        w("| ███░ | -50 to -65 | Good |")
+        w("| ██░░ | -65 to -75 | Fair |")
+        w("| █░░░ | -75 to -85 | Weak |")
+        w("| ░░░░ | < -85 dBm | Marginal |")
+        w("")
 
         report_text = "\n".join(lines) + "\n"
         try:

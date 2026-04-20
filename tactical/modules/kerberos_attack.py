@@ -88,7 +88,7 @@ class KerberosAttack(TacticalModule):
         if args.username:
             gnp_args = [f"{args.domain}/{args.username}"]
             if args.password:
-                gnp_args.extend([f"-password", args.password])
+                gnp_args.extend(["-password", args.password])
             elif args.hash:
                 gnp_args.extend(["-hashes", args.hash])
 
