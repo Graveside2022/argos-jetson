@@ -19,7 +19,7 @@ import {
 } from '$lib/server/hardware/detection/hardware-detector';
 import { WebSocketManager } from '$lib/server/kismet/web-socket-manager';
 import { checkRateLimit, getSafeClientAddress } from '$lib/server/middleware/rate-limit-middleware';
-import { applySecurityHeaders } from '$lib/server/middleware/security-headers';
+import { withSecurityHeaders } from '$lib/server/middleware/response-pipeline';
 import { handleWsConnection } from '$lib/server/middleware/ws-connection-handler';
 import { logAuthEvent } from '$lib/server/security/auth-audit';
 import { handleRdioProxy } from '$lib/server/services/trunk-recorder/rdio-proxy';
@@ -242,7 +242,14 @@ function runSecurityPipeline(event: Parameters<Handle>[0]['event']): Response | 
 	);
 }
 
-export const handle: Handle = async ({ event, resolve }) => {
+/**
+ * Inner handle: runs the security pipeline, then either short-circuits,
+ * reverse-proxies to rdio-scanner, or resolves the SvelteKit app. CSP and
+ * other security headers are NOT applied here — `withSecurityHeaders`
+ * wraps this handle so the headers cover every return path (401/413/429
+ * short-circuits + rdio proxy + normal resolve) uniformly.
+ */
+const innerHandle: Handle = async ({ event, resolve }) => {
 	const shortCircuit = runSecurityPipeline(event);
 	if (shortCircuit) return shortCircuit;
 
@@ -254,9 +261,10 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	const response = await resolve(event);
 	attachSessionCookie(event, response);
-	applySecurityHeaders(response, event.url.pathname + event.url.search);
 	return response;
 };
+
+export const handle: Handle = withSecurityHeaders(innerHandle);
 
 /**
  * Global error handler for unhandled server-side errors
