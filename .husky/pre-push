@@ -1,0 +1,45 @@
+# Pre-push chain:
+#   1. Block direct pushes to protected branches (main, master).
+#   2. Full-repo ESLint scan — HARD BLOCK on any error.
+#
+# Force feature-branch + PR workflow. Emergency bypasses require explicit env vars.
+#
+# Bypass protected-branch guard: ALLOW_MAIN_PUSH=1 git push ...
+# Bypass full-repo lint:         SKIP_FULL_LINT=1 git push ...
+# Skip everything:               git push --no-verify ...
+
+set -e
+
+if [ "${ALLOW_MAIN_PUSH:-0}" = "1" ]; then
+	echo "[pre-push] ALLOW_MAIN_PUSH=1 — bypass engaged, pushing to protected branch"
+else
+	PROTECTED='main master'
+	while read -r local_ref local_sha remote_ref remote_sha; do
+		[ -z "$remote_ref" ] && continue
+		case "$local_sha" in
+			0000000*) continue ;;
+		esac
+		remote_branch=${remote_ref#refs/heads/}
+		for pb in $PROTECTED; do
+			if [ "$remote_branch" = "$pb" ]; then
+				echo "[pre-push] ❌ direct push to '$pb' is blocked" >&2
+				echo "[pre-push]    Open a PR from a feature branch instead" >&2
+				echo "[pre-push]    Emergency bypass: ALLOW_MAIN_PUSH=1 git push ..." >&2
+				exit 1
+			fi
+		done
+	done
+fi
+
+# Full-repo ESLint scan (blocking on any error).
+if [ "${SKIP_FULL_LINT:-0}" = "1" ]; then
+	echo "[pre-push] SKIP_FULL_LINT=1 — skipping full-repo eslint scan"
+else
+	echo "[pre-push] full-repo eslint scan (cognitive complexity ≤5, no unused, etc.)..."
+	if ! npx eslint . --config config/eslint.config.js; then
+		echo "[pre-push] ❌ eslint errors present — fix or bypass with SKIP_FULL_LINT=1 git push ..." >&2
+		exit 1
+	fi
+fi
+
+exit 0

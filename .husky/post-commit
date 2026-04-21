@@ -1,0 +1,45 @@
+# Post-commit documentation reminders. Informational only — never blocks.
+# Bypass: SKIP_DOC_REMINDERS=1
+
+if [ "${SKIP_DOC_REMINDERS:-0}" = "1" ]; then
+	exit 0
+fi
+
+CHANGED=$(git show --name-only --pretty=format: HEAD 2>/dev/null | grep -v '^$' || true)
+[ -z "$CHANGED" ] && exit 0
+
+printed_header=0
+remind() {
+	pattern=$1
+	message=$2
+	if echo "$CHANGED" | grep -qE "$pattern"; then
+		if [ "$printed_header" = "0" ]; then
+			printf '\n[post-commit] 📌 reminders for this commit:\n'
+			printed_header=1
+		fi
+		printf '  • %s\n' "$message"
+	fi
+}
+
+remind '^(package\.json|package-lock\.json)$' \
+	"deps changed — verify CLAUDE.md Dependencies rules (native addons stay in dependencies, not devDependencies)"
+remind '^src/hooks\.server\.ts$' \
+	"hooks.server.ts touched — re-check middleware order (auth → rate-limit → body-size → CSP → ELD)"
+remind '^src/lib/server/db/|^scripts/db-migrate\.ts$|^migrations/' \
+	"DB layer touched — did you add a migration? run 'npm run db:migrate' locally before pushing"
+remind '^src/lib/server/api/|^src/routes/api/' \
+	"API route/handler changed — confirm createHandler contract + update any API docs"
+remind '^src/lib/server/auth/|^src/lib/server/security/' \
+	"auth/security code changed — run 'npm run test:security' before pushing"
+remind '^tactical/modules/|^tactical/workflows/' \
+	"tactical module/workflow changed — keep tactical/CLAUDE.md inventory in sync"
+remind '^\.husky/' \
+	"git hook config changed — teammates must run 'npm install' to reactivate husky"
+remind '^deployment/|^scripts/ops/install-services\.sh$' \
+	"systemd unit/install script changed — bump 'Restart=' + test with 'sudo systemctl daemon-reload'"
+remind '^config/eslint\.config\.js$|^ruff\.toml$' \
+	"lint config changed — document the rule change in CLAUDE.md Code Conventions if it affects the 300-LOC / complexity gates"
+remind '^CLAUDE\.md$' \
+	"CLAUDE.md changed — remember it is user-maintained (the spec-kit auto-update is disabled by marker)"
+
+exit 0

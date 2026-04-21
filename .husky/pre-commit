@@ -1,27 +1,86 @@
-#!/usr/bin/env sh
 # Pre-commit chain (run in order, stops on first failure):
-#   1. Full-repo eslint scan — HARD BLOCK on any error (complexity, unused, etc.)
-#   2. lint-staged (eslint --fix + prettier --write on staged files)
-#   3. coderabbit review (informational, non-blocking)
+#   0a. Python size+complexity gate (ruff) on first-party tactical/ modules
+#   0b. Bash file-size gate (wc -l) on scripts/**/*.sh + deployment/**/*.sh
+#   0c. Secret scan — AWS/GH/Slack/PEM/Anthropic/OpenAI/Stripe/JWT/GCP-SA in staged diff
+#   1.  lint-staged (eslint --fix + prettier --write on staged files)
+#   2.  coderabbit review (informational, non-blocking)
+#
+# Full-repo ESLint scan runs in pre-push (keeps commits fast, still blocks bad code from reaching remote).
 #
 # Skip the AI review with: SKIP_CODERABBIT=1 git commit ...
-# Skip the full-repo scan with: SKIP_FULL_LINT=1 git commit ...   (use sparingly — defeats the gate)
+# Skip the Python gate with:   SKIP_PY_GATE=1 git commit ...
+# Skip the bash size gate with: SKIP_SIZE_GATE=1 git commit ...
+# Skip the secret scan with:   SKIP_SECRET_SCAN=1 git commit ...  (rotate the credential instead!)
 # Skip everything with:    git commit --no-verify ...
 
 set -e
 
-# 1) Full-repo eslint scan (blocking on any error)
-if [ "${SKIP_FULL_LINT:-0}" = "1" ]; then
-	echo "[pre-commit] SKIP_FULL_LINT=1 — skipping full-repo eslint scan"
+# 0a) Python size + complexity gate (blocking)
+if [ "${SKIP_PY_GATE:-0}" = "1" ]; then
+	echo "[pre-commit] SKIP_PY_GATE=1 — skipping Python ruff gate"
 else
-	echo "[pre-commit] full-repo eslint scan (cognitive complexity ≤5, no unused, etc.)..."
-	npx eslint . --config config/eslint.config.js
+	PY_FILES=$(git diff --cached --name-only --diff-filter=ACMR -- 'tactical/**/*.py' | grep -v '^tactical/blue-dragon/' || true)
+	if [ -n "$PY_FILES" ]; then
+		if command -v ruff >/dev/null 2>&1; then
+			RUFF=ruff
+		elif [ -x "$HOME/.local/bin/ruff" ]; then
+			RUFF="$HOME/.local/bin/ruff"
+		else
+			echo "[pre-commit] ruff not found on PATH; install with 'pipx install ruff' or set SKIP_PY_GATE=1 (not recommended)" >&2
+			exit 1
+		fi
+		echo "[pre-commit] Python size/complexity gate (ruff E501,C901,PLR0915)..."
+		# shellcheck disable=SC2086
+		$RUFF check $PY_FILES --select=E501,C901,PLR0915 || {
+			echo "[pre-commit] Python size/complexity gate failed" >&2
+			exit 1
+		}
+	fi
 fi
 
-# 2) Lint + format staged files (blocking)
+# 0b) Bash file-size gate (blocking — 300 LOC/file hard cap per CLAUDE.md)
+if [ "${SKIP_SIZE_GATE:-0}" = "1" ]; then
+	echo "[pre-commit] SKIP_SIZE_GATE=1 — skipping bash size gate"
+else
+	SH_FILES=$(git diff --cached --name-only --diff-filter=ACMR -- 'scripts/**/*.sh' 'deployment/**/*.sh' || true)
+	if [ -n "$SH_FILES" ]; then
+		SIZE_FAIL=0
+		for f in $SH_FILES; do
+			[ -f "$f" ] || continue
+			lines=$(wc -l < "$f")
+			if [ "$lines" -gt 300 ]; then
+				echo "[pre-commit] $f: $lines LOC exceeds 300-LOC cap (bash size gate)" >&2
+				SIZE_FAIL=1
+			fi
+		done
+		if [ "$SIZE_FAIL" = "1" ]; then
+			echo "[pre-commit] Bash size gate failed — split oversized scripts per CLAUDE.md Code Conventions" >&2
+			exit 1
+		fi
+	fi
+fi
+
+# 0c) Secret scan (blocking — inspects only added lines in staged diff)
+# Patterns: AWS, GH PAT family, Slack, PEM, Anthropic, OpenAI, Stripe, GCP SA, generic JWT.
+if [ "${SKIP_SECRET_SCAN:-0}" = "1" ]; then
+	echo "[pre-commit] SKIP_SECRET_SCAN=1 — skipping secret scan"
+else
+	SECRET_PATTERNS='AKIA[0-9A-Z]{16}|ASIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9]{36,}|xox[abpsr]-[A-Za-z0-9-]{10,}|-----BEGIN[[:space:]]+(RSA|OPENSSH|DSA|EC|PGP)?[[:space:]]*PRIVATE KEY-----|sk-ant-api03-[A-Za-z0-9_-]{93,}|sk-(proj-)?[A-Za-z0-9_-]{40,}|sk_live_[A-Za-z0-9]{24,}|rk_live_[A-Za-z0-9]{24,}|eyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+|"type"[[:space:]]*:[[:space:]]*"service_account"'
+	ADDED=$(git diff --cached --no-color -U0 --diff-filter=ACMR -- . ':(exclude)package-lock.json' ':(exclude)**/*.lock' ':(exclude)**/*.lockb' 2>/dev/null | grep -E '^\+[^+]' || true)
+	if [ -n "$ADDED" ] && echo "$ADDED" | grep -qE "$SECRET_PATTERNS"; then
+		echo "[pre-commit] ❌ potential secret detected in staged changes:" >&2
+		echo "$ADDED" | grep -nE "$SECRET_PATTERNS" | head -20 >&2
+		echo "" >&2
+		echo "[pre-commit] ROTATE the credential BEFORE pushing — it is already in the staging area." >&2
+		echo "[pre-commit] If this is a false positive, bypass with: SKIP_SECRET_SCAN=1 git commit ..." >&2
+		exit 1
+	fi
+fi
+
+# 1) Lint + format staged files (blocking)
 npx lint-staged
 
-# 3) CodeRabbit review (non-blocking, informational)
+# 2) CodeRabbit review (non-blocking, informational)
 if [ "${SKIP_CODERABBIT:-0}" = "1" ]; then
 	echo "[pre-commit] SKIP_CODERABBIT=1 — skipping coderabbit review"
 	exit 0
