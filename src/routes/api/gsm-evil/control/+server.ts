@@ -1,92 +1,26 @@
-import { json } from '@sveltejs/kit';
-import { z } from 'zod';
-
-import { createHandler } from '$lib/server/api/create-handler';
-import { errMsg } from '$lib/server/api/error-utils';
-import { startGsmEvil, stopGsmEvil } from '$lib/server/services/gsm-evil/gsm-evil-control-service';
-import { logger } from '$lib/utils/logger';
-
-/**
- * Zod schema for GSM Evil control POST request
- * Task: T030 - Constitutional Audit Remediation (P1)
- */
-export const _GsmEvilControlRequestSchema = z.object({
-	action: z.enum(['start', 'stop']).describe('Control action: start or stop GSM monitoring'),
-	frequency: z
-		.string()
-		.regex(/^\d+(\.\d+)?$/, 'Frequency must be a valid number')
-		.optional()
-		.describe('GSM frequency in MHz (e.g., "947.2")')
-});
-
-function selectStartStatus(result: { success: boolean; conflictingService?: string }): number {
-	if (!result.success && result.conflictingService) return 409;
-	return result.success ? 200 : 500;
-}
-
-function selectStopStatus(result: { success: boolean; error?: string }): number {
-	if (!result.success && result.error?.includes('timeout')) return 408;
-	return result.success ? 200 : 500;
-}
-
-async function handleStart(frequency?: string) {
-	const result = await startGsmEvil(frequency);
-	return json(result, { status: selectStartStatus(result) });
-}
-
-async function handleStop() {
-	const result = await stopGsmEvil();
-	return json(result, { status: selectStopStatus(result) });
-}
-
-const actionHandlers: Record<string, (frequency?: string) => Promise<Response>> = {
-	start: handleStart,
-	stop: handleStop
-};
-
 /**
  * POST /api/gsm-evil/control
- * Start or stop GSM Evil monitoring (grgsm_livemon_headless + GsmEvil2)
- * Body: { action: "start" | "stop", frequency?: string }
+ *
+ * Start or stop GSM Evil monitoring (grgsm_livemon_headless + GsmEvil2).
+ *
+ * Lifecycle orchestration lives in the HackRF tool framework. This file is
+ * intentionally thin — the route only binds the URL to {@link gsmEvilDriver}.
+ *
+ * Body: `{ action: 'start' | 'stop', frequency?: string }`
+ *   - `frequency` (MHz, default 947.2) passes through to `startGsmEvil`,
+ *     where it is validated by `validateNumericParam` (800-1000 range).
+ *
+ * Status codes:
+ *   - 200 success
+ *   - 409 HackRF claim conflict (returns `conflictingService`)
+ *   - 408 stop timeout
+ *   - 500 other failure
+ *
+ * Note: gsm-evil uses the `stale-only` claim policy (not `peer-webrx`) to
+ * protect in-flight IMSI captures from accidental peer eviction.
  */
-export const POST = createHandler(
-	async ({ request }) => {
-		try {
-			const rawBody = await request.json();
 
-			// Validate request body with Zod (T030)
-			const validationResult = _GsmEvilControlRequestSchema.safeParse(rawBody);
+import { createHackRfToolHandler } from '$lib/server/services/hackrf-tool';
+import { gsmEvilDriver } from '$lib/server/services/hackrf-tool/drivers/gsm-evil';
 
-			if (!validationResult.success) {
-				return json(
-					{
-						success: false,
-						message: 'Invalid request body',
-						errors: validationResult.error.format()
-					},
-					{ status: 400 }
-				);
-			}
-
-			const { action, frequency } = validationResult.data;
-			const handler = actionHandlers[action];
-
-			if (!handler) {
-				return json({ success: false, message: 'Invalid action' }, { status: 400 });
-			}
-
-			return await handler(frequency);
-		} catch (error: unknown) {
-			logger.error('Control API error', { error: errMsg(error) });
-			return json(
-				{
-					success: false,
-					message: 'Invalid request',
-					error: errMsg(error)
-				},
-				{ status: 400 }
-			);
-		}
-	},
-	{ validateBody: _GsmEvilControlRequestSchema }
-);
+export const POST = createHackRfToolHandler(gsmEvilDriver);

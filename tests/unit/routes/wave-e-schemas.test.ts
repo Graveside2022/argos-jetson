@@ -19,7 +19,10 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import { _GsmEvilControlRequestSchema as GsmEvilControlRequestSchema } from '../../../src/routes/api/gsm-evil/control/+server';
+import { buildActionSchema } from '../../../src/lib/server/services/hackrf-tool';
+import { gsmEvilDriver } from '../../../src/lib/server/services/hackrf-tool/drivers/gsm-evil';
+
+const GsmEvilControlRequestSchema = buildActionSchema(gsmEvilDriver);
 import { _GsmScanRequestSchema as GsmScanRequestSchema } from '../../../src/routes/api/gsm-evil/scan/+server';
 import { _GsmTowerLocationRequestSchema as GsmTowerLocationRequestSchema } from '../../../src/routes/api/gsm-evil/tower-location/+server';
 import { _TakConfigSchema as TakConfigSchema } from '../../../src/routes/api/tak/config/+server';
