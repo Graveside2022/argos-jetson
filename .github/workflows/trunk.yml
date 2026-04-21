@@ -1,0 +1,49 @@
+# .github/workflows/trunk.yml
+#
+# Trunk Code Quality — annotates new lint issues on PRs (hold-the-line).
+# Does NOT block on existing debt; existing 3562 baseline issues are ignored.
+# Only new issues on changed lines (relative to main) produce annotations.
+#
+# Install + config: .trunk/trunk.yaml + .trunk/configs/
+# Linters active: actionlint, gitleaks, markdownlint, prettier, renovate,
+# ruff, shellcheck, shfmt, svgo, taplo, yamllint.
+
+name: 'CI: Trunk Code Quality'
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  trunk-check:
+    name: 'Trunk Check (new issues only)'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: 'Checkout Code'
+        # actions/checkout v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          # Trunk needs full history to compute hold-the-line diffs against main
+          fetch-depth: 0
+
+      - name: 'Trunk Check'
+        # trunk-io/trunk-action@v1 — canonical ref per upstream docs
+        # TODO: pin by SHA for supply-chain parity with ci.yml / lint.yml
+        uses: trunk-io/trunk-action@v1
+        with:
+          # Post issue annotations as PR review comments
+          post-annotations: true
