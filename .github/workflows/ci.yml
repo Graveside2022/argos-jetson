@@ -58,7 +58,14 @@ jobs:
           npm run typecheck
 
       - name: 'Run Automated Tests'
-        run: npm test
+        # `npm test` runs vitest in watch mode — wrong for CI. Use the
+        # explicit unit scope. `--max-old-space-size=4096` prevents the
+        # 7GB runner from OOMing during the full parallel suite
+        # (svelte-check + vitest workers + test fixtures approach the
+        # default 2GB V8 heap on this repo's ~511 tests).
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
+        run: npm run test:unit
 
       - name: 'Verify Production Build'
         run: npm run build
