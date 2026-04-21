@@ -65,7 +65,14 @@ jobs:
         # default 2GB V8 heap on this repo's ~511 tests).
         env:
           NODE_OPTIONS: --max-old-space-size=4096
+          # CI-only placeholder. src/lib/server/env.ts rejects short keys
+          # (min 32 chars via Zod). Not used for actual auth during CI
+          # tests/build — those paths are mocked or don't reach the auth
+          # middleware. 64 hex chars ensures the validator passes.
+          ARGOS_API_KEY: ci-placeholder-do-not-use-for-auth-0000000000000000000000000000
         run: npm run test:unit
 
       - name: 'Verify Production Build'
+        env:
+          ARGOS_API_KEY: ci-placeholder-do-not-use-for-auth-0000000000000000000000000000
         run: npm run build
