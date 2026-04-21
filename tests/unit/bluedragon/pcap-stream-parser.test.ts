@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 
 import { describe, expect, it } from 'vitest';
@@ -6,6 +7,23 @@ import type { FrameObservation } from '$lib/server/services/bluedragon/device-ag
 import { PcapStreamParser } from '$lib/server/services/bluedragon/pcap-stream-parser';
 
 const FIXTURE = 'tests/fixtures/bluedragon/bench-25s.pcap';
+
+/**
+ * True when `tshark` is on PATH. PcapStreamParser shells out to tshark to
+ * decode the pcap frames; without it the parser emits an ENOENT and the
+ * test can't run. CI runners don't have wireshark installed by default;
+ * the Jetson does (wireshark-common package). Skip instead of fail so the
+ * test still exercises the real pcap path in any dev environment that
+ * has the tool, without blocking CI on an environment-dependency.
+ */
+function hasTshark(): boolean {
+	try {
+		execFileSync('tshark', ['--version'], { stdio: 'ignore' });
+		return true;
+	} catch {
+		return false;
+	}
+}
 
 function runParser(path: string, timeoutMs = 15_000): Promise<FrameObservation[]> {
 	return new Promise((resolve, reject) => {
@@ -25,7 +43,7 @@ function runParser(path: string, timeoutMs = 15_000): Promise<FrameObservation[]
 }
 
 describe('PcapStreamParser', () => {
-	it.skipIf(!existsSync(FIXTURE))(
+	it.skipIf(!existsSync(FIXTURE) || !hasTshark())(
 		'parses real Blue Dragon fixture PCAP',
 		async () => {
 			const frames = await runParser(FIXTURE);
