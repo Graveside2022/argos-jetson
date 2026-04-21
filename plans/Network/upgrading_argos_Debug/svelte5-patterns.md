@@ -33,7 +33,7 @@ export let enabled = true;
 let {
 	name,
 	count = 0,
-	enabled = true,
+	enabled = true
 }: {
 	name: string;
 	count?: number;
@@ -63,7 +63,7 @@ export let onSelect: ((device: Device) => void) | undefined = undefined;
 ```typescript
 let {
 	device = null,
-	onSelect = undefined,
+	onSelect = undefined
 }: {
 	device?: Device | null;
 	onSelect?: ((device: Device) => void) | undefined;
@@ -122,7 +122,7 @@ $: filteredDevices = (() => {
 ```typescript
 let {
 	devices,
-	filter,
+	filter
 }: {
 	devices: Map<string, Device>;
 	filter: string;
@@ -168,7 +168,7 @@ $: mapOptions = { center: mapCenter, zoom };
 let {
 	lat,
 	lon,
-	zoom,
+	zoom
 }: {
 	lat: number;
 	lon: number;
@@ -190,8 +190,8 @@ let mapOptions = $derived({ center: mapCenter, zoom });
 **Before (Svelte 4):**
 
 ```typescript
-import { myStore } from "$lib/stores/myStore";
-import { onDestroy } from "svelte";
+import { myStore } from '$lib/stores/myStore';
+import { onDestroy } from 'svelte';
 
 let data = null;
 const unsub = myStore.subscribe((value) => {
@@ -204,7 +204,7 @@ onDestroy(unsub);
 **After (Svelte 5) - Option A: Auto-subscription**
 
 ```typescript
-import { myStore } from "$lib/stores/myStore";
+import { myStore } from '$lib/stores/myStore';
 
 let data = $derived($myStore);
 ```
@@ -222,14 +222,14 @@ let data = $derived($myStore);
 **Before (Svelte 4):**
 
 ```typescript
-import { myStore } from "$lib/stores/myStore";
-import { onDestroy } from "svelte";
+import { myStore } from '$lib/stores/myStore';
+import { onDestroy } from 'svelte';
 
 let processedData = null;
 const unsub = myStore.subscribe((raw) => {
 	processedData = raw.map((item) => ({
 		...item,
-		processed: true,
+		processed: true
 	}));
 });
 
@@ -239,13 +239,13 @@ onDestroy(unsub);
 **After (Svelte 5):**
 
 ```typescript
-import { myStore } from "$lib/stores/myStore";
+import { myStore } from '$lib/stores/myStore';
 
 let processedData = $derived.by(() => {
 	const raw = $myStore;
 	return raw.map((item) => ({
 		...item,
-		processed: true,
+		processed: true
 	}));
 });
 ```
@@ -263,8 +263,8 @@ let processedData = $derived.by(() => {
 **Before (Svelte 4):**
 
 ```typescript
-import { gpsStore } from "$lib/stores/gpsStore";
-import { onDestroy } from "svelte";
+import { gpsStore } from '$lib/stores/gpsStore';
+import { onDestroy } from 'svelte';
 
 let position = null;
 const unsub = gpsStore.subscribe((gps) => {
@@ -281,7 +281,7 @@ onDestroy(unsub);
 **After (Svelte 5):**
 
 ```typescript
-import { gpsStore } from "$lib/stores/gpsStore";
+import { gpsStore } from '$lib/stores/gpsStore';
 
 let gps = $derived($gpsStore);
 let position = $derived(gps.position);
@@ -306,8 +306,8 @@ $effect(() => {
 **Before (Svelte 4):**
 
 ```typescript
-import { store1, store2 } from "$lib/stores";
-import { onDestroy } from "svelte";
+import { store1, store2 } from '$lib/stores';
+import { onDestroy } from 'svelte';
 
 let data1 = null;
 let data2 = null;
@@ -329,7 +329,7 @@ onDestroy(() => {
 **After (Svelte 5):**
 
 ```typescript
-import { store1, store2 } from "$lib/stores";
+import { store1, store2 } from '$lib/stores';
 
 let data1 = $derived($store1);
 let data2 = $derived($store2);
@@ -350,10 +350,10 @@ let combined = $derived(data1 && data2 ? { data1, data2 } : null);
 export let isRunning: boolean;
 
 $: if (isRunning) {
-	console.log("Service started");
+	console.log('Service started');
 	startPolling();
 } else {
-	console.log("Service stopped");
+	console.log('Service stopped');
 	stopPolling();
 }
 ```
@@ -365,10 +365,10 @@ let { isRunning }: { isRunning: boolean } = $props();
 
 $effect(() => {
 	if (isRunning) {
-		console.log("Service started");
+		console.log('Service started');
 		startPolling();
 	} else {
-		console.log("Service stopped");
+		console.log('Service stopped');
 		stopPolling();
 	}
 });
@@ -438,14 +438,14 @@ $effect(() => {
 **Before & After (Same):**
 
 ```typescript
-import { onMount } from "svelte";
+import { onMount } from 'svelte';
 
 onMount(() => {
-	console.log("Component mounted");
+	console.log('Component mounted');
 	initializeMap();
 
 	return () => {
-		console.log("Component unmounting");
+		console.log('Component unmounting');
 		destroyMap();
 	};
 });
@@ -483,7 +483,7 @@ onMount(() => {
 let { mapConfig }: { mapConfig: MapConfig } = $props();
 
 $effect(() => {
-	console.log("Map config changed");
+	console.log('Map config changed');
 	initializeMap(mapConfig);
 
 	return () => {
@@ -525,7 +525,7 @@ function handleClick() {
 **Before & After (Same):**
 
 ```typescript
-import { createEventDispatcher } from "svelte";
+import { createEventDispatcher } from 'svelte';
 
 const dispatch = createEventDispatcher<{
 	select: { id: string };
@@ -533,7 +533,7 @@ const dispatch = createEventDispatcher<{
 }>();
 
 function handleSelect(id: string) {
-	dispatch("select", { id });
+	dispatch('select', { id });
 }
 ```
 
@@ -548,17 +548,17 @@ function handleSelect(id: string) {
 **Before (Svelte 4):**
 
 ```typescript
-let searchQuery = "";
-let sortColumn = "name";
-let sortDirection: "asc" | "desc" = "asc";
+let searchQuery = '';
+let sortColumn = 'name';
+let sortDirection: 'asc' | 'desc' = 'asc';
 ```
 
 **After (Svelte 5):**
 
 ```typescript
-let searchQuery = $state("");
-let sortColumn = $state<"name" | "rssi" | "type">("name");
-let sortDirection = $state<"asc" | "desc">("asc");
+let searchQuery = $state('');
+let sortColumn = $state<'name' | 'rssi' | 'type'>('name');
+let sortDirection = $state<'asc' | 'desc'>('asc');
 ```
 
 **When to use:**
@@ -619,7 +619,7 @@ let canvas = $state<HTMLCanvasElement | undefined>();
 $effect(() => {
 	if (!canvas || !spectrumData) return;
 
-	const ctx = canvas.getContext("2d");
+	const ctx = canvas.getContext('2d');
 	if (!ctx) return;
 
 	const animationFrame = requestAnimationFrame(() => {
@@ -637,8 +637,8 @@ $effect(() => {
 **Before (Svelte 4):**
 
 ```typescript
-let searchQuery = "";
-let debouncedQuery = "";
+let searchQuery = '';
+let debouncedQuery = '';
 let debounceTimer: NodeJS.Timeout;
 
 $: {
@@ -652,8 +652,8 @@ $: {
 **After (Svelte 5):**
 
 ```typescript
-let searchQuery = $state("");
-let debouncedQuery = $state("");
+let searchQuery = $state('');
+let debouncedQuery = $state('');
 
 $effect(() => {
 	const timer = setTimeout(() => {
@@ -785,10 +785,10 @@ let doubled = $derived(count * 2);
 ```typescript
 // ❌ WRONG - $effect runs on every reactive change
 let count = $state(0);
-let name = $state("");
+let name = $state('');
 
 $effect(() => {
-	console.log("Effect ran");
+	console.log('Effect ran');
 	if (count > 5) {
 		doSomething(count);
 	}

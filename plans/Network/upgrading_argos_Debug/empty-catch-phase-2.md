@@ -64,23 +64,23 @@ git tag phase-2-start
 
 ```typescript
 try {
-	process.kill(companionPid, "SIGTERM");
-	logInfo("Companion process termination signal sent", {
+	process.kill(companionPid, 'SIGTERM');
+	logInfo('Companion process termination signal sent', {
 		timestamp: Date.now(),
-		operation: "companion.stop",
+		operation: 'companion.stop',
 		pid: companionPid,
-		signal: "SIGTERM",
+		signal: 'SIGTERM'
 	});
 } catch (error: unknown) {
 	const errorMsg = error instanceof Error ? error.message : String(error);
-	logWarn("Companion process termination failed (may already be stopped)", {
+	logWarn('Companion process termination failed (may already be stopped)', {
 		error: errorMsg,
 		timestamp: Date.now(),
-		operation: "companion.stop",
+		operation: 'companion.stop',
 		pid: companionPid,
-		impact: "Process may already be dead",
-		fallback: "Will try pkill as backup",
-		nextStep: "Attempting pkill -f companion",
+		impact: 'Process may already be dead',
+		fallback: 'Will try pkill as backup',
+		nextStep: 'Attempting pkill -f companion'
 	});
 }
 ```
@@ -101,22 +101,22 @@ kill [PID]
 
 ```typescript
 try {
-	await execAsync("pkill -f companion");
-	logInfo("Companion pkill successful", {
+	await execAsync('pkill -f companion');
+	logInfo('Companion pkill successful', {
 		timestamp: Date.now(),
-		operation: "companion.stop",
-		method: "pkill",
+		operation: 'companion.stop',
+		method: 'pkill'
 	});
 } catch (error: unknown) {
 	const errorMsg = error instanceof Error ? error.message : String(error);
-	logWarn("Companion pkill failed (no matching processes)", {
+	logWarn('Companion pkill failed (no matching processes)', {
 		error: errorMsg,
 		timestamp: Date.now(),
-		operation: "companion.stop",
-		method: "pkill -f companion",
-		impact: "Companion process cleanup unverified",
-		recovery: "Check: ps aux | grep companion",
-		note: "This may be normal if process already stopped",
+		operation: 'companion.stop',
+		method: 'pkill -f companion',
+		impact: 'Companion process cleanup unverified',
+		recovery: 'Check: ps aux | grep companion',
+		note: 'This may be normal if process already stopped'
 	});
 }
 ```
@@ -127,17 +127,17 @@ try {
 
 ```typescript
 try {
-	const { stdout } = await execAsync("pgrep -f companion");
+	const { stdout } = await execAsync('pgrep -f companion');
 	const pid = parseInt(stdout.trim());
 	return { running: true, pid };
 } catch (error: unknown) {
 	const errorMsg = error instanceof Error ? error.message : String(error);
-	logInfo("Companion process not found (service stopped)", {
+	logInfo('Companion process not found (service stopped)', {
 		error: errorMsg,
 		timestamp: Date.now(),
-		operation: "companion.status",
-		method: "pgrep",
-		result: "not-running",
+		operation: 'companion.status',
+		method: 'pgrep',
+		result: 'not-running'
 	});
 	return { running: false, pid: null };
 }
@@ -178,18 +178,18 @@ try {
 	await this.stopAlfaProcess();
 } catch (error: unknown) {
 	const errorMsg = error instanceof Error ? error.message : String(error);
-	logWarn("ALFA process stop failed", {
+	logWarn('ALFA process stop failed', {
 		error: errorMsg,
 		timestamp: Date.now(),
-		operation: "alfa.stop",
-		device: "ALFA WiFi Adapter",
-		impact: "Process may still be running",
-		recovery: "Check: ps aux | grep alfa",
+		operation: 'alfa.stop',
+		device: 'ALFA WiFi Adapter',
+		impact: 'Process may still be running',
+		recovery: 'Check: ps aux | grep alfa',
 		diagnostics: {
-			checkProcess: "pgrep -f alfa",
-			checkInterface: "iwconfig",
-			forceKill: "pkill -9 -f alfa",
-		},
+			checkProcess: 'pgrep -f alfa',
+			checkInterface: 'iwconfig',
+			forceKill: 'pkill -9 -f alfa'
+		}
 	});
 }
 ```
@@ -206,26 +206,26 @@ try {
 
 ```typescript
 try {
-	await execAsync("docker stop hackrf-container");
-	logInfo("HackRF Docker container stopped", {
+	await execAsync('docker stop hackrf-container');
+	logInfo('HackRF Docker container stopped', {
 		timestamp: Date.now(),
-		operation: "hackrf.docker.stop",
-		container: "hackrf-container",
+		operation: 'hackrf.docker.stop',
+		container: 'hackrf-container'
 	});
 } catch (error: unknown) {
 	const errorMsg = error instanceof Error ? error.message : String(error);
-	logWarn("HackRF Docker container stop failed", {
+	logWarn('HackRF Docker container stop failed', {
 		error: errorMsg,
 		timestamp: Date.now(),
-		operation: "hackrf.docker.stop",
-		container: "hackrf-container",
-		impact: "Container may not be running",
-		recovery: "Check: docker ps -a | grep hackrf",
+		operation: 'hackrf.docker.stop',
+		container: 'hackrf-container',
+		impact: 'Container may not be running',
+		recovery: 'Check: docker ps -a | grep hackrf',
 		diagnostics: {
-			listContainers: "docker ps -a",
-			inspectContainer: "docker inspect hackrf-container",
-			forceRemove: "docker rm -f hackrf-container",
-		},
+			listContainers: 'docker ps -a',
+			inspectContainer: 'docker inspect hackrf-container',
+			forceRemove: 'docker rm -f hackrf-container'
+		}
 	});
 }
 ```
@@ -263,22 +263,19 @@ git tag phase-2-fix-4-8-complete
 ```typescript
 // Lines 85, 90
 try {
-	const macAddress = await fs.readFile(
-		`/sys/class/net/${iface}/address`,
-		"utf-8",
-	);
+	const macAddress = await fs.readFile(`/sys/class/net/${iface}/address`, 'utf-8');
 	return macAddress.trim();
 } catch (error: unknown) {
 	const errorMsg = error instanceof Error ? error.message : String(error);
-	logWarn("WiFi adapter MAC address read failed", {
+	logWarn('WiFi adapter MAC address read failed', {
 		error: errorMsg,
 		timestamp: Date.now(),
-		operation: "wifi.getMac",
+		operation: 'wifi.getMac',
 		interface: iface,
 		path: `/sys/class/net/${iface}/address`,
-		impact: "MAC address unavailable for this adapter",
-		fallback: "Will skip this interface",
-		recovery: "Check: ls -la /sys/class/net/",
+		impact: 'MAC address unavailable for this adapter',
+		fallback: 'Will skip this interface',
+		recovery: 'Check: ls -la /sys/class/net/'
 	});
 	return null;
 }
@@ -292,14 +289,14 @@ try {
 	return stdout.includes(vendorId);
 } catch (error: unknown) {
 	const errorMsg = error instanceof Error ? error.message : String(error);
-	logInfo("USB device check failed (device may not be USB)", {
+	logInfo('USB device check failed (device may not be USB)', {
 		error: errorMsg,
 		timestamp: Date.now(),
-		operation: "wifi.checkUsb",
+		operation: 'wifi.checkUsb',
 		interface: iface,
 		vendorId,
-		result: "not-found",
-		note: "This is normal for built-in WiFi adapters",
+		result: 'not-found',
+		note: 'This is normal for built-in WiFi adapters'
 	});
 	return false;
 }
@@ -310,18 +307,18 @@ try {
 ```typescript
 try {
 	const { stdout } = await execAsync(`iw ${iface} info`);
-	return stdout.includes("monitor");
+	return stdout.includes('monitor');
 } catch (error: unknown) {
 	const errorMsg = error instanceof Error ? error.message : String(error);
-	logWarn("Monitor mode support check failed", {
+	logWarn('Monitor mode support check failed', {
 		error: errorMsg,
 		timestamp: Date.now(),
-		operation: "wifi.checkMonitorMode",
+		operation: 'wifi.checkMonitorMode',
 		interface: iface,
-		impact: "Cannot determine if monitor mode supported",
-		fallback: "Assume monitor mode not supported",
-		recovery: "Manual check: iw " + iface + " info",
-		note: "Interface may not support wireless extensions",
+		impact: 'Cannot determine if monitor mode supported',
+		fallback: 'Assume monitor mode not supported',
+		recovery: 'Manual check: iw ' + iface + ' info',
+		note: 'Interface may not support wireless extensions'
 	});
 	return false;
 }
@@ -362,45 +359,45 @@ git tag phase-2-fix-9-12-complete
 ```typescript
 // Line 50
 try {
-	const dbPath = path.join(processDir, "imsi_data.db");
+	const dbPath = path.join(processDir, 'imsi_data.db');
 	await fs.access(dbPath);
 	return dbPath;
 } catch (error: unknown) {
 	const errorMsg = error instanceof Error ? error.message : String(error);
-	logInfo("GSM database not in process directory", {
+	logInfo('GSM database not in process directory', {
 		error: errorMsg,
 		timestamp: Date.now(),
-		operation: "gsm.findDatabase",
+		operation: 'gsm.findDatabase',
 		searchPath: processDir,
-		result: "not-found",
-		nextStep: "Will try alternative locations",
+		result: 'not-found',
+		nextStep: 'Will try alternative locations'
 	});
 }
 
 // Line 69 - Final path check
 try {
 	await fs.access(dbPath, fs.constants.R_OK);
-	logInfo("GSM database found", {
+	logInfo('GSM database found', {
 		timestamp: Date.now(),
-		operation: "gsm.findDatabase",
+		operation: 'gsm.findDatabase',
 		path: dbPath,
-		result: "success",
+		result: 'success'
 	});
 	return dbPath;
 } catch (error: unknown) {
 	const errorMsg = error instanceof Error ? error.message : String(error);
-	logError("GSM database path inaccessible", {
+	logError('GSM database path inaccessible', {
 		error: errorMsg,
 		timestamp: Date.now(),
-		operation: "gsm.findDatabase",
+		operation: 'gsm.findDatabase',
 		attemptedPath: dbPath,
-		impact: "IMSI data unavailable",
-		recovery: "Check: ls -la /usr/src/gsmevil2/",
+		impact: 'IMSI data unavailable',
+		recovery: 'Check: ls -la /usr/src/gsmevil2/',
 		diagnostics: {
 			findDatabase: 'find /usr/src/gsmevil2 -name "imsi_data.db"',
-			checkPermissions: "ls -la " + dbPath,
-			checkProcess: "ps aux | grep gsmevil",
-		},
+			checkPermissions: 'ls -la ' + dbPath,
+			checkProcess: 'ps aux | grep gsmevil'
+		}
 	});
 	return null;
 }
@@ -410,32 +407,30 @@ try {
 
 ```typescript
 try {
-	const { stdout } = await execAsync(
-		'find /usr/src/gsmevil2 -name "imsi_data.db" -type f',
-	);
-	const paths = stdout.trim().split("\n").filter(Boolean);
+	const { stdout } = await execAsync('find /usr/src/gsmevil2 -name "imsi_data.db" -type f');
+	const paths = stdout.trim().split('\n').filter(Boolean);
 
 	if (paths.length > 0) {
-		logInfo("GSM database found via find command", {
+		logInfo('GSM database found via find command', {
 			timestamp: Date.now(),
-			operation: "gsm.findDatabase",
-			method: "find-command",
+			operation: 'gsm.findDatabase',
+			method: 'find-command',
 			path: paths[0],
-			alternativePaths: paths.slice(1),
+			alternativePaths: paths.slice(1)
 		});
 		return paths[0];
 	}
 } catch (error: unknown) {
 	const errorMsg = error instanceof Error ? error.message : String(error);
-	logError("GSM database find command failed", {
+	logError('GSM database find command failed', {
 		error: errorMsg,
 		timestamp: Date.now(),
-		operation: "gsm.findDatabase",
-		method: "find-command",
-		searchRoot: "/usr/src/gsmevil2",
-		impact: "Cannot locate IMSI database",
-		consequence: "GSM Evil IMSI display unavailable",
-		recovery: 'Manually locate: find / -name "imsi_data.db" 2>/dev/null',
+		operation: 'gsm.findDatabase',
+		method: 'find-command',
+		searchRoot: '/usr/src/gsmevil2',
+		impact: 'Cannot locate IMSI database',
+		consequence: 'GSM Evil IMSI display unavailable',
+		recovery: 'Manually locate: find / -name "imsi_data.db" 2>/dev/null'
 	});
 }
 ```
@@ -476,37 +471,37 @@ try {
 	return true;
 } catch (error: unknown) {
 	const errorMsg = error instanceof Error ? error.message : String(error);
-	logWarn("Kismet script not executable", {
+	logWarn('Kismet script not executable', {
 		error: errorMsg,
 		timestamp: Date.now(),
-		operation: "kismet.checkScript",
+		operation: 'kismet.checkScript',
 		scriptPath,
-		impact: "Script cannot be executed",
-		recovery: "Fix: chmod +x " + scriptPath,
-		note: "Check script exists: ls -la " + scriptPath,
+		impact: 'Script cannot be executed',
+		recovery: 'Fix: chmod +x ' + scriptPath,
+		note: 'Check script exists: ls -la ' + scriptPath
 	});
 	return false;
 }
 
 // Line 152
 try {
-	process.kill(pid, "SIGTERM");
-	logInfo("Kismet process terminated", {
+	process.kill(pid, 'SIGTERM');
+	logInfo('Kismet process terminated', {
 		timestamp: Date.now(),
-		operation: "kismet.stop",
+		operation: 'kismet.stop',
 		pid,
-		signal: "SIGTERM",
+		signal: 'SIGTERM'
 	});
 } catch (error: unknown) {
 	const errorMsg = error instanceof Error ? error.message : String(error);
-	logWarn("Kismet process termination failed", {
+	logWarn('Kismet process termination failed', {
 		error: errorMsg,
 		timestamp: Date.now(),
-		operation: "kismet.stop",
+		operation: 'kismet.stop',
 		pid,
-		impact: "Process may already be stopped",
-		recovery: "Verify: ps aux | grep kismet",
-		note: "This is normal if process already exited",
+		impact: 'Process may already be stopped',
+		recovery: 'Verify: ps aux | grep kismet',
+		note: 'This is normal if process already exited'
 	});
 }
 ```

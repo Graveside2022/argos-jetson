@@ -268,7 +268,7 @@ $effect(() => {
 
 // OK without cleanup:
 $effect(() => {
-	console.log("State changed:", someState);
+	console.log('State changed:', someState);
 	// No resources created, no cleanup needed ✅
 });
 ```
@@ -537,7 +537,7 @@ let { name, count = 0 }: { name: string; count?: number } = $props();
 ### Local State
 
 ```typescript
-let searchQuery = $state("");
+let searchQuery = $state('');
 let isOpen = $state(false);
 ```
 

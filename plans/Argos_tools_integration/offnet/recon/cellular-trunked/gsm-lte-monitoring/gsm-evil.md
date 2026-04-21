@@ -13,9 +13,9 @@
 
 > **RUNS ON ARGOS RPi 5: YES** | Recommended: **NATIVE** (already part of Argos)
 
-| Method               | Supported | Notes                                          |
-| -------------------- | --------- | ---------------------------------------------- |
-| **Docker Container** | N/A       | Integrated Argos module, not a standalone tool |
+| Method               | Supported | Notes                                             |
+| -------------------- | --------- | ------------------------------------------------- |
+| **Docker Container** | N/A       | Integrated Argos module, not a standalone tool    |
 | **Native Install**   | YES       | **ACTIVE** — running as part of Argos application |
 
 ---

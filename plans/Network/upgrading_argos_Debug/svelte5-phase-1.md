@@ -79,8 +79,8 @@ git tag pre-migrate-gpsstatusoverlay
 **Expected Before:**
 
 ```typescript
-import { gpsStore } from "$lib/stores/tactical-map/gpsStore";
-import { onDestroy } from "svelte";
+import { gpsStore } from '$lib/stores/tactical-map/gpsStore';
+import { onDestroy } from 'svelte';
 
 let gpsData = null;
 const unsub = gpsStore.subscribe((value) => {
@@ -93,7 +93,7 @@ onDestroy(unsub);
 **After:**
 
 ```typescript
-import { gpsStore } from "$lib/stores/tactical-map/gpsStore";
+import { gpsStore } from '$lib/stores/tactical-map/gpsStore';
 
 let gpsData = $derived($gpsStore);
 ```
@@ -103,20 +103,16 @@ let gpsData = $derived($gpsStore);
 **Expected Before:**
 
 ```typescript
-$: statusText = gpsData?.status.hasGPSFix ? "GPS Fixed" : "No Fix";
-$: accuracyText = gpsData?.status.accuracy
-	? `±${gpsData.status.accuracy.toFixed(1)}m`
-	: "Unknown";
+$: statusText = gpsData?.status.hasGPSFix ? 'GPS Fixed' : 'No Fix';
+$: accuracyText = gpsData?.status.accuracy ? `±${gpsData.status.accuracy.toFixed(1)}m` : 'Unknown';
 ```
 
 **After:**
 
 ```typescript
-let statusText = $derived(gpsData?.status.hasGPSFix ? "GPS Fixed" : "No Fix");
+let statusText = $derived(gpsData?.status.hasGPSFix ? 'GPS Fixed' : 'No Fix');
 let accuracyText = $derived(
-	gpsData?.status.accuracy
-		? `±${gpsData.status.accuracy.toFixed(1)}m`
-		: "Unknown",
+	gpsData?.status.accuracy ? `±${gpsData.status.accuracy.toFixed(1)}m` : 'Unknown'
 );
 ```
 
@@ -126,7 +122,7 @@ Remove `onDestroy` if no longer used:
 
 ```typescript
 // BEFORE
-import { onDestroy } from "svelte";
+import { onDestroy } from 'svelte';
 
 // AFTER (remove if not used elsewhere)
 // No onDestroy import needed
@@ -183,12 +179,12 @@ npm run dev
 **File:** `tests/unit/components/dashboard/GPSStatusOverlay.test.ts`
 
 ```typescript
-import { describe, it, expect, beforeEach } from "vitest";
-import { render } from "@testing-library/svelte";
-import GPSStatusOverlay from "$lib/components/dashboard/GPSStatusOverlay.svelte";
-import { gpsStore } from "$lib/stores/tactical-map/gpsStore";
+import { describe, it, expect, beforeEach } from 'vitest';
+import { render } from '@testing-library/svelte';
+import GPSStatusOverlay from '$lib/components/dashboard/GPSStatusOverlay.svelte';
+import { gpsStore } from '$lib/stores/tactical-map/gpsStore';
 
-describe("GPSStatusOverlay - Svelte 5", () => {
+describe('GPSStatusOverlay - Svelte 5', () => {
 	beforeEach(() => {
 		gpsStore.set({
 			position: { lat: 0, lon: 0, alt: 0 },
@@ -197,34 +193,34 @@ describe("GPSStatusOverlay - Svelte 5", () => {
 				accuracy: 0,
 				speed: 0,
 				heading: 0,
-				satellites: 0,
-			},
+				satellites: 0
+			}
 		});
 	});
 
-	it("renders without GPS fix", () => {
+	it('renders without GPS fix', () => {
 		const { getByText } = render(GPSStatusOverlay);
 		expect(getByText(/No Fix/i)).toBeTruthy();
 	});
 
-	it("shows GPS fixed when available", async () => {
+	it('shows GPS fixed when available', async () => {
 		const { getByText } = render(GPSStatusOverlay);
 
 		gpsStore.update((s) => ({
 			...s,
-			status: { ...s.status, hasGPSFix: true, accuracy: 5 },
+			status: { ...s.status, hasGPSFix: true, accuracy: 5 }
 		}));
 
 		await new Promise((resolve) => setTimeout(resolve, 100));
 		expect(getByText(/GPS Fixed/i)).toBeTruthy();
 	});
 
-	it("displays accuracy when available", async () => {
+	it('displays accuracy when available', async () => {
 		const { getByText } = render(GPSStatusOverlay);
 
 		gpsStore.update((s) => ({
 			...s,
-			status: { ...s.status, accuracy: 12.5 },
+			status: { ...s.status, accuracy: 12.5 }
 		}));
 
 		await new Promise((resolve) => setTimeout(resolve, 100));
@@ -309,9 +305,9 @@ git tag pre-migrate-toolcard
 
 ```typescript
 export let name: string;
-export let description: string = "";
+export let description: string = '';
 export let icon: string;
-export let status: "stopped" | "starting" | "running" | "stopping" = "stopped";
+export let status: 'stopped' | 'starting' | 'running' | 'stopping' = 'stopped';
 export let count: number | null = null;
 export let canOpen: boolean = true;
 export let showControls: boolean = true;
@@ -323,18 +319,18 @@ export let externalUrl: string | null = null;
 ```typescript
 let {
 	name,
-	description = "",
+	description = '',
 	icon,
-	status = "stopped",
+	status = 'stopped',
 	count = null,
 	canOpen = true,
 	showControls = true,
-	externalUrl = null,
+	externalUrl = null
 }: {
 	name: string;
 	description?: string;
 	icon: string;
-	status?: "stopped" | "starting" | "running" | "stopping";
+	status?: 'stopped' | 'starting' | 'running' | 'stopping';
 	count?: number | null;
 	canOpen?: boolean;
 	showControls?: boolean;
@@ -347,31 +343,31 @@ let {
 **Before (Lines 19-21):**
 
 ```typescript
-$: isRunning = status === "running";
-$: isTransitioning = status === "starting" || status === "stopping";
+$: isRunning = status === 'running';
+$: isTransitioning = status === 'starting' || status === 'stopping';
 $: statusLabel =
-	status === "starting"
-		? "Starting..."
-		: status === "stopping"
-			? "Stopping..."
-			: status === "running"
-				? "Running"
-				: "Stopped";
+	status === 'starting'
+		? 'Starting...'
+		: status === 'stopping'
+			? 'Stopping...'
+			: status === 'running'
+				? 'Running'
+				: 'Stopped';
 ```
 
 **After:**
 
 ```typescript
-let isRunning = $derived(status === "running");
-let isTransitioning = $derived(status === "starting" || status === "stopping");
+let isRunning = $derived(status === 'running');
+let isTransitioning = $derived(status === 'starting' || status === 'stopping');
 let statusLabel = $derived(
-	status === "starting"
-		? "Starting..."
-		: status === "stopping"
-			? "Stopping..."
-			: status === "running"
-				? "Running"
-				: "Stopped",
+	status === 'starting'
+		? 'Starting...'
+		: status === 'stopping'
+			? 'Stopping...'
+			: status === 'running'
+				? 'Running'
+				: 'Stopped'
 );
 ```
 
@@ -428,76 +424,76 @@ npm run dev
 **File:** `tests/unit/components/dashboard/shared/ToolCard.test.ts`
 
 ```typescript
-import { describe, it, expect, vi } from "vitest";
-import { render, fireEvent } from "@testing-library/svelte";
-import ToolCard from "$lib/components/dashboard/shared/ToolCard.svelte";
+import { describe, it, expect, vi } from 'vitest';
+import { render, fireEvent } from '@testing-library/svelte';
+import ToolCard from '$lib/components/dashboard/shared/ToolCard.svelte';
 
-describe("ToolCard - Svelte 5", () => {
-	it("renders with required props", () => {
+describe('ToolCard - Svelte 5', () => {
+	it('renders with required props', () => {
 		const { getByText } = render(ToolCard, {
 			props: {
-				name: "Test Tool",
-				icon: "test-icon",
-			},
+				name: 'Test Tool',
+				icon: 'test-icon'
+			}
 		});
-		expect(getByText("Test Tool")).toBeTruthy();
+		expect(getByText('Test Tool')).toBeTruthy();
 	});
 
-	it("shows status indicator based on status prop", () => {
+	it('shows status indicator based on status prop', () => {
 		const { container, rerender } = render(ToolCard, {
 			props: {
-				name: "Test Tool",
-				icon: "test-icon",
-				status: "running",
-			},
+				name: 'Test Tool',
+				icon: 'test-icon',
+				status: 'running'
+			}
 		});
 
-		expect(container.querySelector(".status-running")).toBeTruthy();
+		expect(container.querySelector('.status-running')).toBeTruthy();
 
-		rerender({ status: "stopped" });
-		expect(container.querySelector(".status-stopped")).toBeTruthy();
+		rerender({ status: 'stopped' });
+		expect(container.querySelector('.status-stopped')).toBeTruthy();
 	});
 
-	it("displays count badge when running", () => {
+	it('displays count badge when running', () => {
 		const { getByText } = render(ToolCard, {
 			props: {
-				name: "Test Tool",
-				icon: "test-icon",
-				status: "running",
-				count: 42,
-			},
+				name: 'Test Tool',
+				icon: 'test-icon',
+				status: 'running',
+				count: 42
+			}
 		});
-		expect(getByText("42")).toBeTruthy();
+		expect(getByText('42')).toBeTruthy();
 	});
 
-	it("emits start event when start button clicked", async () => {
+	it('emits start event when start button clicked', async () => {
 		const { component, getByText } = render(ToolCard, {
 			props: {
-				name: "Test Tool",
-				icon: "test-icon",
-				status: "stopped",
-			},
+				name: 'Test Tool',
+				icon: 'test-icon',
+				status: 'stopped'
+			}
 		});
 
 		const startHandler = vi.fn();
-		component.$on("start", startHandler);
+		component.$on('start', startHandler);
 
-		const startButton = getByText("Start");
+		const startButton = getByText('Start');
 		await fireEvent.click(startButton);
 
 		expect(startHandler).toHaveBeenCalledTimes(1);
 	});
 
-	it("shows transitioning state correctly", () => {
+	it('shows transitioning state correctly', () => {
 		const { container } = render(ToolCard, {
 			props: {
-				name: "Test Tool",
-				icon: "test-icon",
-				status: "starting",
-			},
+				name: 'Test Tool',
+				icon: 'test-icon',
+				status: 'starting'
+			}
 		});
 
-		expect(container.querySelector(".status-transitioning")).toBeTruthy();
+		expect(container.querySelector('.status-transitioning')).toBeTruthy();
 	});
 });
 ```
@@ -578,7 +574,7 @@ export let compact = false;
 let {
 	power,
 	showLabel = true,
-	compact = false,
+	compact = false
 }: {
 	power: number;
 	showLabel?: boolean;
@@ -594,59 +590,57 @@ let {
 $: strengthPercent = Math.max(0, Math.min(100, ((power + 100) / 70) * 100));
 
 $: strengthColor = (() => {
-	if (power >= -50) return "bg-red-500";
-	if (power >= -60) return "bg-orange-500";
-	if (power >= -70) return "bg-yellow-500";
-	if (power >= -80) return "bg-green-500";
-	return "bg-blue-500";
+	if (power >= -50) return 'bg-red-500';
+	if (power >= -60) return 'bg-orange-500';
+	if (power >= -70) return 'bg-yellow-500';
+	if (power >= -80) return 'bg-green-500';
+	return 'bg-blue-500';
 })();
 
 $: textColor = (() => {
-	if (power >= -50) return "text-red-600";
-	if (power >= -60) return "text-orange-600";
-	if (power >= -70) return "text-yellow-600";
-	if (power >= -80) return "text-green-600";
-	return "text-blue-600";
+	if (power >= -50) return 'text-red-600';
+	if (power >= -60) return 'text-orange-600';
+	if (power >= -70) return 'text-yellow-600';
+	if (power >= -80) return 'text-green-600';
+	return 'text-blue-600';
 })();
 
 $: qualityLabel = (() => {
-	if (power >= -50) return "Excellent";
-	if (power >= -60) return "Good";
-	if (power >= -70) return "Fair";
-	if (power >= -80) return "Weak";
-	return "Poor";
+	if (power >= -50) return 'Excellent';
+	if (power >= -60) return 'Good';
+	if (power >= -70) return 'Fair';
+	if (power >= -80) return 'Weak';
+	return 'Poor';
 })();
 ```
 
 **After:**
 
 ```typescript
-let strengthPercent = $derived(
-	Math.max(0, Math.min(100, ((power + 100) / 70) * 100)),
-);
+let strengthPercent = $derived(Math.max(0, Math.min(100, ((power + 100) / 70) * 100)));
 
 let strengthColor = $derived.by(() => {
-	if (power >= -50) return "bg-red-500";
-	if (power >= -60) return "bg-orange-500";
-	if (power >= -70) return "bg-yellow-500";
-	if (power >= -80) return "bg-green-500";
-	return "bg-blue-500";
+	if (power >= -50) return 'bg-red-500';
+	if (power >= -60) return 'bg-orange-500';
+	if (power >= -70) return 'bg-yellow-500';
+	if (power >= -80) return 'bg-green-500';
+	return 'bg-blue-500';
 });
 
 let textColor = $derived.by(() => {
-	if (power >= -50) return "text-red-600";
-	if (power >= -60) return "text-orange-600";
-	if (power >= -70) return "text-yellow-600";
-	if (power >= -80) return "text-green-600";
-	return "text-blue-600";
+	if (power >= -50) return 'text-red-600';
+	if (power >= -60) return 'text-orange-600';
+	if (power >= -70) return 'text-yellow-600';
+	if (power >= -80) return 'text-green-600';
+	return 'text-blue-600';
 });
 
 let qualityLabel = $derived.by(() => {
-	if (power >= -50) return "Excellent";
-	if (power >= -60) return "Good";
-	if (power >= -70) return "Fair";
-	if (power >= -80) return "Weak";
-	return "Poor";
+	if (power >= -50) return 'Excellent';
+	if (power >= -60) return 'Good';
+	if (power >= -70) return 'Fair';
+	if (power >= -80) return 'Weak';
+	return 'Poor';
 });
 ```
 
@@ -676,39 +670,39 @@ npm run dev
 **File:** `tests/unit/components/map/SignalStrengthMeter.test.ts`
 
 ```typescript
-import { describe, it, expect } from "vitest";
-import { render } from "@testing-library/svelte";
-import SignalStrengthMeter from "$lib/components/map/SignalStrengthMeter.svelte";
+import { describe, it, expect } from 'vitest';
+import { render } from '@testing-library/svelte';
+import SignalStrengthMeter from '$lib/components/map/SignalStrengthMeter.svelte';
 
-describe("SignalStrengthMeter - Svelte 5", () => {
-	it("renders with power value", () => {
+describe('SignalStrengthMeter - Svelte 5', () => {
+	it('renders with power value', () => {
 		const { container } = render(SignalStrengthMeter, {
-			props: { power: -50 },
+			props: { power: -50 }
 		});
-		expect(container.querySelector(".signal-meter")).toBeTruthy();
+		expect(container.querySelector('.signal-meter')).toBeTruthy();
 	});
 
-	it("shows excellent quality for strong signal", () => {
+	it('shows excellent quality for strong signal', () => {
 		const { getByText } = render(SignalStrengthMeter, {
-			props: { power: -45 },
+			props: { power: -45 }
 		});
-		expect(getByText("Excellent")).toBeTruthy();
+		expect(getByText('Excellent')).toBeTruthy();
 	});
 
-	it("calculates strength percentage correctly", () => {
+	it('calculates strength percentage correctly', () => {
 		const { container } = render(SignalStrengthMeter, {
-			props: { power: -65 },
+			props: { power: -65 }
 		});
 		// -65 dBm should be 50%
-		const progressBar = container.querySelector(".progress-bar");
+		const progressBar = container.querySelector('.progress-bar');
 		expect(progressBar).toBeTruthy();
 	});
 
-	it("hides label when showLabel is false", () => {
+	it('hides label when showLabel is false', () => {
 		const { container } = render(SignalStrengthMeter, {
-			props: { power: -50, showLabel: false },
+			props: { power: -50, showLabel: false }
 		});
-		expect(container.querySelector(".quality-label")).toBeFalsy();
+		expect(container.querySelector('.quality-label')).toBeFalsy();
 	});
 });
 ```
