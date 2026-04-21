@@ -23,7 +23,7 @@ import { logger } from '$lib/utils/logger';
 
 import { acquireHackRf, releaseHackRf } from '../claim';
 import { webRxConflictResponse } from '../response';
-import type { ToolDriver } from '../types';
+import type { FullActionDriver } from '../types';
 
 const TOOL_NAME = 'sdrpp';
 
@@ -66,7 +66,7 @@ async function runStart(action: 'start' | 'restart'): Promise<Response> {
 	});
 }
 
-export const sdrppDriver: ToolDriver = {
+export const sdrppDriver: FullActionDriver = {
 	toolName: TOOL_NAME,
 	recoveryPolicy: 'peer-webrx',
 	supportedActions: ['start', 'stop', 'restart', 'status'],

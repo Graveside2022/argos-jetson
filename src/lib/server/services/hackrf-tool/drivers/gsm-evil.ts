@@ -14,10 +14,19 @@
  */
 
 import { json } from '@sveltejs/kit';
+import { z } from 'zod';
 
 import { startGsmEvil, stopGsmEvil } from '$lib/server/services/gsm-evil/gsm-evil-control-service';
 
 import type { ClaimResult, ToolDriver } from '../types';
+
+const GsmEvilExtendSchema = z.object({
+	frequency: z
+		.string()
+		.regex(/^\d+(\.\d+)?$/, 'Frequency must be a valid number')
+		.optional()
+		.describe('GSM frequency in MHz (e.g., "947.2")')
+});
 
 const TOOL_NAME = 'gsm-evil';
 
@@ -43,6 +52,7 @@ export const gsmEvilDriver: ToolDriver = {
 	supportedActions: ['start', 'stop'],
 	serializeInLock: false,
 	acquireOnStart: false,
+	extendSchema: GsmEvilExtendSchema,
 
 	async start(body: unknown): Promise<Response> {
 		const result = await startGsmEvil(parseFrequency(body));
@@ -52,16 +62,6 @@ export const gsmEvilDriver: ToolDriver = {
 	async stop(): Promise<Response> {
 		const result = await stopGsmEvil();
 		return json(result, { status: selectStopStatus(result) });
-	},
-
-	// restart/status not supported; handler's dynamic Zod schema rejects these
-	// with 400 before reaching here. Provide dummies to satisfy the interface.
-	restart(): Promise<Response> {
-		return Promise.resolve(json({ success: false, error: 'unsupported' }, { status: 400 }));
-	},
-
-	status(): Response {
-		return json({ success: false, error: 'unsupported' }, { status: 400 });
 	},
 
 	buildConflictResponse(claim: ClaimResult): Response {

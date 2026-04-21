@@ -14,6 +14,8 @@
  * "Out-of-scope items".
  */
 
+import type { z } from 'zod';
+
 export type RecoveryPolicy = 'peer-webrx' | 'stale-only' | 'direct';
 
 export type ControlAction = 'start' | 'stop' | 'restart' | 'status';
@@ -60,18 +62,42 @@ export interface ToolDriver {
 	 */
 	readonly acquireOnStart: boolean;
 
+	/**
+	 * Optional extension to the handler's request schema. Merged into the
+	 * base `{ action: enum }` schema via `.merge()` so drivers can validate
+	 * tool-specific fields (e.g. gsm-evil's `frequency` regex). Unset means
+	 * the base schema is used as-is with `.passthrough()`.
+	 */
+	readonly extendSchema?: z.ZodObject<z.ZodRawShape>;
+
 	/** Build the start success Response (claim already held when acquireOnStart=true). */
 	start(body: unknown): Promise<Response>;
 
 	/** Build the stop success Response. Driver handles claim release internally. */
 	stop(body: unknown): Promise<Response>;
 
-	/** Build the restart success Response. Claim already held if acquireOnStart=true. */
-	restart(body: unknown): Promise<Response>;
+	/**
+	 * Build the restart success Response. Claim already held if acquireOnStart=true.
+	 * Optional — drivers that don't include 'restart' in supportedActions may omit.
+	 */
+	restart?(body: unknown): Promise<Response>;
 
-	/** Build the status Response. No claim acquisition. */
-	status(body: unknown): Promise<Response> | Response;
+	/**
+	 * Build the status Response. No claim acquisition.
+	 * Optional — drivers that don't include 'status' in supportedActions may omit.
+	 */
+	status?(body: unknown): Promise<Response> | Response;
 
 	/** Build the 409 conflict response shape for this tool. */
 	buildConflictResponse(claim: ClaimResult): Response;
 }
+
+/**
+ * Narrower `ToolDriver` shape for drivers that support all four actions
+ * (WebRX trio). Forces `restart` + `status` to be non-optional so tests and
+ * callers can invoke them without TS non-null assertions.
+ */
+export type FullActionDriver = ToolDriver & {
+	restart: NonNullable<ToolDriver['restart']>;
+	status: NonNullable<ToolDriver['status']>;
+};

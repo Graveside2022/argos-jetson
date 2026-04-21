@@ -19,6 +19,7 @@ import { resourceManager } from '$lib/server/hardware/resource-manager';
 import { HardwareDevice } from '$lib/server/hardware/types';
 
 import { acquireHackRf, releaseHackRf } from './claim';
+import { unsupportedActionResponse } from './response';
 import type { ControlAction, ToolDriver } from './types';
 
 /** Execute a single validated lifecycle action against the driver. */
@@ -27,7 +28,10 @@ export async function runLifecycleAction(
 	action: ControlAction,
 	body: unknown
 ): Promise<Response> {
-	if (action === 'status') return driver.status(body);
+	if (action === 'status') {
+		if (!driver.status) return unsupportedActionResponse(action, driver.supportedActions);
+		return driver.status(body);
+	}
 	const invoke = () => runMutatingAction(driver, action, body);
 	return driver.serializeInLock ? withWebRxLock(invoke) : invoke();
 }
@@ -79,5 +83,8 @@ function invokeDriverAction(
 ): Promise<Response> {
 	if (action === 'start') return driver.start(body);
 	if (action === 'stop') return driver.stop(body);
+	if (!driver.restart) {
+		return Promise.resolve(unsupportedActionResponse(action, driver.supportedActions));
+	}
 	return driver.restart(body);
 }

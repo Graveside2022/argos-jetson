@@ -21,7 +21,7 @@ import type { ControlAction, ToolDriver } from './types';
  * compatible with SvelteKit's `RequestHandler` type.
  */
 export function createHackRfToolHandler(driver: ToolDriver) {
-	const schema = buildActionSchema(driver.supportedActions);
+	const schema = buildActionSchema(driver);
 	return createHandler(
 		async ({ request }) => {
 			const body = (await request.json()) as { action: ControlAction };
@@ -31,13 +31,18 @@ export function createHackRfToolHandler(driver: ToolDriver) {
 	);
 }
 
-/** Build a Zod schema that accepts only the driver's supported actions. */
-function buildActionSchema(actions: readonly ControlAction[]): z.ZodType {
-	const [first, ...rest] = actions;
+/**
+ * Build a Zod schema that accepts only the driver's supported actions, merged
+ * with any driver-supplied `extendSchema` (e.g. gsm-evil's `frequency` regex).
+ * Unknown fields passthrough so the driver method can pluck them off the body.
+ *
+ * Exported so test suites can validate the *exact* schema the handler uses,
+ * rather than a drifting copy.
+ */
+export function buildActionSchema(driver: ToolDriver): z.ZodType {
+	const [first, ...rest] = driver.supportedActions;
 	const enumSchema = z.enum([first, ...rest] as [ControlAction, ...ControlAction[]]);
-	return z
-		.object({
-			action: enumSchema
-		})
-		.passthrough();
+	const base = z.object({ action: enumSchema });
+	const merged = driver.extendSchema ? base.merge(driver.extendSchema) : base;
+	return merged.passthrough();
 }

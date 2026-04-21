@@ -4,7 +4,7 @@
  */
 
 export { acquireHackRf, releaseHackRf } from './claim';
-export { createHackRfToolHandler } from './handler';
+export { buildActionSchema, createHackRfToolHandler } from './handler';
 export { resolveComposeFile } from './paths';
 export { webRxConflictResponse } from './response';
 export type { ClaimResult, ControlAction, RecoveryPolicy, ToolDriver } from './types';

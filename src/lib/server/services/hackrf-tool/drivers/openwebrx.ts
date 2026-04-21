@@ -17,7 +17,7 @@ import { delay } from '$lib/utils/delay';
 
 import { releaseHackRf } from '../claim';
 import { webRxConflictResponse } from '../response';
-import type { ToolDriver } from '../types';
+import type { FullActionDriver } from '../types';
 
 const SERVICE_NAME = 'openwebrx';
 const TOOL_NAME = 'openwebrx';
@@ -41,7 +41,7 @@ async function getServiceStatus(): Promise<Response> {
 	}
 }
 
-export const openwebrxDriver: ToolDriver = {
+export const openwebrxDriver: FullActionDriver = {
 	toolName: TOOL_NAME,
 	recoveryPolicy: 'peer-webrx',
 	supportedActions: ['start', 'stop', 'restart', 'status'],

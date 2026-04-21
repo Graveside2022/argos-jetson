@@ -22,9 +22,10 @@ vi.mock('$lib/server/hardware/resource-manager', () => ({
 }));
 
 vi.mock('$lib/server/api/webrx-control-lock', () => ({
-	withWebRxLock: <T>(fn: () => Promise<T>) => fn()
+	withWebRxLock: vi.fn(<T>(fn: () => Promise<T>) => fn())
 }));
 
+import { withWebRxLock } from '$lib/server/api/webrx-control-lock';
 import { resourceManager } from '$lib/server/hardware/resource-manager';
 
 import { acquireHackRf, releaseHackRf } from './claim';
@@ -120,5 +121,35 @@ describe('runLifecycleAction', () => {
 		const body = { action: 'start' as ControlAction, frequency: '950' };
 		await runLifecycleAction(driver, 'start', body);
 		expect(driver.start).toHaveBeenCalledWith(body);
+	});
+
+	it('serializeInLock=true routes mutating actions through withWebRxLock', async () => {
+		const driver = makeDriver({ serializeInLock: true });
+		await runLifecycleAction(driver, 'start', {});
+		expect(withWebRxLock).toHaveBeenCalledOnce();
+	});
+
+	it('serializeInLock=false skips withWebRxLock entirely', async () => {
+		const driver = makeDriver({ serializeInLock: false });
+		await runLifecycleAction(driver, 'start', {});
+		expect(withWebRxLock).not.toHaveBeenCalled();
+	});
+
+	it('status skips withWebRxLock regardless of serializeInLock', async () => {
+		const driver = makeDriver({ serializeInLock: true });
+		await runLifecycleAction(driver, 'status', {});
+		expect(withWebRxLock).not.toHaveBeenCalled();
+	});
+
+	it('missing driver.status returns 400 unsupported action', async () => {
+		const driver = makeDriver({ status: undefined, supportedActions: ['start', 'stop'] });
+		const res = await runLifecycleAction(driver, 'status', {});
+		expect(res.status).toBe(400);
+	});
+
+	it('missing driver.restart returns 400 unsupported action', async () => {
+		const driver = makeDriver({ restart: undefined, supportedActions: ['start', 'stop'] });
+		const res = await runLifecycleAction(driver, 'restart', {});
+		expect(res.status).toBe(400);
 	});
 });

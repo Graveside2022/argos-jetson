@@ -20,19 +20,7 @@
  * protect in-flight IMSI captures from accidental peer eviction.
  */
 
-import { z } from 'zod';
-
 import { createHackRfToolHandler } from '$lib/server/services/hackrf-tool';
 import { gsmEvilDriver } from '$lib/server/services/hackrf-tool/drivers/gsm-evil';
-
-/** Exported for existing schema-test suites to continue passing unchanged. */
-export const _GsmEvilControlRequestSchema = z.object({
-	action: z.enum(['start', 'stop']).describe('Control action: start or stop GSM monitoring'),
-	frequency: z
-		.string()
-		.regex(/^\d+(\.\d+)?$/, 'Frequency must be a valid number')
-		.optional()
-		.describe('GSM frequency in MHz (e.g., "947.2")')
-});
 
 export const POST = createHackRfToolHandler(gsmEvilDriver);

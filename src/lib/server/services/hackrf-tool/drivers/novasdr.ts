@@ -21,7 +21,7 @@ import { delay } from '$lib/utils/delay';
 import { releaseHackRf } from '../claim';
 import { resolveComposeFile } from '../paths';
 import { webRxConflictResponse } from '../response';
-import type { ToolDriver } from '../types';
+import type { FullActionDriver } from '../types';
 
 const CONTAINER_NAME = 'novasdr-hackrf';
 const TOOL_NAME = 'novasdr';
@@ -55,7 +55,7 @@ async function getContainerStatus(): Promise<Response> {
 	}
 }
 
-export const novasdrDriver: ToolDriver = {
+export const novasdrDriver: FullActionDriver = {
 	toolName: TOOL_NAME,
 	recoveryPolicy: 'peer-webrx',
 	supportedActions: ['start', 'stop', 'restart', 'status'],
