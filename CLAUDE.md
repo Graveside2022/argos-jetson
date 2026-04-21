@@ -56,6 +56,10 @@ Verify current state with `claude mcp list`. Authoritative config: `~/.claude.js
 | `mcp__plugin_context7-plugin_context7__*`            | plugin `context7-plugin`                          | Live third-party library docs                                                               | Any library/framework question (**Rule 6**)                                                   |
 | `mcp__plugin_chrome-devtools-mcp_chrome-devtools__*` | plugin `chrome-devtools-mcp`                      | Duplicate namespace — **fails on Jetson aarch64** (defaults to `/opt/google/chrome/chrome`) | Ignore on Jetson; prefer user-scope `mcp__chrome-devtools__*`                                 |
 
+#### context-mode — enforcement reality
+
+context-mode's `<context_window_protection>` system-reminder tells the agent to route Bash output >20 lines through `ctx_execute`. **The hook does not enforce this — it is pure prompt guidance, model-enforced only.** The PreToolUse hook (`hooks/core/routing.mjs` in upstream `mksglu/context-mode`) only rewrites three Bash pattern families: `curl`/`wget` without file redirect, inline HTTP (`fetch()` / `requests.*` / `http.get()`) in `bash -c`/heredoc, and `gradle`/`mvn`/`./gradlew`/`./mvnw`. It unconditionally denies `WebFetch` and appends routing guidance to `Agent` prompts. Everything else (including `npm run build`, `cat bigfile.log`, `tail`) passes through with at most a one-time session nudge. There is **zero size/token/line logic** in the hook — PreToolUse fires before execution, so output size is not even observable. `Write`/`Edit`/`Glob`/`NotebookEdit` are not hooked at PreToolUse at all. An agent that runs high-volume Bash directly will not be blocked; self-discipline per the system-reminder is the only gate.
+
 ### Project-scoped (requires `npm run dev` on :5173)
 
 | Server                     | Purpose                                | When to use                    |

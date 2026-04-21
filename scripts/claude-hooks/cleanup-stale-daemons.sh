@@ -81,7 +81,8 @@ done
 
 if [ "$KILLED" -gt 0 ]; then
     FREED_MIB=$((FREED_KB / 1024))
-    echo '{"additional_context": "Cleaned up '"$KILLED"' stale daemon(s), freed ~'"$FREED_MIB"' MiB"}'
+    # SessionStart accepts plain stdout as additionalContext — simpler than JSON envelope
+    echo "[cleanup-stale-daemons] killed $KILLED stale daemon(s), freed ~${FREED_MIB} MiB"
 fi
 
 exit 0

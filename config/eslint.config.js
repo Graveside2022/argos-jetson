@@ -30,7 +30,12 @@ export default [
 			'tests/reports/**',
 			'tests/reports/**/*.js',
 			'playwright-report/**',
-			'static/webtak/**'
+			'static/webtak/**',
+			// Quarto-generated report artifacts (revealjs, katex, highlight,
+			// etc.) land in data/reports/ and include thousands of vendor JS
+			// files that ESLint shouldn't scan. The whole data/ tree is
+			// gitignored already; this mirrors that for the linter.
+			'data/**'
 		]
 	},
 	{

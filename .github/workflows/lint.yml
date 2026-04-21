@@ -1,8 +1,11 @@
 name: 'Lint: Cognitive Complexity & Code Quality Gate'
 
 # Fast lint-only gate. Fires on every push and every PR (any branch).
-# Hard-blocks merging into main if ESLint reports any error.
+# Hard-blocks merging into main if any check fails.
 # The richer ci.yml (typecheck + tests + build) still runs on main.
+#
+# This workflow is the server-side backstop when `git commit --no-verify`
+# bypasses husky: ESLint + Conventional Commits + secret scan.
 
 on:
   push:
@@ -10,7 +13,10 @@ on:
   pull_request:
     branches: ['**']
 
-# Cancel in-progress runs of this workflow on the same ref when a new push lands
+# Least-privilege default
+permissions:
+  contents: read
+
 concurrency:
   group: lint-${{ github.ref }}
   cancel-in-progress: true
@@ -23,18 +29,61 @@ jobs:
 
     steps:
       - name: 'Checkout code'
-        uses: actions/checkout@v4
-
-      - name: 'Setup Node.js v22'
-        uses: actions/setup-node@v4
+        # actions/checkout v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          node-version: '22.x'
+          persist-credentials: false
+
+      - name: 'Setup Node.js'
+        # actions/setup-node v4.4.0
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: '.nvmrc'
           cache: 'npm'
 
       - name: 'Install dependencies'
         run: npm ci
 
       - name: 'ESLint full-repo scan (cognitive complexity ≤5)'
-        # Matches the local pre-commit gate: blocks any error including
+        # Matches the local pre-push gate: blocks any error including
         # sonarjs/cognitive-complexity, complexity (cyclomatic), and unused vars.
         run: npx eslint . --config config/eslint.config.js
+
+  commitlint:
+    name: 'Conventional Commits gate'
+    # PRs only — backstops husky commit-msg when `--no-verify` was used locally
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: 'Checkout code'
+        # actions/checkout v4.2.2 — full history needed for commit range
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: 'Commitlint — Conventional Commits'
+        # wagoid/commitlint-github-action v6.2.1
+        uses: wagoid/commitlint-github-action@b948419dd99f3fd78a6548d48f94e3df7f6bf3ed
+
+  gitleaks:
+    name: 'Secret scan (gitleaks)'
+    # Backstops husky secret-scan when `--no-verify` was used locally
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 'Checkout code'
+        # actions/checkout v4.2.2 — full history for diff scan
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: 'gitleaks — detect hardcoded secrets'
+        # gitleaks/gitleaks-action v2.3.9
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -139,22 +139,19 @@ try {
 	this.setupWebSocketHandlers();
 } catch (error: unknown) {
 	const errorMsg = error instanceof Error ? error.message : String(error);
-	logWarn(
-		"HackRF WebSocket setup failed, service will continue without real-time updates",
-		{
-			error: errorMsg,
-			timestamp: Date.now(),
-			device: "HackRF",
-			operation: "WebSocket.setup",
-			impact: "Real-time updates unavailable (using polling)",
-			fallback: "polling-only-mode",
-		},
-	);
+	logWarn('HackRF WebSocket setup failed, service will continue without real-time updates', {
+		error: errorMsg,
+		timestamp: Date.now(),
+		device: 'HackRF',
+		operation: 'WebSocket.setup',
+		impact: 'Real-time updates unavailable (using polling)',
+		fallback: 'polling-only-mode'
+	});
 
 	// Update UI state to show degraded mode
 	this.updateState({
-		error: "Real-time updates unavailable (using polling)",
-		isConnecting: false,
+		error: 'Real-time updates unavailable (using polling)',
+		isConnecting: false
 	});
 }
 ```
@@ -376,14 +373,14 @@ See `svelte5-patterns.md` for comprehensive pattern reference.
 **Form State Pattern:**
 
 ```typescript
-let takServer = $state("");
+let takServer = $state('');
 let takPort = $state(8087);
 let takEnabled = $state(false);
 
 let settings = $derived({
 	takServer,
 	takPort,
-	takEnabled,
+	takEnabled
 });
 ```
 

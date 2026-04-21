@@ -89,11 +89,11 @@ try {
 	logInfo(`Tool ${tool} not found (optional)`, {
 		error: errorMsg,
 		timestamp: Date.now(),
-		operation: "tool.check",
+		operation: 'tool.check',
 		tool,
-		impact: "Tool-specific features unavailable",
+		impact: 'Tool-specific features unavailable',
 		required: false,
-		recovery: "Install if needed: apt install " + tool,
+		recovery: 'Install if needed: apt install ' + tool
 	});
 	return { available: false, version: null };
 }

@@ -1,0 +1,48 @@
+# Gitleaks configuration — extends default rules + repo-specific allowlist.
+#
+# Default rules catch AWS keys, GitHub tokens, Slack tokens, PEM blocks,
+# Anthropic/OpenAI/Stripe/GCP-SA/JWT, etc. This file adds allowlist entries
+# for false positives in hook scripts, docs, and test fixtures.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Argos-specific allowlist"
+paths = [
+	# Husky hook scripts document the env-var names used to BYPASS the secret
+	# scanner (SKIP_SECRET_SCAN=1 ...). Gitleaks sees the uppercase var name
+	# + `=` and flags it as generic-api-key. The values are not secrets.
+	'''\.husky/.*''',
+
+	# Hook implementation scripts describe what they block — some mention
+	# token shapes in comments or error messages as documentation.
+	'''scripts/claude-hooks/.*\.sh''',
+
+	# CI-placeholder strings (documented explicitly as non-secret) in the CI
+	# workflow — the string literal is `ci-placeholder-do-not-use-for-auth-*`
+	# already, which couldn't be more clearly non-secret if it tried.
+	'''\.github/workflows/ci\.yml''',
+
+	# Test fixtures generate PKCS#12 certs on demand with known-public passwords
+	# (testpass, atakatak). These are documented fixture passwords in the test
+	# file itself; gitleaks may flag the fixture-generation literals.
+	'''src/lib/server/tak/cert-manager\.test\.ts''',
+
+	# Baseline advisory file has GHSA URLs + CVE descriptions; keep it out of
+	# the scanner's way since it's intentionally a pile of security metadata.
+	'''\.audit-baseline\.json'''
+]
+
+# Explicit regex-based allowlist for specific safe patterns that might appear
+# elsewhere. Keep this list tight — prefer path-based allowlisting above.
+regexes = [
+	# Environment-variable bypass-flag pattern used in hook documentation
+	# (SKIP_FOO=1, BYPASS_BAR=1, etc.). Comment-anchored to reduce false-
+	# negative risk on actual assignments in shell scripts.
+	'''#.*\b(SKIP|BYPASS|DISABLE|ALLOW)_[A-Z_]+=1\b''',
+
+	# CI placeholder for ARGOS_API_KEY — the literal placeholder string is
+	# not a credential and is documented as such inline.
+	'''ci-placeholder-do-not-use-for-auth-0+'''
+]

@@ -37,8 +37,8 @@ This file provides condensed guidance for Phases 1-5. Each phase follows the sam
 
 ```typescript
 export let name: string;
-export let status: "stopped" | "running" = "stopped";
-$: isRunning = status === "running";
+export let status: 'stopped' | 'running' = 'stopped';
+$: isRunning = status === 'running';
 ```
 
 **After:**
@@ -46,13 +46,13 @@ $: isRunning = status === "running";
 ```typescript
 let {
 	name,
-	status = "stopped",
+	status = 'stopped'
 }: {
 	name: string;
-	status?: "stopped" | "running";
+	status?: 'stopped' | 'running';
 } = $props();
 
-let isRunning = $derived(status === "running");
+let isRunning = $derived(status === 'running');
 ```
 
 **Verification:**
@@ -95,13 +95,11 @@ let devices = $derived.by(() => {
 
 ```typescript
 // Local mutable state
-let searchQuery = $state("");
-let sortColumn = $state<"mac" | "rssi">("rssi");
+let searchQuery = $state('');
+let sortColumn = $state<'mac' | 'rssi'>('rssi');
 
 // Computed from state
-let filteredDevices = $derived(
-	devices.filter((d) => d.mac.includes(searchQuery)),
-);
+let filteredDevices = $derived(devices.filter((d) => d.mac.includes(searchQuery)));
 ```
 
 ### Component Categories:
@@ -148,7 +146,7 @@ let canvas = $state<HTMLCanvasElement | undefined>();
 $effect(() => {
 	if (!canvas || !spectrumData) return;
 
-	const ctx = canvas.getContext("2d");
+	const ctx = canvas.getContext('2d');
 	if (!ctx) return;
 
 	const frame = requestAnimationFrame(() => {
@@ -184,7 +182,7 @@ $effect(() => {
 
 ```typescript
 // Local form state
-let takServer = $state("");
+let takServer = $state('');
 let takPort = $state(8087);
 let takEnabled = $state(false);
 
@@ -192,7 +190,7 @@ let takEnabled = $state(false);
 let settings = $derived({
 	takServer,
 	takPort,
-	takEnabled,
+	takEnabled
 });
 
 // Form handlers (unchanged)

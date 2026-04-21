@@ -228,7 +228,7 @@ See `svelte5-patterns.md` for complete pattern reference.
 
 ```typescript
 // Local mutable state for forms
-let takServer = $state("");
+let takServer = $state('');
 let takPort = $state(8087);
 let takEnabled = $state(false);
 
@@ -236,7 +236,7 @@ let takEnabled = $state(false);
 let settings = $derived({
 	takServer,
 	takPort,
-	takEnabled,
+	takEnabled
 });
 ```
 

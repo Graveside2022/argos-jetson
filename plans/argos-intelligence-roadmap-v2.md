@@ -16,25 +16,25 @@ Argos surfaces ~30% of the intelligence Kismet already captures. The device tabl
 
 This document defines five integration tracks — three tiers of device enrichment plus two trunked radio tracks — that transform Argos from a passive device mapper into a multi-domain tactical intelligence console. Each track is independent and can be implemented in any order.
 
-| Track | Strategy | What It Adds | RAM | Effort |
-|-------|----------|-------------|-----|--------|
-| **Tier 1** | Kismet deep extract | Probe requests, BLE UUIDs, 802.11 fingerprints, responded SSIDs | **0 MB** | ~1-2 days |
-| **Tier 2** | NFStream protocol tagging (ONNET) | Per-device protocol badges (HTTP, MQTT, SSH, ⚠ DNS-Tunnel) | **~50 MB** | ~1 week |
-| **Tier 3** | Activity profiling (OFFNET) | Behavioral classification (STREAMING, BURSTY, PERIODIC, IDLE) | **<1 MB** | Prototype |
-| **Track 4** | Trunk Recorder + Rdio Scanner | P25 trunked radio monitoring with scanner UI | **~575 MB** | ~1 week |
-| **Track 5** | DSD-FME multi-protocol decode | DMR, NXDN, D-STAR, EDACS, YSF voice decode → Rdio Scanner | **~50-100 MB** | ~3 days |
+| Track       | Strategy                          | What It Adds                                                    | RAM            | Effort    |
+| ----------- | --------------------------------- | --------------------------------------------------------------- | -------------- | --------- |
+| **Tier 1**  | Kismet deep extract               | Probe requests, BLE UUIDs, 802.11 fingerprints, responded SSIDs | **0 MB**       | ~1-2 days |
+| **Tier 2**  | NFStream protocol tagging (ONNET) | Per-device protocol badges (HTTP, MQTT, SSH, ⚠ DNS-Tunnel)     | **~50 MB**     | ~1 week   |
+| **Tier 3**  | Activity profiling (OFFNET)       | Behavioral classification (STREAMING, BURSTY, PERIODIC, IDLE)   | **<1 MB**      | Prototype |
+| **Track 4** | Trunk Recorder + Rdio Scanner     | P25 trunked radio monitoring with scanner UI                    | **~575 MB**    | ~1 week   |
+| **Track 5** | DSD-FME multi-protocol decode     | DMR, NXDN, D-STAR, EDACS, YSF voice decode → Rdio Scanner       | **~50-100 MB** | ~3 days   |
 
 ### Track Interdependencies
 
 **What gets installed vs what's code-only:**
 
-| Track | Installs External Tool? | What Gets Installed | Argos Code Changes |
-|-------|------------------------|--------------------|--------------------|
-| **Tier 1** | ❌ No — code only | Nothing | Parse more fields from existing Kismet API response |
-| **Tier 2** | ✅ Yes | NFStream (`pip install nfstream`) + `nfstream-svc.py` microservice | New consumer, store, MCP tools |
-| **Tier 3** | ❌ No — code only | Nothing | New classifier module using existing Kismet data |
-| **Track 4** | ✅ Yes — two tools | Trunk Recorder (build/Docker) + Rdio Scanner (ARM64 binary) | New iframe view, WS consumer, store, MCP tools |
-| **Track 5** | ✅ Yes | DSD-FME (build from source) | Rename `dsd-neo` → `dsd-fme` in tool registry |
+| Track       | Installs External Tool? | What Gets Installed                                                | Argos Code Changes                                  |
+| ----------- | ----------------------- | ------------------------------------------------------------------ | --------------------------------------------------- |
+| **Tier 1**  | ❌ No — code only       | Nothing                                                            | Parse more fields from existing Kismet API response |
+| **Tier 2**  | ✅ Yes                  | NFStream (`pip install nfstream`) + `nfstream-svc.py` microservice | New consumer, store, MCP tools                      |
+| **Tier 3**  | ❌ No — code only       | Nothing                                                            | New classifier module using existing Kismet data    |
+| **Track 4** | ✅ Yes — two tools      | Trunk Recorder (build/Docker) + Rdio Scanner (ARM64 binary)        | New iframe view, WS consumer, store, MCP tools      |
+| **Track 5** | ✅ Yes                  | DSD-FME (build from source)                                        | Rename `dsd-neo` → `dsd-fme` in tool registry       |
 
 **Integration dependency matrix — who feeds into whom:**
 
@@ -63,25 +63,25 @@ This document defines five integration tracks — three tiers of device enrichme
 
 **Which tools talk to each other (data flows):**
 
-| From | To | Method | Dependency |
-|------|----|--------|-----------|
-| Kismet | Argos | REST API (existing) | Always-on, already integrated |
-| NFStream | Argos | Unix socket (`/tmp/argos-nfstream.sock`) | Independent — no connection to Tracks 4/5 |
-| Trunk Recorder | **Rdio Scanner** | `rdioscanner_uploader` plugin (POST `/api/call-upload`) | **TR requires Rdio Scanner running** |
-| DSD-FME | **Rdio Scanner** | dirwatch (WAV files in `/var/lib/dsd-fme/recordings/`) | **DSD-FME requires Rdio Scanner running** |
-| Trunk Recorder | Argos | WebSocket status (`:3005`) | Sidebar + map markers |
-| Rdio Scanner | Argos | iframe embed (`:3000`) | Dashboard view |
+| From           | To               | Method                                                  | Dependency                                |
+| -------------- | ---------------- | ------------------------------------------------------- | ----------------------------------------- |
+| Kismet         | Argos            | REST API (existing)                                     | Always-on, already integrated             |
+| NFStream       | Argos            | Unix socket (`/tmp/argos-nfstream.sock`)                | Independent — no connection to Tracks 4/5 |
+| Trunk Recorder | **Rdio Scanner** | `rdioscanner_uploader` plugin (POST `/api/call-upload`) | **TR requires Rdio Scanner running**      |
+| DSD-FME        | **Rdio Scanner** | dirwatch (WAV files in `/var/lib/dsd-fme/recordings/`)  | **DSD-FME requires Rdio Scanner running** |
+| Trunk Recorder | Argos            | WebSocket status (`:3005`)                              | Sidebar + map markers                     |
+| Rdio Scanner   | Argos            | iframe embed (`:3000`)                                  | Dashboard view                            |
 
 **Required install order (due to dependencies):**
 
-| Step | What | Why |
-|------|------|-----|
-| 1 | **Rdio Scanner** | Hub — both TR and DSD-FME feed audio into it |
-| 2 | **Trunk Recorder** | Depends on Rdio Scanner for audio delivery |
-| 3 | **DSD-FME** | Depends on Rdio Scanner's dirwatch |
-| 4 | **NFStream** | Independent — install anytime |
+| Step | What               | Why                                          |
+| ---- | ------------------ | -------------------------------------------- |
+| 1    | **Rdio Scanner**   | Hub — both TR and DSD-FME feed audio into it |
+| 2    | **Trunk Recorder** | Depends on Rdio Scanner for audio delivery   |
+| 3    | **DSD-FME**        | Depends on Rdio Scanner's dirwatch           |
+| 4    | **NFStream**       | Independent — install anytime                |
 
-> **Key insight:** Rdio Scanner is the central audio hub. Trunk Recorder and DSD-FME are independent audio *sources* that both feed into it. NFStream is completely orthogonal — it has zero connection to the radio stack.
+> **Key insight:** Rdio Scanner is the central audio hub. Trunk Recorder and DSD-FME are independent audio _sources_ that both feed into it. NFStream is completely orthogonal — it has zero connection to the radio stack.
 
 ---
 
@@ -89,21 +89,22 @@ This document defines five integration tracks — three tiers of device enrichme
 
 ### NFStream — Network Flow Analysis Framework (Tier 2)
 
-| | Link |
-|---|---|
-| **GitHub** | https://github.com/nfstream/nfstream |
-| **Website** | https://www.nfstream.org |
-| **API Docs** | https://nfstream.org/docs/api |
-| **License** | LGPLv3 |
-| **Language** | Python (C engine via CFFI) |
-| **Stars** | ⭐ 1,200+ |
-| **Releases** | [78 releases](https://github.com/nfstream/nfstream/releases) |
-| **DPI Engine** | [nDPI](https://github.com/ntop/nDPI) (⭐ 4,200+, 171 contributors) |
-| **ARM64 support** | Since v6.5.2 |
-| **Research citations** | [100+ papers](https://scholar.google.com/scholar?cites=14084093141225707606) |
-| **Key features** | Encrypted app identification, TLS/SSH/DHCP/HTTP metadata, flow statistics, process visibility (PID/name) |
+|                        | Link                                                                                                     |
+| ---------------------- | -------------------------------------------------------------------------------------------------------- |
+| **GitHub**             | https://github.com/nfstream/nfstream                                                                     |
+| **Website**            | https://www.nfstream.org                                                                                 |
+| **API Docs**           | https://nfstream.org/docs/api                                                                            |
+| **License**            | LGPLv3                                                                                                   |
+| **Language**           | Python (C engine via CFFI)                                                                               |
+| **Stars**              | ⭐ 1,200+                                                                                                |
+| **Releases**           | [78 releases](https://github.com/nfstream/nfstream/releases)                                             |
+| **DPI Engine**         | [nDPI](https://github.com/ntop/nDPI) (⭐ 4,200+, 171 contributors)                                       |
+| **ARM64 support**      | Since v6.5.2                                                                                             |
+| **Research citations** | [100+ papers](https://scholar.google.com/scholar?cites=14084093141225707606)                             |
+| **Key features**       | Encrypted app identification, TLS/SSH/DHCP/HTTP metadata, flow statistics, process visibility (PID/name) |
 
 **Why NFStream over nDPId:**
+
 - Same nDPI engine underneath — identical protocol detection quality
 - 1,200+ stars vs nDPId's 26 — much larger community
 - `pip install nfstream` — no build from source, ARM64 wheels available
@@ -113,6 +114,7 @@ This document defines five integration tracks — three tiers of device enrichme
 - Published in Computer Networks journal, 100+ research papers use it
 
 **Install on RPi 5:**
+
 ```bash
 # Ensure Python 3.9+ and libpcap
 sudo apt-get install -y python3-pip libpcap-dev
@@ -125,6 +127,7 @@ python3 -c "from nfstream import NFStreamer; print('NFStream OK')"
 ```
 
 **Argos integration — Python microservice:**
+
 ```bash
 # nfstream-svc.py runs as a systemd service
 # Captures on managed mode interfaces only (e.g., eth0, wlan0).
@@ -136,6 +139,7 @@ python3 /opt/argos/nfstream-svc.py
 ```
 
 **Environment variables (`.env.example`):**
+
 ```bash
 # NFStream Protocol Tagging (Tier 2)
 NFSTREAM_ENABLED=false
@@ -149,26 +153,27 @@ NFSTREAM_ACTIVE_TIMEOUT=300
 
 ### Trunk Recorder — P25 Trunked Radio Recording (Track 4)
 
-| | Link |
-|---|---|
-| **GitHub** | https://github.com/TrunkRecorder/trunk-recorder |
-| **Documentation** | https://trunkrecorder.com/docs/intro |
-| **Wiki** | https://github.com/robotastic/trunk-recorder/wiki |
-| **Discord** | https://discord.gg/btJAhESnks |
-| **License** | GPL-3.0 |
-| **Language** | C++ (GNU Radio) |
-| **Version** | v5.0 |
-| **Stars** | ⭐ 900+ |
-| **Releases** | [42 releases](https://github.com/TrunkRecorder/trunk-recorder/releases) |
-| **RPi Install Guide** | [INSTALL-PI.md](https://github.com/TrunkRecorder/trunk-recorder/blob/master/docs/Install/INSTALL-PI.md) |
-| **Docker Install** | [INSTALL-DOCKER.md](https://github.com/TrunkRecorder/trunk-recorder/blob/master/docs/Install/INSTALL-DOCKER.md) |
-| **Video Walkthrough** | [YouTube](https://youtu.be/DizBtDZ6kE8) |
-| **Supports** | P25 Phase 1/2, SmartNet, conventional P25/DMR/analog |
-| **SDRs** | RTL-SDR, HackRF, Airspy, BladeRF, USRP (via osmosdr/SoapySDR) |
-| **Status server** | WebSocket (configurable port, default 3005) |
-| **Plugin** | `rdioscanner_uploader` (built-in, ships with TR) |
+|                       | Link                                                                                                            |
+| --------------------- | --------------------------------------------------------------------------------------------------------------- |
+| **GitHub**            | https://github.com/TrunkRecorder/trunk-recorder                                                                 |
+| **Documentation**     | https://trunkrecorder.com/docs/intro                                                                            |
+| **Wiki**              | https://github.com/robotastic/trunk-recorder/wiki                                                               |
+| **Discord**           | https://discord.gg/btJAhESnks                                                                                   |
+| **License**           | GPL-3.0                                                                                                         |
+| **Language**          | C++ (GNU Radio)                                                                                                 |
+| **Version**           | v5.0                                                                                                            |
+| **Stars**             | ⭐ 900+                                                                                                         |
+| **Releases**          | [42 releases](https://github.com/TrunkRecorder/trunk-recorder/releases)                                         |
+| **RPi Install Guide** | [INSTALL-PI.md](https://github.com/TrunkRecorder/trunk-recorder/blob/master/docs/Install/INSTALL-PI.md)         |
+| **Docker Install**    | [INSTALL-DOCKER.md](https://github.com/TrunkRecorder/trunk-recorder/blob/master/docs/Install/INSTALL-DOCKER.md) |
+| **Video Walkthrough** | [YouTube](https://youtu.be/DizBtDZ6kE8)                                                                         |
+| **Supports**          | P25 Phase 1/2, SmartNet, conventional P25/DMR/analog                                                            |
+| **SDRs**              | RTL-SDR, HackRF, Airspy, BladeRF, USRP (via osmosdr/SoapySDR)                                                   |
+| **Status server**     | WebSocket (configurable port, default 3005)                                                                     |
+| **Plugin**            | `rdioscanner_uploader` (built-in, ships with TR)                                                                |
 
 **Install (RPi 5 from source):**
+
 ```bash
 # Use the official install script
 cd /opt
@@ -185,24 +190,25 @@ sudo bash install.sh
 
 ### Rdio Scanner — Scanner UI for Radio Recordings (Track 4)
 
-| | Link |
-|---|---|
-| **GitHub** | https://github.com/chuot/rdio-scanner |
-| **Wiki** | https://github.com/chuot/rdio-scanner/wiki |
-| **Discord** | https://discord.gg/rdio-scanner |
-| **Docker Hub** | https://hub.docker.com/r/chuot/rdio-scanner |
-| **License** | MIT |
-| **Language** | Go (backend) + Angular (frontend) |
-| **Version** | v6.6.3 |
-| **Stars** | ⭐ 230+ |
-| **Releases** | [46 releases](https://github.com/chuot/rdio-scanner/releases) |
-| **ARM64 binary** | `rdio-scanner-linux-arm64-v6.6.3.zip` (precompiled, no build needed) |
-| **Admin panel** | `http://localhost:3000/admin` |
-| **Ingest methods** | API (`/api/call-upload`), dirwatch (filesystem monitor) |
+|                    | Link                                                                 |
+| ------------------ | -------------------------------------------------------------------- |
+| **GitHub**         | https://github.com/chuot/rdio-scanner                                |
+| **Wiki**           | https://github.com/chuot/rdio-scanner/wiki                           |
+| **Discord**        | https://discord.gg/rdio-scanner                                      |
+| **Docker Hub**     | https://hub.docker.com/r/chuot/rdio-scanner                          |
+| **License**        | MIT                                                                  |
+| **Language**       | Go (backend) + Angular (frontend)                                    |
+| **Version**        | v6.6.3                                                               |
+| **Stars**          | ⭐ 230+                                                              |
+| **Releases**       | [46 releases](https://github.com/chuot/rdio-scanner/releases)        |
+| **ARM64 binary**   | `rdio-scanner-linux-arm64-v6.6.3.zip` (precompiled, no build needed) |
+| **Admin panel**    | `http://localhost:3000/admin`                                        |
+| **Ingest methods** | API (`/api/call-upload`), dirwatch (filesystem monitor)              |
 
 > ⚠️ **IMPORTANT:** Docker image **disables dirwatch** due to filesystem event limitations on mounted volumes. For DSD-FME integration (Track 5), Rdio Scanner **must** run as a **native binary**, not Docker.
 
 **Install (native ARM64 binary on RPi 5):**
+
 ```bash
 # Download precompiled ARM64 binary
 cd /opt
@@ -228,18 +234,19 @@ cd rdio-scanner
 
 ### DSD-FME — Multi-Protocol Digital Voice Decoder (Track 5)
 
-| | Link |
-|---|---|
-| **GitHub** | https://github.com/lwvmobile/dsd-fme |
-| **License** | ISC / GPL-2.0 |
-| **Language** | C |
-| **Stars** | ⭐ 291 |
-| **Forks** | 60 |
-| **Branch** | `audio_work` (recommended) |
-| **Protocols** | DMR, P25 Phase 1/2, NXDN, D-STAR, EDACS, dPMR, ProVoice, X2-TDMA, M17, YSF |
-| **Per-call WAV patch** | `patch/g_dmr_per_call_wav_file_fixes_w_custom_wav_dir_20240730.patch` |
+|                        | Link                                                                       |
+| ---------------------- | -------------------------------------------------------------------------- |
+| **GitHub**             | https://github.com/lwvmobile/dsd-fme                                       |
+| **License**            | ISC / GPL-2.0                                                              |
+| **Language**           | C                                                                          |
+| **Stars**              | ⭐ 291                                                                     |
+| **Forks**              | 60                                                                         |
+| **Branch**             | `audio_work` (recommended)                                                 |
+| **Protocols**          | DMR, P25 Phase 1/2, NXDN, D-STAR, EDACS, dPMR, ProVoice, X2-TDMA, M17, YSF |
+| **Per-call WAV patch** | `patch/g_dmr_per_call_wav_file_fixes_w_custom_wav_dir_20240730.patch`      |
 
 **Install (build from source on RPi 5):**
+
 ```bash
 # Dependencies
 sudo apt-get install -y build-essential cmake libpulse-dev librtlsdr-dev libncurses-dev
@@ -285,33 +292,34 @@ MAC / SSID | RSSI | TYPE | VENDOR | CH | FREQ | ENC | PKTS | DATA | AGE | LAST
 
 **New fields from `dot11.device` (already in the API response):**
 
-| Field Path | Intelligence | Display |
-|-----------|-------------|---------|
-| `dot11.device.probed_ssid_map` | Networks the device has searched for ("HomeNet-5G", "Marriott_WiFi") — reveals device owner, travel history | PROBES column |
-| `dot11.device.responded_ssid_map` | Networks the device has associated with | PROBES column (merged) |
-| `dot11.device.advertised_ssid_map` | Hidden SSID names being broadcast | INTEL column |
-| `dot11.device.last_bssid` | Last AP this client connected to | INTEL column |
-| `dot11.device.probe_fingerprint` | 802.11 Information Element hash — fingerprints device generation even with MAC randomization | INTEL column |
-| `dot11.device.response_fingerprint` | Same for AP responses | INTEL column |
-| `dot11.device.num_retries` / `num_fragments` | Network quality indicators | Expand row |
+| Field Path                                   | Intelligence                                                                                                | Display                |
+| -------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ---------------------- |
+| `dot11.device.probed_ssid_map`               | Networks the device has searched for ("HomeNet-5G", "Marriott_WiFi") — reveals device owner, travel history | PROBES column          |
+| `dot11.device.responded_ssid_map`            | Networks the device has associated with                                                                     | PROBES column (merged) |
+| `dot11.device.advertised_ssid_map`           | Hidden SSID names being broadcast                                                                           | INTEL column           |
+| `dot11.device.last_bssid`                    | Last AP this client connected to                                                                            | INTEL column           |
+| `dot11.device.probe_fingerprint`             | 802.11 Information Element hash — fingerprints device generation even with MAC randomization                | INTEL column           |
+| `dot11.device.response_fingerprint`          | Same for AP responses                                                                                       | INTEL column           |
+| `dot11.device.num_retries` / `num_fragments` | Network quality indicators                                                                                  | Expand row             |
 
 **New field from `ble.device` (requires adding to DEVICE_FIELDS — 1 line change):**
 
-| Field Path | Intelligence | Display |
-|-----------|-------------|---------|
+| Field Path                         | Intelligence                                                                  | Display      |
+| ---------------------------------- | ----------------------------------------------------------------------------- | ------------ |
 | `ble.device.ble_adv_service_uuids` | BLE service UUIDs → identifies "Heart Rate Monitor", "AirTag", "Tile Tracker" | INTEL column |
 
 **Code changes:**
 
-| File | Change |
-|------|--------|
-| `src/lib/server/kismet/kismet-proxy.ts` | Add `'ble.device'` to `DEVICE_FIELDS` array |
-| `src/lib/server/kismet/kismet-proxy-transform.ts` | Add `extractProbeSSIDs()`, `extractRespondedSSIDs()`, `extractFingerprints()`, `extractBLEServices()` |
-| `src/lib/server/kismet/types.ts` + `src/lib/kismet/types.ts` | Add `probeRequests`, `respondedSSIDs`, `bleServiceUUIDs`, `dot11Fingerprint` to `KismetDevice` |
-| `src/lib/components/dashboard/panels/devices/DeviceTable.svelte` | Add PROBES and INTEL columns |
-| `src/lib/components/dashboard/panels/devices/DeviceSubRows.svelte` | Add probe history and BLE services to expand row |
+| File                                                               | Change                                                                                                |
+| ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| `src/lib/server/kismet/kismet-proxy.ts`                            | Add `'ble.device'` to `DEVICE_FIELDS` array                                                           |
+| `src/lib/server/kismet/kismet-proxy-transform.ts`                  | Add `extractProbeSSIDs()`, `extractRespondedSSIDs()`, `extractFingerprints()`, `extractBLEServices()` |
+| `src/lib/server/kismet/types.ts` + `src/lib/kismet/types.ts`       | Add `probeRequests`, `respondedSSIDs`, `bleServiceUUIDs`, `dot11Fingerprint` to `KismetDevice`        |
+| `src/lib/components/dashboard/panels/devices/DeviceTable.svelte`   | Add PROBES and INTEL columns                                                                          |
+| `src/lib/components/dashboard/panels/devices/DeviceSubRows.svelte` | Add probe history and BLE services to expand row                                                      |
 
 **Table after Tier 1 (13 columns):**
+
 ```
 MAC/SSID | RSSI | TYPE | VENDOR | CH | FREQ | ENC | PROBES | INTEL | PKTS | DATA | AGE | LAST
 ```
@@ -328,6 +336,7 @@ MAC/SSID | RSSI | TYPE | VENDOR | CH | FREQ | ENC | PROBES | INTEL | PKTS | DATA
 **Scope constraint:** NFStream operates at Layer 3+ (requires IP connectivity). It can only tag devices that are ONNET — connected to a network the Pi can see traffic on. OFFNET devices (detected by Kismet via monitor mode only) show `—` in the PROTO column. This is physics, not a limitation.
 
 **Architecture:**
+
 ```
 nfstream-svc.py (Python, live capture) → Unix socket /tmp/argos-nfstream.sock → nfstream-consumer.ts → IP↔MAC correlation → nfstream-store.ts → KismetDevice enrichment
 ```
@@ -338,19 +347,21 @@ IP↔MAC correlation uses: (a) `/proc/net/arp` system table, (b) Kismet's own IP
 
 **New column: PROTO**
 
-| Device Context | PROTO Display |
-|---------------|---------------|
-| ONNET, benign | `HTTP` `MQTT` `mDNS` |
-| ONNET, suspicious | `⚠ DNS-Tunnel` `SSH` |
+| Device Context      | PROTO Display                                  |
+| ------------------- | ---------------------------------------------- |
+| ONNET, benign       | `HTTP` `MQTT` `mDNS`                           |
+| ONNET, suspicious   | `⚠ DNS-Tunnel` `SSH`                          |
 | ONNET, unclassified | `?` (nDPI "not-detected" on high-traffic flow) |
-| OFFNET | `—` |
+| OFFNET              | `—`                                            |
 
 **Map indicators:**
+
 - Blue dot: interesting protocols (MQTT, CoAP, IoT)
 - Yellow dot: unusual port usage, unclassified high-traffic flows
 - Red pulsing dot: DNS tunneling, C2 beaconing patterns
 
 **Alternatives evaluated:**
+
 - nDPId: Same nDPI engine but only 26 GitHub stars, build-from-source only, no ARM64 packages
 - Zeek: 500+ MB RAM, overkill for protocol tagging
 - ntopng: 1.3 GB RAM, full monitoring suite — too heavy for just protocol labels
@@ -359,18 +370,19 @@ IP↔MAC correlation uses: (a) `/proc/net/arp` system table, (b) Kismet's own IP
 
 **New files:**
 
-| File | Purpose |
-|------|---------|
-| `scripts/services/nfstream-svc.py` | Python microservice: live capture → per-flow JSON → Unix socket |
-| `src/lib/server/nfstream/nfstream-consumer.ts` | Unix socket client (reads JSON lines from `nfstream-svc.py`) |
-| `src/lib/server/nfstream/arp-reader.ts` | IP→MAC from `/proc/net/arp` + Kismet data |
-| `src/lib/stores/tactical-map/nfstream-store.ts` | Protocol enrichment store |
-| `src/lib/server/mcp/nfstream-tools.ts` | MCP tools: `get_device_protocols`, `get_suspicious_activity` |
+| File                                            | Purpose                                                         |
+| ----------------------------------------------- | --------------------------------------------------------------- |
+| `scripts/services/nfstream-svc.py`              | Python microservice: live capture → per-flow JSON → Unix socket |
+| `src/lib/server/nfstream/nfstream-consumer.ts`  | Unix socket client (reads JSON lines from `nfstream-svc.py`)    |
+| `src/lib/server/nfstream/arp-reader.ts`         | IP→MAC from `/proc/net/arp` + Kismet data                       |
+| `src/lib/stores/tactical-map/nfstream-store.ts` | Protocol enrichment store                                       |
+| `src/lib/server/mcp/nfstream-tools.ts`          | MCP tools: `get_device_protocols`, `get_suspicious_activity`    |
 
 **Resource cost:** ~50 MB RAM (Python process + nDPI engine).
 **Effort:** ~1 week.
 
 **Table after Tier 1+2 (14 columns):**
+
 ```
 MAC/SSID | RSSI | TYPE | VENDOR | CH | FREQ | ENC | PROBES | INTEL | PROTO | PKTS | DATA | AGE | LAST
 ```
@@ -387,17 +399,18 @@ MAC/SSID | RSSI | TYPE | VENDOR | CH | FREQ | ENC | PROBES | INTEL | PROTO | PKT
 
 Compute rate-of-change from `packets.total` and `dataSize` fields Kismet already provides (polled every 5 seconds). Classify into:
 
-| Label | Criteria | Example |
-|-------|----------|---------|
-| STREAMING | Sustained high rate, low variance | Video call, music stream |
-| BURSTY | Intermittent, high variance | Web browsing, app refreshes |
-| PERIODIC | Regular intervals, consistent size | IoT sensor, heartbeat |
-| IDLE | <1 pkt/s sustained | Sleeping device |
+| Label     | Criteria                           | Example                     |
+| --------- | ---------------------------------- | --------------------------- |
+| STREAMING | Sustained high rate, low variance  | Video call, music stream    |
+| BURSTY    | Intermittent, high variance        | Web browsing, app refreshes |
+| PERIODIC  | Regular intervals, consistent size | IoT sensor, heartbeat       |
+| IDLE      | <1 pkt/s sustained                 | Sleeping device             |
 
 **Resource cost:** <1 MB RAM (ring buffer of last N samples per device).
 **Effort:** Prototype in an afternoon.
 
 **Table after all tiers (15 columns):**
+
 ```
 MAC/SSID | RSSI | TYPE | VENDOR | CH | FREQ | ENC | PROBES | INTEL | PROTO | ACT | PKTS | DATA | AGE | LAST
 ```
@@ -410,11 +423,11 @@ MAC/SSID | RSSI | TYPE | VENDOR | CH | FREQ | ENC | PROBES | INTEL | PROTO | ACT
 
 **Three components, each with a distinct role:**
 
-| Component | Job | How It Integrates With Argos |
-|-----------|-----|------------------------------|
-| **Trunk Recorder** | Automated P25 trunked radio recording (headless, unattended) | WebSocket status → Argos sidebar + map markers |
-| **Rdio Scanner** | Scanner UI — live audio, talkgroup filtering, call history, replay | iframe embedded in Argos dashboard (port 3000) |
-| **talkgroups.csv** | Maps numeric P25 talkgroup IDs to human-readable names | Pre-deployment config from RadioReference.com |
+| Component          | Job                                                                | How It Integrates With Argos                   |
+| ------------------ | ------------------------------------------------------------------ | ---------------------------------------------- |
+| **Trunk Recorder** | Automated P25 trunked radio recording (headless, unattended)       | WebSocket status → Argos sidebar + map markers |
+| **Rdio Scanner**   | Scanner UI — live audio, talkgroup filtering, call history, replay | iframe embedded in Argos dashboard (port 3000) |
+| **talkgroups.csv** | Maps numeric P25 talkgroup IDs to human-readable names             | Pre-deployment config from RadioReference.com  |
 
 **Data flow:**
 
@@ -442,13 +455,13 @@ Trunk Recorder (C++ / Docker or native)
 
 **Argos sidebar panel (native, from WebSocket data):**
 
-| Field | Source |
-|-------|--------|
-| Active call count | `calls_active` messages |
-| Talkgroup name, source radio, frequency | `call_start` / `call_end` |
-| Emergency flag | `call.emergency` field (red highlight) |
-| Encrypted indicator | `call.encrypted` field (lock icon) |
-| Decode rate | `rates` messages |
+| Field                                   | Source                                 |
+| --------------------------------------- | -------------------------------------- |
+| Active call count                       | `calls_active` messages                |
+| Talkgroup name, source radio, frequency | `call_start` / `call_end`              |
+| Emergency flag                          | `call.emergency` field (red highlight) |
+| Encrypted indicator                     | `call.encrypted` field (lock icon)     |
+| Decode rate                             | `rates` messages                       |
 
 **Argos map integration:**
 
@@ -457,6 +470,7 @@ Active talkgroups appear as markers at the Pi's GPS position (P25 does not provi
 **Rdio Scanner iframe (RdioScannerView.svelte):**
 
 Follows the exact pattern of `src/lib/components/dashboard/views/KismetView.svelte` and `src/lib/components/dashboard/views/OpenWebRXView.svelte`:
+
 - ToolViewWrapper provides back button and title bar
 - iframe points to `http://{hostname}:3000`
 - Operator clicks "Trunk Recorder" in tool hierarchy → Rdio Scanner view opens
@@ -466,49 +480,55 @@ Follows the exact pattern of `src/lib/components/dashboard/views/KismetView.svel
 
 ```json
 {
-  "ver": 2,
-  "sources": [{
-    "center": 460000000,
-    "rate": 2048000,
-    "driver": "osmosdr",
-    "device": "rtl=0",
-    "gain": 40
-  }],
-  "systems": [{
-    "shortName": "CNTY",
-    "type": "p25",
-    "control_channels": [460012500, 460037500],
-    "talkgroupsFile": "talkgroups.csv"
-  }],
-  "statusServer": "ws://0.0.0.0:3005",
-  "plugins": [{
-    "name": "rdioscanner_uploader",
-    "library": "librdioscanner_uploader.so",
-    "server": "http://127.0.0.1:3000",
-    "apiKey": "YOUR_RDIO_SCANNER_API_KEY",
-    "systemId": 1
-  }]
+	"ver": 2,
+	"sources": [
+		{
+			"center": 460000000,
+			"rate": 2048000,
+			"driver": "osmosdr",
+			"device": "rtl=0",
+			"gain": 40
+		}
+	],
+	"systems": [
+		{
+			"shortName": "CNTY",
+			"type": "p25",
+			"control_channels": [460012500, 460037500],
+			"talkgroupsFile": "talkgroups.csv"
+		}
+	],
+	"statusServer": "ws://0.0.0.0:3005",
+	"plugins": [
+		{
+			"name": "rdioscanner_uploader",
+			"library": "librdioscanner_uploader.so",
+			"server": "http://127.0.0.1:3000",
+			"apiKey": "YOUR_RDIO_SCANNER_API_KEY",
+			"systemId": 1
+		}
+	]
 }
 ```
 
 **New Argos files for Track 4:**
 
-| File | Purpose |
-|------|---------|
-| `src/lib/components/dashboard/views/RdioScannerView.svelte` | iframe embedding (same pattern as KismetView) |
-| `src/lib/server/trunk-recorder/tr-ws-consumer.ts` | WebSocket client connecting to TR status server |
-| `src/lib/stores/tactical-map/trunked-radio-store.ts` | Active calls, recent calls, system health store |
-| `src/lib/server/mcp/trunked-radio-tools.ts` | MCP tools: `get_trunked_radio_status`, `get_call_history` |
+| File                                                        | Purpose                                                   |
+| ----------------------------------------------------------- | --------------------------------------------------------- |
+| `src/lib/components/dashboard/views/RdioScannerView.svelte` | iframe embedding (same pattern as KismetView)             |
+| `src/lib/server/trunk-recorder/tr-ws-consumer.ts`           | WebSocket client connecting to TR status server           |
+| `src/lib/stores/tactical-map/trunked-radio-store.ts`        | Active calls, recent calls, system health store           |
+| `src/lib/server/mcp/trunked-radio-tools.ts`                 | MCP tools: `get_trunked_radio_status`, `get_call_history` |
 
 **Modified Argos files:**
 
-| File | Change |
-|------|--------|
-| `src/lib/stores/dashboard/dashboard-store.ts` | Add `'rdio-scanner'` to `ActiveView` union (line 58) |
-| `src/lib/data/offnet-recon-signals.ts` | Set `trunk-recorder` to `isInstalled: true`, `viewName: 'rdio-scanner'`, `canOpen: true`, `deployment: 'native'` |
-| `src/routes/dashboard/+page.svelte` | Add `RdioScannerView` to view router |
-| `src/lib/map/symbols/symbol-factory.ts` | Add `p25_talkgroup` and `p25_emergency` SIDC mappings |
-| `.env.example` | Add `TR_WS_URL`, `RDIO_SCANNER_URL`, `RDIO_SCANNER_API_KEY` |
+| File                                          | Change                                                                                                           |
+| --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `src/lib/stores/dashboard/dashboard-store.ts` | Add `'rdio-scanner'` to `ActiveView` union (line 58)                                                             |
+| `src/lib/data/offnet-recon-signals.ts`        | Set `trunk-recorder` to `isInstalled: true`, `viewName: 'rdio-scanner'`, `canOpen: true`, `deployment: 'native'` |
+| `src/routes/dashboard/+page.svelte`           | Add `RdioScannerView` to view router                                                                             |
+| `src/lib/map/symbols/symbol-factory.ts`       | Add `p25_talkgroup` and `p25_emergency` SIDC mappings                                                            |
+| `.env.example`                                | Add `TR_WS_URL`, `RDIO_SCANNER_URL`, `RDIO_SCANNER_API_KEY`                                                      |
 
 **Device locking (requires [SoapySDR DeviceLockService](../Argos_tools_integration/offnet/utilities/sdr-infrastructure/soapysdr.md#device-arbitration-devicelockservice)):**
 
@@ -532,6 +552,7 @@ Trunk Recorder only speaks P25 (and SmartNet). DSD-FME decodes **11 digital voic
 **Why DSD-FME over DSD-Neo:**
 
 DSD-Neo is a fork of DSD-FME that refactors it into clean modular libraries. Better code architecture, but:
+
 - 40 stars / 3 watchers / 3 contributors vs DSD-FME's 291 stars / 39 watchers / 60 forks
 - No stable release (downloads page says "TBD")
 - README warns "Expect breaking changes" and "main branch may be volatile"
@@ -564,6 +585,7 @@ DSD-FME (C binary, native install)
 **Rdio Scanner dirwatch configuration:**
 
 In the Rdio Scanner admin panel (`http://pi-address:3000/admin`):
+
 1. Create a new dirwatch entry
 2. Directory: `/var/lib/dsd-fme/recordings/`
 3. Extension: `wav`
@@ -572,30 +594,30 @@ In the Rdio Scanner admin panel (`http://pi-address:3000/admin`):
 
 **Known integration issues:**
 
-| Issue | Status | Mitigation |
-|-------|--------|-----------|
-| WAV ingested before call completes | Resolved | Community patch renames file on completion |
-| No talkgroup in DSD-FME filename for some protocols | Known | Rdio Scanner auto-creates talkgroup entries |
-| Per-call recording requires ncurses mode | By design | Run with `-P -N 2> log.ans` for headless |
+| Issue                                               | Status    | Mitigation                                  |
+| --------------------------------------------------- | --------- | ------------------------------------------- |
+| WAV ingested before call completes                  | Resolved  | Community patch renames file on completion  |
+| No talkgroup in DSD-FME filename for some protocols | Known     | Rdio Scanner auto-creates talkgroup entries |
+| Per-call recording requires ncurses mode            | By design | Run with `-P -N 2> log.ans` for headless    |
 
 **DSD-FME trunking capabilities (independent of Trunk Recorder):**
 
-| Protocol | Trunking Support | Config Required |
-|----------|-----------------|-----------------|
-| DMR Capacity Plus | Yes | Channel map CSV |
-| DMR Connect Plus | Yes | Channel map CSV |
-| NXDN Type-C/D | Yes | Channel map CSV |
-| EDACS | Yes | Channel map CSV + RIGCTL/RTL |
-| P25 | Yes (but Trunk Recorder is better) | Control channel freq |
+| Protocol          | Trunking Support                   | Config Required              |
+| ----------------- | ---------------------------------- | ---------------------------- |
+| DMR Capacity Plus | Yes                                | Channel map CSV              |
+| DMR Connect Plus  | Yes                                | Channel map CSV              |
+| NXDN Type-C/D     | Yes                                | Channel map CSV              |
+| EDACS             | Yes                                | Channel map CSV + RIGCTL/RTL |
+| P25               | Yes (but Trunk Recorder is better) | Control channel freq         |
 
 **Argos integration for DSD-FME:**
 
 DSD-FME doesn't need its own Argos view component. Its audio flows into Rdio Scanner, which is already embedded. The only Argos-side changes are:
 
-| File | Change |
-|------|--------|
+| File                                   | Change                                                                                    |
+| -------------------------------------- | ----------------------------------------------------------------------------------------- |
 | `src/lib/data/offnet-recon-signals.ts` | Rename `dsd-neo` (line 195) to `dsd-fme`, set `isInstalled: true`, `deployment: 'native'` |
-| Tool hierarchy UI | Show DSD-FME status (running/stopped, current frequency, protocol detected) |
+| Tool hierarchy UI                      | Show DSD-FME status (running/stopped, current frequency, protocol detected)               |
 
 **Device locking (requires [SoapySDR DeviceLockService](../Argos_tools_integration/offnet/utilities/sdr-infrastructure/soapysdr.md#device-arbitration-devicelockservice)):**
 
@@ -643,16 +665,16 @@ External processes:
 
 ### Resource Budget
 
-| Component | RAM | When Active | Port |
-|-----------|-----|-------------|------|
-| Argos (SvelteKit) | ~300 MB | Always | 5173 |
-| Kismet | ~500 MB | Always | 2501 |
-| OS + services | ~1,500 MB | Always | — |
-| NFStream (nfstream-svc.py) | ~50 MB | Always-on | Unix socket |
-| Trunk Recorder | ~500 MB | During radio ops | 3005 (WS) |
-| Rdio Scanner | ~75 MB | With TR / DSD-FME | 3000 |
-| DSD-FME | ~50-100 MB | Interactive decode | — |
-| Activity Profiler (Tier 3) | <1 MB | Always-on | — |
+| Component                  | RAM        | When Active        | Port        |
+| -------------------------- | ---------- | ------------------ | ----------- |
+| Argos (SvelteKit)          | ~300 MB    | Always             | 5173        |
+| Kismet                     | ~500 MB    | Always             | 2501        |
+| OS + services              | ~1,500 MB  | Always             | —           |
+| NFStream (nfstream-svc.py) | ~50 MB     | Always-on          | Unix socket |
+| Trunk Recorder             | ~500 MB    | During radio ops   | 3005 (WS)   |
+| Rdio Scanner               | ~75 MB     | With TR / DSD-FME  | 3000        |
+| DSD-FME                    | ~50-100 MB | Interactive decode | —           |
+| Activity Profiler (Tier 3) | <1 MB      | Always-on          | —           |
 
 **Always-on baseline:** ~2.35 GB → **5.65 GB headroom**
 **Full trunked radio ops (TR + Rdio + DSD-FME):** ~2.98 GB → **5.02 GB headroom**
@@ -661,13 +683,13 @@ Memory is not a constraint for any track.
 
 ### Hardware Requirements
 
-| SDR Device | Used By | Notes |
-|-----------|---------|-------|
-| HackRF One | Spectrum analysis, OpenWebRX | Wideband (1 MHz–6 GHz) |
-| Internal WiFi + BT | Kismet | Monitor mode |
-| RTL-SDR #1 | Trunk Recorder | Dedicated to P25 control channel |
-| RTL-SDR #2 | DSD-FME | DMR/NXDN/EDACS decode (or pipe from HackRF) |
-| NFStream | No hardware | Monitors eth0/wlan0 traffic |
+| SDR Device         | Used By                      | Notes                                       |
+| ------------------ | ---------------------------- | ------------------------------------------- |
+| HackRF One         | Spectrum analysis, OpenWebRX | Wideband (1 MHz–6 GHz)                      |
+| Internal WiFi + BT | Kismet                       | Monitor mode                                |
+| RTL-SDR #1         | Trunk Recorder               | Dedicated to P25 control channel            |
+| RTL-SDR #2         | DSD-FME                      | DMR/NXDN/EDACS decode (or pipe from HackRF) |
+| NFStream           | No hardware                  | Monitors eth0/wlan0 traffic                 |
 
 ---
 
@@ -699,34 +721,34 @@ Start with stats-derived approach after Tiers 1+2 are stable. Prototype in an af
 
 ### New Files
 
-| File | Track | Purpose |
-|------|-------|---------|
-| `src/lib/components/dashboard/views/RdioScannerView.svelte` | 4 | Rdio Scanner iframe embedding |
-| `src/lib/server/trunk-recorder/tr-ws-consumer.ts` | 4 | WebSocket client for TR status server |
-| `src/lib/stores/tactical-map/trunked-radio-store.ts` | 4 | Active calls, recent calls, system health |
-| `src/lib/server/mcp/trunked-radio-tools.ts` | 4 | MCP tools: `get_trunked_radio_status`, `get_call_history` |
-| `scripts/services/nfstream-svc.py` | 2 | Python microservice: live capture → per-flow JSON → Unix socket |
-| `src/lib/server/nfstream/nfstream-consumer.ts` | 2 | Unix socket client (reads JSON lines from nfstream-svc.py) |
-| `src/lib/server/nfstream/arp-reader.ts` | 2 | IP→MAC correlation |
-| `src/lib/stores/tactical-map/nfstream-store.ts` | 2 | Protocol enrichment store |
-| `src/lib/server/mcp/nfstream-tools.ts` | 2 | MCP tools: `get_device_protocols`, `get_suspicious_activity` |
-| `src/lib/server/activity/activity-profiler.ts` | 3 | Rate-of-change classifier |
+| File                                                        | Track | Purpose                                                         |
+| ----------------------------------------------------------- | ----- | --------------------------------------------------------------- |
+| `src/lib/components/dashboard/views/RdioScannerView.svelte` | 4     | Rdio Scanner iframe embedding                                   |
+| `src/lib/server/trunk-recorder/tr-ws-consumer.ts`           | 4     | WebSocket client for TR status server                           |
+| `src/lib/stores/tactical-map/trunked-radio-store.ts`        | 4     | Active calls, recent calls, system health                       |
+| `src/lib/server/mcp/trunked-radio-tools.ts`                 | 4     | MCP tools: `get_trunked_radio_status`, `get_call_history`       |
+| `scripts/services/nfstream-svc.py`                          | 2     | Python microservice: live capture → per-flow JSON → Unix socket |
+| `src/lib/server/nfstream/nfstream-consumer.ts`              | 2     | Unix socket client (reads JSON lines from nfstream-svc.py)      |
+| `src/lib/server/nfstream/arp-reader.ts`                     | 2     | IP→MAC correlation                                              |
+| `src/lib/stores/tactical-map/nfstream-store.ts`             | 2     | Protocol enrichment store                                       |
+| `src/lib/server/mcp/nfstream-tools.ts`                      | 2     | MCP tools: `get_device_protocols`, `get_suspicious_activity`    |
+| `src/lib/server/activity/activity-profiler.ts`              | 3     | Rate-of-change classifier                                       |
 
 ### Modified Files
 
-| File | Track | Change |
-|------|-------|--------|
-| `src/lib/server/kismet/kismet-proxy.ts` | 1 | Add `'ble.device'` to DEVICE_FIELDS |
-| `src/lib/server/kismet/kismet-proxy-transform.ts` | 1 | New extraction functions for probes, fingerprints, BLE |
-| `src/lib/server/kismet/types.ts` + `src/lib/kismet/types.ts` | 1,2,3 | Extend KismetDevice with all new fields |
-| `src/lib/components/dashboard/panels/devices/DeviceTable.svelte` | 1,2,3 | Add PROBES, INTEL, PROTO, ACT columns |
-| `src/lib/components/dashboard/panels/devices/DeviceSubRows.svelte` | 1,2 | Probe history, BLE services, protocol detail sections |
-| `src/lib/stores/dashboard/dashboard-store.ts` | 4 | Add `'rdio-scanner'` to `ActiveView` union (line 58) |
-| `src/lib/data/offnet-recon-signals.ts` | 4,5 | Mark trunk-recorder installed + `deployment: 'native'`; rename `dsd-neo` → `dsd-fme` + `deployment: 'native'` |
-| `src/routes/dashboard/+page.svelte` | 4 | Add RdioScannerView to view router |
-| `src/lib/map/symbols/symbol-factory.ts` | 4 | Add p25_talkgroup and p25_emergency SIDC mappings |
-| `src/lib/server/mcp/dynamic-server-tools.ts` | 2,4 | Register NFStream and TR MCP tools |
-| `.env.example` | 2,4 | Add NFSTREAM_*, TR_WS_URL, RDIO_SCANNER_* variables |
+| File                                                               | Track | Change                                                                                                        |
+| ------------------------------------------------------------------ | ----- | ------------------------------------------------------------------------------------------------------------- |
+| `src/lib/server/kismet/kismet-proxy.ts`                            | 1     | Add `'ble.device'` to DEVICE_FIELDS                                                                           |
+| `src/lib/server/kismet/kismet-proxy-transform.ts`                  | 1     | New extraction functions for probes, fingerprints, BLE                                                        |
+| `src/lib/server/kismet/types.ts` + `src/lib/kismet/types.ts`       | 1,2,3 | Extend KismetDevice with all new fields                                                                       |
+| `src/lib/components/dashboard/panels/devices/DeviceTable.svelte`   | 1,2,3 | Add PROBES, INTEL, PROTO, ACT columns                                                                         |
+| `src/lib/components/dashboard/panels/devices/DeviceSubRows.svelte` | 1,2   | Probe history, BLE services, protocol detail sections                                                         |
+| `src/lib/stores/dashboard/dashboard-store.ts`                      | 4     | Add `'rdio-scanner'` to `ActiveView` union (line 58)                                                          |
+| `src/lib/data/offnet-recon-signals.ts`                             | 4,5   | Mark trunk-recorder installed + `deployment: 'native'`; rename `dsd-neo` → `dsd-fme` + `deployment: 'native'` |
+| `src/routes/dashboard/+page.svelte`                                | 4     | Add RdioScannerView to view router                                                                            |
+| `src/lib/map/symbols/symbol-factory.ts`                            | 4     | Add p25_talkgroup and p25_emergency SIDC mappings                                                             |
+| `src/lib/server/mcp/dynamic-server-tools.ts`                       | 2,4   | Register NFStream and TR MCP tools                                                                            |
+| `.env.example`                                                     | 2,4   | Add NFSTREAM*\*, TR_WS_URL, RDIO_SCANNER*\* variables                                                         |
 
 ---
 

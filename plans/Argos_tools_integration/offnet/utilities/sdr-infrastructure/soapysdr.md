@@ -78,17 +78,17 @@ This is the **admin/management** page. It shows all connected SDRs and lets the 
 
 **What this page does:**
 
-| Feature | Source | Notes |
-|---|---|---|
-| Auto-detect make/model/serial | `SoapySDRUtil --find` + `--probe` | SoapySDR returns this automatically |
-| Editable device names | SQLite persistence (`sdr_devices` table) | User can rename any device (keyed by serial) |
-| Firmware version | Device-specific CLI (`hackrf_info`, `uhd_find_devices`, etc.) | Real metrics from the device |
-| Driver version | Package manager / `SoapySDRUtil --info` | Shows installed module version |
-| "Update available" indicator | Compare installed vs latest release on GitHub API | Accent-colored text, low cognitive complexity |
-| "Update Firmware" button | Device-specific (`hackrf_spiflash`, `uhd_images_downloader`) | Only shown where one-click update is possible |
-| Documentation/GitHub/Firmware links | Static per-device-type config | Direct links to vendor resources |
-| Connection health | `SoapySDRUtil --check` + USB device presence | Real hardware status |
-| "Used by" indicator | `DeviceLockService.getStatus()` | Shows which tool currently holds the device |
+| Feature                             | Source                                                        | Notes                                         |
+| ----------------------------------- | ------------------------------------------------------------- | --------------------------------------------- |
+| Auto-detect make/model/serial       | `SoapySDRUtil --find` + `--probe`                             | SoapySDR returns this automatically           |
+| Editable device names               | SQLite persistence (`sdr_devices` table)                      | User can rename any device (keyed by serial)  |
+| Firmware version                    | Device-specific CLI (`hackrf_info`, `uhd_find_devices`, etc.) | Real metrics from the device                  |
+| Driver version                      | Package manager / `SoapySDRUtil --info`                       | Shows installed module version                |
+| "Update available" indicator        | Compare installed vs latest release on GitHub API             | Accent-colored text, low cognitive complexity |
+| "Update Firmware" button            | Device-specific (`hackrf_spiflash`, `uhd_images_downloader`)  | Only shown where one-click update is possible |
+| Documentation/GitHub/Firmware links | Static per-device-type config                                 | Direct links to vendor resources              |
+| Connection health                   | `SoapySDRUtil --check` + USB device presence                  | Real hardware status                          |
+| "Used by" indicator                 | `DeviceLockService.getStatus()`                               | Shows which tool currently holds the device   |
 
 **Not all SDRs support one-click firmware updates.** Where it's too complex (build from source), the button is omitted and only the firmware download link and documentation link are shown.
 
@@ -126,13 +126,13 @@ When the user clicks **Start** on any tool that uses an SDR, the map area is rep
 
 **What this panel does:**
 
-| Feature | Details |
-|---|---|
-| Shows only **compatible** SDRs | Filtered by tool requirements (freq range, duplex, etc.) |
-| Grays out / locks SDRs in use | `DeviceLockService` status — can't select an occupied device |
-| Shows health warnings | Firmware mismatch, disconnected, etc. |
+| Feature                            | Details                                                      |
+| ---------------------------------- | ------------------------------------------------------------ |
+| Shows only **compatible** SDRs     | Filtered by tool requirements (freq range, duplex, etc.)     |
+| Grays out / locks SDRs in use      | `DeviceLockService` status — can't select an occupied device |
+| Shows health warnings              | Firmware mismatch, disconnected, etc.                        |
 | User selects SDR and clicks Launch | `DeviceLockService.acquire()` → tool starts with that device |
-| Remembers last selection | SQLite — next time GSM Evil starts, pre-selects the same SDR |
+| Remembers last selection           | SQLite — next time GSM Evil starts, pre-selects the same SDR |
 
 ---
 
@@ -148,37 +148,37 @@ Simple lock-based system to prevent two tools from claiming the same hardware de
 // Singleton via globalThis (same pattern as SweepManager in
 // src/lib/server/hackrf/sweep-manager.ts)
 interface DeviceLock {
-  deviceId: string;    // e.g. "hackrf-0", "rtlsdr-0", "wlan0"
-  tool: string;        // e.g. "GSM Evil", "Spectrum Analyzer"
-  pid?: number;        // Process ID if a child process
-  since: number;       // Date.now() timestamp
+	deviceId: string; // e.g. "hackrf-0", "rtlsdr-0", "wlan0"
+	tool: string; // e.g. "GSM Evil", "Spectrum Analyzer"
+	pid?: number; // Process ID if a child process
+	since: number; // Date.now() timestamp
 }
 
 class DeviceLockService {
-  private locks = new Map<string, DeviceLock>();
+	private locks = new Map<string, DeviceLock>();
 
-  acquire(deviceId, tool, pid?): { ok: true } | { ok: false; heldBy: string }
-  release(deviceId, tool): void
-  releaseAll(tool): void         // Cleanup when a tool crashes
-  isAvailable(deviceId): boolean
-  getStatus(): DeviceLock[]      // For both UI flows
+	acquire(deviceId, tool, pid?): { ok: true } | { ok: false; heldBy: string };
+	release(deviceId, tool): void;
+	releaseAll(tool): void; // Cleanup when a tool crashes
+	isAvailable(deviceId): boolean;
+	getStatus(): DeviceLock[]; // For both UI flows
 
-  // Enumeration (calls SoapySDRUtil via execFileAsync for SDRs, and parses /sys/class/net/ for Wi-Fi interfaces)
-  enumerate(): Promise<SdrDevice[]>      // --find + native Linux network interfaces
-  probe(deviceId): Promise<SdrCaps>      // --probe
+	// Enumeration (calls SoapySDRUtil via execFileAsync for SDRs, and parses /sys/class/net/ for Wi-Fi interfaces)
+	enumerate(): Promise<SdrDevice[]>; // --find + native Linux network interfaces
+	probe(deviceId): Promise<SdrCaps>; // --probe
 }
 ```
 
 ### Integration Points
 
-| Existing Service | File | Lock Action |
-|---|---|---|
-| **SweepManager** | `src/lib/server/hackrf/sweep-manager.ts` | acquire before `hackrf_sweep` spawn, release on stop |
-| **GsmEvilService** | `src/lib/server/services/gsm-evil/` | acquire before `grgsm_livemon` spawn, release on stop |
-| **KismetService** | `src/lib/server/services/kismet/kismet-control-service.ts` | acquire Wi-Fi interface (e.g. `wlan1`) on start, release on stop |
-| **OpenWebRX** | Docker via `docker/docker-compose.portainer-dev.yml` | Argos acquires lock before starting container, releases on stop (see [OpenWebRX Docker Lock Mechanism](#openwebrx-docker-lock-mechanism)) |
-| **Trunk Recorder**| Native binary, systemd service | POST to `/api/hardware/devices/[id]/lock` on startup via entrypoint script (see [Failure Policy](#failure-policy-for-external-tools)) |
-| **DSD-FME** | Native binary wrapper | POST to `/api/hardware/devices/[id]/lock` on startup via wrapper script (see [Failure Policy](#failure-policy-for-external-tools)) |
+| Existing Service   | File                                                       | Lock Action                                                                                                                               |
+| ------------------ | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| **SweepManager**   | `src/lib/server/hackrf/sweep-manager.ts`                   | acquire before `hackrf_sweep` spawn, release on stop                                                                                      |
+| **GsmEvilService** | `src/lib/server/services/gsm-evil/`                        | acquire before `grgsm_livemon` spawn, release on stop                                                                                     |
+| **KismetService**  | `src/lib/server/services/kismet/kismet-control-service.ts` | acquire Wi-Fi interface (e.g. `wlan1`) on start, release on stop                                                                          |
+| **OpenWebRX**      | Docker via `docker/docker-compose.portainer-dev.yml`       | Argos acquires lock before starting container, releases on stop (see [OpenWebRX Docker Lock Mechanism](#openwebrx-docker-lock-mechanism)) |
+| **Trunk Recorder** | Native binary, systemd service                             | POST to `/api/hardware/devices/[id]/lock` on startup via entrypoint script (see [Failure Policy](#failure-policy-for-external-tools))     |
+| **DSD-FME**        | Native binary wrapper                                      | POST to `/api/hardware/devices/[id]/lock` on startup via wrapper script (see [Failure Policy](#failure-policy-for-external-tools))        |
 
 ### Lock Files (Crash Recovery)
 
@@ -188,13 +188,13 @@ Each `acquire()` writes `/tmp/argos-device-{deviceId}.lock`. On startup, dead PI
 
 External tools (Trunk Recorder, DSD-FME, OpenWebRX) should attempt to acquire locks via the Argos API, but **must not fail to start** if Argos is unreachable. The policy is:
 
-| Scenario | Behavior |
-|----------|----------|
-| Argos reachable, device available | Acquire lock, proceed normally |
-| Argos reachable, device locked | Fail to start — display which tool holds the device |
-| Argos unreachable (network, not running) | **Log warning and proceed** (graceful degradation) |
+| Scenario                                    | Behavior                                                               |
+| ------------------------------------------- | ---------------------------------------------------------------------- |
+| Argos reachable, device available           | Acquire lock, proceed normally                                         |
+| Argos reachable, device locked              | Fail to start — display which tool holds the device                    |
+| Argos unreachable (network, not running)    | **Log warning and proceed** (graceful degradation)                     |
 | Lock acquired, Argos restarts mid-operation | Lock file in `/tmp/` persists; `DeviceLockService` re-reads on startup |
-| Tool crashes without releasing lock | Dead PID cleanup on next `DeviceLockService` init |
+| Tool crashes without releasing lock         | Dead PID cleanup on next `DeviceLockService` init                      |
 
 The `DeviceLockService` auto-detects device conflicts on the next `SoapySDRUtil --find` scan, even if a tool started without acquiring a lock.
 
@@ -213,27 +213,27 @@ This keeps the lock logic server-side and avoids requiring the container to know
 
 Extends existing `/api/hardware/*` (3 routes at `src/routes/api/hardware/`):
 
-| Route | Method | Purpose |
-|---|---|---|
-| `/api/hardware/devices` | GET | **MODIFY** — SoapySDR enumeration + lock status + device names |
-| `/api/hardware/devices/[id]/lock` | POST | **NEW** — Acquire lock |
-| `/api/hardware/devices/[id]/lock` | DELETE | **NEW** — Release lock |
-| `/api/hardware/devices/[id]/name` | PUT | **NEW** — Rename device |
-| `/api/hardware/devices/[id]/firmware` | GET | **NEW** — Check firmware version + update availability |
-| `/api/hardware/devices/[id]/firmware` | POST | **NEW** — Trigger firmware update (where supported) |
+| Route                                 | Method | Purpose                                                        |
+| ------------------------------------- | ------ | -------------------------------------------------------------- |
+| `/api/hardware/devices`               | GET    | **MODIFY** — SoapySDR enumeration + lock status + device names |
+| `/api/hardware/devices/[id]/lock`     | POST   | **NEW** — Acquire lock                                         |
+| `/api/hardware/devices/[id]/lock`     | DELETE | **NEW** — Release lock                                         |
+| `/api/hardware/devices/[id]/name`     | PUT    | **NEW** — Rename device                                        |
+| `/api/hardware/devices/[id]/firmware` | GET    | **NEW** — Check firmware version + update availability         |
+| `/api/hardware/devices/[id]/firmware` | POST   | **NEW** — Trigger firmware update (where supported)            |
 
 ### Firmware Update Security Controls
 
 > [!CAUTION]
 > Firmware flashing (`hackrf_spiflash`, `uhd_images_downloader`) is a privileged, irreversible operation. The following safeguards apply:
 
-| Control | Implementation |
-|---------|---------------|
-| **Rate limiting** | Hardware-tier rate limit (30 req/min, existing) applies to firmware endpoints |
-| **UI confirmation** | Frontend must show a confirmation dialog before POST — "Flash firmware to {device}? This cannot be undone." |
-| **Localhost-only restriction** | Firmware POST endpoint returns `403 Forbidden` for non-localhost requests (Tailscale, remote) |
-| **Audit logging** | All firmware operations logged with timestamp, device serial, user, and result |
-| **No rollback** | Firmware flashing is one-way for most SDRs. The UI must clearly state this. If the flash fails mid-operation, the device may become unresponsive — operator must use vendor recovery procedures. |
+| Control                        | Implementation                                                                                                                                                                                   |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Rate limiting**              | Hardware-tier rate limit (30 req/min, existing) applies to firmware endpoints                                                                                                                    |
+| **UI confirmation**            | Frontend must show a confirmation dialog before POST — "Flash firmware to {device}? This cannot be undone."                                                                                      |
+| **Localhost-only restriction** | Firmware POST endpoint returns `403 Forbidden` for non-localhost requests (Tailscale, remote)                                                                                                    |
+| **Audit logging**              | All firmware operations logged with timestamp, device serial, user, and result                                                                                                                   |
+| **No rollback**                | Firmware flashing is one-way for most SDRs. The UI must clearly state this. If the flash fails mid-operation, the device may become unresponsive — operator must use vendor recovery procedures. |
 
 ---
 
@@ -241,39 +241,39 @@ Extends existing `/api/hardware/*` (3 routes at `src/routes/api/hardware/`):
 
 ### Core Library
 
-| | Link |
-|---|---|
-| **GitHub** | https://github.com/pothosware/SoapySDR |
-| **Wiki** | https://github.com/pothosware/SoapySDR/wiki |
+|              | Link                                                            |
+| ------------ | --------------------------------------------------------------- |
+| **GitHub**   | https://github.com/pothosware/SoapySDR                          |
+| **Wiki**     | https://github.com/pothosware/SoapySDR/wiki                     |
 | **API Docs** | https://pothosware.github.io/SoapySDR/doxygen/latest/index.html |
-| **License** | Boost Software License 1.0 (permissive) |
+| **License**  | Boost Software License 1.0 (permissive)                         |
 
 ### Hardware Driver Modules
 
-| Module | GitHub | Wiki | Hardware | Install |
-|---|---|---|---|---|
-| **SoapyHackRF** | [repo](https://github.com/pothosware/SoapyHackRF) | [wiki](https://github.com/pothosware/SoapyHackRF/wiki) | HackRF One | `apt install soapysdr-module-hackrf` |
-| **SoapyRTLSDR** | [repo](https://github.com/pothosware/SoapyRTLSDR) | [wiki](https://github.com/pothosware/SoapyRTLSDR/wiki) | RTL-SDR v3 | `apt install soapysdr-module-rtlsdr` |
-| **SoapyUHD** | [repo](https://github.com/pothosware/SoapyUHD) | [wiki](https://github.com/pothosware/SoapyUHD/wiki) | Ettus B205mini/B210 | `apt install soapysdr-module-uhd` |
-| **SoapyBladeRF** | [repo](https://github.com/pothosware/SoapyBladeRF) | [wiki](https://github.com/pothosware/SoapyBladeRF/wiki) | BladeRF x40/xA4 | `apt install soapysdr-module-bladerf` |
-| **SoapyAirspy** | [repo](https://github.com/pothosware/SoapyAirspy) | [wiki](https://github.com/pothosware/SoapyAirspy/wiki) | Airspy R2/Mini | `apt install soapysdr-module-airspy` |
-| **SoapyAirspyHF** | [repo](https://github.com/pothosware/SoapyAirspyHF) | [wiki](https://github.com/pothosware/SoapyAirspyHF/wiki) | Airspy HF+ | `apt install soapysdr-module-airspyhf` |
-| **SoapySDRPlay3** | [repo](https://github.com/pothosware/SoapySDRPlay3) | [wiki](https://github.com/pothosware/SoapySDRPlay3/wiki) | SDRplay RSP1A/dx | `apt install soapysdr-module-sdrplay3` |
-| **SoapyPlutoSDR** | [repo](https://github.com/pothosware/SoapyPlutoSDR) | [wiki](https://github.com/pothosware/SoapyPlutoSDR/wiki) | ADALM-Pluto | Build from source |
-| **SoapyOsmo** | [repo](https://github.com/pothosware/SoapyOsmo) | [wiki](https://github.com/pothosware/SoapyOsmo/wiki) | gr-osmosdr bridge | `apt install soapysdr-module-osmosdr` |
+| Module            | GitHub                                              | Wiki                                                     | Hardware            | Install                                |
+| ----------------- | --------------------------------------------------- | -------------------------------------------------------- | ------------------- | -------------------------------------- |
+| **SoapyHackRF**   | [repo](https://github.com/pothosware/SoapyHackRF)   | [wiki](https://github.com/pothosware/SoapyHackRF/wiki)   | HackRF One          | `apt install soapysdr-module-hackrf`   |
+| **SoapyRTLSDR**   | [repo](https://github.com/pothosware/SoapyRTLSDR)   | [wiki](https://github.com/pothosware/SoapyRTLSDR/wiki)   | RTL-SDR v3          | `apt install soapysdr-module-rtlsdr`   |
+| **SoapyUHD**      | [repo](https://github.com/pothosware/SoapyUHD)      | [wiki](https://github.com/pothosware/SoapyUHD/wiki)      | Ettus B205mini/B210 | `apt install soapysdr-module-uhd`      |
+| **SoapyBladeRF**  | [repo](https://github.com/pothosware/SoapyBladeRF)  | [wiki](https://github.com/pothosware/SoapyBladeRF/wiki)  | BladeRF x40/xA4     | `apt install soapysdr-module-bladerf`  |
+| **SoapyAirspy**   | [repo](https://github.com/pothosware/SoapyAirspy)   | [wiki](https://github.com/pothosware/SoapyAirspy/wiki)   | Airspy R2/Mini      | `apt install soapysdr-module-airspy`   |
+| **SoapyAirspyHF** | [repo](https://github.com/pothosware/SoapyAirspyHF) | [wiki](https://github.com/pothosware/SoapyAirspyHF/wiki) | Airspy HF+          | `apt install soapysdr-module-airspyhf` |
+| **SoapySDRPlay3** | [repo](https://github.com/pothosware/SoapySDRPlay3) | [wiki](https://github.com/pothosware/SoapySDRPlay3/wiki) | SDRplay RSP1A/dx    | `apt install soapysdr-module-sdrplay3` |
+| **SoapyPlutoSDR** | [repo](https://github.com/pothosware/SoapyPlutoSDR) | [wiki](https://github.com/pothosware/SoapyPlutoSDR/wiki) | ADALM-Pluto         | Build from source                      |
+| **SoapyOsmo**     | [repo](https://github.com/pothosware/SoapyOsmo)     | [wiki](https://github.com/pothosware/SoapyOsmo/wiki)     | gr-osmosdr bridge   | `apt install soapysdr-module-osmosdr`  |
 
 ### Firmware Resources Per Device
 
-| SDR | Firmware Check CLI | Update CLI | Firmware Link |
-|---|---|---|---|
-| HackRF One | `hackrf_info` | `hackrf_spiflash` | [github.com/greatscottgadgets/hackrf/releases](https://github.com/greatscottgadgets/hackrf/releases) |
-| RTL-SDR | N/A (no updatable firmware) | N/A | — |
-| B205mini | `uhd_find_devices --args="type=b200"` | `uhd_images_downloader` | [files.ettus.com/manual/page_images.html](https://files.ettus.com/manual/page_images.html) |
-| BladeRF | `bladeRF-cli -e version` | `bladeRF-cli -f <image>` | [github.com/Nuand/bladeRF/releases](https://github.com/Nuand/bladeRF/releases) |
-| LimeSDR | `LimeUtil --find` | `LimeUtil --update` | [github.com/myriadrf/LimeSuite/releases](https://github.com/myriadrf/LimeSuite/releases) |
-| PlutoSDR | `iio_info -s` | Manual (build from source) | [github.com/analogdevicesinc/plutosdr-fw/releases](https://github.com/analogdevicesinc/plutosdr-fw/releases) |
-| Airspy | `airspy_info` | Manual | [airspy.com/download](https://airspy.com/download/) |
-| SDRplay | `sdrplay_apiService` | Manual (vendor installer) | [sdrplay.com/downloads](https://www.sdrplay.com/downloads/) |
+| SDR        | Firmware Check CLI                    | Update CLI                 | Firmware Link                                                                                                |
+| ---------- | ------------------------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| HackRF One | `hackrf_info`                         | `hackrf_spiflash`          | [github.com/greatscottgadgets/hackrf/releases](https://github.com/greatscottgadgets/hackrf/releases)         |
+| RTL-SDR    | N/A (no updatable firmware)           | N/A                        | —                                                                                                            |
+| B205mini   | `uhd_find_devices --args="type=b200"` | `uhd_images_downloader`    | [files.ettus.com/manual/page_images.html](https://files.ettus.com/manual/page_images.html)                   |
+| BladeRF    | `bladeRF-cli -e version`              | `bladeRF-cli -f <image>`   | [github.com/Nuand/bladeRF/releases](https://github.com/Nuand/bladeRF/releases)                               |
+| LimeSDR    | `LimeUtil --find`                     | `LimeUtil --update`        | [github.com/myriadrf/LimeSuite/releases](https://github.com/myriadrf/LimeSuite/releases)                     |
+| PlutoSDR   | `iio_info -s`                         | Manual (build from source) | [github.com/analogdevicesinc/plutosdr-fw/releases](https://github.com/analogdevicesinc/plutosdr-fw/releases) |
+| Airspy     | `airspy_info`                         | Manual                     | [airspy.com/download](https://airspy.com/download/)                                                          |
+| SDRplay    | `sdrplay_apiService`                  | Manual (vendor installer)  | [sdrplay.com/downloads](https://www.sdrplay.com/downloads/)                                                  |
 
 ---
 
@@ -309,12 +309,12 @@ SoapySDRUtil --info  # Verify new module loaded
 
 ### Key Commands
 
-| Command | Purpose |
-|---|---|
-| `SoapySDRUtil --info` | List version + all installed modules |
-| `SoapySDRUtil --find` | Enumerate all connected SDRs |
-| `SoapySDRUtil --probe="driver=hackrf"` | Device capabilities |
-| `SoapySDRUtil --check="driver=hackrf"` | Self-test device |
+| Command                                | Purpose                              |
+| -------------------------------------- | ------------------------------------ |
+| `SoapySDRUtil --info`                  | List version + all installed modules |
+| `SoapySDRUtil --find`                  | Enumerate all connected SDRs         |
+| `SoapySDRUtil --probe="driver=hackrf"` | Device capabilities                  |
+| `SoapySDRUtil --check="driver=hackrf"` | Self-test device                     |
 
 > [!NOTE]
 > `SoapySDRUtil --check` may not be available in all SoapySDR versions. Verify with `SoapySDRUtil --help` on the target system. If unavailable, use `--probe` with a 5-second timeout as the health check fallback: if `--probe` returns valid JSON within the timeout, the device is healthy.
@@ -325,15 +325,15 @@ SoapySDRUtil --info  # Verify new module loaded
 
 Not every tool works with every SDR. This matrix determines which SDRs appear in the Tool Launch Configuration panel:
 
-| Tool | HackRF | RTL-SDR | B205mini | BladeRF | PlutoSDR | Airspy | Notes |
-|---|---|---|---|---|---|---|---|
-| **Spectrum Analyzer** (`hackrf_sweep`) | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | HackRF-only binary |
-| **GSM Evil** (`grgsm_livemon`) | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | Via gr-osmosdr/SoapySDR |
-| **OpenWebRX** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Already uses SoapySDR |
-| **Trunk Recorder** | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ | RTL-SDR primary |
-| **DSD-FME** | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ | Multi-protocol digital voice decode |
-| **ADS-B** (`dump1090`) | ❌ | ✅ | ❌ | ❌ | ❌ | ✅ | RTL-SDR/Airspy |
-| **AIS** (`aisdecoder`) | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | RTL-SDR only |
+| Tool                                   | HackRF | RTL-SDR | B205mini | BladeRF | PlutoSDR | Airspy | Notes                               |
+| -------------------------------------- | ------ | ------- | -------- | ------- | -------- | ------ | ----------------------------------- |
+| **Spectrum Analyzer** (`hackrf_sweep`) | ✅     | ❌      | ❌       | ❌      | ❌       | ❌     | HackRF-only binary                  |
+| **GSM Evil** (`grgsm_livemon`)         | ✅     | ✅      | ✅       | ✅      | ❌       | ❌     | Via gr-osmosdr/SoapySDR             |
+| **OpenWebRX**                          | ✅     | ✅      | ✅       | ✅      | ✅       | ✅     | Already uses SoapySDR               |
+| **Trunk Recorder**                     | ❌     | ✅      | ✅       | ❌      | ❌       | ✅     | RTL-SDR primary                     |
+| **DSD-FME**                            | ✅     | ✅      | ❌       | ❌      | ❌       | ✅     | Multi-protocol digital voice decode |
+| **ADS-B** (`dump1090`)                 | ❌     | ✅      | ❌       | ❌      | ❌       | ✅     | RTL-SDR/Airspy                      |
+| **AIS** (`aisdecoder`)                 | ❌     | ✅      | ❌       | ❌      | ❌       | ❌     | RTL-SDR only                        |
 
 This matrix is used to filter the SDR dropdown in the Tool Launch Configuration panel.
 
@@ -341,19 +341,19 @@ This matrix is used to filter the SDR dropdown in the Tool Launch Configuration 
 
 ## Implementation File Summary
 
-| File | Action | Lines (est.) |
-|---|---|---|
-| `src/lib/server/services/device-lock/device-lock-service.ts` | **NEW** | ~120 |
-| `src/lib/server/services/device-lock/device-lock-types.ts` | **NEW** | ~25 |
-| `src/lib/server/services/device-lock/sdr-compatibility.ts` | **NEW** — tool-SDR compatibility matrix | ~30 |
-| `src/lib/server/hackrf/sweep-manager.ts` | **MODIFY** — add acquire/release | ~+10 |
-| `src/lib/server/services/gsm-evil/gsm-evil-control-service.ts` | **MODIFY** — add acquire/release | ~+10 |
-| `src/lib/server/services/kismet/kismet-control-service.ts` | **MODIFY** — add acquire/release | ~+10 |
-| `src/routes/api/hardware/devices/+server.ts` | **MODIFY** — SoapySDR + locks + names | ~+20 |
-| `src/routes/api/hardware/devices/[id]/lock/+server.ts` | **NEW** — POST/DELETE lock | ~40 |
-| `src/routes/api/hardware/devices/[id]/name/+server.ts` | **NEW** — PUT rename | ~20 |
-| `src/routes/api/hardware/devices/[id]/firmware/+server.ts` | **NEW** — GET check / POST update | ~50 |
-| SQLite migration: `sdr_devices` table | **NEW** — serial, name, last_tool columns | ~15 |
+| File                                                           | Action                                    | Lines (est.) |
+| -------------------------------------------------------------- | ----------------------------------------- | ------------ |
+| `src/lib/server/services/device-lock/device-lock-service.ts`   | **NEW**                                   | ~120         |
+| `src/lib/server/services/device-lock/device-lock-types.ts`     | **NEW**                                   | ~25          |
+| `src/lib/server/services/device-lock/sdr-compatibility.ts`     | **NEW** — tool-SDR compatibility matrix   | ~30          |
+| `src/lib/server/hackrf/sweep-manager.ts`                       | **MODIFY** — add acquire/release          | ~+10         |
+| `src/lib/server/services/gsm-evil/gsm-evil-control-service.ts` | **MODIFY** — add acquire/release          | ~+10         |
+| `src/lib/server/services/kismet/kismet-control-service.ts`     | **MODIFY** — add acquire/release          | ~+10         |
+| `src/routes/api/hardware/devices/+server.ts`                   | **MODIFY** — SoapySDR + locks + names     | ~+20         |
+| `src/routes/api/hardware/devices/[id]/lock/+server.ts`         | **NEW** — POST/DELETE lock                | ~40          |
+| `src/routes/api/hardware/devices/[id]/name/+server.ts`         | **NEW** — PUT rename                      | ~20          |
+| `src/routes/api/hardware/devices/[id]/firmware/+server.ts`     | **NEW** — GET check / POST update         | ~50          |
+| SQLite migration: `sdr_devices` table                          | **NEW** — serial, name, last_tool columns | ~15          |
 
 **Total: ~250 lines new code, ~50 lines modified, 1 migration.**
 

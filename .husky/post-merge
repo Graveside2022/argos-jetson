@@ -1,0 +1,28 @@
+# Post-merge dependency synchronization. If package.json / lockfile changed
+# in the merge, reinstall so the dev server starts clean.
+#
+# Bypass: SKIP_DEP_SYNC=1
+
+if [ "${SKIP_DEP_SYNC:-0}" = "1" ]; then
+	echo "[post-merge] SKIP_DEP_SYNC=1 — skipping dep sync"
+	exit 0
+fi
+
+CHANGED=$(git diff-tree -r --name-only --no-commit-id ORIG_HEAD HEAD 2>/dev/null || true)
+echo "$CHANGED" | grep -qE '^(package\.json|package-lock\.json|pnpm-lock\.yaml|yarn\.lock|bun\.lock|bun\.lockb)$' || exit 0
+
+echo "[post-merge] package manifest/lockfile changed — reinstalling deps"
+
+if [ -f pnpm-lock.yaml ] && command -v pnpm >/dev/null 2>&1; then
+	pnpm install
+elif { [ -f bun.lock ] || [ -f bun.lockb ]; } && command -v bun >/dev/null 2>&1; then
+	bun install
+elif [ -f yarn.lock ] && command -v yarn >/dev/null 2>&1; then
+	yarn install --frozen-lockfile
+elif [ -f package-lock.json ]; then
+	npm install --no-audit --no-fund
+else
+	echo "[post-merge] no known lockfile found — skipping install"
+fi
+
+exit 0

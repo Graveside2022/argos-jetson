@@ -8,7 +8,6 @@
 #   docker compose -f docker/docker-compose.portainer-dev.yml --profile tools up -d bettercap
 
 services:
-
   # ============================================
   # OPENWEBRX - SDR Web Interface (HackRF)
   # On-demand only: started by Argos Tools panel
@@ -16,16 +15,16 @@ services:
   openwebrx:
     image: slechev/openwebrxplus:latest
     container_name: openwebrx-hackrf
-    profiles: ["tools"]
+    profiles: ['tools']
     mem_limit: 512m
     memswap_limit: 768m
     ports:
-      - "8073:8073"
+      - '8073:8073'
     environment:
       - OPENWEBRX_ADMIN_USER=admin
       - OPENWEBRX_ADMIN_PASSWORD=${OPENWEBRX_PASSWORD:?Set OPENWEBRX_PASSWORD in .env}
     devices:
-      - "/dev/bus/usb:/dev/bus/usb"
+      - '/dev/bus/usb:/dev/bus/usb'
     privileged: true
     volumes:
       - openwebrx-hackrf-settings:/var/lib/openwebrx
@@ -33,12 +32,12 @@ services:
       - /tmp/openwebrx:rw,noexec,nosuid,size=100m
     networks:
       - argos-dev-network
-    restart: "no"
+    restart: 'no'
     logging:
-      driver: "json-file"
+      driver: 'json-file'
       options:
-        max-size: "100m"
-        max-file: "3"
+        max-size: '100m'
+        max-file: '3'
 
   # ============================================
   # NOVASDR - Rust WebSDR (HackRF, CPU-only FFT)
@@ -51,16 +50,16 @@ services:
       context: ./novasdr
       dockerfile: Dockerfile
       args:
-        NOVASDR_REF: "0.3.7"
+        NOVASDR_REF: '0.3.7'
     image: argos-novasdr:0.3.7
     container_name: novasdr-hackrf
-    profiles: ["tools"]
+    profiles: ['tools']
     mem_limit: 768m
     memswap_limit: 1g
     ports:
-      - "9002:9002"
+      - '9002:9002'
     devices:
-      - "/dev/bus/usb:/dev/bus/usb"
+      - '/dev/bus/usb:/dev/bus/usb'
     privileged: true
     # The non-root `argos` user inside the image needs plugdev to open
     # /dev/bus/usb/NNN/NNN (crw-rw---- root:plugdev). `privileged: true`
@@ -77,12 +76,12 @@ services:
       - /tmp/novasdr:rw,noexec,nosuid,size=100m
     networks:
       - argos-dev-network
-    restart: "no"
+    restart: 'no'
     logging:
-      driver: "json-file"
+      driver: 'json-file'
       options:
-        max-size: "100m"
-        max-file: "3"
+        max-size: '100m'
+        max-file: '3'
 
   # ============================================
   # BETTERCAP - WiFi/BLE/Network Recon
@@ -91,12 +90,12 @@ services:
   bettercap:
     image: bettercap/bettercap:latest
     container_name: bettercap
-    profiles: ["tools"]
+    profiles: ['tools']
     mem_limit: 256m
     memswap_limit: 384m
     network_mode: host
     devices:
-      - "/dev/bus/usb:/dev/bus/usb"
+      - '/dev/bus/usb:/dev/bus/usb'
     cap_add:
       - NET_ADMIN
       - NET_RAW
@@ -104,12 +103,12 @@ services:
       - BETTERCAP_API_USER=${BETTERCAP_USER:-admin}
       - BETTERCAP_API_PASSWORD=${BETTERCAP_PASSWORD:?Set BETTERCAP_PASSWORD in .env}
     command: bettercap -api-rest-address 0.0.0.0 -api-rest-port 8081
-    restart: "no"
+    restart: 'no'
     logging:
-      driver: "json-file"
+      driver: 'json-file'
       options:
-        max-size: "100m"
-        max-file: "3"
+        max-size: '100m'
+        max-file: '3'
 
   # ============================================
   # TRUNK-RECORDER - P25 / SmartNet trunked radio
@@ -120,11 +119,11 @@ services:
   trunk-recorder:
     image: robotastic/trunk-recorder:latest
     container_name: trunk-recorder
-    profiles: ["tools"]
+    profiles: ['tools']
     mem_limit: 768m
     memswap_limit: 1g
     devices:
-      - "/dev/bus/usb:/dev/bus/usb"
+      - '/dev/bus/usb:/dev/bus/usb'
     privileged: true
     working_dir: /app
     volumes:
@@ -133,16 +132,16 @@ services:
       - /var/lib/argos/trunk-recorder:/app/config:rw
       # Shared recordings volume — rdio-scanner reads the same WAV+JSON pairs.
       - /var/lib/argos/recordings:/app/recordings:rw
-    entrypoint: ["/bin/sh", "-c"]
-    command: ["trunk-recorder --config=/app/config/config.json"]
+    entrypoint: ['/bin/sh', '-c']
+    command: ['trunk-recorder --config=/app/config/config.json']
     networks:
       - argos-dev-network
-    restart: "no"
+    restart: 'no'
     logging:
-      driver: "json-file"
+      driver: 'json-file'
       options:
-        max-size: "100m"
-        max-file: "3"
+        max-size: '100m'
+        max-file: '3'
 
   # ============================================
   # RDIO-SCANNER - Go web UI for trunked call
@@ -154,11 +153,11 @@ services:
   rdio-scanner:
     image: chuot/rdio-scanner:latest
     container_name: rdio-scanner
-    profiles: ["tools"]
+    profiles: ['tools']
     mem_limit: 384m
     memswap_limit: 512m
     ports:
-      - "3002:3000"
+      - '3002:3000'
     volumes:
       # Persistent SQLite DB with call metadata + admin config.
       - rdio-scanner-data:/app/data:rw
@@ -168,10 +167,10 @@ services:
       - argos-dev-network
     restart: unless-stopped
     logging:
-      driver: "json-file"
+      driver: 'json-file'
       options:
-        max-size: "100m"
-        max-file: "3"
+        max-size: '100m'
+        max-file: '3'
 
   # ============================================
   # JAEGER - Distributed tracing backend
@@ -182,14 +181,14 @@ services:
   jaeger:
     image: jaegertracing/all-in-one:latest
     container_name: jaeger
-    profiles: ["observability"]
+    profiles: ['observability']
     mem_limit: 384m
     memswap_limit: 448m
     mem_reservation: 128m
     oom_score_adj: 800
     ports:
-      - "16686:16686"
-      - "4318:4318"
+      - '16686:16686'
+      - '4318:4318'
     environment:
       - COLLECTOR_OTLP_ENABLED=true
       - MEMORY_MAX_TRACES=5000
@@ -197,10 +196,10 @@ services:
       - argos-dev-network
     restart: unless-stopped
     logging:
-      driver: "json-file"
+      driver: 'json-file'
       options:
-        max-size: "50m"
-        max-file: "2"
+        max-size: '50m'
+        max-file: '2'
 
 networks:
   argos-dev-network:

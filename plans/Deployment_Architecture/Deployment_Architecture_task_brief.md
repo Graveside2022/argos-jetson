@@ -3,7 +3,7 @@
 **Document:** Stage 1 of 3 — Diagnose and Translate  
 **Project:** Argos SDR & Network Analysis Console  
 **Repository:** `github.com/Graveside2022/Argos` (`dev-branch-1`)  
-**Date:** 2026-02-12  
+**Date:** 2026-02-12
 
 ---
 
@@ -15,12 +15,12 @@ The application is currently deployed on **Kali Linux 2025.4** using Docker cont
 
 The Docker architecture consists of four services defined in `docker/docker-compose.portainer-dev.yml`:
 
-| Service | Image | Port | Mode |
-|---------|-------|------|------|
-| argos | argos:dev (builder stage) | 5173 | Always on, privileged, host network |
-| hackrf-backend | argos-hackrf-backend:dev | 8092 | Always on, privileged |
-| openwebrx | slechev/openwebrxplus:latest | 8073 | On-demand (profile: tools) |
-| bettercap | bettercap/bettercap:latest | 8081 | On-demand (profile: tools) |
+| Service        | Image                        | Port | Mode                                |
+| -------------- | ---------------------------- | ---- | ----------------------------------- |
+| argos          | argos:dev (builder stage)    | 5173 | Always on, privileged, host network |
+| hackrf-backend | argos-hackrf-backend:dev     | 8092 | Always on, privileged               |
+| openwebrx      | slechev/openwebrxplus:latest | 8073 | On-demand (profile: tools)          |
+| bettercap      | bettercap/bettercap:latest   | 8081 | On-demand (profile: tools)          |
 
 The Argos container runs Kismet internally (port 2501) with `network_mode: host`, `pid: host`, and `privileged: true` to access WiFi interfaces and USB hardware. The hackrf-backend is a separate Python/Flask service controlling the HackRF One device. Both on-demand tools (OpenWebRX, Bettercap) are started from the Argos UI's Tools panel.
 
@@ -99,19 +99,19 @@ The deployment infrastructure has five interrelated deficiencies that prevent th
 
 The following must be verified by the executor before or during implementation:
 
-| ID | Unknown | Where to Start |
-|----|---------|---------------|
-| I1 | Contents of `docker/docker-compose.portainer.yml` (prod variant?) | Read the file on dev-branch-1 |
-| I2 | Contents of `docker/.env.example` — does it have all required vars? | Read the file on dev-branch-1 |
-| I3 | Does Parrot Core 7.1 arm64 image exist for Pi 5? | Check parrotsec.org/download and community forums |
-| I4 | Is mt7921u driver included in Parrot 7.1 kernel (6.17)? | Boot Parrot Core, plug in Alfa, run `dmesg \| grep mt7921` |
-| I5 | Does `parrot-tools-full` metapackage include hackrf, gpsd, kismet? | Run `apt show parrot-tools-full` on a Parrot Core install |
-| I6 | Exact gpsd package name on Parrot Core (gpsd vs gpsd-clients) | Run `apt search gpsd` on Parrot Core |
-| I7 | Does `docker.io` package exist in Parrot repos or must Docker be installed from Docker's official repo? | Run `apt search docker.io` on Parrot Core |
-| I8 | What user account does Parrot Core create by default? | Check during first boot (likely `parrot` or user-defined) |
-| I9 | Do the `deployment/*.service` systemd files still match the Docker-based architecture? | Read each .service file, compare against current compose |
-| I10 | What is in `scripts/build/`, `scripts/dev/`, `scripts/tmux/`? | Read each directory's contents on dev-branch-1 |
+| ID  | Unknown                                                                                                 | Where to Start                                             |
+| --- | ------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| I1  | Contents of `docker/docker-compose.portainer.yml` (prod variant?)                                       | Read the file on dev-branch-1                              |
+| I2  | Contents of `docker/.env.example` — does it have all required vars?                                     | Read the file on dev-branch-1                              |
+| I3  | Does Parrot Core 7.1 arm64 image exist for Pi 5?                                                        | Check parrotsec.org/download and community forums          |
+| I4  | Is mt7921u driver included in Parrot 7.1 kernel (6.17)?                                                 | Boot Parrot Core, plug in Alfa, run `dmesg \| grep mt7921` |
+| I5  | Does `parrot-tools-full` metapackage include hackrf, gpsd, kismet?                                      | Run `apt show parrot-tools-full` on a Parrot Core install  |
+| I6  | Exact gpsd package name on Parrot Core (gpsd vs gpsd-clients)                                           | Run `apt search gpsd` on Parrot Core                       |
+| I7  | Does `docker.io` package exist in Parrot repos or must Docker be installed from Docker's official repo? | Run `apt search docker.io` on Parrot Core                  |
+| I8  | What user account does Parrot Core create by default?                                                   | Check during first boot (likely `parrot` or user-defined)  |
+| I9  | Do the `deployment/*.service` systemd files still match the Docker-based architecture?                  | Read each .service file, compare against current compose   |
+| I10 | What is in `scripts/build/`, `scripts/dev/`, `scripts/tmux/`?                                           | Read each directory's contents on dev-branch-1             |
 
 ---
 
-*Does this capture what you want? Anything I got wrong?*
+_Does this capture what you want? Anything I got wrong?_
