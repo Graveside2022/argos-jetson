@@ -7,10 +7,13 @@
  * @module
  */
 
-import { type ChildProcessWithoutNullStreams, spawn } from 'node:child_process';
+import { type ChildProcessByStdio, spawn } from 'node:child_process';
 import { createInterface, type Interface } from 'node:readline';
+import type { Readable } from 'node:stream';
 
 import { logger } from '$lib/utils/logger';
+
+type JournalctlProcess = ChildProcessByStdio<null, Readable, Readable>;
 
 const JOURNALCTL_ARGS = [
 	'journalctl',
@@ -41,7 +44,7 @@ const HEARTBEAT_INTERVAL_MS = 15_000;
 export function createLogStream(signal: AbortSignal): ReadableStream<Uint8Array> {
 	const encoder = new TextEncoder();
 
-	let child: ChildProcessWithoutNullStreams | null = null;
+	let child: JournalctlProcess | null = null;
 	let rl: Interface | null = null;
 	let heartbeat: ReturnType<typeof setInterval> | null = null;
 	let linesThisSecond = 0;
@@ -60,17 +63,18 @@ export function createLogStream(signal: AbortSignal): ReadableStream<Uint8Array>
 			// sudo is needed because journalctl for system units normally requires
 			// root or the systemd-journal group. The sudoers drop-in grants the
 			// Argos runtime user NOPASSWD for exactly this invocation.
-			child = spawn('sudo', JOURNALCTL_ARGS, {
+			const proc: JournalctlProcess = spawn('sudo', JOURNALCTL_ARGS, {
 				stdio: ['ignore', 'pipe', 'pipe']
 			});
+			child = proc;
 
-			child.on('error', (err) => {
+			proc.on('error', (err) => {
 				logger.error('[dragonsync/logs] journalctl spawn failed', { err });
 				controller.enqueue(encoder.encode(`data: [stream error: ${err.message}]\n\n`));
 				controller.close();
 			});
 
-			child.on('exit', (code, sig) => {
+			proc.on('exit', (code, sig) => {
 				logger.info('[dragonsync/logs] journalctl exited', { code, sig });
 				try {
 					controller.close();
@@ -80,7 +84,7 @@ export function createLogStream(signal: AbortSignal): ReadableStream<Uint8Array>
 			});
 
 			// Line-split stdout so we can SSE-frame one line at a time.
-			rl = createInterface({ input: child.stdout });
+			rl = createInterface({ input: proc.stdout });
 			rl.on('line', (raw) => {
 				// Server-side rate limiter: if a service floods (e.g. scanner startup),
 				// drop excess within the current 1-s window so we don't starve the
@@ -101,7 +105,7 @@ export function createLogStream(signal: AbortSignal): ReadableStream<Uint8Array>
 
 			// Also surface stderr (sudo errors, journalctl warnings) into the stream
 			// prefixed as data so the operator sees the failure instead of silence.
-			child.stderr.on('data', (chunk: Buffer) => {
+			proc.stderr.on('data', (chunk: Buffer) => {
 				const text = chunk.toString('utf8').trim();
 				if (!text) return;
 				controller.enqueue(encoder.encode(`data: [stderr] ${text}\n\n`));
