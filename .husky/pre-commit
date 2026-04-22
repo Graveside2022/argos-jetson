@@ -3,6 +3,7 @@
 #   0b. Bash file-size gate (wc -l) on scripts/**/*.sh + deployment/**/*.sh
 #   0c. Secret scan — AWS/GH/Slack/PEM/Anthropic/OpenAI/Stripe/JWT/GCP-SA in staged diff
 #   1.  lint-staged (eslint --fix + prettier --write on staged files)
+#   1b. trunk check --index (hold-the-line — blocks on NEW lint issues only)
 #   2.  coderabbit review (informational, non-blocking)
 #
 # Full-repo ESLint scan runs in pre-push (keeps commits fast, still blocks bad code from reaching remote).
@@ -11,6 +12,7 @@
 # Skip the Python gate with:   SKIP_PY_GATE=1 git commit ...
 # Skip the bash size gate with: SKIP_SIZE_GATE=1 git commit ...
 # Skip the secret scan with:   SKIP_SECRET_SCAN=1 git commit ...  (rotate the credential instead!)
+# Skip the trunk gate with:    SKIP_TRUNK=1 git commit ...
 # Skip everything with:    git commit --no-verify ...
 
 set -e
@@ -79,6 +81,21 @@ fi
 
 # 1) Lint + format staged files (blocking)
 npx lint-staged
+
+# 1b) Trunk Code Quality gate (blocking — hold-the-line: only NEW issues fire)
+# Scans staged files via git index. Existing baseline issues are ignored.
+# Gated on presence of .trunk/trunk.yaml so repos without trunk skip cleanly.
+if [ "${SKIP_TRUNK:-0}" = "1" ]; then
+	echo "[pre-commit] SKIP_TRUNK=1 — skipping trunk check"
+elif [ -f .trunk/trunk.yaml ] && command -v npx >/dev/null 2>&1; then
+	echo "[pre-commit] trunk check --index (hold-the-line)..."
+	if ! npx trunk check --index --no-progress; then
+		echo "[pre-commit] ❌ trunk check found NEW lint issues on staged changes" >&2
+		echo "[pre-commit]    Fix with: npx trunk check --index --fix" >&2
+		echo "[pre-commit]    Bypass:   SKIP_TRUNK=1 git commit ..." >&2
+		exit 1
+	fi
+fi
 
 # 2) CodeRabbit review (non-blocking, informational)
 if [ "${SKIP_CODERABBIT:-0}" = "1" ]; then
