@@ -16,7 +16,9 @@ BIN_WIDTH="20000"
 while [[ $# -gt 0 ]]; do
     case $1 in
         -f) FREQ_RANGE="$2"; shift 2 ;;
+        # shellcheck disable=SC2034  # GAIN/LNA accepted for CLI compat with real hackrf_sweep; mock ignores
         -g) GAIN="$2"; shift 2 ;;
+        # shellcheck disable=SC2034
         -l) LNA="$2"; shift 2 ;;
         -w) BIN_WIDTH="$2"; shift 2 ;;
         *) shift ;;
@@ -37,7 +39,7 @@ while true; do
     
     # Generate mock power values (100 samples)
     POWER_VALUES=""
-    for i in {1..100}; do
+    for _ in {1..100}; do
         # Generate random power between -90 and -30 dB
         POWER=$(echo "scale=2; -90 + $RANDOM * 60 / 32767" | bc)
         POWER_VALUES="${POWER_VALUES}, ${POWER}"

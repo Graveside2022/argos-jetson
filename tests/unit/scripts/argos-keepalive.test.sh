@@ -206,12 +206,6 @@ test_logging() {
 test_duplicate_detection() {
     echo -e "\n${YELLOW}Test: Duplicate process detection${NC}"
     
-    # Verify the script can identify duplicate processes
-    local script_dir
-    script_dir=$(dirname "$SCRIPT_PATH")
-    local script_name
-    script_name=$(basename "$SCRIPT_PATH")
-    
     # Test that script functions are available when sourced
     # This is a simplified test since we can't easily test the actual killing
     (

@@ -5,6 +5,7 @@ set -euo pipefail
 # so the post-compaction agent knows what is still running.
 # Supports memory: feedback_actively_monitor_bg_tasks.md
 
+# shellcheck disable=SC2034  # INPUT drains stdin to unblock hook; kept for future JSON parsing
 INPUT=$(cat 2>/dev/null) || true
 
 ACTIVE=$(pgrep -af 'hackrf_|kismet|vitest|grgsm_|bluedragon|tshark|dumpcap|node build|argos-dev-monitor' 2>/dev/null | grep -v grep | head -20 || true)
