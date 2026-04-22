@@ -33,6 +33,7 @@
 	import UASScanView from '$lib/components/dashboard/views/UASScanView.svelte';
 	import WebTAKView from '$lib/components/dashboard/views/WebTAKView.svelte';
 	import WigleToTAKView from '$lib/components/dashboard/views/WigleToTAKView.svelte';
+	import WiresharkView from '$lib/components/dashboard/views/WiresharkView.svelte';
 	import {
 		activeBottomTab,
 		activePanel,
@@ -190,6 +191,8 @@
 				<NovaSDRView />
 			{:else if $activeView === 'sdrpp'}
 				<SDRppView />
+			{:else if $activeView === 'wireshark'}
+				<WiresharkView />
 			{:else if $activeView === 'uas-scan'}
 				<UASScanView />
 			{:else if $activeView === 'bettercap'}

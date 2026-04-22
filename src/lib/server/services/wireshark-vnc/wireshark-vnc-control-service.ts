@@ -1,0 +1,193 @@
+/**
+ * Public start/stop/status API for the Wireshark VNC stack.
+ *
+ * Orchestrates Xtigervnc + Wireshark + websockify to stream the Qt GUI into
+ * the Argos dashboard via noVNC. Mirrors the WebTAK control service pattern.
+ *
+ * Wireshark has no hardware lock to claim — packet capture is managed by
+ * `dumpcap` with CAP_NET_RAW / CAP_NET_ADMIN capabilities set via `setcap`.
+ *
+ * Install docs:
+ *   https://www.wireshark.org/docs/wsdg_html_chunked/ChSrcBinary
+ */
+
+import { errMsg } from '$lib/server/api/error-utils';
+import { delay } from '$lib/utils/delay';
+import { logger } from '$lib/utils/logger';
+
+import {
+	clearSpawnError,
+	getCurrentFilter,
+	getCurrentIface,
+	getSpawnError,
+	isStackAlive,
+	killAllProcesses,
+	killOrphansByPort,
+	setCurrentCapture,
+	setVncBackground,
+	spawnWebsockify,
+	spawnWiresharkGui,
+	spawnXtigervnc
+} from './wireshark-vnc-processes';
+import { waitForStackReady } from './wireshark-vnc-processes';
+import {
+	WIRESHARK_DEFAULT_FILTER,
+	WIRESHARK_DEFAULT_IFACE,
+	WIRESHARK_WS_PATH,
+	WIRESHARK_WS_PORT,
+	type WiresharkVncControlResult,
+	type WiresharkVncStatusResult
+} from './wireshark-vnc-types';
+
+// ───────────────────── shutdown handler (idempotent) ─────────────────────
+
+let shutdownHandlerRegistered = false;
+
+function registerShutdownHandler(): void {
+	if (shutdownHandlerRegistered) return;
+	shutdownHandlerRegistered = true;
+	const handler = () => {
+		logger.info('[wireshark-vnc] received shutdown signal, tearing down stack');
+		void killAllProcesses();
+	};
+	process.once('SIGTERM', handler);
+	process.once('SIGINT', handler);
+	process.once('exit', handler);
+}
+
+// ─────────────────────────────── start ──────────────────────────────────
+
+async function spawnStackProcesses(iface: string, filter: string): Promise<void> {
+	clearSpawnError();
+
+	logger.info('[wireshark-vnc] spawning Xtigervnc');
+	spawnXtigervnc();
+	await delay(400);
+	assertNoSpawnError();
+
+	setVncBackground();
+
+	logger.info('[wireshark-vnc] spawning wireshark', { iface, filter });
+	spawnWiresharkGui(iface, filter);
+	// Qt + Wireshark dissector load is heavier than websockify; allow ~2s.
+	await delay(2000);
+	assertNoSpawnError();
+
+	logger.info('[wireshark-vnc] spawning websockify');
+	spawnWebsockify();
+	await delay(150);
+	assertNoSpawnError();
+}
+
+function assertNoSpawnError(): void {
+	const err = getSpawnError();
+	if (err) throw err;
+}
+
+async function cleanupFailedStart(): Promise<WiresharkVncControlResult> {
+	logger.error('[wireshark-vnc] stack failed to become ready within timeout');
+	await killAllProcesses();
+	await killOrphansByPort();
+	return {
+		success: false,
+		message: 'Failed to start Wireshark VNC stack',
+		error: 'Timeout waiting for VNC and websockify to respond'
+	};
+}
+
+function successResult(iface: string, filter: string, message: string): WiresharkVncControlResult {
+	return {
+		success: true,
+		message,
+		wsPort: WIRESHARK_WS_PORT,
+		wsPath: WIRESHARK_WS_PATH,
+		iface,
+		filter
+	};
+}
+
+/** Returns a short-circuit result if the existing stack is reusable; else null. */
+async function handleExistingStack(
+	iface: string,
+	filter: string
+): Promise<WiresharkVncControlResult | null> {
+	if (!isStackAlive()) return null;
+	if (getCurrentIface() === iface && getCurrentFilter() === filter) {
+		logger.info('[wireshark-vnc] stack already running for requested capture');
+		return successResult(iface, filter, 'Wireshark VNC stack already running');
+	}
+	logger.info('[wireshark-vnc] capture changed, restarting stack');
+	await stopWiresharkVnc();
+	return null;
+}
+
+async function runStart(iface: string, filter: string): Promise<WiresharkVncControlResult> {
+	registerShutdownHandler();
+
+	const reuse = await handleExistingStack(iface, filter);
+	if (reuse) return reuse;
+
+	await killOrphansByPort();
+	await spawnStackProcesses(iface, filter);
+
+	if (!(await waitForStackReady())) return cleanupFailedStart();
+
+	setCurrentCapture(iface, filter);
+	logger.info('[wireshark-vnc] stack ready', { wsPort: WIRESHARK_WS_PORT, iface, filter });
+	return successResult(iface, filter, 'Wireshark VNC stack started');
+}
+
+/**
+ * Start the Wireshark VNC stack capturing on the requested interface + filter.
+ * Idempotent: same iface + filter returns existing session; change forces restart.
+ */
+export async function startWiresharkVnc(
+	iface: string = WIRESHARK_DEFAULT_IFACE,
+	filter: string = WIRESHARK_DEFAULT_FILTER
+): Promise<WiresharkVncControlResult> {
+	try {
+		return await runStart(iface, filter);
+	} catch (error: unknown) {
+		logger.error('[wireshark-vnc] start error', { error: errMsg(error) });
+		await killAllProcesses().catch(() => undefined);
+		return {
+			success: false,
+			message: 'Failed to start Wireshark VNC stack',
+			error: errMsg(error)
+		};
+	}
+}
+
+// ──────────────────────────────── stop ──────────────────────────────────
+
+export async function stopWiresharkVnc(): Promise<WiresharkVncControlResult> {
+	try {
+		logger.info('[wireshark-vnc] stopping stack');
+		await killAllProcesses();
+		await killOrphansByPort();
+		logger.info('[wireshark-vnc] stack stopped');
+		return { success: true, message: 'Wireshark VNC stack stopped' };
+	} catch (error: unknown) {
+		logger.error('[wireshark-vnc] stop error', { error: errMsg(error) });
+		return {
+			success: false,
+			message: 'Failed to stop Wireshark VNC stack',
+			error: errMsg(error)
+		};
+	}
+}
+
+// ─────────────────────────────── status ─────────────────────────────────
+
+export function getWiresharkVncStatus(): WiresharkVncStatusResult {
+	const running = isStackAlive();
+	return {
+		success: true,
+		isRunning: running,
+		status: running ? 'active' : 'inactive',
+		wsPort: WIRESHARK_WS_PORT,
+		wsPath: WIRESHARK_WS_PATH,
+		iface: getCurrentIface(),
+		filter: getCurrentFilter()
+	};
+}
