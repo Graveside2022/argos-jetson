@@ -47,8 +47,9 @@ export const uasStore = writable<UASState>({
 	fpvSignals: new Map()
 });
 
-export function applyUASStatus(status: DragonSyncStatusResult): void {
-	uasStore.update((s) => ({
+function buildNextStatusState(s: UASState, status: DragonSyncStatusResult): UASState {
+	const transitioningToStopped = status.status === 'stopped' && s.status !== 'stopped';
+	const base: UASState = {
 		...s,
 		status: status.status,
 		droneidGoRunning: status.droneidGoRunning,
@@ -58,7 +59,17 @@ export function applyUASStatus(status: DragonSyncStatusResult): void {
 		apiReachable: status.apiReachable,
 		error: status.error ?? null,
 		lastUpdated: Date.now()
-	}));
+	};
+	if (transitioningToStopped) {
+		// Clear cached detections when services transition to stopped so the
+		// panel doesnt keep displaying stale drones after Stop.
+		return { ...base, drones: new Map(), fpvSignals: new Map(), c2Signals: new Map() };
+	}
+	return base;
+}
+
+export function applyUASStatus(status: DragonSyncStatusResult): void {
+	uasStore.update((s) => buildNextStatusState(s, status));
 }
 
 export function applyUASC2Signals(signals: DragonSyncC2Signal[]): void {
