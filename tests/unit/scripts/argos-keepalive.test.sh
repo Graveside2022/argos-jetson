@@ -176,9 +176,10 @@ test_process_counting() {
     sleep 9999 &
     local dummy2=$!
     
-    # Count processes
+    # Count processes — scope to direct children of this test shell to avoid
+    # matching unrelated `sleep 9999` processes on shared CI runners.
     local count
-    count=$(pgrep -f "sleep 9999" | wc -l)
+    count=$(pgrep -P "$$" -f '^sleep 9999$' | wc -l)
     assert_equals "2" "$count" "Can count dummy processes"
     
     # Clean up

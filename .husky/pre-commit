@@ -87,7 +87,12 @@ npx lint-staged
 # Gated on presence of .trunk/trunk.yaml so repos without trunk skip cleanly.
 if [ "${SKIP_TRUNK:-0}" = "1" ]; then
 	echo "[pre-commit] SKIP_TRUNK=1 — skipping trunk check"
-elif [ -f .trunk/trunk.yaml ] && command -v npx >/dev/null 2>&1; then
+elif [ -f .trunk/trunk.yaml ]; then
+	if ! command -v npx >/dev/null 2>&1; then
+		echo "[pre-commit] ❌ .trunk/trunk.yaml present but \`npx\` not on PATH" >&2
+		echo "[pre-commit]    Install Node/npm or bypass with: SKIP_TRUNK=1 git commit ..." >&2
+		exit 1
+	fi
 	echo "[pre-commit] trunk check --index (hold-the-line)..."
 	if ! npx trunk check --index --no-progress; then
 		echo "[pre-commit] ❌ trunk check found NEW lint issues on staged changes" >&2

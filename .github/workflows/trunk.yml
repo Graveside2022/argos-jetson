@@ -17,9 +17,10 @@ on:
     branches: [main]
 
 permissions:
+  # Direct CLI invocation uses ::notice:: workflow commands only (runner-side,
+  # no API calls). checks:write + pull-requests:write were needed for the
+  # trunk-action@v1 annotation poster; removed after the CLI swap.
   contents: read
-  checks: write
-  pull-requests: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

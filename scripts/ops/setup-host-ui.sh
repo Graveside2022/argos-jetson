@@ -25,7 +25,11 @@ for arg in "$@"; do
     --yes|-y) NON_INTERACTIVE=true ;;
     --verbose|-v) VERBOSE=true ;;
     --dry-run) DRY_RUN=true ;;
-    *) ;;
+    *)
+      echo "Unknown option: $arg" >&2
+      echo "Usage: bash scripts/ops/setup-host-ui.sh [--yes|-y] [--verbose|-v] [--dry-run]" >&2
+      exit 2
+      ;;
   esac
 done
 export DRY_RUN
