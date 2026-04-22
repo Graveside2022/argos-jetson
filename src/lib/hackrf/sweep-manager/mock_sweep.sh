@@ -1,6 +1,11 @@
 #!/bin/bash
 # Mock sweep tool for testing when no hardware is available
 # Outputs data in hackrf_sweep format
+#
+# GAIN and LNA are parsed from CLI for compat with real hackrf_sweep but
+# ignored by the mock. shellcheck flags them as unused; directive below
+# silences SC2034 at file scope (per-case-branch directives are invalid).
+# shellcheck disable=SC2034
 
 # Send startup message to stderr like real hackrf_sweep
 echo "Mock SDR mode - no hardware detected, generating simulated data" >&2
@@ -16,9 +21,7 @@ BIN_WIDTH="20000"
 while [[ $# -gt 0 ]]; do
     case $1 in
         -f) FREQ_RANGE="$2"; shift 2 ;;
-        # shellcheck disable=SC2034  # GAIN/LNA accepted for CLI compat with real hackrf_sweep; mock ignores
         -g) GAIN="$2"; shift 2 ;;
-        # shellcheck disable=SC2034
         -l) LNA="$2"; shift 2 ;;
         -w) BIN_WIDTH="$2"; shift 2 ;;
         *) shift ;;

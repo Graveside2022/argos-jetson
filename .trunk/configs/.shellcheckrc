@@ -9,6 +9,14 @@ disable=SC2154
 # autofix risk across Argos's shell codebase (59+ scripts).
 disable=SC2250
 
+# SC2312 disabled during trunk adoption: "consider invoking this command
+# separately to avoid masking its return value" — fires on nearly every
+# `$(cmd | filter)` pipeline in Argos's install/deploy scripts (141+
+# occurrences). Rule catches real bugs in isolated cases but hold-the-line
+# flags ALL on any touched file, blocking PRs mechanically. Reassess after
+# baseline is on main; can re-enable with narrow file-level annotations.
+disable=SC2312
+
 # If you're having issues with shellcheck following source, disable the errors via:
 # disable=SC1090
 # disable=SC1091

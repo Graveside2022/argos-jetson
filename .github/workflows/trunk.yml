@@ -27,12 +27,12 @@ concurrency:
 
 jobs:
   trunk-check:
-    name: 'Trunk Check (new issues only)'
+    name: Trunk Check (new issues only)
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
     steps:
-      - name: 'Checkout Code'
+      - name: Checkout Code
         # actions/checkout v4.2.2
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -40,7 +40,7 @@ jobs:
           # Trunk needs full history to compute hold-the-line diffs against main
           fetch-depth: 0
 
-      - name: 'Trunk Check'
+      - name: Trunk Check
         # trunk-io/trunk-action@v1 — canonical ref per upstream docs
         # TODO: pin by SHA for supply-chain parity with ci.yml / lint.yml
         # continue-on-error: informational during adoption. Hold-the-line
