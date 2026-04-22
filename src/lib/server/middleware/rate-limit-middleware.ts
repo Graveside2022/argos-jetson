@@ -62,6 +62,13 @@ export function getRateLimitKey(event: Parameters<Handle>[0]['event'], prefix: s
 }
 
 /**
+ * DragonSync control endpoint — exact path, NOT a prefix.
+ * Declared separately so matchers can use exact/subpath check instead of
+ * `startsWith` (which would also match /api/dragonsync/controller, etc.).
+ */
+const DRAGONSYNC_CONTROL_PATH = '/api/dragonsync/control';
+
+/**
  * Path prefixes that should be rate-limited on the 30 req/min hardware
  * tier instead of the 200 req/min generic API tier.
  *
@@ -96,7 +103,7 @@ const HARDWARE_PATH_PREFIXES = [
 	'/api/novasdr/',
 	'/api/bluedragon/',
 	'/api/bluehood/',
-	'/api/dragonsync/control',
+	DRAGONSYNC_CONTROL_PATH,
 	'/api/trunk-recorder/',
 	'/api/hardware/',
 
@@ -107,15 +114,25 @@ const HARDWARE_PATH_PREFIXES = [
 ] as const;
 
 /**
+ * Exact-match + subpath matcher for /api/dragonsync/control.
+ * Avoids prefix collision with sibling paths like /api/dragonsync/controller
+ * (which does not exist today but would be misclassified if added).
+ */
+function isDragonSyncControlPath(path: string): boolean {
+	return path === DRAGONSYNC_CONTROL_PATH || path.startsWith(`${DRAGONSYNC_CONTROL_PATH}/`);
+}
+
+/**
  * Check if a path is a hardware control endpoint.
  * Hardware control endpoints have stricter rate limits.
  */
 export function isHardwareControlPath(path: string): boolean {
-	return HARDWARE_PATH_PREFIXES.some((p) => path.startsWith(p));
+	if (isDragonSyncControlPath(path)) return true;
+	return HARDWARE_PATH_PREFIXES.some((p) => p !== DRAGONSYNC_CONTROL_PATH && path.startsWith(p));
 }
 
 export function isDragonSyncReadPath(path: string): boolean {
-	return path.startsWith('/api/dragonsync/') && !path.startsWith('/api/dragonsync/control');
+	return path.startsWith('/api/dragonsync/') && !isDragonSyncControlPath(path);
 }
 
 /** Check if this path should skip rate limiting (streaming/SSE endpoints and map tiles). */

@@ -19,7 +19,9 @@ COOLDOWN=120
 NOW=$(date +%s)
 if [[ -f "$STAMP" ]]; then
     LAST=$(grep -E '^[0-9]+$' "$STAMP" 2>/dev/null | head -n1)
-    [[ -z "$LAST" ]] && LAST=0
+    # Force base-10 coercion: leading-zero values (e.g. 08, 09) would
+    # otherwise be parsed as octal by bash arithmetic and throw.
+    case "$LAST" in ''|*[!0-9]*) LAST=0 ;; *) LAST=$((10#$LAST)) ;; esac
     AGE=$(( NOW - LAST ))
     if [[ "$AGE" -lt "$COOLDOWN" ]]; then
         logger -t argos-wan "cooldown active (${AGE}s < ${COOLDOWN}s); state=$STATE; skip"
@@ -54,8 +56,9 @@ PRIOR_COUNT=0
 PRIOR_TIME=0
 if [[ -f "$FAILFILE" ]]; then
     { read -r PRIOR_PROFILE; read -r PRIOR_COUNT; read -r PRIOR_TIME; } < "$FAILFILE" 2>/dev/null || true
-    case "$PRIOR_COUNT" in ''|*[!0-9]*) PRIOR_COUNT=0 ;; *) ;; esac
-    case "$PRIOR_TIME"  in ''|*[!0-9]*) PRIOR_TIME=0 ;; *) ;; esac
+    # Base-10 coerce to avoid octal parse on values like 08/09.
+    case "$PRIOR_COUNT" in ''|*[!0-9]*) PRIOR_COUNT=0 ;; *) PRIOR_COUNT=$((10#$PRIOR_COUNT)) ;; esac
+    case "$PRIOR_TIME"  in ''|*[!0-9]*) PRIOR_TIME=0  ;; *) PRIOR_TIME=$((10#$PRIOR_TIME))  ;; esac
 fi
 AGE_FAIL=$(( NOW - PRIOR_TIME ))
 if [[ "$PRIOR_PROFILE" != "$WIFI_PROFILE" ]] || [[ "$AGE_FAIL" -gt "$FAIL_TTL" ]]; then

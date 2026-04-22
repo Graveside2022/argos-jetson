@@ -108,4 +108,16 @@ describe('isDragonSyncReadPath', () => {
 		expect(isDragonSyncReadPath('/api/dragonsync/control')).toBe(false);
 		expect(isHardwareControlPath('/api/dragonsync/control')).toBe(true);
 	});
+	test('/api/dragonsync/control/<sub> still routes to hardware', () => {
+		expect(isDragonSyncReadPath('/api/dragonsync/control/start')).toBe(false);
+		expect(isHardwareControlPath('/api/dragonsync/control/start')).toBe(true);
+	});
+	test('/api/dragonsync/controller is read tier (no prefix collision)', () => {
+		expect(isDragonSyncReadPath('/api/dragonsync/controller')).toBe(true);
+		expect(isHardwareControlPath('/api/dragonsync/controller')).toBe(false);
+	});
+	test('/api/dragonsync/controller/status is read tier (no prefix collision)', () => {
+		expect(isDragonSyncReadPath('/api/dragonsync/controller/status')).toBe(true);
+		expect(isHardwareControlPath('/api/dragonsync/controller/status')).toBe(false);
+	});
 });

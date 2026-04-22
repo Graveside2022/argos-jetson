@@ -33,8 +33,12 @@ trap 'rm -f "$LOCKFILE"' EXIT
 
 cd "$PROJECT_DIR" || exit 0
 
+# set -e would exit on eslint non-zero before EXIT_CODE=$? captures it,
+# killing the error-handling branch below. Temporarily disable errexit.
+set +e
 OUTPUT=$(npx eslint "$FILE_PATH" --config config/eslint.config.js --no-warn-ignored 2>&1)
 EXIT_CODE=$?
+set -e
 
 if [[ "$EXIT_CODE" -ne 0 ]]; then
     ERRORS=$(echo "$OUTPUT" | grep -E '(error|complexity)' | head -10)
