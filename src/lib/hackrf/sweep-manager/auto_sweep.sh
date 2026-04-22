@@ -7,7 +7,7 @@ export UHD_IMAGES_DIR=/usr/share/uhd/images
 
 # Check if USRP B205 Mini is connected - only use if UHD can detect it
 USRP_DETECTED=0
-if [ "$FORCE_USRP" = "1" ]; then
+if [[ "$FORCE_USRP" = "1" ]]; then
     # Environment variable forces USRP mode (used when we know USRP should be available)
     USRP_DETECTED=1
     echo "USRP mode forced via environment variable" >&2
@@ -17,7 +17,7 @@ elif uhd_find_devices 2>/dev/null | grep -q "B205"; then
     echo "USRP B205 Mini detected and accessible via UHD" >&2
 fi
 
-if [ $USRP_DETECTED -eq 1 ]; then
+if [[ $USRP_DETECTED -eq 1 ]]; then
     echo "USRP B205 Mini detected, using USRP sweep tool" >&2
     # Use Python USRP sweep tool with converted arguments
     # Convert hackrf_sweep args to usrp_spectrum_scan.py args
@@ -61,7 +61,7 @@ elif hackrf_info 2>/dev/null | grep -q "Serial number"; then
     echo "HackRF detected" >&2
     # Try python_hackrf sweep bridge first (native API, no subprocess overhead)
     SWEEP_BRIDGE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../../../../../../hackrf_emitter/backend/sweep_bridge.py"
-    if [ -f "$SWEEP_BRIDGE" ] && python3 -c "from python_hackrf import pyhackrf_sweep" 2>/dev/null; then
+    if [[ -f "$SWEEP_BRIDGE" ]] && python3 -c "from python_hackrf import pyhackrf_sweep" 2>/dev/null; then
         echo "Using python_hackrf sweep bridge" >&2
         export PYTHONUNBUFFERED=1
         exec python3 -u "$SWEEP_BRIDGE" "$@"

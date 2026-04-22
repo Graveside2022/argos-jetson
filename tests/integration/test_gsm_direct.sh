@@ -43,7 +43,7 @@ echo "5. Summary:"
 echo "946.0 MHz frames: $FRAME_COUNT"
 echo "947.4 MHz frames: $FRAME_COUNT2"
 
-if [ "$FRAME_COUNT" -gt 5 ] || [ "$FRAME_COUNT2" -gt 5 ]; then
+if [[ "$FRAME_COUNT" -gt 5 ]] || [[ "$FRAME_COUNT2" -gt 5 ]]; then
     echo "✓ GSM frames detected - system working!"
 else
     echo "⚠ No GSM frames - possible issues:"

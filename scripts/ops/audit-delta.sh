@@ -28,7 +28,7 @@ if ! command -v jq >/dev/null 2>&1; then
 	exit 2
 fi
 
-if [ ! -f "$BASELINE" ]; then
+if [[ ! -f "$BASELINE" ]]; then
 	echo "audit-delta: baseline file $BASELINE missing. Run with --update to create." >&2
 	exit 2
 fi
@@ -47,7 +47,7 @@ if ! jq . "$AUDIT_TMP" >/dev/null 2>&1; then
 	exit 2
 fi
 
-if [ "${1:-}" = "--update" ]; then
+if [[ "${1:-}" = "--update" ]]; then
 	jq -c '[.. | objects | select(.url?) | {ghsa: (.url | split("/") | last), pkg: (.name // "unknown"), severity: (.severity // "unknown"), title: (.title // "")}] | unique_by(.ghsa) | sort_by(.severity, .ghsa)' "$AUDIT_TMP" > /tmp/audit-advs.json
 	jq -n \
 		--argjson advs "$(cat /tmp/audit-advs.json)" \
@@ -69,14 +69,14 @@ CURRENT_GHSAS=$(jq -r '[.. | objects | select(.url?) | .url | split("/") | last]
 
 NEW_GHSAS=$(comm -23 <(echo "$CURRENT_GHSAS") <(echo "$BASELINE_GHSAS") || true)
 
-if [ -z "$NEW_GHSAS" ]; then
+if [[ -z "$NEW_GHSAS" ]]; then
 	echo "audit-delta: ✓ no new advisories (baseline covers $(echo "$BASELINE_GHSAS" | wc -l | tr -d ' ') known)" >&2
 	exit 0
 fi
 
 echo "audit-delta: ✗ new advisories not covered by baseline:" >&2
 while IFS= read -r ghsa; do
-	[ -z "$ghsa" ] && continue
+	[[ -z "$ghsa" ]] && continue
 	# Pull details from current audit for the new GHSA.
 	DETAILS=$(jq -r --arg g "$ghsa" '[.. | objects | select(.url? | test($g))] | .[0] | "  \(.name // "?") [\(.severity // "?")] \(.title // "")"' "$AUDIT_TMP" 2>/dev/null || echo "  $ghsa")
 	echo "  $ghsa"

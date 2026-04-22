@@ -46,11 +46,11 @@ sudo kill $WEB_PID 2>/dev/null
 
 echo ""
 echo "7. Analysis:"
-if [ "$FRAME_COUNT" -gt 20 ]; then
+if [[ "$FRAME_COUNT" -gt 20 ]]; then
     echo "✓ EXCELLENT: $FRAME_COUNT frames detected - web scanner should work!"
-elif [ "$FRAME_COUNT" -gt 5 ]; then
+elif [[ "$FRAME_COUNT" -gt 5 ]]; then
     echo "✓ GOOD: $FRAME_COUNT frames detected - reasonable signal"
-elif [ "$FRAME_COUNT" -gt 0 ]; then
+elif [[ "$FRAME_COUNT" -gt 0 ]]; then
     echo "⚠ WEAK: $FRAME_COUNT frames detected - signal intermittent"
 else
     echo "✗ NO SIGNAL: Check antenna connection or try different time"

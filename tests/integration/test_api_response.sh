@@ -25,7 +25,7 @@ echo "Power: $POWER"
 echo "Frames: $FRAMES" 
 echo "Strength: $STRENGTH"
 
-if [ "$POWER" != "null" ] && [ "$POWER" != "-100" ]; then
+if [[ "$POWER" != "null" ]] && [[ "$POWER" != "-100" ]]; then
     echo "✓ Power measurement working!"
 else
     echo "✗ Power measurement not working"

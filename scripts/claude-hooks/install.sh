@@ -27,7 +27,7 @@ mkdir -p "$HOOKS_DST"
 copied=0
 for hook in "$HOOKS_SRC"/*.sh; do
     name="$(basename "$hook")"
-    [ "$name" = "install.sh" ] && continue
+    [[ "$name" = "install.sh" ]] && continue
     cp "$hook" "$HOOKS_DST/$name"
     chmod +x "$HOOKS_DST/$name"
     copied=$((copied + 1))
@@ -35,18 +35,18 @@ done
 echo "  Installed $copied hook scripts to .claude/hooks/"
 
 # 3. Generate settings.local.json with API key from .env
-if [ -f "$SETTINGS_DST" ]; then
+if [[ -f "$SETTINGS_DST" ]]; then
     echo "  .claude/settings.local.json already exists — skipping (delete it first to regenerate)"
-elif [ ! -f "$SETTINGS_TPL" ]; then
+elif [[ ! -f "$SETTINGS_TPL" ]]; then
     echo "  WARNING: $SETTINGS_TPL not found — skipping settings generation"
-elif [ ! -f "$ENV_FILE" ]; then
+elif [[ ! -f "$ENV_FILE" ]]; then
     echo "  WARNING: .env not found — copying template without API key substitution"
     echo "  Edit .claude/settings.local.json and replace __ARGOS_API_KEY__ with your key"
     cp "$SETTINGS_TPL" "$SETTINGS_DST"
 else
     # Extract ARGOS_API_KEY from .env
     API_KEY=$(grep -E '^ARGOS_API_KEY=' "$ENV_FILE" | cut -d= -f2- | tr -d '"' | tr -d "'")
-    if [ -z "$API_KEY" ]; then
+    if [[ -z "$API_KEY" ]]; then
         echo "  WARNING: ARGOS_API_KEY not found in .env — using placeholder"
         cp "$SETTINGS_TPL" "$SETTINGS_DST"
     else

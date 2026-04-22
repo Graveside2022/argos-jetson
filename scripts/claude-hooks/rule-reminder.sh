@@ -6,7 +6,7 @@ set -euo pipefail
 
 INPUT=$(cat) || exit 0
 PROMPT=$(echo "$INPUT" | jq -r '.prompt // ""' 2>/dev/null)
-if [ -z "$PROMPT" ]; then exit 0; fi
+if [[ -z "$PROMPT" ]]; then exit 0; fi
 
 PROMPT_LC=$(echo "$PROMPT" | tr '[:upper:]' '[:lower:]')
 REMINDERS=""
@@ -42,7 +42,7 @@ case "$PROMPT_LC" in
         ;;
 esac
 
-if [ -n "$REMINDERS" ]; then
+if [[ -n "$REMINDERS" ]]; then
     jq -n --arg ctx "$REMINDERS" \
         '{hookSpecificOutput:{hookEventName:"UserPromptSubmit",additionalContext:$ctx}}'
 fi

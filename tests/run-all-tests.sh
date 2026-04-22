@@ -69,14 +69,14 @@ echo -e "\n${YELLOW}Generating coverage report...${NC}"
 npm run test:coverage
 
 # Clean up test server if we started it
-if [ ! -z "$TEST_SERVER_PID" ]; then
+if [[ ! -z "$TEST_SERVER_PID" ]]; then
     echo -e "\n${YELLOW}Stopping test server...${NC}"
     kill $TEST_SERVER_PID 2>/dev/null || true
 fi
 
 # Summary
 echo -e "\n==============================="
-if [ "$FAILED" = true ]; then
+if [[ "$FAILED" = true ]]; then
     echo -e "${RED}Some tests failed!${NC}"
     exit 1
 else

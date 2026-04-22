@@ -7,7 +7,7 @@ set -euo pipefail
 # Path to claude-mem plugins
 PLUGIN_DIR="$HOME/.claude/plugins/cache/thedotmack/claude-mem"
 
-if [ ! -d "$PLUGIN_DIR" ]; then
+if [[ ! -d "$PLUGIN_DIR" ]]; then
     echo "Error: claude-mem plugin directory not found at $PLUGIN_DIR"
     exit 1
 fi
@@ -21,7 +21,7 @@ for VERSION_DIR in "$PLUGIN_DIR"/*/; do
     
     # 1. Fix Orphaned Processes (bun-runner.js)
     BUN_RUNNER="$VERSION_DIR/scripts/bun-runner.js"
-    if [ -f "$BUN_RUNNER" ]; then
+    if [[ -f "$BUN_RUNNER" ]]; then
         if grep -q "const signals = \['SIGINT', 'SIGTERM'\];" "$BUN_RUNNER"; then
             echo "  - bun-runner.js already patched."
         else
@@ -46,7 +46,7 @@ signals.forEach((signal) => {\\
 
     # 2. Fix Concurrency Race Condition (worker-service.cjs)
     WORKER_SERVICE="$VERSION_DIR/scripts/worker-service.cjs"
-    if [ -f "$WORKER_SERVICE" ]; then
+    if [[ -f "$WORKER_SERVICE" ]]; then
         if grep -q "pendingSpawns=0" "$WORKER_SERVICE"; then
              echo "  - worker-service.cjs already patched."
         else
@@ -77,7 +77,7 @@ signals.forEach((signal) => {\\
 
 done
 
-if [ "$PATCH_APPLIED" = true ]; then
+if [[ "$PATCH_APPLIED" = true ]]; then
     echo "Patches were applied. Restarting claude-mem processes..."
     if pgrep -f "worker-service.cjs.*--daemon" > /dev/null; then
         pkill -f "worker-service.cjs.*--daemon" 2>/dev/null

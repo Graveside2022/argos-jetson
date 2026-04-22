@@ -7,7 +7,7 @@ set -euo pipefail
 
 INPUT=$(cat) || exit 0
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // ""' 2>/dev/null)
-if [ -z "$FILE_PATH" ]; then exit 0; fi
+if [[ -z "$FILE_PATH" ]]; then exit 0; fi
 
 FILENAME=$(basename "$FILE_PATH")
 

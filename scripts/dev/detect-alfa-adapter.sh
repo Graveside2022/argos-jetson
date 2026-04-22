@@ -59,10 +59,10 @@ find_external_wifi() {
         iface_name=$(basename "$iface")
 
         # Skip everything that isn't a wireless interface
-        [ -d "$iface/wireless" ] || [ -d "$iface/phy80211" ] || continue
+        [[ -d "$iface/wireless" ]] || [[ -d "$iface/phy80211" ]] || continue
 
         # SAFETY: Never use the built-in WiFi or its monitor interface
-        if [ "$iface_name" = "$BUILTIN_INTERFACE" ] || [ "$iface_name" = "${BUILTIN_INTERFACE}mon" ]; then
+        if [[ "$iface_name" = "$BUILTIN_INTERFACE" ]] || [[ "$iface_name" = "${BUILTIN_INTERFACE}mon" ]]; then
             echo "   Skipping $iface_name (built-in WiFi - protected)"
             continue
         fi
@@ -78,8 +78,8 @@ find_external_wifi() {
     done
 
     # If KISMET_INTERFACE is set, validate it's not the built-in
-    if [ -n "$KISMET_INTERFACE" ]; then
-        if [ "$KISMET_INTERFACE" = "$BUILTIN_INTERFACE" ]; then
+    if [[ -n "$KISMET_INTERFACE" ]]; then
+        if [[ "$KISMET_INTERFACE" = "$BUILTIN_INTERFACE" ]]; then
             echo ""
             echo "BLOCKED: KISMET_INTERFACE=$KISMET_INTERFACE is the built-in WiFi."
             echo "   Refusing to use it. Set KISMET_INTERFACE to an external adapter."
@@ -93,7 +93,7 @@ find_external_wifi() {
         fi
     fi
 
-    if [ ${#found_interfaces[@]} -eq 0 ]; then
+    if [[ ${#found_interfaces[@]} -eq 0 ]]; then
         return 1
     fi
 

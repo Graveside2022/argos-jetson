@@ -10,7 +10,7 @@ echo ""
 echo "2. Testing basic USRP functionality:"
 timeout 3 uhd_rx_cfile --freq 946e6 --gain 50 --rate 2e6 --duration 0.5 /tmp/test_samples.dat
 
-if [ -f "/tmp/test_samples.dat" ]; then
+if [[ -f "/tmp/test_samples.dat" ]]; then
     SIZE=$(stat -c%s "/tmp/test_samples.dat")
     echo "✓ Successfully captured $SIZE bytes of real RF data"
     rm -f /tmp/test_samples.dat

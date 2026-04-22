@@ -41,11 +41,11 @@ warn() {
 }
 
 is_locked() {
-    if [ -f "$LOCKFILE" ]; then
+    if [[ -f "$LOCKFILE" ]]; then
         # Check for stale lock (older than LOCK_MAX_AGE seconds)
         local lock_age
         lock_age=$(( $(date +%s) - $(stat -c %Y "$LOCKFILE" 2>/dev/null || echo 0) ))
-        if [ "$lock_age" -gt "$LOCK_MAX_AGE" ]; then
+        if [[ "$lock_age" -gt "$LOCK_MAX_AGE" ]]; then
             warn "Stale lock file detected (${lock_age}s old). Removing."
             rm -f "$LOCKFILE"
             return 1
@@ -59,7 +59,7 @@ in_cooldown() {
     local now
     now=$(date +%s)
     local elapsed=$(( now - LAST_RESTART ))
-    if [ "$elapsed" -lt "$RESTART_COOLDOWN" ]; then
+    if [[ "$elapsed" -lt "$RESTART_COOLDOWN" ]]; then
         return 0  # still in cooldown
     fi
     return 1
@@ -72,7 +72,7 @@ mem_usage_pct() {
 mem_too_high() {
     local pct
     pct=$(mem_usage_pct)
-    if [ "$pct" -ge "$MEM_DANGER_THRESHOLD" ]; then
+    if [[ "$pct" -ge "$MEM_DANGER_THRESHOLD" ]]; then
         warn "Memory at ${pct}% (>=${MEM_DANGER_THRESHOLD}%). Skipping restart to avoid OOM."
         return 0
     fi
@@ -82,7 +82,7 @@ mem_too_high() {
 check_vite() {
     if lsof -ti:5173 > /dev/null; then
         # Vite is up — reset circuit breaker if it was tripped
-        if [ "$CONSECUTIVE_FAILURES" -gt 0 ] || [ "$CIRCUIT_OPEN" = true ]; then
+        if [[ "$CONSECUTIVE_FAILURES" -gt 0 ]] || [[ "$CIRCUIT_OPEN" = true ]]; then
             log "Vite is back. Resetting circuit breaker (was ${CONSECUTIVE_FAILURES} failures)."
             CONSECUTIVE_FAILURES=0
             CIRCUIT_OPEN=false
@@ -93,13 +93,13 @@ check_vite() {
     # --- Vite is DOWN ---
 
     # Circuit breaker: stop hammering if we've failed too many times
-    if [ "$CIRCUIT_OPEN" = true ]; then
+    if [[ "$CIRCUIT_OPEN" = true ]]; then
         local now elapsed
         now=$(date +%s)
         elapsed=$(( now - CIRCUIT_OPEN_SINCE ))
-        if [ "$elapsed" -lt "$CIRCUIT_RESET_INTERVAL" ]; then
+        if [[ "$elapsed" -lt "$CIRCUIT_RESET_INTERVAL" ]]; then
             # Still in cooldown — stay quiet (log once per minute max)
-            if [ $(( elapsed % 60 )) -lt "$CHECK_INTERVAL" ]; then
+            if [[ $(( elapsed % 60 )) -lt "$CHECK_INTERVAL" ]]; then
                 log "Circuit breaker OPEN (${elapsed}s/${CIRCUIT_RESET_INTERVAL}s). Waiting before retry."
             fi
             return
@@ -146,7 +146,7 @@ check_vite() {
         CONSECUTIVE_FAILURES=$(( CONSECUTIVE_FAILURES + 1 ))
         warn "Failed to restart Vite (${CONSECUTIVE_FAILURES}/${MAX_CONSECUTIVE_FAILURES}). Check /tmp/argos-dev.log."
 
-        if [ "$CONSECUTIVE_FAILURES" -ge "$MAX_CONSECUTIVE_FAILURES" ]; then
+        if [[ "$CONSECUTIVE_FAILURES" -ge "$MAX_CONSECUTIVE_FAILURES" ]]; then
             warn "CIRCUIT BREAKER OPEN: ${MAX_CONSECUTIVE_FAILURES} consecutive failures. Pausing Vite restarts for ${CIRCUIT_RESET_INTERVAL}s."
             warn "Run 'npm run dev' manually to restart, or wait for auto-retry."
             CIRCUIT_OPEN=true
@@ -172,7 +172,7 @@ log "Monitoring Vite (5173) and Claude Mem."
 # Vite + Chromium (~750 MB combined) during this window causes OOM crashes.
 UPTIME_SECS=$(awk '{printf "%d", $1}' /proc/uptime)
 BOOT_DELAY=45  # seconds — enough for systemd, network, chroma to settle
-if [ "$UPTIME_SECS" -lt "$BOOT_DELAY" ]; then
+if [[ "$UPTIME_SECS" -lt "$BOOT_DELAY" ]]; then
     WAIT=$(( BOOT_DELAY - UPTIME_SECS ))
     log "System booted ${UPTIME_SECS}s ago. Waiting ${WAIT}s for services to stabilize..."
     sleep "$WAIT"
@@ -183,7 +183,7 @@ while true; do
     check_vite
 
     # Check claude-mem every 6 iterations (approx 60 seconds)
-    if [ $((LOOP_COUNT % 6)) -eq 0 ]; then
+    if [[ $((LOOP_COUNT % 6)) -eq 0 ]]; then
         check_claude_mem
     fi
 

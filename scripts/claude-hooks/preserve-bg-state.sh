@@ -10,7 +10,7 @@ INPUT=$(cat 2>/dev/null) || true
 ACTIVE=$(pgrep -af 'hackrf_|kismet|vitest|grgsm_|bluedragon|tshark|dumpcap|node build|argos-dev-monitor' 2>/dev/null | grep -v grep | head -20 || true)
 
 DEV_LOG_TAIL=""
-if [ -f /tmp/argos-dev.log ]; then
+if [[ -f /tmp/argos-dev.log ]]; then
     DEV_LOG_TAIL=$(tail -8 /tmp/argos-dev.log 2>/dev/null || true)
 fi
 
@@ -20,7 +20,7 @@ if curl -s -f http://localhost:5173/api/health >/dev/null 2>&1; then
 fi
 
 # Only emit context if we have anything worth preserving
-if [ -z "$ACTIVE" ] && [ -z "$DEV_LOG_TAIL" ] && [ -z "$HACKRF_API_STATUS" ]; then
+if [[ -z "$ACTIVE" ]] && [[ -z "$DEV_LOG_TAIL" ]] && [[ -z "$HACKRF_API_STATUS" ]]; then
     exit 0
 fi
 

@@ -29,7 +29,7 @@ sleep 3
 # below the inherited value needs CAP_SYS_ADMIN.
 protect_pid() {
   local pid=$1
-  if [ -d "/proc/$pid" ] 2>/dev/null; then
+  if [[ -d "/proc/$pid" ]] 2>/dev/null; then
     local comm
     comm=$(cat "/proc/$pid/comm" 2>/dev/null || echo "unknown")
     local current

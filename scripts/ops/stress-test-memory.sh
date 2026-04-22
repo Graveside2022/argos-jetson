@@ -48,7 +48,7 @@ TMP_AVAIL_MB=$(( TMP_AVAIL_K / 1024 ))
 
 echo "         /tmp total: ${TMP_TOTAL_MB}MB, available: ${TMP_AVAIL_MB}MB"
 
-if [ "$TMP_TOTAL_MB" -gt 600 ]; then
+if [[ "$TMP_TOTAL_MB" -gt 600 ]]; then
     warn "/tmp total is ${TMP_TOTAL_MB}MB — cap not at 512 MB. Skipping write test to avoid filling real tmpfs."
 else
     # Try to write 600 MB (more than /tmp total) — expect failure
@@ -67,7 +67,7 @@ else
     # Cleanup chunks immediately
     rm -f "${TEST_FILE}".* 2>/dev/null || true
 
-    if [ "$WRITE_RESULT" -eq 1 ]; then
+    if [[ "$WRITE_RESULT" -eq 1 ]]; then
         pass "/tmp cap enforced — write failed with ENOSPC after ~${WROTE_MB}MB (cap=${TMP_TOTAL_MB}MB)"
     else
         fail "/tmp write of 600 MB succeeded — cap may not be enforced (wrote ${WROTE_MB}MB)"
@@ -78,11 +78,11 @@ fi
 section "Test 2: ChromaDB Heartbeat (cgroup-limited)"
 
 CHROMA_MH=$(systemctl --user show chroma-server --property=MemoryHigh 2>/dev/null | cut -d= -f2)
-if [ -n "$CHROMA_MH" ] && [ "$CHROMA_MH" != "infinity" ] && [ "$CHROMA_MH" != "0" ]; then
+if [[ -n "$CHROMA_MH" ]] && [[ "$CHROMA_MH" != "infinity" ]] && [[ "$CHROMA_MH" != "0" ]]; then
     MH_MB=$(( CHROMA_MH / 1024 / 1024 ))
     echo "         chroma-server MemoryHigh=${MH_MB}MB"
     CHROMA_STATUS=$(systemctl --user is-active chroma-server 2>/dev/null || echo "unknown")
-    if [ "$CHROMA_STATUS" = "active" ]; then
+    if [[ "$CHROMA_STATUS" = "active" ]]; then
         if curl -sf --max-time 5 http://127.0.0.1:8000/api/v2/heartbeat >/dev/null 2>&1; then
             pass "ChromaDB heartbeat OK while under ${MH_MB}MB MemoryHigh cgroup"
         else
@@ -106,7 +106,7 @@ else
     ALL_ENTRIES=$(journalctl -u earlyoom --no-pager -q -n 20 2>/dev/null | wc -l)
     echo "         earlyoom journal: ${RECENT_ENTRIES} entries in last 10min, ${ALL_ENTRIES} total recent"
 
-    if [ "$ALL_ENTRIES" -gt 0 ]; then
+    if [[ "$ALL_ENTRIES" -gt 0 ]]; then
         # Show last few lines for verification
         LAST_LINE=$(journalctl -u earlyoom --no-pager -q -n 1 2>/dev/null || true)
         echo "         Last entry: ${LAST_LINE}"
@@ -120,15 +120,15 @@ fi
 section "Test 4: cleanup-stale-daemons.sh"
 
 CLEANUP_HOOK="${ARGOS_ROOT}/.claude/hooks/cleanup-stale-daemons.sh"
-if [ ! -f "$CLEANUP_HOOK" ]; then
+if [[ ! -f "$CLEANUP_HOOK" ]]; then
     fail "cleanup-stale-daemons.sh not found at $CLEANUP_HOOK"
 else
     CLEANUP_OUT=$(bash "$CLEANUP_HOOK" 2>&1)
     CLEANUP_EXIT=$?
-    if [ $CLEANUP_EXIT -eq 0 ]; then
+    if [[ $CLEANUP_EXIT -eq 0 ]]; then
         LINE_COUNT=$(echo "$CLEANUP_OUT" | wc -l)
         echo "         Output: ${LINE_COUNT} lines (exit 0)"
-        if [ -n "$CLEANUP_OUT" ]; then
+        if [[ -n "$CLEANUP_OUT" ]]; then
             echo "$CLEANUP_OUT" | head -5 | sed 's/^/         /'
         fi
         pass "cleanup-stale-daemons.sh exited 0"
@@ -142,13 +142,13 @@ fi
 section "Test 5: startup-check.sh"
 
 STARTUP_CHECK="${ARGOS_ROOT}/scripts/startup-check.sh"
-if [ ! -f "$STARTUP_CHECK" ]; then
+if [[ ! -f "$STARTUP_CHECK" ]]; then
     fail "startup-check.sh not found at $STARTUP_CHECK"
 else
     STARTUP_OUT=$(bash "$STARTUP_CHECK" 2>&1)
     STARTUP_EXIT=$?
     echo "$STARTUP_OUT" | sed 's/^/         /'
-    if [ $STARTUP_EXIT -eq 0 ]; then
+    if [[ $STARTUP_EXIT -eq 0 ]]; then
         pass "startup-check.sh exited 0"
     else
         fail "startup-check.sh exited $STARTUP_EXIT"
@@ -162,10 +162,10 @@ TOTAL=$(( PASS + FAIL + WARN ))
 echo -e "${BOLD}Summary: ${TOTAL} tests — ${GREEN}${PASS} PASS${RESET} / ${RED}${FAIL} FAIL${RESET} / ${YELLOW}${WARN} WARN${RESET}"
 echo "========================================"
 
-if [ "$FAIL" -gt 0 ]; then
+if [[ "$FAIL" -gt 0 ]]; then
     echo -e "${RED}Stress tests revealed failures. Fix before field deployment.${RESET}"
     exit 1
-elif [ "$WARN" -gt 0 ]; then
+elif [[ "$WARN" -gt 0 ]]; then
     echo -e "${YELLOW}Stress tests passed with warnings. Review WARN items.${RESET}"
     exit 0
 else
