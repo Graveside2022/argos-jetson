@@ -1,12 +1,12 @@
 {
-	"baselinedAt": "2026-04-22T03:11:29Z",
+	"baselinedAt": "2026-04-22T22:02:59Z",
 	"counts": {
 		"info": 0,
 		"low": 1,
-		"moderate": 8,
-		"high": 19,
+		"moderate": 11,
+		"high": 18,
 		"critical": 2,
-		"total": 30
+		"total": 32
 	},
 	"advisories": [
 		{
@@ -218,12 +218,6 @@
 			"pkg": "@hono/node-server",
 			"severity": "high",
 			"title": "@hono/node-server has authorization bypass for protected static paths via encoded slashes in Serve Static Middleware"
-		},
-		{
-			"ghsa": "GHSA-wh4c-j3r5-mjhp",
-			"pkg": "@xmldom/xmldom",
-			"severity": "high",
-			"title": "xmldom: XML injection via unsafe CDATA serialization allows attacker-controlled markup insertion"
 		},
 		{
 			"ghsa": "GHSA-x4jg-mjrx-434g",
@@ -458,6 +452,12 @@
 			"pkg": "hono",
 			"severity": "moderate",
 			"title": "Hono vulnerable to Prototype Pollution possible through __proto__ key allowed in parseBody({ dot: true })"
+		},
+		{
+			"ghsa": "GHSA-w5hq-g745-h8pq",
+			"pkg": "uuid",
+			"severity": "moderate",
+			"title": "uuid: Missing buffer bounds check in v3/v5/v6 when buf is provided"
 		},
 		{
 			"ghsa": "GHSA-wmmm-f939-6g9c",
