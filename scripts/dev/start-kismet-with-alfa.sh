@@ -84,14 +84,14 @@ echo ""
 
 # Start Kismet in background/daemon mode
 echo "Starting Kismet in background..."
-nohup kismet $KISMET_ARGS > /tmp/kismet.log 2>&1 &
+nohup kismet "$KISMET_ARGS" > /tmp/kismet.log 2>&1 &
 KISMET_PID=$!
 
 # Wait a moment for Kismet to start
 sleep 2
 
 # Check if Kismet started successfully
-if kill -0 $KISMET_PID 2>/dev/null; then
+if kill -0 "$KISMET_PID" 2>/dev/null; then
     echo "[PASS] Kismet started successfully (PID: $KISMET_PID)"
     echo "   Logs: /tmp/kismet.log"
     exit 0

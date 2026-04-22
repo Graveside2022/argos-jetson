@@ -56,7 +56,7 @@ if [[ $USRP_DETECTED -eq 1 ]]; then
     # Use the USRP spectrum scanner from scripts directory
     # Force unbuffered output for real-time data streaming
     export PYTHONUNBUFFERED=1
-    exec python3 -u ./scripts/usrp_spectrum_scan.py $ARGS
+    exec python3 -u ./scripts/usrp_spectrum_scan.py "$ARGS"
 elif hackrf_info 2>/dev/null | grep -q "Serial number"; then
     echo "HackRF detected" >&2
     # Try python_hackrf sweep bridge first (native API, no subprocess overhead)

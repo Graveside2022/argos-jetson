@@ -160,7 +160,7 @@ test_status_command() {
         "$SCRIPT_PATH" --stop >/dev/null 2>&1 || true
     fi
     
-    kill $daemon_pid 2>/dev/null || true
+    kill "$daemon_pid" 2>/dev/null || true
 }
 
 # Test process counting functions
@@ -178,7 +178,7 @@ test_process_counting() {
     assert_equals "2" "$count" "Can count dummy processes"
     
     # Clean up
-    kill $dummy1 $dummy2 2>/dev/null || true
+    kill "$dummy1" "$dummy2" 2>/dev/null || true
 }
 
 # Test log file creation
@@ -291,7 +291,7 @@ test_integration() {
     fi
     
     # Clean up
-    kill $daemon_pid 2>/dev/null || true
+    kill "$daemon_pid" 2>/dev/null || true
 }
 
 # Main test runner

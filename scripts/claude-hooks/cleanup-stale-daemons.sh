@@ -70,7 +70,7 @@ done
 
 # === Uncontrolled Jaeger (not in cgroup, >300 MB RSS) ===
 for pid in $(pgrep -f 'jaeger-all-in-one' 2>/dev/null || true); do
-    in_cgroup=$(grep -c 'jaeger' /proc/$pid/cgroup 2>/dev/null || echo 0)
+    in_cgroup=$(grep -c 'jaeger' /proc/"$pid"/cgroup 2>/dev/null || echo 0)
     rss_kb=$(awk '/VmRSS/{print $2}' /proc/"$pid"/status 2>/dev/null || echo 0)
     rss_mb=$((rss_kb / 1024))
     if [[ "$in_cgroup" -eq 0 ]] && [[ "$rss_mb" -gt 300 ]]; then

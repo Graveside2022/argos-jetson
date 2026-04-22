@@ -71,7 +71,7 @@ npm run test:coverage
 # Clean up test server if we started it
 if [[ ! -z "$TEST_SERVER_PID" ]]; then
     echo -e "\n${YELLOW}Stopping test server...${NC}"
-    kill $TEST_SERVER_PID 2>/dev/null || true
+    kill "$TEST_SERVER_PID" 2>/dev/null || true
 fi
 
 # Summary

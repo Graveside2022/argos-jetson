@@ -15,7 +15,7 @@ echo "2. Count frames with direct command:"
 FRAME_COUNT_DIRECT=$(sudo timeout 3 tcpdump -i lo -nn port 4729 2>/dev/null | wc -l)
 echo "Direct method frame count: $FRAME_COUNT_DIRECT"
 
-sudo kill $GSM_PID 2>/dev/null
+sudo kill "$GSM_PID" 2>/dev/null
 sleep 2
 
 echo ""
@@ -37,7 +37,7 @@ if [[ -x "/home/ubuntu/projects/Argos/scripts/grgsm_livemon_wrapper" ]]; then
     FRAME_COUNT_WRAPPER=$(sudo timeout 3 tcpdump -i lo -nn port 4729 2>/dev/null | wc -l)
     echo "Wrapper method frame count: $FRAME_COUNT_WRAPPER"
     
-    sudo kill $WRAPPER_PID 2>/dev/null
+    sudo kill "$WRAPPER_PID" 2>/dev/null
 else
     echo "✗ Wrapper script not executable or missing"
 fi

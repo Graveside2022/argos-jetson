@@ -146,10 +146,10 @@ section "Orphan Process Check"
 
 ORPHAN_COUNT=0
 for pid in $(pgrep -f 'bun.*worker-service' 2>/dev/null); do
-    ppid=$(awk '{print $4}' /proc/$pid/stat 2>/dev/null || echo "0")
-    parent_comm=$(cat /proc/$ppid/comm 2>/dev/null || echo "")
+    ppid=$(awk '{print $4}' /proc/"$pid"/stat 2>/dev/null || echo "0")
+    parent_comm=$(cat /proc/"$ppid"/comm 2>/dev/null || echo "")
     if [[ "$ppid" = "1" ]] || [[ "$parent_comm" = "systemd" ]]; then
-        rss_mb=$(awk '{printf "%d", $2*4/1024}' /proc/$pid/statm 2>/dev/null || echo "?")
+        rss_mb=$(awk '{printf "%d", $2*4/1024}' /proc/"$pid"/statm 2>/dev/null || echo "?")
         echo "         Found orphan bun PID $pid (${rss_mb}MB, PPID=$ppid/$parent_comm)"
         ((ORPHAN_COUNT++))
     fi
@@ -169,8 +169,8 @@ if [[ -z "$JAEGER_PIDS" ]]; then
 else
     UNCONTROLLED=0
     for pid in $JAEGER_PIDS; do
-        IN_CGROUP=$(grep -c 'jaeger' /proc/$pid/cgroup 2>/dev/null || echo "0")
-        RSS_MB=$(awk '{printf "%d", $2*4/1024}' /proc/$pid/statm 2>/dev/null || echo "0")
+        IN_CGROUP=$(grep -c 'jaeger' /proc/"$pid"/cgroup 2>/dev/null || echo "0")
+        RSS_MB=$(awk '{printf "%d", $2*4/1024}' /proc/"$pid"/statm 2>/dev/null || echo "0")
         if [[ "$IN_CGROUP" -eq 0 ]]; then
             echo "         Jaeger PID $pid (${RSS_MB}MB) has NO jaeger cgroup"
             ((UNCONTROLLED++))

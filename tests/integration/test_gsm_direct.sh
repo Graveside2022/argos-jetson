@@ -16,13 +16,13 @@ FRAME_COUNT=$(sudo timeout 3 tcpdump -i lo -nn port 4729 2>/dev/null | wc -l)
 echo "Frame count: $FRAME_COUNT"
 
 echo "3. Checking process status:"
-if ps -p $GSM_PID > /dev/null; then
+if ps -p "$GSM_PID" > /dev/null; then
     echo "✓ GSM process still running"
 else
     echo "✗ GSM process stopped"
 fi
 
-sudo kill $GSM_PID 2>/dev/null
+sudo kill "$GSM_PID" 2>/dev/null
 
 echo ""
 echo "4. Testing with higher gain and different frequency:"
@@ -36,7 +36,7 @@ sleep 5
 FRAME_COUNT2=$(sudo timeout 3 tcpdump -i lo -nn port 4729 2>/dev/null | wc -l)
 echo "Frame count at 947.4 MHz: $FRAME_COUNT2"
 
-sudo kill $GSM_PID2 2>/dev/null
+sudo kill "$GSM_PID2" 2>/dev/null
 
 echo ""
 echo "5. Summary:"

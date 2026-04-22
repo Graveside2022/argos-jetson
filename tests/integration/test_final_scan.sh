@@ -27,7 +27,7 @@ echo "Process PID: $WEB_PID"
 sleep 4
 
 echo "4. Check process status:"
-if ps -p $WEB_PID > /dev/null 2>&1; then
+if ps -p "$WEB_PID" > /dev/null 2>&1; then
     echo "✓ Process running"
 else
     echo "✗ Process died, checking log:"
@@ -42,7 +42,7 @@ echo "Frame count: $FRAME_COUNT"
 
 echo ""
 echo "6. Kill process:"
-sudo kill $WEB_PID 2>/dev/null
+sudo kill "$WEB_PID" 2>/dev/null
 
 echo ""
 echo "7. Analysis:"

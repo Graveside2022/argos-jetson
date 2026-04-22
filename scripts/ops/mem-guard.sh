@@ -148,4 +148,4 @@ MEM_AVAIL_AFTER=$(mem_available_mb)
 echo ""
 echo -e "${DIM}Memory after: ${MEM_AFTER}% (${MEM_AVAIL_AFTER}MB available)${RESET}"
 
-exit $EXIT_CODE
+exit "$EXIT_CODE"
