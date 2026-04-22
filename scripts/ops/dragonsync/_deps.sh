@@ -156,7 +156,8 @@ PIP_FLAGS="-q"
 if sudo -u "$ARGOS_USER" pip3 install --help 2>/dev/null | grep -q -- '--break-system-packages'; then
     PIP_FLAGS="-q --break-system-packages"
 fi
-sudo -u "$ARGOS_USER" pip3 install "$PIP_FLAGS" -r "$DRAGONSYNC_DIR/requirements.txt"
+# shellcheck disable=SC2086  # PIP_FLAGS holds space-separated flags; word-split is intentional
+sudo -u "$ARGOS_USER" pip3 install $PIP_FLAGS -r "$DRAGONSYNC_DIR/requirements.txt"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 3b. Extend scanner frequency list to 91 unique centers (Phase 2)

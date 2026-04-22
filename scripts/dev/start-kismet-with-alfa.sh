@@ -84,7 +84,8 @@ echo ""
 
 # Start Kismet in background/daemon mode
 echo "Starting Kismet in background..."
-nohup kismet "$KISMET_ARGS" > /tmp/kismet.log 2>&1 &
+# shellcheck disable=SC2086  # KISMET_ARGS holds space-separated flags; word-split is intentional
+nohup kismet $KISMET_ARGS > /tmp/kismet.log 2>&1 &
 KISMET_PID=$!
 
 # Wait a moment for Kismet to start
