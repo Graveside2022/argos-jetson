@@ -8,7 +8,6 @@ Extracts hashcat-ready hashes from Kerberos for offline cracking.
 """
 
 import json
-import re
 import time
 
 from base_module import TacticalModule

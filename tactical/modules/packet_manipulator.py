@@ -263,7 +263,7 @@ class PacketManipulator(TacticalModule):
         )
 
         hosts: list[dict[str, str]] = []
-        for sent, received in answered:
+        for _sent, received in answered:
             hosts.append({
                 "ip": received.psrc,
                 "mac": received.hwsrc,

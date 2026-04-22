@@ -246,7 +246,7 @@ class TrafficAnalyzer(TacticalModule):
             stdout, stderr = self.run_tool_popen("tshark", tshark_args, duration=duration)
         else:
             result = self.run_tool("tshark", tshark_args, timeout=duration)
-            stdout, stderr = result.stdout, result.stderr
+            stdout, _stderr = result.stdout, result.stderr
 
         # Parse output based on format
         if output_fmt == "json":

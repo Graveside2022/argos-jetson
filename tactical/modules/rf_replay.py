@@ -140,7 +140,6 @@ class RfReplay(TacticalModule):
                 cmd_args,
                 timeout=args.timeout,
             )
-            stdout = result.stdout
             stderr = result.stderr
             return_code = result.returncode
 

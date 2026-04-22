@@ -9,7 +9,6 @@ hidden content, parameter manipulation, and anomalous responses.
 """
 
 import json
-import re
 import time
 
 from base_module import TacticalModule

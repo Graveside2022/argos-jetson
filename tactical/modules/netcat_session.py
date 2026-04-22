@@ -12,7 +12,6 @@ in the JSON output.
 """
 
 import argparse
-import shlex
 from pathlib import Path
 from typing import Any
 
