@@ -35,6 +35,8 @@ Before writing or changing any Svelte component, call `mcp__svelte-remote__list-
 
 For ANY GitHub interaction (repo structure, file content, search, PR history): use `mcp__octocode__*` tools ONLY. Do **not** use `gh` CLI. Do **not** use `WebFetch` on `github.com/*` URLs. Octocode respects token scopes, handles pagination cleanly, and avoids auth prompts that break in hooks.
 
+**Exception — PR lifecycle operations**: `gh pr create|view|checks|comment|merge|edit|list|diff` + `gh api repos/Graveside2022/argos-jetson/*` + `gh auth status` are allowed because octocode exposes only read-side GitHub tools. PR creation, comments, and merge require `gh` CLI. Exception list is scoped by exact subcommand in `.claude/settings.local.json` (`permissions.allow`). Do NOT expand to `gh repo *`, `gh workflow *`, `gh release *`, or `gh api` paths outside this repo without adding a new allow rule first.
+
 ### Rule 5 — Docs via Context7 before WebFetch
 
 For ANY question about a third-party library, framework, SDK, or CLI tool (React, SvelteKit internals, Puppeteer, node-pty, better-sqlite3, etc.): call `mcp__plugin_context7-plugin_context7__resolve-library-id` then `query-docs`. Only fall back to `WebFetch` if context7 has no entry for the library. This avoids stale training-data answers.
