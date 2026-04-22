@@ -10,7 +10,10 @@
 
 import { describe, expect, test } from 'vitest';
 
-import { isHardwareControlPath } from '../../src/lib/server/middleware/rate-limit-middleware';
+import {
+	isDragonSyncReadPath,
+	isHardwareControlPath
+} from '../../src/lib/server/middleware/rate-limit-middleware';
 
 describe('isHardwareControlPath', () => {
 	// Paths that MUST be classified as hardware (stricter 30/min tier)
@@ -39,7 +42,7 @@ describe('isHardwareControlPath', () => {
 		'/api/novasdr/start',
 		'/api/bluedragon/scan',
 		'/api/bluehood/status',
-		'/api/dragonsync/logs',
+		'/api/dragonsync/control',
 		'/api/trunk-recorder/start',
 		'/api/hardware/details',
 		'/api/hardware/scan'
@@ -86,5 +89,23 @@ describe('isHardwareControlPath', () => {
 		// it should be explicitly covered by a new prefix or route metadata.
 		expect(isHardwareControlPath('/api/hardware')).toBe(false);
 		expect(isHardwareControlPath('/api/hardware/')).toBe(true);
+	});
+});
+
+describe('isDragonSyncReadPath', () => {
+	const dragonSyncReadPaths: string[] = [
+		'/api/dragonsync/status',
+		'/api/dragonsync/devices',
+		'/api/dragonsync/fpv',
+		'/api/dragonsync/c2',
+		'/api/dragonsync/logs'
+	];
+	test.each(dragonSyncReadPaths)('%s → dragonsync-read tier', (path) => {
+		expect(isDragonSyncReadPath(path)).toBe(true);
+		expect(isHardwareControlPath(path)).toBe(false);
+	});
+	test('/api/dragonsync/control stays on hardware', () => {
+		expect(isDragonSyncReadPath('/api/dragonsync/control')).toBe(false);
+		expect(isHardwareControlPath('/api/dragonsync/control')).toBe(true);
 	});
 });
