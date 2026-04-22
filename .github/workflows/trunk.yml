@@ -6,7 +6,7 @@
 #
 # Install + config: .trunk/trunk.yaml + .trunk/configs/
 # Linters active: actionlint, gitleaks, markdownlint, prettier, renovate,
-# ruff, shellcheck, shfmt, svgo, taplo, yamllint.
+# ruff, shellcheck, svgo, taplo, yamllint.
 
 name: 'CI: Trunk Code Quality'
 

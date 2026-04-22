@@ -77,8 +77,10 @@ find_external_wifi() {
         found_interfaces+=("$iface_name")
     done
 
-    # If KISMET_INTERFACE is set, validate it's not the built-in
-    if [[ -n "$KISMET_INTERFACE" ]]; then
+    # If KISMET_INTERFACE is set, validate it's not the built-in.
+    # Parameter-expand default to avoid unbound-variable exit under `set -u`
+    # when the env var was never exported by the caller.
+    if [[ -n "${KISMET_INTERFACE:-}" ]]; then
         if [[ "$KISMET_INTERFACE" = "$BUILTIN_INTERFACE" ]]; then
             echo ""
             echo "BLOCKED: KISMET_INTERFACE=$KISMET_INTERFACE is the built-in WiFi."

@@ -97,7 +97,7 @@ class SpectrumSweep(TacticalModule):
                 continue
             try:
                 hz_low = float(row[2].strip())
-                float(row[3].strip())
+                _ = float(row[3].strip())  # validate hz_high column is parseable
                 hz_bin_width = float(row[4].strip())
                 db_values = [float(v.strip()) for v in row[6:] if v.strip()]
                 if not db_values:

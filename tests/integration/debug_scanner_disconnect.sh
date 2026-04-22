@@ -1,4 +1,9 @@
 #!/bin/bash
+# Initialize frame counters so references below are safe even when the
+# wrapper-exists branch is skipped (avoids unbound-variable exit under set -u).
+FRAME_COUNT_DIRECT=0
+FRAME_COUNT_WRAPPER=0
+
 echo "=== DEBUGGING SCANNER DISCONNECT ==="
 
 echo "1. Testing direct grgsm_livemon_headless command (what worked):"
