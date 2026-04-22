@@ -152,7 +152,14 @@ async function lookupWiresharkGid(): Promise<number | null> {
 	let etcGroup: string;
 	try {
 		etcGroup = await readFile('/etc/group', 'utf-8');
-	} catch {
+	} catch (err) {
+		// ENOENT is expected on non-Linux / minimal containers — no wireshark
+		// group to check. Anything else (EACCES, EIO) is unusual and worth a
+		// breadcrumb so a silent null-return doesn't mask a real problem.
+		const code = (err as NodeJS.ErrnoException).code;
+		if (code && code !== 'ENOENT') {
+			logger.warn('[wireshark-vnc] /etc/group read failed', { code });
+		}
 		return null;
 	}
 	const match = /^wireshark:[^:]*:(\d+):/m.exec(etcGroup);

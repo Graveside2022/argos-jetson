@@ -23,6 +23,8 @@
 	let captureFilter = $state<string | null>(null);
 	let vncKey = $state(0);
 	let stopping = $state(false);
+	// Set once handleStop issues POST('stop'); onDestroy skips its fallback when true.
+	let stopSent = $state(false);
 
 	function buildWsUrl(wsPort: number, wsPath: string): string {
 		const host = window.location.hostname;
@@ -39,6 +41,10 @@
 
 	function isUnrecoverable(reason: string): boolean {
 		return /not in the 'wireshark' group|Invalid Wireshark display filter/i.test(reason);
+	}
+
+	function errorDetail(err: unknown): string {
+		return err instanceof Error ? err.message : String(err);
 	}
 
 	function getRunningWsUrl(data: Record<string, unknown>): string | null {
@@ -84,9 +90,9 @@
 				return;
 			}
 			applyResultData(await res.json());
-		} catch {
+		} catch (err) {
 			serviceStatus = 'error';
-			errorMsg = 'Failed to start Wireshark';
+			errorMsg = `Failed to start Wireshark: ${errorDetail(err)}`;
 		}
 	}
 
@@ -111,6 +117,7 @@
 		stopping = true;
 		try {
 			const res = await postControl('stop');
+			stopSent = true;
 			if (!res.ok) {
 				serviceStatus = 'error';
 				errorMsg = `Stop failed: ${res.status}`;
@@ -119,7 +126,7 @@
 			activeView.set('map');
 		} catch (err) {
 			serviceStatus = 'error';
-			errorMsg = `Stop failed: ${err instanceof Error ? err.message : String(err)}`;
+			errorMsg = `Stop failed: ${errorDetail(err)}`;
 		} finally {
 			stopping = false;
 		}
@@ -130,6 +137,9 @@
 	});
 
 	onDestroy(() => {
+		// handleStop already issued the stop request; skip to avoid a redundant
+		// kill-all against an already-torn-down stack (races fuser -k + re-bind).
+		if (stopSent) return;
 		void postControl('stop').catch(() => undefined);
 	});
 </script>
