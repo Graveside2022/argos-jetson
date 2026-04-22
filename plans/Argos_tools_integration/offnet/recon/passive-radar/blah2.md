@@ -6,9 +6,9 @@ Real-time passive radar system that detects aircraft and vehicles by analyzing r
 
 ## Links
 
-- **GitHub:** https://github.com/30hours/blah2
-- **Live Demo:** http://radar4.30hours.dev
-- **Coverage:** https://www.rtl-sdr.com/wardragon-passive-radar-with-blah2-and-ads-b-delay-doppler-truth/
+- **GitHub:** <https://github.com/30hours/blah2>
+- **Live Demo:** <http://radar4.30hours.dev>
+- **Coverage:** <https://www.rtl-sdr.com/wardragon-passive-radar-with-blah2-and-ads-b-delay-doppler-truth/>
 
 ## What It Does
 

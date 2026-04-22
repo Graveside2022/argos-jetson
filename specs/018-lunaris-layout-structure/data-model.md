@@ -14,18 +14,20 @@ This spec is a **UI restructuring** — no database schema changes, no new API r
 The root layout frame shared by all 11 dashboard screens.
 
 **Props**:
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `mode` | `'sidebar' \| 'full-width'` | `'sidebar'` | Content area layout mode |
-| `sidebarOpen` | `boolean` | `true` | Whether the left panel is visible (sidebar mode only) |
+
+| Prop          | Type                        | Default     | Description                                           |
+| ------------- | --------------------------- | ----------- | ----------------------------------------------------- |
+| `mode`        | `'sidebar' \| 'full-width'` | `'sidebar'` | Content area layout mode                              |
+| `sidebarOpen` | `boolean`                   | `true`      | Whether the left panel is visible (sidebar mode only) |
 
 **Slots** (Svelte 5 snippets):
-| Slot | Rendered When | Description |
-|------|---------------|-------------|
-| `sidebar` | `mode === 'sidebar'` | 280px left panel content |
-| `content` | `mode === 'sidebar'` | Main content right of sidebar (map + overlays) |
-| `fullWidthContent` | `mode === 'full-width'` | Full-width content replacing sidebar + map |
-| `bottomPanel` | Always | Bottom panel (below content or full-width) |
+
+| Slot               | Rendered When           | Description                                    |
+| ------------------ | ----------------------- | ---------------------------------------------- |
+| `sidebar`          | `mode === 'sidebar'`    | 280px left panel content                       |
+| `content`          | `mode === 'sidebar'`    | Main content right of sidebar (map + overlays) |
+| `fullWidthContent` | `mode === 'full-width'` | Full-width content replacing sidebar + map     |
+| `bottomPanel`      | Always                  | Bottom panel (below content or full-width)     |
 
 **Internal Structure**:
 
@@ -52,17 +54,18 @@ DashboardShell
 Persistent 40px horizontal bar with mission-critical status segments.
 
 **Segments** (left to right):
-| Position | Segment | Data Source | Typography |
-|----------|---------|-------------|------------|
-| 1 | ARGOS brand mark | Static | Fira Code 14px 600 `--primary`, letter-spacing 2 |
-| 2 | Collection status | Recording state (TBD) | Red dot indicator |
-| 3 | Node callsign | Config / hostname | Fira Code 12px 500, letter-spacing 1 |
-| — | Spacer | — | flex: 1 |
-| 4 | Network latency | `/api/system/metrics` | Fira Code 12px, signal icon |
-| 5 | Mesh node count | TAK store / mesh API | Fira Code 12px, "X/Y" format |
-| 6 | Weather summary | `/api/weather/current` | Fira Code 12px |
-| 7 | Date | System clock | Fira Code 12px `#666666`, letter-spacing 0.5 |
-| 8 | Zulu time | System clock | Fira Code 12px 600, letter-spacing 1 |
+
+| Position | Segment           | Data Source            | Typography                                       |
+| -------- | ----------------- | ---------------------- | ------------------------------------------------ |
+| 1        | ARGOS brand mark  | Static                 | Fira Code 14px 600 `--primary`, letter-spacing 2 |
+| 2        | Collection status | Recording state (TBD)  | Red dot indicator                                |
+| 3        | Node callsign     | Config / hostname      | Fira Code 12px 500, letter-spacing 1             |
+| —        | Spacer            | —                      | flex: 1                                          |
+| 4        | Network latency   | `/api/system/metrics`  | Fira Code 12px, signal icon                      |
+| 5        | Mesh node count   | TAK store / mesh API   | Fira Code 12px, "X/Y" format                     |
+| 6        | Weather summary   | `/api/weather/current` | Fira Code 12px                                   |
+| 7        | Date              | System clock           | Fira Code 12px `#666666`, letter-spacing 0.5     |
+| 8        | Zulu time         | System clock           | Fira Code 12px 600, letter-spacing 1             |
 
 **State**:
 
@@ -76,13 +79,14 @@ Persistent 40px horizontal bar with mission-critical status segments.
 240px resizable tabbed panel with 5 content areas.
 
 **Tabs**:
-| Index | Label | Component | Data Source |
-|-------|-------|-----------|-------------|
-| 0 | Terminal | `TerminalPanel` | `terminalPanelState` store, WebSocket per session |
-| 1 | Chat | `AgentChatPanel` | `/api/agent/stream` (SSE) |
-| 2 | Logs | `LogsPanel` | `scripts/tmux/tmux-logs.sh` stream |
-| 3 | Captures | `CapturesPanel` | `/api/signals` endpoint |
-| 4 | Devices | `DevicesPanel` | `kismetStore`, `/api/kismet/devices` |
+
+| Index | Label    | Component        | Data Source                                       |
+| ----- | -------- | ---------------- | ------------------------------------------------- |
+| 0     | Terminal | `TerminalPanel`  | `terminalPanelState` store, WebSocket per session |
+| 1     | Chat     | `AgentChatPanel` | `/api/agent/stream` (SSE)                         |
+| 2     | Logs     | `LogsPanel`      | `scripts/tmux/tmux-logs.sh` stream                |
+| 3     | Captures | `CapturesPanel`  | `/api/signals` endpoint                           |
+| 4     | Devices  | `DevicesPanel`   | `kismetStore`, `/api/kismet/devices`              |
 
 **State**:
 
@@ -95,16 +99,17 @@ Persistent 40px horizontal bar with mission-critical status segments.
 280px left panel whose content varies by active screen.
 
 **Screen → Panel Mapping**:
-| Screen | Panel Component | Content Summary |
-|--------|----------------|-----------------|
-| System Overview | `OverviewPanel` | 9 metric sections (CPU, Disk, Memory, Power, Network, Hardware, Tools, Services, Events) |
-| OFFNET Tools | `ToolsPanel` | 4 category cards (RECON, ATTACK, DEFENSE, UTILITIES) |
-| ONNET Tools | `OnnetToolsPanel` | 2 category cards (RECON, ATTACK) |
-| Map Layers | `LayersPanel` | 4 sections (Provider, Filter, Layers, Legend) |
-| Settings | `SettingsPanel` | 4 category cards (Appearance, Connectivity, Hardware, Logs) |
-| Hardware Config | `HardwareConfigPanel` | 3 device cards (GPS, SDR, WiFi) |
-| TAK Server Config | — (full-width mode) | No sidebar |
-| GSM Scanner | — (full-width mode) | No sidebar |
+
+| Screen            | Panel Component       | Content Summary                                                                          |
+| ----------------- | --------------------- | ---------------------------------------------------------------------------------------- |
+| System Overview   | `OverviewPanel`       | 9 metric sections (CPU, Disk, Memory, Power, Network, Hardware, Tools, Services, Events) |
+| OFFNET Tools      | `ToolsPanel`          | 4 category cards (RECON, ATTACK, DEFENSE, UTILITIES)                                     |
+| ONNET Tools       | `OnnetToolsPanel`     | 2 category cards (RECON, ATTACK)                                                         |
+| Map Layers        | `LayersPanel`         | 4 sections (Provider, Filter, Layers, Legend)                                            |
+| Settings          | `SettingsPanel`       | 4 category cards (Appearance, Connectivity, Hardware, Logs)                              |
+| Hardware Config   | `HardwareConfigPanel` | 3 device cards (GPS, SDR, WiFi)                                                          |
+| TAK Server Config | — (full-width mode)   | No sidebar                                                                               |
+| GSM Scanner       | — (full-width mode)   | No sidebar                                                                               |
 
 ### 5. SidebarWidget
 
@@ -127,15 +132,16 @@ Widget
 ```
 
 **Props** (shared):
-| Prop | Type | Description |
-|------|------|-------------|
-| `title` | `string` | Widget header label (uppercase) |
-| `onClose` | `() => void` | Close/dismiss callback |
-| `onAction` | `() => void` | Footer action callback (Retest, Ping, Refresh) |
-| `actionLabel` | `string` | Footer action text |
-| `statusDot` | `'healthy' \| 'warning' \| 'error'` | Footer status color |
-| `statusLabel` | `string` | Footer status text |
-| `timestamp` | `string` | Footer timestamp |
+
+| Prop          | Type                                | Description                                    |
+| ------------- | ----------------------------------- | ---------------------------------------------- |
+| `title`       | `string`                            | Widget header label (uppercase)                |
+| `onClose`     | `() => void`                        | Close/dismiss callback                         |
+| `onAction`    | `() => void`                        | Footer action callback (Retest, Ping, Refresh) |
+| `actionLabel` | `string`                            | Footer action text                             |
+| `statusDot`   | `'healthy' \| 'warning' \| 'error'` | Footer status color                            |
+| `statusLabel` | `string`                            | Footer status text                             |
+| `timestamp`   | `string`                            | Footer timestamp                               |
 
 ### 6. HardwareDropdown
 
@@ -154,22 +160,24 @@ Dropdown
 ```
 
 **Types**:
-| Type | Title | Row Count | Special Rows |
-|------|-------|-----------|-------------|
-| WiFi | "WIFI ADAPTER" | 7 | "Used by" value in `--status-healthy` 600 weight |
-| SDR | "SOFTWARE DEFINED RADIO" | 6 | "Used by" value in `--status-healthy` 600 weight |
-| GPS | "GPS RECEIVER" | 8 | "Fix" value color-coded, divider before Device/Protocol |
+
+| Type | Title                    | Row Count | Special Rows                                            |
+| ---- | ------------------------ | --------- | ------------------------------------------------------- |
+| WiFi | "WIFI ADAPTER"           | 7         | "Used by" value in `--status-healthy` 600 weight        |
+| SDR  | "SOFTWARE DEFINED RADIO" | 6         | "Used by" value in `--status-healthy` 600 weight        |
+| GPS  | "GPS RECEIVER"           | 8         | "Fix" value color-coded, divider before Device/Protocol |
 
 ### 7. TerminalErrorOverlay
 
 Conditional overlay rendered within the terminal content area when WebSocket connection fails.
 
 **Props**:
-| Prop | Type | Description |
-|------|------|-------------|
-| `errorMessage` | `string` | Descriptive error text |
-| `recoveryCommand` | `string` | Suggested recovery command |
-| `onRecovery` | `() => void` | Recovery action callback |
+
+| Prop              | Type         | Description                |
+| ----------------- | ------------ | -------------------------- |
+| `errorMessage`    | `string`     | Descriptive error text     |
+| `recoveryCommand` | `string`     | Suggested recovery command |
+| `onRecovery`      | `() => void` | Recovery action callback   |
 
 **Rendered when**: Terminal WebSocket connection fails after max retry attempts.
 

@@ -26,7 +26,7 @@ Password Recovery / Hash Cracking / WPA/WPA2/WPA3 Key Recovery
 
 ## Repository
 
-- **GitHub**: https://github.com/hashcat/hashcat
+- **GitHub**: <https://github.com/hashcat/hashcat>
 - **Language**: C (core), OpenCL/CUDA (GPU kernels)
 - **License**: MIT
 - **Stars**: ~25,300

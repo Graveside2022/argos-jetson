@@ -30,8 +30,8 @@ GPS / Positioning / Geolocation Service
 
 ## Repository
 
-- **Source**: https://gitlab.com/gpsd/gpsd
-- **Documentation**: https://gpsd.io/
+- **Source**: <https://gitlab.com/gpsd/gpsd>
+- **Documentation**: <https://gpsd.io/>
 - **Language**: C/Python
 - **License**: BSD-2-Clause
 

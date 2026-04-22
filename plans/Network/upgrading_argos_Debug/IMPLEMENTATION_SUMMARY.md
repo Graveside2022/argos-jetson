@@ -482,7 +482,7 @@ Both implementations **MUST**:
 
 ## Getting Started
 
-### For Empty Catch Blocks:
+### For Empty Catch Blocks
 
 ```bash
 cd /home/kali/Documents/Argos/Argos
@@ -499,7 +499,7 @@ git tag pre-empty-catch-fixes
 # OR read phase-specific plan files (when created)
 ```
 
-### For Svelte 5 Migration:
+### For Svelte 5 Migration
 
 ```bash
 cd /home/kali/Documents/Argos/Argos

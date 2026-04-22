@@ -6,10 +6,10 @@ Decodes and processes data from 90+ satellites — weather (GOES, NOAA, Meteor-M
 
 ## Links
 
-- **GitHub:** https://github.com/SatDump/SatDump
-- **Website:** https://www.satdump.org/
-- **Getting Started:** https://www.satdump.org/getting-started/
-- **Satellite List:** https://www.satdump.org/Satellite-List/
+- **GitHub:** <https://github.com/SatDump/SatDump>
+- **Website:** <https://www.satdump.org/>
+- **Getting Started:** <https://www.satdump.org/getting-started/>
+- **Satellite List:** <https://www.satdump.org/Satellite-List/>
 
 ## What It Does
 

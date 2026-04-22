@@ -497,7 +497,7 @@ let filteredSignals = $derived.by(() => {
 });
 ```
 
-### Remaining Map Components (11):
+### Remaining Map Components (11)
 
 - MapControls.svelte
 - SignalDetailPanel.svelte
@@ -539,7 +539,7 @@ let filteredDevices = $derived.by(() => {
 });
 ```
 
-### Remaining Kismet Components (4):
+### Remaining Kismet Components (4)
 
 - AlertsPanel.svelte (3 hours)
 - MapView.svelte (4 hours)

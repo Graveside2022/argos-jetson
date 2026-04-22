@@ -598,5 +598,5 @@ npm run mcp:install-b  # Overwrites old config with diagnostic servers
 
 ## Support
 
-**Issues:** https://github.com/Graveside2022/Argos/issues
+**Issues:** <https://github.com/Graveside2022/Argos/issues>
 **Docs:** `/docs` directory in Argos repository

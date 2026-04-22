@@ -8,7 +8,7 @@ This file provides condensed guidance for Phases 1-5. Each phase follows the sam
 
 **Pattern:** Follow Phase 0 DashboardMap approach
 
-### Components List:
+### Components List
 
 1. **GPSStatusOverlay.svelte** - Display-only GPS status
 2. **ToolCard.svelte** (7 props, 3 reactive) - Simple card component
@@ -21,7 +21,7 @@ This file provides condensed guidance for Phases 1-5. Each phase follows the sam
 9. **KismetDashboardButton.svelte** - Button
 10. **SignalTypeIndicator.svelte** - Type badge
 
-### Workflow Per Component (2-3 hours):
+### Workflow Per Component (2-3 hours)
 
 1. **Read** (30 min): Understand functionality
 2. **Migrate** (60 min):
@@ -102,7 +102,7 @@ let sortColumn = $state<'mac' | 'rssi'>('rssi');
 let filteredDevices = $derived(devices.filter((d) => d.mac.includes(searchQuery)));
 ```
 
-### Component Categories:
+### Component Categories
 
 - **Dashboard Components** (8): PanelContainer, TopStatusBar, IconRail, etc.
 - **Map Components** (12): MapControls, SignalDetailPanel, filters, etc.
@@ -116,7 +116,7 @@ let filteredDevices = $derived(devices.filter((d) => d.mac.includes(searchQuery)
 
 **Focus:** Performance-critical rendering, WebSocket state, canvas operations
 
-### Performance-Critical Pattern:
+### Performance-Critical Pattern
 
 **TimeWindowControl.svelte** - Intervals with cleanup:
 
@@ -157,7 +157,7 @@ $effect(() => {
 });
 ```
 
-### Component Categories:
+### Component Categories
 
 - **HackRF Spectrum** (15): Real-time analysis, canvas rendering
 - **Tactical Map** (11): GPS, hardware controllers
@@ -178,7 +178,7 @@ $effect(() => {
 
 **Focus:** Page-level components, form state, navigation
 
-### Pattern - Form State:
+### Pattern - Form State
 
 ```typescript
 // Local form state
@@ -199,7 +199,7 @@ function handleSubmit() {
 }
 ```
 
-### Component Categories:
+### Component Categories
 
 - **Simple Pages** (10): Home, layouts, test pages (1 hour each)
 - **Complex Pages** (12): HackRF, Kismet, GSM Evil (2-3 hours each)
@@ -212,7 +212,7 @@ function handleSubmit() {
 
 ## Phase 5: Final Cleanup & Optimization (3-5 days)
 
-### Tasks:
+### Tasks
 
 **1. Comprehensive Testing:**
 

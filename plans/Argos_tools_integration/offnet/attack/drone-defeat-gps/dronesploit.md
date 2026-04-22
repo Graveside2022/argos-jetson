@@ -24,7 +24,7 @@ Drone Exploitation Framework / Protocol Attack Suite
 
 ## Source
 
-- **Repository**: https://github.com/dhondta/dronesploit
+- **Repository**: <https://github.com/dhondta/dronesploit>
 - **Status**: BETA
 - **Language**: Python
 - **Dependencies**: sploitkit >= 0.5.8 (which pulls in rich, prompt_toolkit, etc.)

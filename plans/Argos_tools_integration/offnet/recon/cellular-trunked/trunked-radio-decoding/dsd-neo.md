@@ -48,7 +48,7 @@ Digital Voice Decoding / Multi-Protocol Radio Decoder / SIGINT
 
 ## Repository
 
-- **GitHub**: https://github.com/arancormonk/dsd-neo
+- **GitHub**: <https://github.com/arancormonk/dsd-neo>
 - **Language**: C/C++ (C11/C++14)
 - **License**: Open source
 - **Stars**: ~67

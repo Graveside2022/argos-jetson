@@ -24,7 +24,7 @@ Wardriving / Tactical Data Integration / CoT Bridge / Situational Awareness
 
 ## Repository
 
-- **GitHub**: https://github.com/canaryradio/WigleToTAK (community tool)
+- **GitHub**: <https://github.com/canaryradio/WigleToTAK> (community tool)
 - **Language**: Python (Flask web application)
 - **License**: MIT
 

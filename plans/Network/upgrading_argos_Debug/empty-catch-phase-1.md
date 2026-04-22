@@ -1259,7 +1259,7 @@ git tag fix-5.1-5.4-complete
 
 Due to space constraints, I'm providing the template for the remaining 32 fixes. Each follows the same pattern:
 
-### Remaining Categories:
+### Remaining Categories
 
 **Category 6: Kismet Integration** (12 fixes)
 

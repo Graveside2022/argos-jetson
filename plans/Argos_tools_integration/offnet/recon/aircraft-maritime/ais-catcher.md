@@ -43,7 +43,7 @@ Maritime Vessel Tracking / AIS Reception / Passive RF Intelligence
 
 ## Repository
 
-- **GitHub**: https://github.com/jvde-github/AIS-catcher
+- **GitHub**: <https://github.com/jvde-github/AIS-catcher>
 - **Language**: C++
 - **License**: GPL-3.0
 

@@ -24,7 +24,7 @@ ADS-B / CoT Gateway / Tactical Display Bridge
 
 ## Repository
 
-https://github.com/snstac/adsbcot
+<https://github.com/snstac/adsbcot>
 
 ---
 

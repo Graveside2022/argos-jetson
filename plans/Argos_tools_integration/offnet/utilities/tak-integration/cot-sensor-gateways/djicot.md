@@ -24,7 +24,7 @@ DJI Drone Telemetry / CoT Gateway / Tactical Display Bridge
 
 ## Repository
 
-https://github.com/snstac/djicot
+<https://github.com/snstac/djicot>
 
 ---
 

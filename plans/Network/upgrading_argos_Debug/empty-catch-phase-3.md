@@ -384,7 +384,7 @@ grep ERROR /var/log/argos/*.log | awk '{print $1,$2}' | uniq -c | awk '$1 > 10'
 
 ---
 
-## Project Complete!
+## Project Complete
 
 All empty catch blocks have been fixed with comprehensive error logging.
 

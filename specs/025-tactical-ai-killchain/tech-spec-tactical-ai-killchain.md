@@ -164,33 +164,35 @@ Artemis's value is its **module implementations** — battle-tested scanning log
 ### Tool Availability on Kali (verified)
 
 **Already installed:**
-| Tool | Path | Used By |
-|------|------|---------|
-| nmap | /usr/bin/nmap | port_scanner, vuln_scanner |
-| masscan | /usr/bin/masscan | port_scanner (fast mode) |
-| hydra | /usr/bin/hydra | credential bruting (alternative to Artemis pure-Python bruters) |
-| ncrack | /usr/bin/ncrack | network auth cracking |
-| tshark | /usr/bin/tshark | packet capture/analysis |
-| responder | /usr/sbin/responder | responder_poisoner |
-| netdiscover | /usr/sbin/netdiscover | net_discover |
-| sqlmap | /usr/bin/sqlmap | SQL injection (future) |
-| nikto | /usr/bin/nikto | web vuln scanning (future) |
-| gobuster | /usr/bin/gobuster | web_bruter |
-| ffuf | /usr/bin/ffuf | web_bruter (alternative) |
-| httpx | /usr/bin/httpx | HTTP probing |
-| aireplay-ng | aircrack-ng suite | wifi_deauth |
-| wifite2 | /usr/bin/wifite | wifi_handshake |
+
+| Tool        | Path                  | Used By                                                         |
+| ----------- | --------------------- | --------------------------------------------------------------- |
+| nmap        | /usr/bin/nmap         | port_scanner, vuln_scanner                                      |
+| masscan     | /usr/bin/masscan      | port_scanner (fast mode)                                        |
+| hydra       | /usr/bin/hydra        | credential bruting (alternative to Artemis pure-Python bruters) |
+| ncrack      | /usr/bin/ncrack       | network auth cracking                                           |
+| tshark      | /usr/bin/tshark       | packet capture/analysis                                         |
+| responder   | /usr/sbin/responder   | responder_poisoner                                              |
+| netdiscover | /usr/sbin/netdiscover | net_discover                                                    |
+| sqlmap      | /usr/bin/sqlmap       | SQL injection (future)                                          |
+| nikto       | /usr/bin/nikto        | web vuln scanning (future)                                      |
+| gobuster    | /usr/bin/gobuster     | web_bruter                                                      |
+| ffuf        | /usr/bin/ffuf         | web_bruter (alternative)                                        |
+| httpx       | /usr/bin/httpx        | HTTP probing                                                    |
+| aireplay-ng | aircrack-ng suite     | wifi_deauth                                                     |
+| wifite2     | /usr/bin/wifite       | wifi_handshake                                                  |
 
 **Python libraries (already installed via pip):**
 paramiko, pymysql, psycopg2, scapy, shodan, dnspython, sslyze, beautifulsoup4
 
 **Need to install (ProjectDiscovery Go suite):**
-| Tool | Install Method | Used By |
-|------|---------------|---------|
-| nuclei | `go install github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest` | vuln_scanner |
-| subfinder | `go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest` | future subdomain enum |
-| naabu | `go install github.com/projectdiscovery/naabu/v2/cmd/naabu@latest` | port_scanner (optional, nmap fallback) |
-| fingerprintx | `go install github.com/praetorian-inc/fingerprintx/cmd/fingerprintx@latest` | service fingerprinting |
+
+| Tool         | Install Method                                                              | Used By                                |
+| ------------ | --------------------------------------------------------------------------- | -------------------------------------- |
+| nuclei       | `go install github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest`        | vuln_scanner                           |
+| subfinder    | `go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest`  | future subdomain enum                  |
+| naabu        | `go install github.com/projectdiscovery/naabu/v2/cmd/naabu@latest`          | port_scanner (optional, nmap fallback) |
+| fingerprintx | `go install github.com/praetorian-inc/fingerprintx/cmd/fingerprintx@latest` | service fingerprinting                 |
 
 ### Codebase Patterns
 

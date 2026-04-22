@@ -24,7 +24,7 @@ APRS Amateur Radio / CoT Gateway / Tactical Display Bridge
 
 ## Repository
 
-https://github.com/snstac/aprscot
+<https://github.com/snstac/aprscot>
 
 ---
 

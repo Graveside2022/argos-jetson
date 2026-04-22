@@ -41,7 +41,7 @@ Aircraft Tracking / ADS-B Reception / Passive RF Intelligence
 
 ## Repository
 
-- **GitHub**: https://github.com/wiedehopf/readsb
+- **GitHub**: <https://github.com/wiedehopf/readsb>
 - **Language**: C
 - **License**: GPL-3.0
 

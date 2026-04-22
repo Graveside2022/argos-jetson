@@ -6,9 +6,9 @@ Offline reference database with 500+ identified RF signals. Each entry includes 
 
 ## Links
 
-- **GitHub:** https://github.com/AresValley/Artemis
-- **Website:** https://www.aresvalley.com/
-- **Coverage:** https://www.rtl-sdr.com/artemis-4-released-offline-signal-identification-database/
+- **GitHub:** <https://github.com/AresValley/Artemis>
+- **Website:** <https://www.aresvalley.com/>
+- **Coverage:** <https://www.rtl-sdr.com/artemis-4-released-offline-signal-identification-database/>
 
 ## What It Does
 

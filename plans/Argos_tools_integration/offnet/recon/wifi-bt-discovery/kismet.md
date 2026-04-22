@@ -28,7 +28,7 @@ Wardriving / Wireless Network Detection / Wireless IDS / Passive Reconnaissance
 
 ## Repository
 
-- **GitHub**: https://github.com/kismetwireless/kismet
+- **GitHub**: <https://github.com/kismetwireless/kismet>
 - **Language**: C++, Python, JavaScript (Web UI)
 - **License**: GPL-2.0
 

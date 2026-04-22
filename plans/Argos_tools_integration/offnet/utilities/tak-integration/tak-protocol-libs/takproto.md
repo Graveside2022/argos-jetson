@@ -24,7 +24,7 @@ TAK Protocol / Cursor-on-Target / Situational Awareness Integration
 
 ## Repository
 
-- **Source**: https://pypi.org/project/takproto / https://github.com/snstac/takproto
+- **Source**: <https://pypi.org/project/takproto> / <https://github.com/snstac/takproto>
 - **Language**: Python
 - **License**: MIT
 

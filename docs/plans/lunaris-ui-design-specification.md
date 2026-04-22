@@ -218,38 +218,42 @@ These are the exact hex values used across all mockup panels. **Only these color
 The standard toggle used throughout the application.
 
 **Track (On State):**
-| Property | Value |
-|----------|-------|
-| Width | `36px` |
-| Height | `20px` |
-| Corner Radius | `10px` (pill) |
-| Fill | `#809AD0` (accent blue) |
-| Layout | `none` (absolute positioning for thumb) |
+
+| Property      | Value                                   |
+| ------------- | --------------------------------------- |
+| Width         | `36px`                                  |
+| Height        | `20px`                                  |
+| Corner Radius | `10px` (pill)                           |
+| Fill          | `#809AD0` (accent blue)                 |
+| Layout        | `none` (absolute positioning for thumb) |
 
 **Track (Off State):**
-| Property | Value |
-|----------|-------|
-| Width | `36px` |
-| Height | `20px` |
-| Corner Radius | `10px` (pill) |
-| Fill | `#2A2A2A` (muted) |
+
+| Property      | Value             |
+| ------------- | ----------------- |
+| Width         | `36px`            |
+| Height        | `20px`            |
+| Corner Radius | `10px` (pill)     |
+| Fill          | `#2A2A2A` (muted) |
 
 **Thumb (On State):**
-| Property | Value |
-|----------|-------|
-| Type | `ellipse` |
-| Width | `14px` |
-| Height | `14px` |
-| Fill | `#FFFFFF` |
+
+| Property | Value         |
+| -------- | ------------- |
+| Type     | `ellipse`     |
+| Width    | `14px`        |
+| Height   | `14px`        |
+| Fill     | `#FFFFFF`     |
 | Position | `x: 19, y: 3` |
 
 **Thumb (Off State):**
-| Property | Value |
-|----------|-------|
-| Type | `ellipse` |
-| Width | `14px` |
-| Height | `14px` |
-| Fill | `#888888` |
+
+| Property | Value        |
+| -------- | ------------ |
+| Type     | `ellipse`    |
+| Width    | `14px`       |
+| Height   | `14px`       |
+| Fill     | `#888888`    |
 | Position | `x: 2, y: 3` |
 
 ### 7.2 Buttons

@@ -648,7 +648,7 @@ $effect(() => {
 });
 ```
 
-### Remaining Tactical Map Components:
+### Remaining Tactical Map Components
 
 - GPSStatusBar.svelte
 - MapContainer.svelte

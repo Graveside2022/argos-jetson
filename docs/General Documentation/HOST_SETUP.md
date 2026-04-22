@@ -185,7 +185,7 @@ kal -s GSM900 -g 40
 - If gr-gsm not found: May need to build from source on some systems
 - If gr-osmosdr fails: Check `sudo apt install -y libosmocore-dev`
 - If Flask missing: Install via pip as shown above
-- Alternative: Manual build from https://github.com/ptrkrysik/gr-gsm
+- Alternative: Manual build from <https://github.com/ptrkrysik/gr-gsm>
 
 ### 6. USRP (Optional, for higher-end SDR)
 
@@ -462,7 +462,7 @@ sudo systemctl enable argos-startup.service
 - Cause: gr-osmosdr installed but Python module not found
 - Fix: `sudo apt install -y gr-osmosdr` or rebuild from source
 - Test: `python3 -c "import osmosdr"`
-- Alternative: Build from https://github.com/osmocom/gr-osmosdr
+- Alternative: Build from <https://github.com/osmocom/gr-osmosdr>
 
 ### Python Flask not found for GSM Evil backend
 
@@ -480,7 +480,7 @@ sudo systemctl enable argos-startup.service
     cd libosmocore
     autoreconf -fi && ./configure && make && sudo make install
     ```
-- Documentation: https://osmocom.org/projects/libosmocore/wiki
+- Documentation: <https://osmocom.org/projects/libosmocore/wiki>
 
 ### Node.js version mismatch
 

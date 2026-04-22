@@ -231,7 +231,7 @@ git tag post-migrate-hackrfsweep-page
 
 ---
 
-### Remaining Complex Pages (8):
+### Remaining Complex Pages (8)
 
 - gsm-evil/LocalIMSIDisplay.svelte (2 hours)
 - gsm-evil/IMSIDisplay.svelte (2 hours)
@@ -289,7 +289,7 @@ function handleSubmit() {
 
 ---
 
-### Remaining WigleToTAK Components (5):
+### Remaining WigleToTAK Components (5)
 
 - AntennaSettingsCard.svelte (2 hours)
 - AnalysisModeCard.svelte (2 hours)

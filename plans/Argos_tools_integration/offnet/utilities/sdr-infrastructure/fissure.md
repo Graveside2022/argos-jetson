@@ -26,7 +26,7 @@ Comprehensive RF Framework / Signal Intelligence / Protocol Reverse Engineering 
 
 ## Repository
 
-- **GitHub**: https://github.com/ainfosec/FISSURE
+- **GitHub**: <https://github.com/ainfosec/FISSURE>
 - **Language**: Python 3 (PyQt5 GUI, GNU Radio, Scapy, SciPy, Pandas)
 - **License**: GPL-3.0
 - **Stars**: ~1,870+

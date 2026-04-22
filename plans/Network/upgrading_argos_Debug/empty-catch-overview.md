@@ -147,7 +147,7 @@ Apply rate limiting to prevent log flooding:
 
 ## Example Fix (HackRF Service Line 367)
 
-### BEFORE:
+### BEFORE
 
 ```typescript
 try {
@@ -158,7 +158,7 @@ try {
 }
 ```
 
-### AFTER:
+### AFTER
 
 ```typescript
 try {
@@ -183,7 +183,7 @@ try {
 }
 ```
 
-### Verification:
+### Verification
 
 1. Block WebSocket port 5173 in firewall
 2. Start HackRF service
@@ -191,7 +191,7 @@ try {
 4. Verify UI shows "using polling" message
 5. Verify service continues to function (polling mode)
 
-### Rollback:
+### Rollback
 
 ```bash
 # If UI state update breaks something

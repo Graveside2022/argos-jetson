@@ -264,7 +264,7 @@ When Argos data is ingested by TAK Server, operators see:
 5. **Source Attribution**: Each detection tagged with originating node ID
 6. **Real-Time Updates**: Detections appear within 1-2 seconds
 
-### TAK Display Example:
+### TAK Display Example
 
 ```
 Map View:
@@ -408,9 +408,9 @@ Map View:
 
 ## References
 
-- TAK Product Center: https://tak.gov
-- Cursor on Target (CoT) Specification: https://www.mitre.org/sites/default/files/pdf/09_4937.pdf
-- Tailscale Mesh VPN: https://tailscale.com/kb/1136/tailnet/
+- TAK Product Center: <https://tak.gov>
+- Cursor on Target (CoT) Specification: <https://www.mitre.org/sites/default/files/pdf/09_4937.pdf>
+- Tailscale Mesh VPN: <https://tailscale.com/kb/1136/tailnet/>
 - Argos Project Repository: (internal)
 
 ---

@@ -35,7 +35,7 @@ P25 Trunked Radio Recording / SIGINT / Public Safety Radio Monitoring
 
 ## Repository
 
-- **GitHub**: https://github.com/TrunkRecorder/trunk-recorder
+- **GitHub**: <https://github.com/TrunkRecorder/trunk-recorder>
 - **Language**: C++ (GNU Radio based)
 - **License**: GPL-3.0
 - **Stars**: ~1,050

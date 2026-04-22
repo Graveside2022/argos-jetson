@@ -37,7 +37,7 @@ Satellite Telemetry Decoding / Space SIGINT / Amateur Satellite Monitoring
 
 ## Repository
 
-- **GitHub**: https://github.com/daniestevez/gr-satellites
+- **GitHub**: <https://github.com/daniestevez/gr-satellites>
 - **Language**: Python / C++ (GNU Radio OOT)
 - **License**: GPL-3.0
 - **Stars**: ~910

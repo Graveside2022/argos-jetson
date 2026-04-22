@@ -24,7 +24,7 @@ Broadband RF Jamming / Electronic Warfare / Active RF Transmission
 
 ## Repository
 
-https://github.com/tiiuae/jamrf
+<https://github.com/tiiuae/jamrf>
 
 ---
 

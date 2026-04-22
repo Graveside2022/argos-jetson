@@ -38,8 +38,8 @@ Aviation Communications Intelligence / ACARS Decoding / Passive RF Intelligence
 
 ## Repository
 
-- **GitHub**: https://github.com/f00b4r0/acarsdec (active fork)
-- **Original**: https://github.com/TLeconte/acarsdec (ARCHIVED — do not use)
+- **GitHub**: <https://github.com/f00b4r0/acarsdec> (active fork)
+- **Original**: <https://github.com/TLeconte/acarsdec> (ARCHIVED — do not use)
 - **Language**: C
 - **License**: GPL-2.0
 - **Stars**: ~48 (fork)
