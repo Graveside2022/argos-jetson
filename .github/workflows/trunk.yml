@@ -43,6 +43,12 @@ jobs:
       - name: 'Trunk Check'
         # trunk-io/trunk-action@v1 — canonical ref per upstream docs
         # TODO: pin by SHA for supply-chain parity with ci.yml / lint.yml
+        # continue-on-error: informational during adoption. Hold-the-line
+        # cannot fail cleanly on the bootstrap PR because main does not yet
+        # have .trunk/trunk.yaml — every finding in the PR appears "new"
+        # relative to unlinted main. Remove continue-on-error in a follow-up
+        # PR once trunk config is on main and a real baseline exists.
+        continue-on-error: true
         uses: trunk-io/trunk-action@v1
         with:
           # Post issue annotations as PR review comments

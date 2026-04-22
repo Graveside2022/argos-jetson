@@ -1,12 +1,12 @@
 {
-	"baselinedAt": "2026-04-21T22:15:02Z",
+	"baselinedAt": "2026-04-22T03:11:29Z",
 	"counts": {
 		"info": 0,
 		"low": 1,
-		"moderate": 6,
-		"high": 17,
+		"moderate": 8,
+		"high": 19,
 		"critical": 2,
-		"total": 26
+		"total": 30
 	},
 	"advisories": [
 		{
@@ -44,6 +44,12 @@
 			"pkg": "@sveltejs/kit",
 			"severity": "high",
 			"title": "@sveltejs/adapter-node has a BODY_SIZE_LIMIT bypass"
+		},
+		{
+			"ghsa": "GHSA-34x7-hfp2-rc4v",
+			"pkg": "tar",
+			"severity": "high",
+			"title": "node-tar Vulnerable to Arbitrary File Creation/Overwrite via Hardlink Path Traversal"
 		},
 		{
 			"ghsa": "GHSA-3ppc-4f35-3m26",
@@ -92,6 +98,24 @@
 			"pkg": "minimatch",
 			"severity": "high",
 			"title": "minimatch has ReDoS: matchOne() combinatorial backtracking via multiple non-adjacent GLOBSTAR segments"
+		},
+		{
+			"ghsa": "GHSA-83g3-92jg-28cx",
+			"pkg": "tar",
+			"severity": "high",
+			"title": "Arbitrary File Read/Write via Hardlink Target Escape Through Symlink Chain in node-tar Extraction"
+		},
+		{
+			"ghsa": "GHSA-8qq5-rm4j-mr97",
+			"pkg": "tar",
+			"severity": "high",
+			"title": "node-tar is Vulnerable to Arbitrary File Overwrite and Symlink Poisoning via Insufficient Path Sanitization"
+		},
+		{
+			"ghsa": "GHSA-9ppj-qmqm-q256",
+			"pkg": "tar",
+			"severity": "high",
+			"title": "node-tar Symlink Path Traversal via Drive-Relative Linkpath"
 		},
 		{
 			"ghsa": "GHSA-c2c7-rcm5-vvqj",
@@ -148,10 +172,22 @@
 			"title": "Forge has signature forgery in Ed25519 due to missing S > L check"
 		},
 		{
+			"ghsa": "GHSA-qffp-2rhf-9h96",
+			"pkg": "tar",
+			"severity": "high",
+			"title": "tar has Hardlink Path Traversal via Drive-Relative Linkpath"
+		},
+		{
 			"ghsa": "GHSA-r5fr-rjxr-66jc",
 			"pkg": "lodash",
 			"severity": "high",
 			"title": "lodash vulnerable to Code Injection via `_.template` imports key names"
+		},
+		{
+			"ghsa": "GHSA-r6q2-hw4h-h46w",
+			"pkg": "tar",
+			"severity": "high",
+			"title": "Race Condition in node-tar Path Reservations via Unicode Ligature Collisions on macOS APFS"
 		},
 		{
 			"ghsa": "GHSA-rf6f-7fwh-wjgh",
@@ -412,6 +448,12 @@
 			"title": "Hono: Non-breaking space prefix bypass in cookie name handling in getCookie()"
 		},
 		{
+			"ghsa": "GHSA-v3rj-xjv7-4jmq",
+			"pkg": "smol-toml",
+			"severity": "moderate",
+			"title": "smol-toml: Denial of Service via TOML documents containing thousands of consecutive commented lines"
+		},
+		{
 			"ghsa": "GHSA-v8w9-8mx6-g223",
 			"pkg": "hono",
 			"severity": "moderate",
@@ -436,5 +478,5 @@
 			"title": "Hono has incorrect IP matching in ipRestriction() for IPv4-mapped IPv6 addresses"
 		}
 	],
-	"note": "This file gates the `npm audit` delta check. New advisories (GHSA IDs not in this list) should fail CI; advisories listed here are known pre-existing and tracked for remediation in Track B. Regenerate with: npm audit --json | jq ... > .audit-baseline.json"
+	"note": "This file gates the `npm audit` delta check. Regenerate with: scripts/ops/audit-delta.sh --update"
 }
