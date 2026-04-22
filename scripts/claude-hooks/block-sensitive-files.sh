@@ -7,7 +7,7 @@ set -euo pipefail
 
 INPUT=$(cat) || exit 0
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // ""' 2>/dev/null)
-if [ -z "$FILE_PATH" ]; then exit 0; fi
+if [[ -z "$FILE_PATH" ]]; then exit 0; fi
 
 FILENAME=$(basename "$FILE_PATH")
 
@@ -15,6 +15,7 @@ FILENAME=$(basename "$FILE_PATH")
 if echo "$FILENAME" | grep -qE '^\.(env|env[._-][A-Za-z0-9._-]+)$'; then
     case "$FILENAME" in
         .env.example|.env.template|.env.sample) exit 0 ;;
+        *) ;;
     esac
     REASON="BLOCKED: Editing sensitive file '$FILENAME'. This file contains secrets (API keys, tokens).
 

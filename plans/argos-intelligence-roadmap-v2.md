@@ -91,9 +91,9 @@ This document defines five integration tracks — three tiers of device enrichme
 
 |                        | Link                                                                                                     |
 | ---------------------- | -------------------------------------------------------------------------------------------------------- |
-| **GitHub**             | https://github.com/nfstream/nfstream                                                                     |
-| **Website**            | https://www.nfstream.org                                                                                 |
-| **API Docs**           | https://nfstream.org/docs/api                                                                            |
+| **GitHub**             | <https://github.com/nfstream/nfstream>                                                                   |
+| **Website**            | <https://www.nfstream.org>                                                                               |
+| **API Docs**           | <https://nfstream.org/docs/api>                                                                          |
 | **License**            | LGPLv3                                                                                                   |
 | **Language**           | Python (C engine via CFFI)                                                                               |
 | **Stars**              | ⭐ 1,200+                                                                                                |
@@ -155,10 +155,10 @@ NFSTREAM_ACTIVE_TIMEOUT=300
 
 |                       | Link                                                                                                            |
 | --------------------- | --------------------------------------------------------------------------------------------------------------- |
-| **GitHub**            | https://github.com/TrunkRecorder/trunk-recorder                                                                 |
-| **Documentation**     | https://trunkrecorder.com/docs/intro                                                                            |
-| **Wiki**              | https://github.com/robotastic/trunk-recorder/wiki                                                               |
-| **Discord**           | https://discord.gg/btJAhESnks                                                                                   |
+| **GitHub**            | <https://github.com/TrunkRecorder/trunk-recorder>                                                               |
+| **Documentation**     | <https://trunkrecorder.com/docs/intro>                                                                          |
+| **Wiki**              | <https://github.com/robotastic/trunk-recorder/wiki>                                                             |
+| **Discord**           | <https://discord.gg/btJAhESnks>                                                                                 |
 | **License**           | GPL-3.0                                                                                                         |
 | **Language**          | C++ (GNU Radio)                                                                                                 |
 | **Version**           | v5.0                                                                                                            |
@@ -192,10 +192,10 @@ sudo bash install.sh
 
 |                    | Link                                                                 |
 | ------------------ | -------------------------------------------------------------------- |
-| **GitHub**         | https://github.com/chuot/rdio-scanner                                |
-| **Wiki**           | https://github.com/chuot/rdio-scanner/wiki                           |
-| **Discord**        | https://discord.gg/rdio-scanner                                      |
-| **Docker Hub**     | https://hub.docker.com/r/chuot/rdio-scanner                          |
+| **GitHub**         | <https://github.com/chuot/rdio-scanner>                              |
+| **Wiki**           | <https://github.com/chuot/rdio-scanner/wiki>                         |
+| **Discord**        | <https://discord.gg/rdio-scanner>                                    |
+| **Docker Hub**     | <https://hub.docker.com/r/chuot/rdio-scanner>                        |
 | **License**        | MIT                                                                  |
 | **Language**       | Go (backend) + Angular (frontend)                                    |
 | **Version**        | v6.6.3                                                               |
@@ -236,7 +236,7 @@ cd rdio-scanner
 
 |                        | Link                                                                       |
 | ---------------------- | -------------------------------------------------------------------------- |
-| **GitHub**             | https://github.com/lwvmobile/dsd-fme                                       |
+| **GitHub**             | <https://github.com/lwvmobile/dsd-fme>                                     |
 | **License**            | ISC / GPL-2.0                                                              |
 | **Language**           | C                                                                          |
 | **Stars**              | ⭐ 291                                                                     |

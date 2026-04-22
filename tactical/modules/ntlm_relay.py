@@ -11,7 +11,6 @@ REQUIRES: Root privileges.
 """
 
 import json
-import re
 import time
 
 from base_module import TacticalModule

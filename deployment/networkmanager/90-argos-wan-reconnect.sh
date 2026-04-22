@@ -6,7 +6,7 @@
 set -u
 
 ACTION="${2:-}"
-[ "$ACTION" = "connectivity-change" ] || exit 0
+[[ "$ACTION" = "connectivity-change" ]] || exit 0
 
 STATE="${CONNECTIVITY_STATE:-UNKNOWN}"
 case "$STATE" in
@@ -17,11 +17,13 @@ esac
 STAMP=/run/argos-wan-watchdog.stamp
 COOLDOWN=120
 NOW=$(date +%s)
-if [ -f "$STAMP" ]; then
+if [[ -f "$STAMP" ]]; then
     LAST=$(grep -E '^[0-9]+$' "$STAMP" 2>/dev/null | head -n1)
-    [ -z "$LAST" ] && LAST=0
+    # Force base-10 coercion: leading-zero values (e.g. 08, 09) would
+    # otherwise be parsed as octal by bash arithmetic and throw.
+    case "$LAST" in ''|*[!0-9]*) LAST=0 ;; *) LAST=$((10#$LAST)) ;; esac
     AGE=$(( NOW - LAST ))
-    if [ "$AGE" -lt "$COOLDOWN" ]; then
+    if [[ "$AGE" -lt "$COOLDOWN" ]]; then
         logger -t argos-wan "cooldown active (${AGE}s < ${COOLDOWN}s); state=$STATE; skip"
         exit 0
     fi
@@ -32,7 +34,7 @@ WIFI_PROFILE=$(nmcli -t -f TYPE,NAME connection show --active 2>/dev/null \
 WIFI_DEV=$(nmcli -t -f TYPE,DEVICE,STATE device status 2>/dev/null \
     | awk -F: '$1=="wifi" && $3=="connected"{print $2; exit}')
 
-if [ -z "$WIFI_PROFILE" ] || [ -z "$WIFI_DEV" ]; then
+if [[ -z "$WIFI_PROFILE" ]] || [[ -z "$WIFI_DEV" ]]; then
     logger -t argos-wan "no active wifi profile/device; state=$STATE; skip"
     exit 0
 fi
@@ -43,6 +45,7 @@ case "$DEV_STATE" in
         logger -t argos-wan "NM mid-transition ($DEV_STATE); state=$STATE; skip"
         exit 0
         ;;
+    *) ;;
 esac
 
 FAILFILE=/run/argos-wan-watchdog.fails
@@ -51,18 +54,19 @@ FAIL_TTL=600
 PRIOR_PROFILE=""
 PRIOR_COUNT=0
 PRIOR_TIME=0
-if [ -f "$FAILFILE" ]; then
+if [[ -f "$FAILFILE" ]]; then
     { read -r PRIOR_PROFILE; read -r PRIOR_COUNT; read -r PRIOR_TIME; } < "$FAILFILE" 2>/dev/null || true
-    case "$PRIOR_COUNT" in ''|*[!0-9]*) PRIOR_COUNT=0 ;; esac
-    case "$PRIOR_TIME"  in ''|*[!0-9]*) PRIOR_TIME=0 ;; esac
+    # Base-10 coerce to avoid octal parse on values like 08/09.
+    case "$PRIOR_COUNT" in ''|*[!0-9]*) PRIOR_COUNT=0 ;; *) PRIOR_COUNT=$((10#$PRIOR_COUNT)) ;; esac
+    case "$PRIOR_TIME"  in ''|*[!0-9]*) PRIOR_TIME=0  ;; *) PRIOR_TIME=$((10#$PRIOR_TIME))  ;; esac
 fi
 AGE_FAIL=$(( NOW - PRIOR_TIME ))
-if [ "$PRIOR_PROFILE" != "$WIFI_PROFILE" ] || [ "$AGE_FAIL" -gt "$FAIL_TTL" ]; then
+if [[ "$PRIOR_PROFILE" != "$WIFI_PROFILE" ]] || [[ "$AGE_FAIL" -gt "$FAIL_TTL" ]]; then
     PRIOR_COUNT=0
 fi
 
-if [ "$PRIOR_COUNT" -ge "$MAX_FAILS" ]; then
-    if [ "${DRY_RUN:-0}" = "1" ]; then
+if [[ "$PRIOR_COUNT" -ge "$MAX_FAILS" ]]; then
+    if [[ "${DRY_RUN:-0}" = "1" ]]; then
         logger -t argos-wan "DRY_RUN would ESCALATE: down '$WIFI_PROFILE' after ${PRIOR_COUNT} fails (let NM autoconnect pick alternate)"
         exit 0
     fi
@@ -75,7 +79,7 @@ fi
 
 NEW_COUNT=$(( PRIOR_COUNT + 1 ))
 
-if [ "${DRY_RUN:-0}" = "1" ]; then
+if [[ "${DRY_RUN:-0}" = "1" ]]; then
     logger -t argos-wan "DRY_RUN would reconnect profile='$WIFI_PROFILE' dev=$WIFI_DEV state=$STATE (attempt ${NEW_COUNT}/${MAX_FAILS})"
     exit 0
 fi
@@ -89,7 +93,7 @@ if timeout 30 nmcli connection up "$WIFI_PROFILE" ifname "$WIFI_DEV" >"$OUT" 2>&
 else
     RC=$?
     printf '%s\n%d\n%d\n' "$WIFI_PROFILE" "$NEW_COUNT" "$NOW" > "$FAILFILE"
-    if [ "$RC" -eq 124 ]; then
+    if [[ "$RC" -eq 124 ]]; then
         logger -t argos-wan "reconnect TIMEOUT 30s: '$WIFI_PROFILE' (fail ${NEW_COUNT}/${MAX_FAILS}; stamp held)"
     else
         logger -t argos-wan "reconnect FAILED rc=$RC (fail ${NEW_COUNT}/${MAX_FAILS}): $(head -c 300 "$OUT" 2>/dev/null)"

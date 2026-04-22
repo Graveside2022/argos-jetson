@@ -24,7 +24,7 @@ Drone Detection / CoT Gateway / Tactical Display Bridge
 
 ## Repository
 
-https://github.com/snstac/dronecot
+<https://github.com/snstac/dronecot>
 
 ---
 

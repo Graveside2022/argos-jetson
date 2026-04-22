@@ -24,7 +24,7 @@ Device Fingerprinting / Network Asset Identification / Passive Reconnaissance
 
 ## Repository
 
-https://github.com/xnih/satori
+<https://github.com/xnih/satori>
 
 ---
 

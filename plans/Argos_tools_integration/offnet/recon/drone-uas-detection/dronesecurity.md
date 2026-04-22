@@ -23,7 +23,7 @@ Passive DJI DroneID Protocol Decoder / RF Signal Analysis
 
 ## Source
 
-- **Repository**: https://github.com/RUB-SysSec/DroneSecurity
+- **Repository**: <https://github.com/RUB-SysSec/DroneSecurity>
 - **Branch**: public_squash
 - **Status**: ACTIVE (NDSS 2023 publication)
 - **Language**: Python

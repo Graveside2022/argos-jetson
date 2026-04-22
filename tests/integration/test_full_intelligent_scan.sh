@@ -6,6 +6,7 @@ echo "This will capture the full scan process including power measurement..."
 
 # Start the API call in background and capture output
 timeout 30 curl -N -X POST http://localhost:5173/api/gsm-evil/intelligent-scan-stream 2>/dev/null > /tmp/scan_output.txt &
+# shellcheck disable=SC2034  # CURL_PID kept for potential future cleanup; timeout 30 bounds the process
 CURL_PID=$!
 
 echo "Waiting for scan to complete (30 seconds max)..."

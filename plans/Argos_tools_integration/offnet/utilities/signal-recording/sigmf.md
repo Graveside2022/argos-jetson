@@ -41,8 +41,8 @@ SDR Metadata Standard / IQ Recording Management / Signal Archive Format
 
 ## Repository
 
-- **GitHub (spec)**: https://github.com/sigmf/SigMF
-- **GitHub (python)**: https://github.com/sigmf/sigmf-python
+- **GitHub (spec)**: <https://github.com/sigmf/SigMF>
+- **GitHub (python)**: <https://github.com/sigmf/sigmf-python>
 - **Language**: Specification (JSON Schema) + Python library
 - **License**: Open source
 - **Stars**: ~431 (spec) + ~60 (python)

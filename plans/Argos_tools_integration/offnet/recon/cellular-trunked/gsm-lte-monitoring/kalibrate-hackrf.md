@@ -26,7 +26,7 @@ Cellular Reconnaissance / GSM Tower Scanner
 
 ## Repository
 
-https://github.com/scateu/kalibrate-hackrf
+<https://github.com/scateu/kalibrate-hackrf>
 
 ---
 

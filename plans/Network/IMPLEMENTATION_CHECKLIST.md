@@ -687,13 +687,13 @@ curl http://<this-node-tailscale-ip>:5173/api/health
 
 ## Summary: What's Missing
 
-### HOST (Raspberry Pi):
+### HOST (Raspberry Pi)
 
 - [x] Tailscale VPN (likely not installed yet)
 - [x] Hostname configuration
 - [x] Firewall rules for mesh traffic
 
-### DOCKER (argos-dev):
+### DOCKER (argos-dev)
 
 - [ ] Mesh API endpoints (3 new files)
 - [ ] Mesh stores (3 new files)

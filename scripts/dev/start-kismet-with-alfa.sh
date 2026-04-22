@@ -10,7 +10,7 @@ echo ""
 # Source the detection script to find Alfa adapter
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DETECT_SCRIPT="$SCRIPT_DIR/detect-alfa-adapter.sh"
-if [ ! -f "$DETECT_SCRIPT" ]; then
+if [[ ! -f "$DETECT_SCRIPT" ]]; then
     echo "[ERROR] Alfa detection script not found at: $DETECT_SCRIPT"
     exit 1
 fi
@@ -22,7 +22,7 @@ DETECT_RESULT=$?
 
 echo "$DETECT_OUTPUT"
 
-if [ $DETECT_RESULT -ne 0 ]; then
+if [[ $DETECT_RESULT -ne 0 ]]; then
     echo ""
     echo "[ERROR] No Alfa adapter detected. Cannot start Kismet."
     echo "   Please connect an Alfa WiFi adapter and try again."
@@ -32,7 +32,7 @@ fi
 # Extract interface name from detection output
 ALFA_INTERFACE=$(echo "$DETECT_OUTPUT" | grep "Primary interface selected:" | cut -d' ' -f4)
 
-if [ -z "$ALFA_INTERFACE" ]; then
+if [[ -z "$ALFA_INTERFACE" ]]; then
     echo "[ERROR] Could not determine Alfa interface name"
     exit 1
 fi
@@ -57,9 +57,9 @@ echo "(Monitor mode will be set up by Kismet if needed)"
 KISMET_CONF_DIR="/etc/kismet"
 KISMET_SITE_CONF="$KISMET_CONF_DIR/kismet_site.conf"
 
-if [ ! -f "$KISMET_SITE_CONF" ] || ! grep -q "gps=gpsd" "$KISMET_SITE_CONF" 2>/dev/null; then
+if [[ ! -f "$KISMET_SITE_CONF" ]] || ! grep -q "gps=gpsd" "$KISMET_SITE_CONF" 2>/dev/null; then
     echo "Configuring Kismet GPS integration..."
-    if [ -w "$KISMET_CONF_DIR" ] || [ "$(id -u)" = "0" ]; then
+    if [[ -w "$KISMET_CONF_DIR" ]] || [[ "$(id -u)" = "0" ]]; then
         echo "gps=gpsd:host=localhost,port=2947" >> "$KISMET_SITE_CONF"
         echo "[PASS] GPS configuration added to $KISMET_SITE_CONF"
     else
@@ -84,6 +84,7 @@ echo ""
 
 # Start Kismet in background/daemon mode
 echo "Starting Kismet in background..."
+# shellcheck disable=SC2086  # KISMET_ARGS holds space-separated flags; word-split is intentional
 nohup kismet $KISMET_ARGS > /tmp/kismet.log 2>&1 &
 KISMET_PID=$!
 
@@ -91,7 +92,7 @@ KISMET_PID=$!
 sleep 2
 
 # Check if Kismet started successfully
-if kill -0 $KISMET_PID 2>/dev/null; then
+if kill -0 "$KISMET_PID" 2>/dev/null; then
     echo "[PASS] Kismet started successfully (PID: $KISMET_PID)"
     echo "   Logs: /tmp/kismet.log"
     exit 0

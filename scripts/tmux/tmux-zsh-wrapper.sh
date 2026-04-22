@@ -19,7 +19,7 @@ export LC_ALL=en_US.UTF-8
 # -2: Force 256 color support
 # -u: Force UTF-8 support
 # Resolve tmux config path
-if [ -f "$(dirname "$0")/tmux.conf" ]; then
+if [[ -f "$(dirname "$0")/tmux.conf" ]]; then
 	TMUX_CONF="$(dirname "$0")/tmux.conf"
 fi
 

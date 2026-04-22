@@ -10,7 +10,6 @@ Hashcat can leverage GPU when available.
 
 import json
 import os
-import re
 import time
 
 from base_module import TacticalModule

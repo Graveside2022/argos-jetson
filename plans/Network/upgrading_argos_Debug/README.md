@@ -94,7 +94,7 @@ Every phase includes:
 
 ## Getting Started
 
-### For Empty Catch Block Fixes:
+### For Empty Catch Block Fixes
 
 ```bash
 cd /home/kali/Documents/Argos/Argos
@@ -110,7 +110,7 @@ cat plans/empty-catch-phase-1.md
 # Follow line-by-line instructions
 ```
 
-### For Svelte 5 Migration:
+### For Svelte 5 Migration
 
 ```bash
 cd /home/kali/Documents/Argos/Argos

@@ -39,7 +39,7 @@ Aviation Digital Datalink / VDL2 Decoding / CPDLC Intelligence / Passive RF Inte
 
 ## Repository
 
-- **GitHub**: https://github.com/szpajder/dumpvdl2
+- **GitHub**: <https://github.com/szpajder/dumpvdl2>
 - **Language**: C
 - **License**: GPL-3.0
 - **Stars**: ~236

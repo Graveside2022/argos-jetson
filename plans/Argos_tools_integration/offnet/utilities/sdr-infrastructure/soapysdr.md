@@ -241,12 +241,12 @@ Extends existing `/api/hardware/*` (3 routes at `src/routes/api/hardware/`):
 
 ### Core Library
 
-|              | Link                                                            |
-| ------------ | --------------------------------------------------------------- |
-| **GitHub**   | https://github.com/pothosware/SoapySDR                          |
-| **Wiki**     | https://github.com/pothosware/SoapySDR/wiki                     |
-| **API Docs** | https://pothosware.github.io/SoapySDR/doxygen/latest/index.html |
-| **License**  | Boost Software License 1.0 (permissive)                         |
+|              | Link                                                              |
+| ------------ | ----------------------------------------------------------------- |
+| **GitHub**   | <https://github.com/pothosware/SoapySDR>                          |
+| **Wiki**     | <https://github.com/pothosware/SoapySDR/wiki>                     |
+| **API Docs** | <https://pothosware.github.io/SoapySDR/doxygen/latest/index.html> |
+| **License**  | Boost Software License 1.0 (permissive)                           |
 
 ### Hardware Driver Modules
 

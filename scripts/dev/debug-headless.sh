@@ -24,7 +24,7 @@ pkill -f "Xvfb $DISPLAY_NUM" 2>/dev/null
 pkill -f "chromium.*remote-debugging-port=$DEBUG_PORT" 2>/dev/null
 
 echo "Starting Xvfb on $DISPLAY_NUM..."
-Xvfb $DISPLAY_NUM -screen 0 1280x1024x24 &
+Xvfb "$DISPLAY_NUM" -screen 0 1280x1024x24 &
 XVFB_PID=$!
 sleep 2
 
@@ -36,7 +36,7 @@ fi
 
 echo "Starting Chromium headless debug on port $DEBUG_PORT..."
 DISPLAY=$DISPLAY_NUM chromium \
-    --remote-debugging-port=$DEBUG_PORT \
+    --remote-debugging-port="$DEBUG_PORT" \
     --no-sandbox \
     --disable-gpu \
     --user-data-dir=/tmp/chrome-debug-profile \
@@ -62,4 +62,4 @@ cleanup() {
     echo "Debug session ended."
 }
 trap cleanup EXIT
-wait $CHROME_PID
+wait "$CHROME_PID"

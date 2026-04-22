@@ -9,7 +9,6 @@ Runs in --batch mode for non-interactive automation.
 """
 
 import json
-import os
 import re
 import time
 

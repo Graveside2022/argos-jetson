@@ -20,7 +20,7 @@
 
 ATAKRR (ATAK Radio Reconnaissance) is an AI/ML-powered RF reconnaissance system that provides automatic modulation classification (AMC), RF device fingerprinting, and transmitter triangulation/trilateration across the 1-6 GHz spectrum using HackRF One or similar SDR hardware. It employs deep learning models (CNN, RNN, and Transformer architectures) to classify RF emissions by modulation type and uniquely fingerprint individual transmitting devices. Detected transmitter locations are output as Cursor-on-Target (CoT) messages for display on ATAK tactical maps with heatmap overlays. Designed for fog computing deployment with distributed HackRF sensors feeding a central processing node.
 
-Documentation: https://jackd.ethertech.org/atakrr/
+Documentation: <https://jackd.ethertech.org/atakrr/>
 
 ## Category
 
@@ -28,7 +28,7 @@ RF Fingerprinting / AI-ML Signal Classification / Transmitter Geolocation / TAK 
 
 ## Repository
 
-https://github.com/ATAKRR/atakrr
+<https://github.com/ATAKRR/atakrr>
 
 ---
 

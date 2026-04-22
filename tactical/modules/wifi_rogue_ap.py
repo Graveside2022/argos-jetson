@@ -11,7 +11,6 @@ REQUIRES: Root privileges, monitor-mode interface.
 """
 
 import json
-import os
 import re
 import time
 

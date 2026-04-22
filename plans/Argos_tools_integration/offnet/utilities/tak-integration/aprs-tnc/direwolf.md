@@ -6,9 +6,9 @@ Software soundcard AX.25 packet modem (TNC) and APRS encoder/decoder. The undisp
 
 ## Links
 
-- **GitHub:** https://github.com/wb2osz/direwolf
-- **RPi APRS Guide (PDF):** https://github.com/wb2osz/direwolf/blob/master/doc/Raspberry-Pi-APRS.pdf
-- **Install Guide:** https://themodernham.com/ultimate-direwolf-tnc-installation-guide-for-windows-and-linux/
+- **GitHub:** <https://github.com/wb2osz/direwolf>
+- **RPi APRS Guide (PDF):** <https://github.com/wb2osz/direwolf/blob/master/doc/Raspberry-Pi-APRS.pdf>
+- **Install Guide:** <https://themodernham.com/ultimate-direwolf-tnc-installation-guide-for-windows-and-linux/>
 
 ## What It Does
 

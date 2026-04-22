@@ -98,7 +98,7 @@ cleanup_orphans() {
   # tshark/dumpcap older than 1 hour
   while IFS= read -r pid; do
     local age_secs
-    age_secs=$(( $(date +%s) - $(stat -c %Y "/proc/$pid" 2>/dev/null || echo "$(date +%s)") ))
+    age_secs=$(( $(date +%s) - $(stat -c %Y "/proc/$pid" 2>/dev/null || date +%s) ))
     if (( age_secs > 3600 )); then
       log "Killing orphan tshark/dumpcap (PID=$pid, age=${age_secs}s)"
       kill "$pid" 2>/dev/null || true
@@ -109,7 +109,7 @@ cleanup_orphans() {
   # Puppeteer Chromium older than 2 hours
   while IFS= read -r pid; do
     local age_secs
-    age_secs=$(( $(date +%s) - $(stat -c %Y "/proc/$pid" 2>/dev/null || echo "$(date +%s)") ))
+    age_secs=$(( $(date +%s) - $(stat -c %Y "/proc/$pid" 2>/dev/null || date +%s) ))
     if (( age_secs > 7200 )); then
       log "Killing orphan Puppeteer Chromium (PID=$pid, age=${age_secs}s)"
       kill "$pid" 2>/dev/null || true
@@ -125,7 +125,7 @@ cleanup_orphans() {
     parent_comm=$(cat "/proc/$ppid/comm" 2>/dev/null || echo "unknown")
     if [[ "$ppid" == "1" || "$parent_comm" == "systemd" ]]; then
       local age_secs
-      age_secs=$(( $(date +%s) - $(stat -c %Y "/proc/$pid" 2>/dev/null || echo "$(date +%s)") ))
+      age_secs=$(( $(date +%s) - $(stat -c %Y "/proc/$pid" 2>/dev/null || date +%s) ))
       if (( age_secs > 30 )); then
         log "Killing orphan bun worker (PID=$pid, PPID=$ppid, age=${age_secs}s)"
         kill "$pid" 2>/dev/null || true

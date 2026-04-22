@@ -24,7 +24,7 @@ MQTT Protocol Exploitation / IoT Network Penetration Testing
 
 ## Repository
 
-https://github.com/akamai-threat-research/mqtt-pwn
+<https://github.com/akamai-threat-research/mqtt-pwn>
 
 ---
 

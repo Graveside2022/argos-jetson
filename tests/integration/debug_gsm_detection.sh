@@ -21,7 +21,7 @@ echo "4. Checking if process is still running:"
 ps aux | grep grgsm | grep -v grep
 
 echo "5. Killing GSM process:"
-sudo kill $GSM_PID 2>/dev/null
+sudo kill "$GSM_PID" 2>/dev/null
 
 echo "6. Testing with different frequency (947.4 MHz - common GSM):"
 sudo /home/ubuntu/projects/Argos/scripts/grgsm_livemon_wrapper --args="type=b200" -s 2e6 -f 947.4M -g 70 &
@@ -31,6 +31,6 @@ sleep 3
 echo "Checking for frames at 947.4 MHz:"
 sudo timeout 3 tcpdump -i lo -nn port 4729 2>/dev/null | wc -l
 
-sudo kill $GSM_PID2 2>/dev/null
+sudo kill "$GSM_PID2" 2>/dev/null
 
 echo "=== DEBUG COMPLETE ==="

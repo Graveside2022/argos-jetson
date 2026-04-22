@@ -25,18 +25,18 @@ if ! command -v gcc &>/dev/null; then
 fi
 echo "  gcc: $(gcc --version | head -1)"
 
-if [ ! -f /usr/lib/aarch64-linux-gnu/libgfortran.so.5 ] && ! ldconfig -p 2>/dev/null | grep -q libgfortran.so.5; then
+if [[ ! -f /usr/lib/aarch64-linux-gnu/libgfortran.so.5 ]] && ! ldconfig -p 2>/dev/null | grep -q libgfortran.so.5; then
     echo "ERROR: libgfortran5 not found. Install with: sudo apt install libgfortran5"
     exit 1
 fi
 echo "  libgfortran5: found"
 
-if [ ! -f "$APM_DIR/lib/libapm_linux.so" ]; then
+if [[ ! -f "$APM_DIR/lib/libapm_linux.so" ]]; then
     echo "ERROR: libapm_linux.so not found at $APM_DIR/lib/"
-    if [ -f "/tmp/libapm_linux_fixed.so" ]; then
+    if [[ -f "/tmp/libapm_linux_fixed.so" ]]; then
         echo "  Copying from /tmp/libapm_linux_fixed.so..."
         cp /tmp/libapm_linux_fixed.so "$APM_DIR/lib/libapm_linux.so"
-    elif [ -f "/tmp/apm-relink/libapm_linux.so" ]; then
+    elif [[ -f "/tmp/apm-relink/libapm_linux.so" ]]; then
         echo "  Copying from /tmp/apm-relink/..."
         cp /tmp/apm-relink/libapm_linux.so "$APM_DIR/lib/"
     else

@@ -24,7 +24,7 @@ Pager Signal Interception / SIGINT Collection
 
 ## Repository
 
-https://github.com/pagermon/pagermon
+<https://github.com/pagermon/pagermon>
 
 ---
 

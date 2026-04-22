@@ -3,7 +3,7 @@ set -euo pipefail
 # Dedicated script to spawn a terminal tab that immediately tails the system logs
 
 echo -e "\033[1;36m[ARGOS]\033[0m Tailing /tmp/argos-dev.log..."
-if [ -f /tmp/argos-dev.log ]; then
+if [[ -f /tmp/argos-dev.log ]]; then
   tail -f /tmp/argos-dev.log | perl -pe '
     $|=1;
     # JSON keys (words followed by colons without quotes)

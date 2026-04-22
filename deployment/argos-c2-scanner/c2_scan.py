@@ -306,7 +306,13 @@ def main():
         tb.start()
 
     try:
+        # Per-sweep heartbeat so "silent because no detects" is distinguishable
+        # from "process wedged" in journalctl. Emits one line every full
+        # C2_CENTERS_MHZ pass (~15 centers x (SETTLE_S + DWELL_S) ≈ 10-15s).
+        sweep_count = 0
         while True:
+            sweep_start = time.monotonic()
+            cycle_detections = 0
             for center_mhz in C2_CENTERS_MHZ:
                 center_hz = int(center_mhz * 1e6)
                 tb.set_center(center_hz)
@@ -316,6 +322,7 @@ def main():
 
                 rf_map = tb.get_latest_map()
                 detections = parse_rf_map(rf_map, center_hz)
+                cycle_detections += len(detections)
 
                 if args.debug and detections:
                     print(f"debug: center={center_mhz} MHz detections={len(detections)}")
@@ -337,6 +344,14 @@ def main():
                                 print(f"debug: zmq send failed: {e}")
 
                 gc.collect()
+
+            sweep_count += 1
+            dt = time.monotonic() - sweep_start
+            print(
+                f"c2-scanner: sweep #{sweep_count} ({len(C2_CENTERS_MHZ)} centers, "
+                f"{dt:.1f}s, {cycle_detections} detection{'s' if cycle_detections != 1 else ''})",
+                flush=True,
+            )
     except KeyboardInterrupt:
         pass
     finally:

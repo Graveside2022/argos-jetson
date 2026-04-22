@@ -1,6 +1,11 @@
 #!/bin/bash
 # Mock sweep tool for testing when no hardware is available
 # Outputs data in hackrf_sweep format
+#
+# GAIN and LNA are parsed from CLI for compat with real hackrf_sweep but
+# ignored by the mock. shellcheck flags them as unused; directive below
+# silences SC2034 at file scope (per-case-branch directives are invalid).
+# shellcheck disable=SC2034
 
 # Send startup message to stderr like real hackrf_sweep
 echo "Mock SDR mode - no hardware detected, generating simulated data" >&2
@@ -37,7 +42,7 @@ while true; do
     
     # Generate mock power values (100 samples)
     POWER_VALUES=""
-    for i in {1..100}; do
+    for _ in {1..100}; do
         # Generate random power between -90 and -30 dB
         POWER=$(echo "scale=2; -90 + $RANDOM * 60 / 32767" | bc)
         POWER_VALUES="${POWER_VALUES}, ${POWER}"

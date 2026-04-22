@@ -82,6 +82,7 @@ attempt_reconnect() {
       sleep 2
       sudo nmcli device connect "$MANAGED_IFACE" 2>/dev/null || true
       ;;
+    *) ;;
   esac
 }
 

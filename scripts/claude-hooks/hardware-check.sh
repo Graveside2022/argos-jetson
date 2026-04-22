@@ -7,14 +7,14 @@ set -euo pipefail
 
 INPUT=$(cat) || exit 0
 TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name' 2>/dev/null) || exit 0
-if [ "$TOOL_NAME" != "Bash" ]; then exit 0; fi
+if [[ "$TOOL_NAME" != "Bash" ]]; then exit 0; fi
 COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // ""' 2>/dev/null) || exit 0
 
 if echo "$COMMAND" | grep -qE '^git |^npm |^npx |^tsc |^node |^vitest '; then exit 0; fi
 if ! echo "$COMMAND" | grep -qE 'hackrf_|grgsm_|api/hackrf/(start|sweep)|api/gsm-evil/control'; then exit 0; fi
 
 HACKRF_PROCS=$(pgrep -fa 'hackrf_|grgsm_' 2>/dev/null | grep -v grep || true)
-if [ -n "$HACKRF_PROCS" ]; then
+if [[ -n "$HACKRF_PROCS" ]]; then
     PROC_NAME=$(echo "$HACKRF_PROCS" | head -1 | awk '{for(i=2;i<=NF;i++) printf "%s ", $i}')
     REASON="HackRF device is in use by: ${PROC_NAME}
 

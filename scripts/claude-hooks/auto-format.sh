@@ -10,7 +10,7 @@ LOCKFILE="/tmp/argos-autoformat.lock"
 INPUT=$(cat) || exit 0
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // ""' 2>/dev/null)
 
-if [ -z "$FILE_PATH" ] || [ ! -f "$FILE_PATH" ] || [ -L "$FILE_PATH" ]; then exit 0; fi
+if [[ -z "$FILE_PATH" ]] || [[ ! -f "$FILE_PATH" ]] || [[ -L "$FILE_PATH" ]]; then exit 0; fi
 
 command -v npx >/dev/null 2>&1 || exit 0
 
@@ -20,9 +20,9 @@ case "$FILE_PATH" in
     *) exit 0 ;;
 esac
 
-if [ -f "$LOCKFILE" ]; then
+if [[ -f "$LOCKFILE" ]]; then
     LOCK_PID=$(cat "$LOCKFILE" 2>/dev/null)
-    if [ -n "$LOCK_PID" ] && kill -0 "$LOCK_PID" 2>/dev/null; then
+    if [[ -n "$LOCK_PID" ]] && kill -0 "$LOCK_PID" 2>/dev/null; then
         exit 0
     fi
     rm -f "$LOCKFILE"
@@ -42,5 +42,6 @@ case "$FILE_EXT" in
         npx prettier --write "$FILE_PATH" 2>/dev/null || true
         echo "✓ Formatted: $FILE_PATH" >&2
         ;;
+    *) ;;
 esac
 exit 0

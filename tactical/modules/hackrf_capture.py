@@ -7,7 +7,6 @@ sample rate, writing to a .iq8s file for offline analysis.
 """
 
 import argparse
-import os
 from pathlib import Path
 
 from base_module import TacticalModule
@@ -132,7 +131,7 @@ class HackrfCapture(TacticalModule):
         for line in stderr.splitlines():
             if "samples received" in line.lower():
                 parts = line.split()
-                for i, tok in enumerate(parts):
+                for _i, tok in enumerate(parts):
                     if tok.isdigit():
                         samples_received = int(tok)
                         break

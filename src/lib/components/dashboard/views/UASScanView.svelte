@@ -39,6 +39,11 @@
 	let scrollEl: HTMLDivElement | null = null;
 	let stickToBottom = $state(true);
 
+	const RECONNECT_DELAYS_MS = [2_000, 4_000, 8_000, 16_000, 30_000];
+	let reconnectAttempts = 0;
+	let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+	let lastLineWasStreamError = false;
+
 	/** Parse a journalctl --output=short-iso line.
 	 *
 	 * Typical format:
@@ -92,17 +97,44 @@
 
 	function openStream(): void {
 		if (!browser) return;
-		closeStream(); // idempotent
+		closeStream();
 		es = new EventSource('/api/dragonsync/logs');
-		es.onmessage = (ev) => appendLine(ev.data);
+		es.onopen = () => {
+			reconnectAttempts = 0;
+			lastLineWasStreamError = false;
+		};
+		es.onmessage = (ev) => {
+			lastLineWasStreamError = false;
+			appendLine(ev.data);
+		};
 		es.onerror = () => {
-			// EventSource auto-reconnects; surface the gap to the operator
-			// so they know something flickered.
-			appendLine('[stream error] reconnecting...');
+			if (es) {
+				es.close();
+				es = null;
+			}
+			if (!lastLineWasStreamError) {
+				appendLine('[stream error] reconnecting...');
+				lastLineWasStreamError = true;
+			}
+			scheduleReconnect();
 		};
 	}
 
+	function scheduleReconnect(): void {
+		if (reconnectTimer !== null) return;
+		const idx = Math.min(reconnectAttempts, RECONNECT_DELAYS_MS.length - 1);
+		reconnectAttempts++;
+		reconnectTimer = setTimeout(() => {
+			reconnectTimer = null;
+			openStream();
+		}, RECONNECT_DELAYS_MS[idx]);
+	}
+
 	function closeStream(): void {
+		if (reconnectTimer !== null) {
+			clearTimeout(reconnectTimer);
+			reconnectTimer = null;
+		}
 		if (es) {
 			es.close();
 			es = null;

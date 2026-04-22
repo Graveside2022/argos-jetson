@@ -32,8 +32,8 @@ LTE/5G Software Radio Suite / Passive Sniffer / Rogue Base Station
 
 ## Repository
 
-- https://github.com/srsran/srsRAN_4G (4G suite)
-- https://github.com/srsran/srsRAN_Project (5G O-RAN)
+- <https://github.com/srsran/srsRAN_4G> (4G suite)
+- <https://github.com/srsran/srsRAN_Project> (5G O-RAN)
 
 ---
 
