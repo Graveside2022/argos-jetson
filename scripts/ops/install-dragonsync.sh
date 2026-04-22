@@ -21,6 +21,13 @@
 # Usage:
 #   sudo ./scripts/ops/install-dragonsync.sh
 #
+# Cross-file var contract: the paths + URLs + iface defined below are consumed
+# by the sourced _deps.sh / _units.sh / _post.sh modules. Shellcheck treats them
+# as unused when it can't follow the source (e.g. in trunk's sandboxed runs), so
+# SC2034 is disabled at file scope. Locally, `shellcheck -x install-dragonsync.sh`
+# still verifies the cross-file usage via the `# shellcheck source=` directives.
+# shellcheck disable=SC2034
+
 set -euo pipefail
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -85,13 +92,13 @@ info "Arch: $(uname -m)"
 # Phase modules (sourced in order — each depends on the previous phase's state)
 # ─────────────────────────────────────────────────────────────────────────────
 
-# shellcheck source=dragonsync/_deps.sh
+# shellcheck source=dragonsync/_deps.sh disable=SC1091
 source "$MODULES_DIR/_deps.sh"
 
-# shellcheck source=dragonsync/_units.sh
+# shellcheck source=dragonsync/_units.sh disable=SC1091
 source "$MODULES_DIR/_units.sh"
 
-# shellcheck source=dragonsync/_post.sh
+# shellcheck source=dragonsync/_post.sh disable=SC1091
 source "$MODULES_DIR/_post.sh"
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -127,6 +134,7 @@ fi
 # ─────────────────────────────────────────────────────────────────────────────
 
 step "INSTALL COMPLETE"
+# shellcheck disable=SC2153  # DRONEID_BIN + DRONEID_OK set by sourced _deps.sh
 cat <<SUMMARY
   droneid-go binary:    $DRONEID_BIN $( [[ $DRONEID_OK -eq 1 ]] && echo "(OK)" || echo "(MISSING — see warnings above)" )
   DragonSync:           $DRAGONSYNC_DIR

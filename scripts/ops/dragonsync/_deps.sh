@@ -226,6 +226,7 @@ info "config.ini patched (api/zmq/fpv keys set)."
 
 step "droneid-go BINARY"
 
+# shellcheck disable=SC2153  # DRONEID_DIR set by parent install-dragonsync.sh
 mkdir -p "$DRONEID_DIR"
 
 # Keep the repo metadata around (LICENSE / README) for future operator reference,
