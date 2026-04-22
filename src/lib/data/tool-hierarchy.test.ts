@@ -117,7 +117,8 @@ describe('Tool Navigation Debug', () => {
 	// count is updated. If this file triggers false positives more than once
 	// or twice, convert to range checks (e.g. `toBeGreaterThanOrEqual(90)`) or
 	// delete the category counts in favor of the structural assertions above.
-	// Counts last updated 2026-04-23 (Wireshark noVNC tenant added under ONNET).
+	// Counts are synced with the toolHierarchy data — bump when tools are added
+	// under ONNET/OFFNET/etc. See git history for the most recent adjustment.
 
 	it('total tools across all categories is 97', () => {
 		expect(countTools(toolHierarchy.root).total).toBe(97);
