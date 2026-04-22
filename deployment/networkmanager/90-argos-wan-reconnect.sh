@@ -43,6 +43,7 @@ case "$DEV_STATE" in
         logger -t argos-wan "NM mid-transition ($DEV_STATE); state=$STATE; skip"
         exit 0
         ;;
+    *) ;;
 esac
 
 FAILFILE=/run/argos-wan-watchdog.fails
@@ -53,8 +54,8 @@ PRIOR_COUNT=0
 PRIOR_TIME=0
 if [[ -f "$FAILFILE" ]]; then
     { read -r PRIOR_PROFILE; read -r PRIOR_COUNT; read -r PRIOR_TIME; } < "$FAILFILE" 2>/dev/null || true
-    case "$PRIOR_COUNT" in ''|*[!0-9]*) PRIOR_COUNT=0 ;; esac
-    case "$PRIOR_TIME"  in ''|*[!0-9]*) PRIOR_TIME=0 ;; esac
+    case "$PRIOR_COUNT" in ''|*[!0-9]*) PRIOR_COUNT=0 ;; *) ;; esac
+    case "$PRIOR_TIME"  in ''|*[!0-9]*) PRIOR_TIME=0 ;; *) ;; esac
 fi
 AGE_FAIL=$(( NOW - PRIOR_TIME ))
 if [[ "$PRIOR_PROFILE" != "$WIFI_PROFILE" ]] || [[ "$AGE_FAIL" -gt "$FAIL_TTL" ]]; then

@@ -25,6 +25,7 @@ for arg in "$@"; do
     --yes|-y) NON_INTERACTIVE=true ;;
     --verbose|-v) VERBOSE=true ;;
     --dry-run) DRY_RUN=true ;;
+    *) ;;
   esac
 done
 export DRY_RUN

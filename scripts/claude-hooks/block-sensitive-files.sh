@@ -15,6 +15,7 @@ FILENAME=$(basename "$FILE_PATH")
 if echo "$FILENAME" | grep -qE '^\.(env|env[._-][A-Za-z0-9._-]+)$'; then
     case "$FILENAME" in
         .env.example|.env.template|.env.sample) exit 0 ;;
+        *) ;;
     esac
     REASON="BLOCKED: Editing sensitive file '$FILENAME'. This file contains secrets (API keys, tokens).
 

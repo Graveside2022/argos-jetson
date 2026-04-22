@@ -42,5 +42,6 @@ case "$FILE_EXT" in
         npx prettier --write "$FILE_PATH" 2>/dev/null || true
         echo "✓ Formatted: $FILE_PATH" >&2
         ;;
+    *) ;;
 esac
 exit 0
