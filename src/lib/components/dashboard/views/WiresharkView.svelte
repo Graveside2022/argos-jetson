@@ -7,11 +7,20 @@
 	import ToolViewWrapper from './ToolViewWrapper.svelte';
 	import WebtakVncViewer from './webtak/webtak-vnc-viewer.svelte';
 
-	type ServiceStatus = 'checking' | 'starting' | 'running' | 'stopped' | 'error';
+	type ServiceStatus =
+		| 'idle'
+		| 'checking'
+		| 'starting'
+		| 'running'
+		| 'stopped'
+		| 'error'
+		| 'disabled';
 
-	let serviceStatus = $state<ServiceStatus>('checking');
+	let serviceStatus = $state<ServiceStatus>('idle');
 	let errorMsg = $state('');
 	let wsUrl = $state('');
+	let captureIface = $state<string | null>(null);
+	let captureFilter = $state<string | null>(null);
 	let vncKey = $state(0);
 	let stopping = $state(false);
 
@@ -28,17 +37,30 @@
 		return msg ?? '';
 	}
 
-	function applyResultData(data: Record<string, unknown>): void {
+	function isUnrecoverable(reason: string): boolean {
+		return /not in the 'wireshark' group|Invalid Wireshark display filter/i.test(reason);
+	}
+
+	function getRunningWsUrl(data: Record<string, unknown>): string | null {
 		const isRunning = Boolean(data.isRunning ?? data.success);
 		const wsPortVal = data.wsPort as number | undefined;
 		const wsPathVal = data.wsPath as string | undefined;
-		if (isRunning && wsPortVal && wsPathVal) {
-			wsUrl = buildWsUrl(wsPortVal, wsPathVal);
+		if (!isRunning || !wsPortVal || !wsPathVal) return null;
+		return buildWsUrl(wsPortVal, wsPathVal);
+	}
+
+	function applyResultData(data: Record<string, unknown>): void {
+		const url = getRunningWsUrl(data);
+		if (url) {
+			wsUrl = url;
+			captureIface = (data.iface as string | undefined) ?? null;
+			captureFilter = (data.filter as string | undefined) ?? null;
 			serviceStatus = 'running';
 			return;
 		}
-		serviceStatus = 'stopped';
-		errorMsg = extractReason(data);
+		const reason = extractReason(data);
+		errorMsg = reason;
+		serviceStatus = isUnrecoverable(reason) ? 'disabled' : 'stopped';
 	}
 
 	async function postControl(action: 'start' | 'stop' | 'status'): Promise<Response> {
@@ -55,8 +77,10 @@
 		try {
 			const res = await postControl('start');
 			if (!res.ok) {
-				serviceStatus = 'error';
-				errorMsg = `Start failed: ${res.status}`;
+				const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+				const reason = extractReason(body) || `Start failed: ${res.status}`;
+				errorMsg = reason;
+				serviceStatus = isUnrecoverable(reason) ? 'disabled' : 'error';
 				return;
 			}
 			applyResultData(await res.json());
@@ -117,19 +141,30 @@
 {/snippet}
 
 <ToolViewWrapper title="Wireshark Protocol Analyzer" onBack={goBack} actions={stopAction}>
-	{#if serviceStatus === 'checking' || serviceStatus === 'starting'}
+	{#if serviceStatus === 'idle'}
+		<div class="wireshark-status">
+			<p class="status-label">WIRESHARK READY</p>
+			<p class="status-detail">Initializing capture session…</p>
+		</div>
+	{:else if serviceStatus === 'checking' || serviceStatus === 'starting'}
 		<div class="wireshark-status">
 			<div class="spinner" aria-hidden="true"></div>
 			<p class="status-label">
 				{serviceStatus === 'starting' ? 'LAUNCHING WIRESHARK…' : 'CONNECTING…'}
 			</p>
-			<p class="status-detail">Capturing on interface "any" with filter "not arp"</p>
+			<p class="status-detail">Spawning Xtigervnc + Wireshark Qt frontend + websockify</p>
 		</div>
 	{:else if serviceStatus === 'stopped'}
 		<div class="wireshark-status">
 			<p class="status-label">WIRESHARK UNAVAILABLE</p>
 			<p class="status-detail">{errorMsg || 'Service not running'}</p>
 			<button class="retry-btn" onclick={reconnect}>START CAPTURE</button>
+		</div>
+	{:else if serviceStatus === 'disabled'}
+		<div class="wireshark-status">
+			<p class="status-label error">WIRESHARK DISABLED</p>
+			<p class="status-detail">{errorMsg || 'Preflight failed'}</p>
+			<p class="status-hint">Resolve the issue above, then return to this view.</p>
 		</div>
 	{:else if serviceStatus === 'error'}
 		<div class="wireshark-status">
@@ -141,6 +176,12 @@
 		{#key vncKey}
 			<WebtakVncViewer {wsUrl} onDisconnect={handleDisconnect} resizeSession={true} />
 		{/key}
+		{#if captureIface || captureFilter}
+			<div class="capture-ribbon">
+				<span>iface: <code>{captureIface ?? 'any'}</code></span>
+				<span>filter: <code>{captureFilter ?? '(none)'}</code></span>
+			</div>
+		{/if}
 	{/if}
 </ToolViewWrapper>
 
@@ -167,6 +208,30 @@
 		font-family: 'Fira Code', monospace;
 		font-size: 11px;
 		color: var(--muted-foreground, #888);
+		max-width: 40rem;
+		text-align: center;
+	}
+	.status-hint {
+		font-family: 'Fira Code', monospace;
+		font-size: 10px;
+		color: var(--muted-foreground, #666);
+	}
+	.capture-ribbon {
+		position: absolute;
+		bottom: 0.5rem;
+		left: 0.5rem;
+		display: flex;
+		gap: 1rem;
+		padding: 0.25rem 0.5rem;
+		background: var(--card, #1a1a1a);
+		border: 1px solid var(--border, #2e2e2e);
+		border-radius: 3px;
+		font-family: 'Fira Code', monospace;
+		font-size: 10px;
+		color: var(--muted-foreground, #888);
+	}
+	.capture-ribbon code {
+		color: var(--primary, #a8b8e0);
 	}
 	.retry-btn {
 		margin-top: 0.5rem;

@@ -16,6 +16,7 @@ import { delay } from '$lib/utils/delay';
 import { logger } from '$lib/utils/logger';
 
 import {
+	assertWiresharkGroupMember,
 	clearSpawnError,
 	getCurrentFilter,
 	getCurrentIface,
@@ -27,9 +28,10 @@ import {
 	setVncBackground,
 	spawnWebsockify,
 	spawnWiresharkGui,
-	spawnXtigervnc
+	spawnXtigervnc,
+	validateDisplayFilter,
+	waitForStackReady
 } from './wireshark-vnc-processes';
-import { waitForStackReady } from './wireshark-vnc-processes';
 import {
 	WIRESHARK_DEFAULT_FILTER,
 	WIRESHARK_DEFAULT_IFACE,
@@ -121,11 +123,27 @@ async function handleExistingStack(
 	return null;
 }
 
+function filterRejectedResult(filter: string, reason: string): WiresharkVncControlResult {
+	return {
+		success: false,
+		message: 'Invalid Wireshark display filter',
+		error: reason,
+		filter
+	};
+}
+
 async function runStart(iface: string, filter: string): Promise<WiresharkVncControlResult> {
 	registerShutdownHandler();
+	await assertWiresharkGroupMember();
 
 	const reuse = await handleExistingStack(iface, filter);
 	if (reuse) return reuse;
+
+	const filterError = await validateDisplayFilter(filter);
+	if (filterError) {
+		logger.warn('[wireshark-vnc] rejected invalid display filter', { filter, filterError });
+		return filterRejectedResult(filter, filterError);
+	}
 
 	await killOrphansByPort();
 	await spawnStackProcesses(iface, filter);

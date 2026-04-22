@@ -11,6 +11,7 @@
  */
 
 import { type ChildProcess, spawn } from 'child_process';
+import { readFile } from 'fs/promises';
 import { connect as netConnect } from 'net';
 
 import { env } from '$lib/server/env';
@@ -22,7 +23,6 @@ import { resolveBin } from '../vnc-common/resolve-bin';
 import {
 	WIRESHARK_DEPTH,
 	WIRESHARK_GEOMETRY,
-	WIRESHARK_GUI_PATH,
 	WIRESHARK_PROFILE,
 	WIRESHARK_VNC_DISPLAY,
 	WIRESHARK_VNC_PORT,
@@ -41,6 +41,20 @@ const resolveWebsockifyBin = () =>
 		[env.ARGOS_VNC_WEBSOCKIFY_BIN, '/usr/bin/websockify', '/usr/local/bin/websockify'],
 		'websockify',
 		'ARGOS_VNC_WEBSOCKIFY_BIN'
+	);
+
+const resolveWiresharkBin = () =>
+	resolveBin(
+		[env.ARGOS_VNC_WIRESHARK_BIN, '/usr/bin/wireshark', '/usr/local/bin/wireshark'],
+		'wireshark',
+		'ARGOS_VNC_WIRESHARK_BIN'
+	);
+
+const resolveTsharkBin = () =>
+	resolveBin(
+		[env.ARGOS_VNC_TSHARK_BIN, '/usr/bin/tshark', '/usr/local/bin/tshark'],
+		'tshark',
+		'ARGOS_VNC_TSHARK_BIN'
 	);
 
 // ───────────────────────────── module state ──────────────────────────────
@@ -79,9 +93,84 @@ export function setCurrentCapture(iface: string, filter: string): void {
 	currentFilter = filter;
 }
 
-export function clearCurrentCapture(): void {
+function clearCurrentCapture(): void {
 	currentIface = null;
 	currentFilter = null;
+}
+
+// ────────────────────────────── preflights ──────────────────────────────
+
+/** Regex fingerprints that mark tshark's `-Y` compile failures on stderr. */
+const TSHARK_FILTER_ERROR_PATTERNS = [
+	/is neither a field nor a protocol name/i,
+	/isn'?t a valid display filter/i,
+	/^tshark:\s*".*?"\s+is/im,
+	/^tshark:\s*invalid\s+display\s+filter/im
+];
+
+function matchTsharkFilterError(output: string): string | null {
+	if (!TSHARK_FILTER_ERROR_PATTERNS.some((re) => re.test(output))) return null;
+	const firstLine = output.split(/\r?\n/).find((l) => l.trim().length > 0);
+	return (firstLine ?? output).trim();
+}
+
+/**
+ * Compile-check a Wireshark display filter via `tshark -Y <filter> -r /dev/null`.
+ *
+ * Returns `null` when the filter parses cleanly, else the tshark diagnostic.
+ * tshark's subsequent pcap read error on `/dev/null` is ignored — it only
+ * fires AFTER the filter compiles, so its absence or presence is not
+ * evidence against filter validity.
+ */
+export async function validateDisplayFilter(filter: string): Promise<string | null> {
+	try {
+		await execFileAsync(resolveTsharkBin(), ['-Y', filter, '-r', '/dev/null'], {
+			timeout: 5000
+		});
+		return null;
+	} catch (err) {
+		const e = err as { stderr?: string; stdout?: string };
+		const combined = `${e.stderr ?? ''}\n${e.stdout ?? ''}`;
+		return matchTsharkFilterError(combined);
+	}
+}
+
+async function lookupWiresharkGid(): Promise<number | null> {
+	let etcGroup: string;
+	try {
+		etcGroup = await readFile('/etc/group', 'utf-8');
+	} catch {
+		return null;
+	}
+	const match = /^wireshark:[^:]*:(\d+):/m.exec(etcGroup);
+	return match ? Number.parseInt(match[1], 10) : null;
+}
+
+/**
+ * Assert the Argos process is a member of the `wireshark` group on Linux.
+ *
+ * `dumpcap` ships mode `0754 root:wireshark` — exec is gated on group
+ * membership independently of CAP_NET_RAW. Sessions started before
+ * `usermod -aG wireshark` do NOT inherit the new supplementary group; user
+ * must relaunch via `sg wireshark -c '…'` or restart the systemd unit.
+ *
+ * Silently no-ops when `/etc/group` has no `wireshark` entry (dev machines
+ * without wireshark installed) or when `process.getgroups` is unavailable.
+ */
+export async function assertWiresharkGroupMember(): Promise<void> {
+	const getGroups = (process as { getgroups?: () => number[] }).getgroups;
+	if (typeof getGroups !== 'function') return;
+	const groups = getGroups();
+	const wiresharkGid = await lookupWiresharkGid();
+	if (wiresharkGid == null) return;
+	if (groups.includes(wiresharkGid)) return;
+	throw new Error(
+		`Argos process is not in the 'wireshark' group (gid ${wiresharkGid}). ` +
+			`dumpcap refuses exec → Wireshark will launch but show "Permission denied" ` +
+			`on capture. Fix: add user to group (sudo usermod -aG wireshark <user>) ` +
+			`then relaunch Argos via 'sg wireshark -c …' or restart the systemd unit — ` +
+			`existing login sessions do NOT inherit the new group.`
+	);
 }
 
 // ─────────────────────────────── spawn ──────────────────────────────────
@@ -139,7 +228,7 @@ export function setVncBackground(): void {
  */
 export function spawnWiresharkGui(iface: string, filter: string): void {
 	wiresharkProcess = spawn(
-		WIRESHARK_GUI_PATH,
+		resolveWiresharkBin(),
 		[
 			'-C',
 			WIRESHARK_PROFILE,

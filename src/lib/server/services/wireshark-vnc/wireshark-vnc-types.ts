@@ -26,9 +26,6 @@ export const WIRESHARK_GEOMETRY = '1440x900';
 /** Color depth for the virtual framebuffer. */
 export const WIRESHARK_DEPTH = 24;
 
-/** Path to the Wireshark Qt GUI binary. */
-export const WIRESHARK_GUI_PATH = '/usr/bin/wireshark';
-
 /** Default capture interface. `any` captures across all interfaces (needs dumpcap CAP_NET_RAW). */
 export const WIRESHARK_DEFAULT_IFACE = 'any';
 

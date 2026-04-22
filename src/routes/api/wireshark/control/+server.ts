@@ -14,7 +14,7 @@
  *   https://www.wireshark.org/docs/wsug_html_chunked/ChCustCommandLine
  */
 
-import { error, json } from '@sveltejs/kit';
+import { json } from '@sveltejs/kit';
 import { z } from 'zod';
 
 import { createHandler } from '$lib/server/api/create-handler';
@@ -23,7 +23,6 @@ import {
 	startWiresharkVnc,
 	stopWiresharkVnc
 } from '$lib/server/services/wireshark-vnc/wireshark-vnc-control-service';
-import { safeParseWithHandling } from '$lib/utils/validation-error';
 
 // Interface names are short identifiers; cap length to head off command-line
 // abuse even though argv is passed as an array (no shell).
@@ -58,14 +57,11 @@ function resultStatus(result: WiresharkVncResult): number {
 
 export const POST = createHandler(
 	async ({ request }) => {
-		let rawBody: unknown;
-		try {
-			rawBody = await request.json();
-		} catch {
-			return error(400, 'Invalid JSON in request body');
-		}
-		const validated = safeParseWithHandling(_WiresharkVncControlSchema, rawBody, 'user-action');
-		if (!validated) return error(400, 'Invalid Wireshark VNC control request');
+		// createHandler has already run _WiresharkVncControlSchema.safeParse on
+		// a clone of this body and returned 400 on failure, so .parse() here is
+		// a typed narrow that cannot throw at runtime.
+		const body = (await request.json()) as unknown;
+		const validated = _WiresharkVncControlSchema.parse(body);
 
 		if (validated.action === 'start') {
 			const result = await startWiresharkVnc(validated.iface, validated.filter);
