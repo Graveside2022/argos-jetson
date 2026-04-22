@@ -42,19 +42,26 @@ import {
 } from './wireshark-vnc-types';
 
 // ───────────────────── shutdown handler (idempotent) ─────────────────────
-
-let shutdownHandlerRegistered = false;
+//
+// Registration flag lives on globalThis so Vite HMR reloads of this module
+// don't re-register the listeners each time (stacking handlers on every
+// edit would eventually exceed Node's default maxListeners). Typed in
+// src/app.d.ts as __argos_wiresharkVnc_shutdown_registered.
 
 function registerShutdownHandler(): void {
-	if (shutdownHandlerRegistered) return;
-	shutdownHandlerRegistered = true;
+	if (globalThis.__argos_wiresharkVnc_shutdown_registered) return;
+	globalThis.__argos_wiresharkVnc_shutdown_registered = true;
 	const handler = () => {
 		logger.info('[wireshark-vnc] received shutdown signal, tearing down stack');
 		void killAllProcesses();
 	};
+	// Only SIGTERM / SIGINT — the 'exit' event runs synchronously and the
+	// process terminates immediately after, so the async killAllProcesses()
+	// would never complete. Orphan cleanup on hard exit is covered by the
+	// child processes' `detached: true` + parent-death semantics and by
+	// `killOrphansByPort()` run at the start of the next stack spawn.
 	process.once('SIGTERM', handler);
 	process.once('SIGINT', handler);
-	process.once('exit', handler);
 }
 
 // ─────────────────────────────── start ──────────────────────────────────

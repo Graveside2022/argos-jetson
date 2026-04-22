@@ -58,44 +58,57 @@ const resolveTsharkBin = () =>
 	);
 
 // ───────────────────────────── module state ──────────────────────────────
+// Persisted on globalThis so Vite HMR reloads don't orphan the running
+// processes (module `let` bindings would be lost on every server-file edit).
+// The shape is typed in src/app.d.ts.
 
-let xvncProcess: ChildProcess | null = null;
-let wiresharkProcess: ChildProcess | null = null;
-let websockifyProcess: ChildProcess | null = null;
-let currentIface: string | null = null;
-let currentFilter: string | null = null;
-// Latched error from any child's async 'error' event. Cleared at stack start.
-let spawnError: Error | null = null;
+function ensureState() {
+	// globalThis.__argos_wiresharkVnc_state is typed in src/app.d.ts.
+	if (!globalThis.__argos_wiresharkVnc_state) {
+		globalThis.__argos_wiresharkVnc_state = {
+			xvncProcess: null,
+			wiresharkProcess: null,
+			websockifyProcess: null,
+			currentIface: null,
+			currentFilter: null,
+			// Latched error from any child's async 'error' event. Cleared at stack start.
+			spawnError: null
+		};
+	}
+	return globalThis.__argos_wiresharkVnc_state;
+}
+
+const state = ensureState();
 
 function recordSpawnError(label: string, err: Error): void {
 	logger.error(`[wireshark-vnc] ${label} error`, { error: err.message });
-	if (!spawnError) spawnError = new Error(`${label}: ${err.message}`);
+	if (!state.spawnError) state.spawnError = new Error(`${label}: ${err.message}`);
 }
 
 export function clearSpawnError(): void {
-	spawnError = null;
+	state.spawnError = null;
 }
 
 export function getSpawnError(): Error | null {
-	return spawnError;
+	return state.spawnError;
 }
 
 export function getCurrentIface(): string | null {
-	return currentIface;
+	return state.currentIface;
 }
 
 export function getCurrentFilter(): string | null {
-	return currentFilter;
+	return state.currentFilter;
 }
 
 export function setCurrentCapture(iface: string, filter: string): void {
-	currentIface = iface;
-	currentFilter = filter;
+	state.currentIface = iface;
+	state.currentFilter = filter;
 }
 
 function clearCurrentCapture(): void {
-	currentIface = null;
-	currentFilter = null;
+	state.currentIface = null;
+	state.currentFilter = null;
 }
 
 // ────────────────────────────── preflights ──────────────────────────────
@@ -177,7 +190,7 @@ export async function assertWiresharkGroupMember(): Promise<void> {
 
 /** Spawn Xtigervnc as a combined X server + VNC server on `:96`. */
 export function spawnXtigervnc(): void {
-	xvncProcess = spawn(
+	const child = spawn(
 		resolveXtigervncBin(),
 		[
 			WIRESHARK_VNC_DISPLAY,
@@ -194,14 +207,15 @@ export function spawnXtigervnc(): void {
 		],
 		{ stdio: 'ignore', detached: true }
 	);
-	xvncProcess.unref();
-	xvncProcess.on('exit', (code, signal) => {
+	state.xvncProcess = child;
+	child.unref();
+	child.on('exit', (code, signal) => {
 		logger.info('[wireshark-vnc] Xtigervnc exited', { code, signal });
-		xvncProcess = null;
+		if (state.xvncProcess === child) state.xvncProcess = null;
 	});
-	xvncProcess.on('error', (err) => {
+	child.on('error', (err) => {
 		recordSpawnError('Xtigervnc', err);
-		xvncProcess = null;
+		if (state.xvncProcess === child) state.xvncProcess = null;
 	});
 }
 
@@ -227,7 +241,7 @@ export function setVncBackground(): void {
  * Source: https://www.wireshark.org/docs/wsug_html_chunked/ChCustCommandLine
  */
 export function spawnWiresharkGui(iface: string, filter: string): void {
-	wiresharkProcess = spawn(
+	const child = spawn(
 		resolveWiresharkBin(),
 		[
 			'-C',
@@ -251,32 +265,34 @@ export function spawnWiresharkGui(iface: string, filter: string): void {
 			detached: true
 		}
 	);
-	wiresharkProcess.unref();
-	wiresharkProcess.on('exit', (code, signal) => {
+	state.wiresharkProcess = child;
+	child.unref();
+	child.on('exit', (code, signal) => {
 		logger.info('[wireshark-vnc] wireshark exited', { code, signal });
-		wiresharkProcess = null;
+		if (state.wiresharkProcess === child) state.wiresharkProcess = null;
 	});
-	wiresharkProcess.on('error', (err) => {
+	child.on('error', (err) => {
 		recordSpawnError('wireshark', err);
-		wiresharkProcess = null;
+		if (state.wiresharkProcess === child) state.wiresharkProcess = null;
 	});
 }
 
 /** Spawn websockify to bridge the VNC port to a WebSocket. */
 export function spawnWebsockify(): void {
-	websockifyProcess = spawn(
+	const child = spawn(
 		resolveWebsockifyBin(),
 		[String(WIRESHARK_WS_PORT), `localhost:${WIRESHARK_VNC_PORT}`],
 		{ stdio: 'ignore', detached: true }
 	);
-	websockifyProcess.unref();
-	websockifyProcess.on('exit', (code, signal) => {
+	state.websockifyProcess = child;
+	child.unref();
+	child.on('exit', (code, signal) => {
 		logger.info('[wireshark-vnc] websockify exited', { code, signal });
-		websockifyProcess = null;
+		if (state.websockifyProcess === child) state.websockifyProcess = null;
 	});
-	websockifyProcess.on('error', (err) => {
+	child.on('error', (err) => {
 		recordSpawnError('websockify', err);
-		websockifyProcess = null;
+		if (state.websockifyProcess === child) state.websockifyProcess = null;
 	});
 }
 
@@ -336,12 +352,20 @@ function sendSignal(ref: ChildProcess, signal: NodeJS.Signals): void {
 	}
 }
 
-/** Send SIGTERM, wait 500ms, then SIGKILL any surviving process. */
+/**
+ * Send SIGTERM, wait 500ms, then SIGKILL any surviving process.
+ *
+ * Uses `exitCode` rather than `ref.killed`: `ref.killed` only reports
+ * whether `.kill()` was invoked on this handle — it stays `false` when
+ * the signal was sent via `process.kill(-pid, …)` (our group-signal
+ * path above). `exitCode === null` is the accurate liveness check.
+ */
 export async function killProcess(ref: ChildProcess | null, name: string): Promise<void> {
-	if (!ref || ref.pid == null || ref.killed) return;
+	if (!ref || ref.pid == null) return;
+	if (ref.exitCode !== null) return;
 	sendSignal(ref, 'SIGTERM');
 	await delay(500);
-	if (!ref.killed) sendSignal(ref, 'SIGKILL');
+	if (ref.exitCode === null) sendSignal(ref, 'SIGKILL');
 	logger.info('[wireshark-vnc] killed process', { name });
 }
 
@@ -360,16 +384,20 @@ export async function killOrphansByPort(): Promise<void> {
 
 /** Tear down all three processes in reverse spawn order. */
 export async function killAllProcesses(): Promise<void> {
-	await killProcess(websockifyProcess, 'websockify');
-	websockifyProcess = null;
-	await killProcess(wiresharkProcess, 'wireshark');
-	wiresharkProcess = null;
-	await killProcess(xvncProcess, 'Xtigervnc');
-	xvncProcess = null;
+	await killProcess(state.websockifyProcess, 'websockify');
+	state.websockifyProcess = null;
+	await killProcess(state.wiresharkProcess, 'wireshark');
+	state.wiresharkProcess = null;
+	await killProcess(state.xvncProcess, 'Xtigervnc');
+	state.xvncProcess = null;
 	clearCurrentCapture();
 }
 
 /** Check whether all three managed processes are still alive. */
 export function isStackAlive(): boolean {
-	return xvncProcess !== null && wiresharkProcess !== null && websockifyProcess !== null;
+	return (
+		state.xvncProcess !== null &&
+		state.wiresharkProcess !== null &&
+		state.websockifyProcess !== null
+	);
 }
