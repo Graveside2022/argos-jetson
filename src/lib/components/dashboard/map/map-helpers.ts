@@ -207,7 +207,8 @@ export const LAYER_MAP: Record<string, string[]> = {
 	uasMarkers: ['uas-circles', 'uas-connection-lines'],
 	rfDrivePath: ['rf-path-casing', 'rf-path'],
 	rfApCentroid: ['rf-centroid-halo', 'rf-centroid'],
-	rfHeatmap: ['rf-heatmap']
+	rfHeatmap: ['rf-heatmap'],
+	rfHighlight: ['rf-highlight-rays', 'rf-highlight-rings-inner', 'rf-highlight-rings-outer']
 };
 
 interface CellTowerData {

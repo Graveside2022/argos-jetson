@@ -30,6 +30,16 @@
 		rfHeatmapLayer
 	} from '$lib/map/layers/rf-heatmap-layer';
 	import {
+		RF_HIGHLIGHT_RAYS_LAYER_ID,
+		RF_HIGHLIGHT_RAYS_SOURCE_ID,
+		RF_HIGHLIGHT_RINGS_INNER_LAYER_ID,
+		RF_HIGHLIGHT_RINGS_OUTER_LAYER_ID,
+		RF_HIGHLIGHT_RINGS_SOURCE_ID,
+		rfHighlightRaysLayer,
+		rfHighlightRingsInnerLayer,
+		rfHighlightRingsOuterLayer
+	} from '$lib/map/layers/rf-highlight-layer';
+	import {
 		RF_PATH_CASING_LAYER_ID,
 		RF_PATH_LAYER_ID,
 		RF_PATH_SOURCE_ID,
@@ -287,6 +297,33 @@
 					id={RF_CENTROID_LAYER_ID}
 					layout={rfCentroidLayer.layout}
 					paint={rfCentroidLayer.paint}
+					onclick={ms.handleCentroidClick}
+				/>
+			</GeoJSONSource>
+
+			<!--
+				Highlight-on-select: rays from the selected centroid to every
+				contributing observation, plus concentric rings around the
+				centroid itself. Authored AFTER the centroid so the rings and
+				rays sit on top of it rather than underneath.
+			-->
+			<GeoJSONSource id={RF_HIGHLIGHT_RAYS_SOURCE_ID} data={ms.rfHighlightRaysGeoJSON}>
+				<LineLayer
+					id={RF_HIGHLIGHT_RAYS_LAYER_ID}
+					layout={rfHighlightRaysLayer.layout}
+					paint={rfHighlightRaysLayer.paint}
+				/>
+			</GeoJSONSource>
+			<GeoJSONSource id={RF_HIGHLIGHT_RINGS_SOURCE_ID} data={ms.rfHighlightRingsGeoJSON}>
+				<CircleLayer
+					id={RF_HIGHLIGHT_RINGS_OUTER_LAYER_ID}
+					layout={rfHighlightRingsOuterLayer.layout}
+					paint={rfHighlightRingsOuterLayer.paint}
+				/>
+				<CircleLayer
+					id={RF_HIGHLIGHT_RINGS_INNER_LAYER_ID}
+					layout={rfHighlightRingsInnerLayer.layout}
+					paint={rfHighlightRingsInnerLayer.paint}
 				/>
 			</GeoJSONSource>
 

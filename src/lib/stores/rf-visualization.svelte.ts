@@ -216,6 +216,31 @@ interface SessionsResponse {
 	sessions: RfSession[];
 }
 
+/** Matches ObservationPoint from src/lib/server/db/rf-aggregation.ts. */
+interface ObservationPoint {
+	lat: number;
+	lon: number;
+	dbm: number;
+	timestamp: number;
+}
+
+interface ObservationsResponse {
+	observations: ObservationPoint[];
+}
+
+const EMPTY_POINT_FC: FeatureCollection<Point> = { type: 'FeatureCollection', features: [] };
+
+function observationsToGeoJson(obs: ObservationPoint[]): FeatureCollection<Point> {
+	return {
+		type: 'FeatureCollection',
+		features: obs.map((o) => ({
+			type: 'Feature',
+			geometry: { type: 'Point', coordinates: [o.lon, o.lat] },
+			properties: { dbm: o.dbm, timestamp: o.timestamp }
+		}))
+	};
+}
+
 /**
  * Svelte 5 runes store: read `.state`, call `.load()` to refresh,
  * call `.setFilters()` to change what gets fetched next.
@@ -238,6 +263,13 @@ class RfVisualizationStore {
 	activeSessionId = $state<string | null>(null);
 	sessionsList = $state<RfSession[]>([]);
 	sessionsLoaded = $state(false);
+
+	// Highlight-on-select state. Populated when the operator clicks a
+	// centroid; cleared when they click elsewhere. `selectedObservations`
+	// holds the raw signals that contributed to the selected device's
+	// centroid, used to draw rays from the centroid back to each point.
+	selectedDeviceId = $state<string | null>(null);
+	selectedObservations = $state<FeatureCollection<Point>>(EMPTY_POINT_FC);
 
 	setFilters(update: Partial<RfVisualizationFilters>): void {
 		this.filters = { ...this.filters, ...update };
@@ -285,6 +317,43 @@ class RfVisualizationStore {
 		this.activeSessionId = id;
 		this.setFilters({ sessionId: id ?? undefined });
 		await this.load();
+	}
+
+	setSelectedDevice(id: string | null): void {
+		this.selectedDeviceId = id;
+		if (id === null) {
+			this.selectedObservations = EMPTY_POINT_FC;
+			return;
+		}
+		void this.loadSelectedDeviceObservations();
+	}
+
+	private buildObservationsQuery(deviceId: string): string {
+		const params = new URLSearchParams({ bssid: deviceId });
+		if (this.activeSessionId) params.set('session', this.activeSessionId);
+		return params.toString();
+	}
+
+	private async fetchObservations(id: string): Promise<ObservationPoint[]> {
+		const resp = await fetch(`/api/rf/observations?${this.buildObservationsQuery(id)}`, {
+			credentials: 'include',
+			headers: { accept: 'application/json' }
+		});
+		if (!resp.ok) throw new Error(`/api/rf/observations ${resp.status}`);
+		const data = (await resp.json()) as ObservationsResponse;
+		return data.observations ?? [];
+	}
+
+	async loadSelectedDeviceObservations(): Promise<void> {
+		const id = this.selectedDeviceId;
+		if (!id) return;
+		try {
+			const obs = await this.fetchObservations(id);
+			this.selectedObservations = observationsToGeoJson(obs);
+		} catch (err) {
+			this.error = err instanceof Error ? err.message : String(err);
+			this.selectedObservations = EMPTY_POINT_FC;
+		}
 	}
 
 	reset(): void {

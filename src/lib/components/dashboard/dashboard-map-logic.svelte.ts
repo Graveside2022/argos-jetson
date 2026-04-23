@@ -40,6 +40,7 @@ import {
 	updateSymbolLayer
 } from './map/map-handlers';
 import { setupMap } from './map/map-setup';
+import { applyDimOthers } from './map/rf-highlight-paint';
 import { clearAllOverlays, syncRFOverlays } from './map/rf-propagation-overlay.svelte';
 import { buildUASConnectionLinesGeoJSON, buildUASGeoJSON } from './map/uas-geojson';
 
@@ -128,6 +129,62 @@ export function createMapState() {
 	const rfCentroidGeoJSON: FeatureCollection = $derived(rfVisualization.features.centroids);
 	const rfHeatmapGeoJSON: FeatureCollection = $derived(rfVisualization.features.heatmap);
 
+	// Highlight-on-select: look up the selected centroid's coordinates in
+	// the centroid feature collection. Returned as [lon, lat] or null when
+	// the device has no centroid (e.g. observations load before centroids).
+	const selectedCentroidCoords: [number, number] | null = $derived.by(() => {
+		const id = rfVisualization.selectedDeviceId;
+		if (!id) return null;
+		const match = rfVisualization.features.centroids.features.find(
+			(f) => (f.properties as { deviceId?: string } | null)?.deviceId === id
+		);
+		if (!match) return null;
+		return match.geometry.coordinates as [number, number];
+	});
+
+	// Rays: one LineString per observation, from the selected centroid to
+	// that observation's point. Fed to the `rf-highlight-rays` LineLayer.
+	const rfHighlightRaysGeoJSON: FeatureCollection = $derived.by(() => {
+		const centroid = selectedCentroidCoords;
+		if (!centroid) return { type: 'FeatureCollection', features: [] };
+		const obs = rfVisualization.selectedObservations.features;
+		return {
+			type: 'FeatureCollection',
+			features: obs.map((o) => ({
+				type: 'Feature',
+				geometry: {
+					type: 'LineString',
+					coordinates: [centroid, o.geometry.coordinates as [number, number]]
+				},
+				properties: o.properties ?? {}
+			}))
+		};
+	});
+
+	// Rings: a single Point at the selected centroid's location. The two
+	// concentric ring CircleLayers render around it.
+	const rfHighlightRingsGeoJSON: FeatureCollection = $derived.by(() => {
+		const centroid = selectedCentroidCoords;
+		if (!centroid) return { type: 'FeatureCollection', features: [] };
+		return {
+			type: 'FeatureCollection',
+			features: [
+				{
+					type: 'Feature',
+					geometry: { type: 'Point', coordinates: centroid },
+					properties: { deviceId: rfVisualization.selectedDeviceId }
+				}
+			]
+		};
+	});
+
+	// Mirror the dashboard-store's isolatedDeviceMAC into the RF store so
+	// that selecting an AP anywhere (map or panel) triggers the highlight
+	// fetch. The store's setter no-ops on redundant sets so this is cheap.
+	$effect(() => {
+		rfVisualization.setSelectedDevice(isolatedMAC$.current);
+	});
+
 	// Fire one load on mount. The store internally LRU-caches by filter hash,
 	// so redundant calls are cheap; session-aware refetch is Phase A.3 work.
 	$effect(() => {
@@ -215,6 +272,13 @@ export function createMapState() {
 		return () => clearAllOverlays(m);
 	});
 
+	// Dim every non-selected RF layer to ~30% while a device is isolated.
+	// Uses `*-opacity` (not `visibility`) so operator layer toggles still
+	// independently control whether the layer renders at all.
+	$effect(() => {
+		if (map) applyDimOthers(map, rfVisualization.selectedDeviceId);
+	});
+
 	function applyDeviceClick(m: maplibregl.Map, ev: maplibregl.MapMouseEvent) {
 		const result = deviceClickHandler(m, ev, kismet$.current.deviceAffiliations);
 		if (!result) return;
@@ -255,6 +319,14 @@ export function createMapState() {
 			towerPopupLngLat = result.lngLat;
 			towerPopupContent = result.content;
 		}
+	}
+	function handleCentroidClick(ev: maplibregl.MapMouseEvent) {
+		if (!map) return;
+		const features = map.queryRenderedFeatures(ev.point, {
+			layers: ['rf-centroid', 'rf-centroid-halo']
+		});
+		const deviceId = (features[0]?.properties as { deviceId?: string } | undefined)?.deviceId;
+		if (deviceId) isolateDevice(deviceId);
 	}
 	function closeTowerPopup(): void {
 		towerPopupLngLat = null;
@@ -320,6 +392,12 @@ export function createMapState() {
 		get rfHeatmapGeoJSON() {
 			return rfHeatmapGeoJSON;
 		},
+		get rfHighlightRaysGeoJSON() {
+			return rfHighlightRaysGeoJSON;
+		},
+		get rfHighlightRingsGeoJSON() {
+			return rfHighlightRingsGeoJSON;
+		},
 		get gpsLngLat() {
 			return gpsDerived.gpsLngLat;
 		},
@@ -333,6 +411,7 @@ export function createMapState() {
 		handleLocateClick,
 		handleDeviceCircleClick,
 		handleTowerCircleClick,
+		handleCentroidClick,
 		closeTowerPopup,
 		closeDevicePopup
 	};
