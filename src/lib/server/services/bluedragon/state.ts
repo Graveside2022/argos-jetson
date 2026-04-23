@@ -18,6 +18,7 @@ import type {
 
 import type { DeviceAggregator } from './device-aggregator';
 import type { PcapStreamParser } from './pcap-stream-parser';
+import type { PersistenceHandle } from './signal-persistence';
 
 export interface RuntimeState {
 	process: ChildProcess | null;
@@ -31,6 +32,7 @@ export interface RuntimeState {
 	parserStartTimer: ReturnType<typeof setTimeout> | null;
 	frozenDevices: BluetoothDevice[];
 	frozenPacketCount: number;
+	persistence: PersistenceHandle | null;
 }
 
 export const state: RuntimeState = {
@@ -44,7 +46,8 @@ export const state: RuntimeState = {
 	status: 'stopped',
 	parserStartTimer: null,
 	frozenDevices: [],
-	frozenPacketCount: 0
+	frozenPacketCount: 0,
+	persistence: null
 };
 
 export function isBluedragonActive(): boolean {

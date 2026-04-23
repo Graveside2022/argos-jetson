@@ -131,10 +131,10 @@ export class RFDatabase {
 			'insertSignal',
 			`INSERT INTO signals (
 			signal_id, device_id, timestamp, latitude, longitude, altitude,
-			power, frequency, bandwidth, modulation, source, metadata
+			power, frequency, bandwidth, modulation, source, metadata, session_id
 		) VALUES (
 			@signal_id, @device_id, @timestamp, @latitude, @longitude, @altitude,
-			@power, @frequency, @bandwidth, @modulation, @source, @metadata)`
+			@power, @frequency, @bandwidth, @modulation, @source, @metadata, @session_id)`
 		);
 
 		p(
