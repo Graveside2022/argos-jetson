@@ -55,13 +55,13 @@ EOF
     exit 0
 fi
 
-if ! run_with_heartbeat "test:unit" npm run test:unit; then
+if ! run_with_heartbeat "test:unit:related" npm run test:unit:related; then
     cat <<EOF
 {
   "hookSpecificOutput": {
     "hookEventName": "PreToolUse",
     "permissionDecision": "deny",
-    "permissionDecisionReason": "Unit tests failed. Fix tests before committing.\n\nRun: npm run test:unit\n\nOr skip: git commit --no-verify"
+    "permissionDecisionReason": "Unit tests failed. Fix tests before committing.\n\nRun: npm run test:unit:related\n\nFor a full-suite run: npm run test:unit\n\nOr skip: git commit --no-verify"
   }
 }
 EOF
