@@ -17,6 +17,14 @@
 
 set -euo pipefail
 
+# --- Node memory ceiling ---
+# svelte-check + vitest workers are the two heaviest consumers in this repo
+# (svelte-check alone ~650 MB). Give them headroom without letting a single
+# process take the whole machine. Respect caller-provided overrides so
+# specialized runs (coverage, large snapshots) can widen the cap.
+: "${NODE_OPTIONS:=--max-old-space-size=1536}"
+export NODE_OPTIONS
+
 # --- Configuration ---
 THRESHOLD="${MEM_GUARD_THRESHOLD:-85}"
 LOCKFILE="/tmp/argos-heavy-cmd.lock"

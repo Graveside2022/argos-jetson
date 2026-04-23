@@ -16,7 +16,10 @@
 set -e
 
 echo "[pre-push] typecheck (svelte-check)..."
-./scripts/ops/mem-guard.sh npm run typecheck
+# npm run typecheck is already wrapped in mem-guard via its package.json
+# script definition — wrapping it again here would cause a nested-lock
+# failure (outer mem-guard holds flock, inner waits forever).
+npm run typecheck
 
 echo "[pre-push] full-repo ESLint (cached)..."
 npx eslint . --config config/eslint.config.js --cache --cache-location .eslintcache --cache-strategy content
