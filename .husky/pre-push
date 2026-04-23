@@ -1,0 +1,27 @@
+#!/usr/bin/env sh
+# Heavy-gate tier: runs once per `git push`, not once per commit.
+#
+# Rationale: pre-commit is now lean (lint-staged + scoped vitest) so
+# operators can commit in seconds. The full-repo typecheck + ESLint
+# scan + 516-test suite run here, before anything leaves the local
+# machine. CI (.github/workflows/ci.yml + lint.yml) is the third
+# layer that catches anything this misses.
+#
+# Skip with: git push --no-verify   (use sparingly — defeats the gate)
+#
+# All three checks share scripts/ops/mem-guard.sh's flock so two
+# concurrent pre-push runs (e.g. double-click `git push` in a UI)
+# can't race on RAM/CPU.
+
+set -e
+
+echo "[pre-push] typecheck (svelte-check)..."
+./scripts/ops/mem-guard.sh npm run typecheck
+
+echo "[pre-push] full-repo ESLint (cached)..."
+npx eslint . --config config/eslint.config.js --cache --cache-location .eslintcache --cache-strategy content
+
+echo "[pre-push] test:unit (full 516-test suite)..."
+npm run test:unit
+
+echo "[pre-push] ✓ all checks passed"
