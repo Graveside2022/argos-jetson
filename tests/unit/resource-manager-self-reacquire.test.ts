@@ -4,9 +4,28 @@
  * Covers the fix for the 409 conflict that used to fire when the same tool
  * tried to re-acquire a device it already owned (e.g. double POST to
  * /api/novasdr/control {action: 'start'}).
+ *
+ * Isolation note: resourceManager.acquire() internally calls
+ * dispatchRefresh() which invokes hackrfMgr.getBlockingProcesses()
+ * (live `pgrep`/`ps`) + hackrfMgr.getContainerStatus() (live
+ * `docker ps`). Those pull host state into the test and make the
+ * assertions flaky when a real container or process happens to be
+ * running (e.g. an unrelated `rdio-scanner` container, a previous
+ * novasdr scan still winding down). The mocks below report "nothing
+ * detected" so dispatchRefresh's applyOwnership() is called with
+ * ownerName=null, exercising only the owner-preservation grace
+ * window — the exact code path these tests intend to cover.
  */
 
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+vi.mock('$lib/server/hardware/hackrf-manager', () => ({
+	detectHackRF: vi.fn().mockResolvedValue(false),
+	getBlockingProcesses: vi.fn().mockResolvedValue([]),
+	getContainerStatus: vi.fn().mockResolvedValue([]),
+	killBlockingProcesses: vi.fn().mockResolvedValue(undefined),
+	stopContainers: vi.fn().mockResolvedValue(undefined)
+}));
 
 import { resourceManager } from '$lib/server/hardware/resource-manager';
 import { HardwareDevice } from '$lib/server/hardware/types';
