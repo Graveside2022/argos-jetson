@@ -53,7 +53,8 @@
 		"mcp:config-b": "tsx scripts/ops/mcp-config.ts b",
 		"commitlint": "commitlint --edit",
 		"danger": "danger ci",
-		"danger:local": "danger pr"
+		"danger:local": "danger pr",
+		"release:dry": "semantic-release --dry-run --no-ci"
 	},
 	"devDependencies": {
 		"@axe-core/playwright": "4.11.1",
@@ -67,6 +68,11 @@
 		"@opentelemetry/sdk-node": "^0.214.0",
 		"@opentelemetry/semantic-conventions": "^1.40.0",
 		"@playwright/test": "1.53.2",
+		"@semantic-release/changelog": "6.0.3",
+		"@semantic-release/commit-analyzer": "13.0.0",
+		"@semantic-release/git": "10.0.1",
+		"@semantic-release/github": "11.0.0",
+		"@semantic-release/release-notes-generator": "14.0.1",
 		"@sveltejs/adapter-auto": "6.0.1",
 		"@sveltejs/kit": "2.22.3",
 		"@sveltejs/vite-plugin-svelte": "6.0.0",
@@ -107,6 +113,7 @@
 		"prettier": "3.6.2",
 		"prettier-plugin-svelte": "3.4.0",
 		"puppeteer": "24.12.1",
+		"semantic-release": "24.2.3",
 		"shadcn": "3.8.4",
 		"svelte": "5.35.5",
 		"svelte-check": "4.2.2",
