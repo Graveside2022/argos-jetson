@@ -10,7 +10,7 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import { _DragonSyncControlSchema as DragonSyncControlSchema } from '../../../src/lib/schemas/dragonsync';
+import { DragonSyncControlSchema } from '../../../src/lib/schemas/dragonsync';
 import {
 	CoverageRequestSchema,
 	P2PRequestSchema,
