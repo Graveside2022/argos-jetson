@@ -126,6 +126,7 @@ export function createMapState() {
 	// writes new features.
 	const rfPathGeoJSON: FeatureCollection = $derived(rfVisualization.features.path);
 	const rfCentroidGeoJSON: FeatureCollection = $derived(rfVisualization.features.centroids);
+	const rfHeatmapGeoJSON: FeatureCollection = $derived(rfVisualization.features.heatmap);
 
 	// Fire one load on mount. The store internally LRU-caches by filter hash,
 	// so redundant calls are cheap; session-aware refetch is Phase A.3 work.
@@ -315,6 +316,9 @@ export function createMapState() {
 		},
 		get rfCentroidGeoJSON() {
 			return rfCentroidGeoJSON;
+		},
+		get rfHeatmapGeoJSON() {
+			return rfHeatmapGeoJSON;
 		},
 		get gpsLngLat() {
 			return gpsDerived.gpsLngLat;

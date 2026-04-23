@@ -155,6 +155,19 @@
 				<span class="toggle-knob"></span>
 			</button>
 		</label>
+
+		<label class="toggle-row">
+			<span class="toggle-label">RSSI Heatmap</span>
+			<button
+				class="toggle-switch"
+				class:on={$layerVisibility.rfHeatmap}
+				onclick={() => toggleLayerVisibility('rfHeatmap')}
+				role="switch"
+				aria-checked={$layerVisibility.rfHeatmap}
+			>
+				<span class="toggle-knob"></span>
+			</button>
+		</label>
 	</section>
 
 	<!-- Signal Strength Filter -->

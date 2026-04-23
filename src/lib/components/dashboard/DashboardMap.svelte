@@ -8,6 +8,7 @@
 		CustomControl,
 		FillLayer,
 		GeoJSONSource,
+		HeatmapLayer,
 		LineLayer,
 		MapLibre,
 		Marker,
@@ -23,6 +24,11 @@
 		rfCentroidHaloLayer,
 		rfCentroidLayer
 	} from '$lib/map/layers/rf-centroid-layer';
+	import {
+		RF_HEATMAP_LAYER_ID,
+		RF_HEATMAP_SOURCE_ID,
+		rfHeatmapLayer
+	} from '$lib/map/layers/rf-heatmap-layer';
 	import {
 		RF_PATH_CASING_LAYER_ID,
 		RF_PATH_LAYER_ID,
@@ -229,6 +235,21 @@
 						'circle-stroke-color': '#ffffff',
 						'circle-stroke-opacity': 0.7
 					}}
+				/>
+			</GeoJSONSource>
+
+			<!--
+				Flying-Squirrel RF heatmap — H3-binned RSSI coverage rendered via
+				MapLibre's native heatmap layer. Authored FIRST among the RF layers
+				so the continuous density surface sits underneath drive-path,
+				centroid dots, and device markers (operator needs to see pins ON
+				the heatmap, not under it).
+			-->
+			<GeoJSONSource id={RF_HEATMAP_SOURCE_ID} data={ms.rfHeatmapGeoJSON}>
+				<HeatmapLayer
+					id={RF_HEATMAP_LAYER_ID}
+					layout={rfHeatmapLayer.layout}
+					paint={rfHeatmapLayer.paint}
 				/>
 			</GeoJSONSource>
 
