@@ -100,6 +100,14 @@ export function setVncBackground(): void {
 		env: { ...process.env, DISPLAY: SPARROW_VNC_DISPLAY },
 		stdio: 'ignore'
 	});
+	// Handler before unref: an unhandled 'error' event on xsetroot (missing
+	// binary, ENOEXEC) would otherwise crash the Node process. Cosmetic-only
+	// — a failed background set doesn't break the VNC stack.
+	bg.on('error', (err) => {
+		logger.warn('[sparrow-vnc] xsetroot spawn failed (cosmetic)', {
+			error: err.message
+		});
+	});
 	bg.unref();
 }
 

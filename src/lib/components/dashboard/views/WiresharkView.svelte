@@ -209,24 +209,24 @@
 	.status-label {
 		font-family: 'Fira Code', monospace;
 		font-size: 12px;
-		color: var(--muted-foreground, #d4a054);
+		color: var(--muted-foreground);
 		text-transform: uppercase;
 		letter-spacing: 1.2px;
 	}
 	.status-label.error {
-		color: var(--destructive, #ff5c33);
+		color: var(--destructive);
 	}
 	.status-detail {
 		font-family: 'Fira Code', monospace;
 		font-size: 11px;
-		color: var(--muted-foreground, #888);
+		color: var(--muted-foreground);
 		max-width: 40rem;
 		text-align: center;
 	}
 	.status-hint {
 		font-family: 'Fira Code', monospace;
 		font-size: 10px;
-		color: var(--muted-foreground, #666);
+		color: var(--muted-foreground);
 	}
 	.capture-ribbon {
 		position: absolute;
@@ -235,15 +235,15 @@
 		display: flex;
 		gap: 1rem;
 		padding: 0.25rem 0.5rem;
-		background: var(--card, #1a1a1a);
-		border: 1px solid var(--border, #2e2e2e);
+		background: var(--card);
+		border: 1px solid var(--border);
 		border-radius: 3px;
 		font-family: 'Fira Code', monospace;
 		font-size: 10px;
-		color: var(--muted-foreground, #888);
+		color: var(--muted-foreground);
 	}
 	.capture-ribbon code {
-		color: var(--primary, #a8b8e0);
+		color: var(--primary);
 	}
 	.retry-btn {
 		margin-top: 0.5rem;
@@ -252,21 +252,21 @@
 		font-size: 11px;
 		text-transform: uppercase;
 		letter-spacing: 1px;
-		color: var(--primary, #a8b8e0);
-		border: 1px solid var(--border, #2e2e2e);
+		color: var(--primary);
+		border: 1px solid var(--border);
 		border-radius: 4px;
-		background: var(--card, #1a1a1a);
+		background: var(--card);
 		cursor: pointer;
 		transition: border-color 0.15s;
 	}
 	.retry-btn:hover {
-		border-color: var(--primary, #a8b8e0);
+		border-color: var(--primary);
 	}
 	.spinner {
 		width: 24px;
 		height: 24px;
-		border: 2px solid var(--border, #2e2e2e);
-		border-top-color: var(--primary, #a8b8e0);
+		border: 2px solid var(--border);
+		border-top-color: var(--primary);
 		border-radius: 50%;
 		animation: spin 0.8s linear infinite;
 	}
