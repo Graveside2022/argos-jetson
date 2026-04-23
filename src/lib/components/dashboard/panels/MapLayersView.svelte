@@ -129,6 +129,32 @@
 				<span class="toggle-knob"></span>
 			</button>
 		</label>
+
+		<label class="toggle-row">
+			<span class="toggle-label">RF Drive Path</span>
+			<button
+				class="toggle-switch"
+				class:on={$layerVisibility.rfDrivePath}
+				onclick={() => toggleLayerVisibility('rfDrivePath')}
+				role="switch"
+				aria-checked={$layerVisibility.rfDrivePath}
+			>
+				<span class="toggle-knob"></span>
+			</button>
+		</label>
+
+		<label class="toggle-row">
+			<span class="toggle-label">AP Centroids</span>
+			<button
+				class="toggle-switch"
+				class:on={$layerVisibility.rfApCentroid}
+				onclick={() => toggleLayerVisibility('rfApCentroid')}
+				role="switch"
+				aria-checked={$layerVisibility.rfApCentroid}
+			>
+				<span class="toggle-knob"></span>
+			</button>
+		</label>
 	</section>
 
 	<!-- Signal Strength Filter -->

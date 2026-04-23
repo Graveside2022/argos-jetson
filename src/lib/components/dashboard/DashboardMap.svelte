@@ -16,6 +16,20 @@
 		SymbolLayer as MapLibreSymbolLayer
 	} from 'svelte-maplibre-gl';
 
+	import {
+		RF_CENTROID_HALO_LAYER_ID,
+		RF_CENTROID_LAYER_ID,
+		RF_CENTROID_SOURCE_ID,
+		rfCentroidHaloLayer,
+		rfCentroidLayer
+	} from '$lib/map/layers/rf-centroid-layer';
+	import {
+		RF_PATH_CASING_LAYER_ID,
+		RF_PATH_LAYER_ID,
+		RF_PATH_SOURCE_ID,
+		rfPathCasingLayer,
+		rfPathLayer
+	} from '$lib/map/layers/rf-path-layer';
 	import { isolatedDeviceMAC } from '$lib/stores/dashboard/dashboard-store';
 	import { gpsStore } from '$lib/stores/tactical-map/gps-store';
 
@@ -215,6 +229,43 @@
 						'circle-stroke-color': '#ffffff',
 						'circle-stroke-opacity': 0.7
 					}}
+				/>
+			</GeoJSONSource>
+
+			<!--
+				Flying-Squirrel RF drive path — viridis-gradient line tracing the
+				operator's GPS track. Authored before devices-src so device markers
+				stay z-above the line. `lineMetrics={true}` is required for the
+				line-progress paint expression in rfPathLayer.
+			-->
+			<GeoJSONSource id={RF_PATH_SOURCE_ID} data={ms.rfPathGeoJSON} lineMetrics={true}>
+				<LineLayer
+					id={RF_PATH_CASING_LAYER_ID}
+					layout={rfPathCasingLayer.layout}
+					paint={rfPathCasingLayer.paint}
+				/>
+				<LineLayer
+					id={RF_PATH_LAYER_ID}
+					layout={rfPathLayer.layout}
+					paint={rfPathLayer.paint}
+				/>
+			</GeoJSONSource>
+
+			<!--
+				Flying-Squirrel RF AP centroids — RSSI-weighted mean position per
+				BSSID. Dots sized by obsCount, colored by maxDbm. Authored before
+				devices-src so cluster circles stay on top.
+			-->
+			<GeoJSONSource id={RF_CENTROID_SOURCE_ID} data={ms.rfCentroidGeoJSON}>
+				<CircleLayer
+					id={RF_CENTROID_HALO_LAYER_ID}
+					layout={rfCentroidHaloLayer.layout}
+					paint={rfCentroidHaloLayer.paint}
+				/>
+				<CircleLayer
+					id={RF_CENTROID_LAYER_ID}
+					layout={rfCentroidLayer.layout}
+					paint={rfCentroidLayer.paint}
 				/>
 			</GeoJSONSource>
 

@@ -204,7 +204,9 @@ export const LAYER_MAP: Record<string, string[]> = {
 	cellTowers: ['cell-tower-circles', 'cell-tower-labels'],
 	signalMarkers: ['detection-range-fill'],
 	accuracyCircle: ['accuracy-fill'],
-	uasMarkers: ['uas-circles', 'uas-connection-lines']
+	uasMarkers: ['uas-circles', 'uas-connection-lines'],
+	rfDrivePath: ['rf-path-casing', 'rf-path'],
+	rfApCentroid: ['rf-centroid-halo', 'rf-centroid']
 };
 
 interface CellTowerData {
