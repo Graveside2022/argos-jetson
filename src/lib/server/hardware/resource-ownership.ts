@@ -70,14 +70,35 @@ export function markFree(state: ResourceState): void {
 	state.connectedSince = null;
 }
 
+/**
+ * Freshly-claimed tool may not yet appear in an OS scan (process hasn't
+ * spawned, container still pulling). Preserve the explicit owner this
+ * long before trusting a null scan. Expires into normal "scan says gone
+ * → markFree" so truly-crashed tools still get reclaimed.
+ */
+const OWNER_PRESERVE_GRACE_MS = 10_000;
+
+function isFreshKnownOwner(state: ResourceState): boolean {
+	if (!state.owner) return false;
+	if (!KNOWN_TOOL_NAMES.has(state.owner)) return false;
+	if (state.connectedSince === null) return false;
+	return Date.now() - state.connectedSince < OWNER_PRESERVE_GRACE_MS;
+}
+
+function preserveExplicit(state: ResourceState): void {
+	state.isAvailable = false;
+	if (!state.connectedSince) state.connectedSince = Date.now();
+}
+
+function applyNullScan(state: ResourceState): void {
+	if (isFreshKnownOwner(state)) return;
+	if (state.owner) markFree(state);
+}
+
 export function applyOwnership(state: ResourceState, ownerName: string | null): void {
-	if (shouldPreserveExplicitOwner(state, ownerName)) {
-		state.isAvailable = false;
-		if (!state.connectedSince) state.connectedSince = Date.now();
-		return;
-	}
-	if (ownerName) markOwned(state, ownerName);
-	else if (state.owner) markFree(state);
+	if (shouldPreserveExplicitOwner(state, ownerName)) return preserveExplicit(state);
+	if (ownerName) return markOwned(state, ownerName);
+	applyNullScan(state);
 }
 
 export function resolveHackrfOwner(
