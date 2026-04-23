@@ -117,12 +117,14 @@
 		stopping = true;
 		try {
 			const res = await postControl('stop');
-			stopSent = true;
 			if (!res.ok) {
+				// Do NOT latch stopSent — leave onDestroy's fallback armed so
+				// the stack still gets a teardown attempt when the user leaves.
 				serviceStatus = 'error';
 				errorMsg = `Stop failed: ${res.status}`;
 				return;
 			}
+			stopSent = true;
 			activeView.set('map');
 		} catch (err) {
 			serviceStatus = 'error';
