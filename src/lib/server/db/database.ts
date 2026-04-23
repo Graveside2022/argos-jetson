@@ -11,6 +11,7 @@ import type { NetworkEdge, NetworkNode } from '$lib/types/network';
 import type { SignalMarker } from '$lib/types/signals';
 import { logger } from '$lib/utils/logger';
 
+import { env } from '../env';
 import { DatabaseCleanupService } from './cleanup-service';
 import { DatabaseOptimizer } from './db-optimizer';
 import { runMigrations } from './migrations/run-migrations';
@@ -241,6 +242,7 @@ export class RFDatabase {
 				patternRetention: ONE_DAY,
 				cleanupInterval: ONE_HOUR,
 				aggregateInterval: TEN_MINUTES,
+				walCheckpointInterval: env.ARGOS_WAL_CHECKPOINT_INTERVAL_MS,
 				batchSize: 500,
 				maxRuntime: 20000
 			});

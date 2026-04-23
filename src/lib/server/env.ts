@@ -74,6 +74,16 @@ const envSchema = z.object({
 	// Default off in prod; dev vite plugin flips it on unless set to '0'.
 	ARGOS_TERMINAL_PRESPAWN: z.enum(['0', '1']).default('0'),
 
+	// SQLite WAL checkpoint interval. DatabaseCleanupService forces
+	// `PRAGMA wal_checkpoint(TRUNCATE)` on this cadence to keep rf_signals.db-wal
+	// from growing unboundedly. 15 min default is safe; tighten to 5 min under
+	// heavy write load, loosen to 60 min on low-traffic deployments.
+	ARGOS_WAL_CHECKPOINT_INTERVAL_MS: z.coerce
+		.number()
+		.int()
+		.positive()
+		.default(15 * 60 * 1000),
+
 	// Frontend-public variant of ARGOS_API_URL (Sprint 2 — env.ts consolidation).
 	// Distinct so downstream clients/MCP config generators can expose a URL
 	// reachable from outside the container without leaking an internal address.
