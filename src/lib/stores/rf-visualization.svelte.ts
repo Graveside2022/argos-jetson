@@ -344,15 +344,27 @@ class RfVisualizationStore {
 		return data.observations ?? [];
 	}
 
+	// Stale-guarded assignment: drop the result if the selection has
+	// changed since the fetch began. Prevents fast AP-clicks from
+	// clobbering newer observations with an earlier in-flight response.
+	private assignObservations(id: string, obs: ObservationPoint[]): void {
+		if (this.selectedDeviceId !== id) return;
+		this.selectedObservations = observationsToGeoJson(obs);
+	}
+
+	private assignFetchError(id: string, err: unknown): void {
+		if (this.selectedDeviceId !== id) return;
+		this.error = err instanceof Error ? err.message : String(err);
+		this.selectedObservations = EMPTY_POINT_FC;
+	}
+
 	async loadSelectedDeviceObservations(): Promise<void> {
 		const id = this.selectedDeviceId;
 		if (!id) return;
 		try {
-			const obs = await this.fetchObservations(id);
-			this.selectedObservations = observationsToGeoJson(obs);
+			this.assignObservations(id, await this.fetchObservations(id));
 		} catch (err) {
-			this.error = err instanceof Error ? err.message : String(err);
-			this.selectedObservations = EMPTY_POINT_FC;
+			this.assignFetchError(id, err);
 		}
 	}
 
