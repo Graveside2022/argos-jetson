@@ -8,12 +8,23 @@
 	} from '$lib/stores/dashboard/dashboard-store';
 	import { signalBands } from '$lib/utils/signal-utils';
 
+	import SessionSelector from './SessionSelector.svelte';
+
 	function setVisibilityMode(mode: VisibilityMode) {
 		visibilityMode.set(mode);
 	}
 </script>
 
 <div class="layers-view">
+	<!--
+		RF Visualization session scope — above the visibility filter
+		because it's the "which data" question, vs the other sections'
+		"how to render the data" question.
+	-->
+	<section class="panel-section">
+		<SessionSelector />
+	</section>
+
 	<!-- Visibility Filter -->
 	<section class="panel-section">
 		<div class="section-label">VISIBILITY FILTER</div>

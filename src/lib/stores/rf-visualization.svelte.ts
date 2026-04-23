@@ -202,6 +202,20 @@ export async function loadRfGeoJson(filters: RfVisualizationFilters): Promise<Rf
 	};
 }
 
+/** Client-side session descriptor mirroring /api/sessions item shape. */
+export interface RfSession {
+	id: string;
+	startedAt: number;
+	endedAt: number | null;
+	label: string | null;
+	source: string;
+}
+
+interface SessionsResponse {
+	currentId: string;
+	sessions: RfSession[];
+}
+
 /**
  * Svelte 5 runes store: read `.state`, call `.load()` to refresh,
  * call `.setFilters()` to change what gets fetched next.
@@ -218,6 +232,13 @@ class RfVisualizationStore {
 	loading = $state(false);
 	error = $state<string | null>(null);
 
+	// Session selector state. `activeSessionId = null` means "all sessions"
+	// (server returns union across sessions). `sessionsList` is populated
+	// by loadSessions() on first mount of the SessionSelector component.
+	activeSessionId = $state<string | null>(null);
+	sessionsList = $state<RfSession[]>([]);
+	sessionsLoaded = $state(false);
+
 	setFilters(update: Partial<RfVisualizationFilters>): void {
 		this.filters = { ...this.filters, ...update };
 	}
@@ -233,6 +254,37 @@ class RfVisualizationStore {
 		} finally {
 			this.loading = false;
 		}
+	}
+
+	// Initialize active to server's current on first call so the
+	// dropdown shows a sensible default instead of "all sessions".
+	private applyInitialSession(data: SessionsResponse): void {
+		if (this.sessionsLoaded) return;
+		if (this.activeSessionId !== null) return;
+		this.activeSessionId = data.currentId;
+		this.setFilters({ sessionId: data.currentId });
+	}
+
+	async loadSessions(): Promise<void> {
+		try {
+			const resp = await fetch('/api/sessions?limit=50', {
+				credentials: 'include',
+				headers: { accept: 'application/json' }
+			});
+			if (!resp.ok) throw new Error(`/api/sessions ${resp.status}`);
+			const data = (await resp.json()) as SessionsResponse;
+			this.sessionsList = data.sessions;
+			this.applyInitialSession(data);
+			this.sessionsLoaded = true;
+		} catch (err) {
+			this.error = err instanceof Error ? err.message : String(err);
+		}
+	}
+
+	async setSession(id: string | null): Promise<void> {
+		this.activeSessionId = id;
+		this.setFilters({ sessionId: id ?? undefined });
+		await this.load();
 	}
 
 	reset(): void {
