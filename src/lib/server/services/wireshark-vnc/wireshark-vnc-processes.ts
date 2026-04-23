@@ -135,6 +135,41 @@ function matchTsharkFilterError(output: string): string | null {
  * fires AFTER the filter compiles, so its absence or presence is not
  * evidence against filter validity.
  */
+interface TsharkExecError {
+	stderr?: string;
+	stdout?: string;
+	code?: string | number;
+	killed?: boolean;
+	signal?: string;
+}
+
+function tsharkFailureTag(e: TsharkExecError): string {
+	if (e.killed) return 'timeout/killed';
+	return `code=${e.code ?? 'unknown'}`;
+}
+
+function tsharkFailureDetail(e: TsharkExecError, err: unknown): string {
+	const trimmed = e.stderr?.trim();
+	if (trimmed) return trimmed;
+	if (err instanceof Error) return err.message;
+	return String(err);
+}
+
+/**
+ * Classify a tshark execution failure: returns the filter diagnostic when the
+ * stderr matches a known invalid-filter pattern, otherwise throws so the caller
+ * doesn't treat a preflight failure (missing binary, timeout) as a valid filter.
+ */
+function classifyTsharkFailure(err: unknown): string {
+	const e = err as TsharkExecError;
+	const combined = `${e.stderr ?? ''}\n${e.stdout ?? ''}`;
+	const diagnostic = matchTsharkFilterError(combined);
+	if (diagnostic !== null) return diagnostic;
+	throw new Error(
+		`tshark preflight failed [${tsharkFailureTag(e)}]: ${tsharkFailureDetail(e, err)}`
+	);
+}
+
 export async function validateDisplayFilter(filter: string): Promise<string | null> {
 	try {
 		await execFileAsync(resolveTsharkBin(), ['-Y', filter, '-r', '/dev/null'], {
@@ -142,9 +177,7 @@ export async function validateDisplayFilter(filter: string): Promise<string | nu
 		});
 		return null;
 	} catch (err) {
-		const e = err as { stderr?: string; stdout?: string };
-		const combined = `${e.stderr ?? ''}\n${e.stdout ?? ''}`;
-		return matchTsharkFilterError(combined);
+		return classifyTsharkFailure(err);
 	}
 }
 
@@ -231,6 +264,14 @@ export function setVncBackground(): void {
 	const bg = spawn('/usr/bin/xsetroot', ['-solid', '#111111'], {
 		env: { ...process.env, DISPLAY: WIRESHARK_VNC_DISPLAY },
 		stdio: 'ignore'
+	});
+	// Handler before unref: an unhandled 'error' event on xsetroot (missing
+	// binary, ENOEXEC) would otherwise crash the Node process. Cosmetic-only
+	// — a failed background set doesn't break the VNC stack.
+	bg.on('error', (err) => {
+		logger.warn('[wireshark-vnc] xsetroot spawn failed (cosmetic)', {
+			error: err.message
+		});
 	});
 	bg.unref();
 }
