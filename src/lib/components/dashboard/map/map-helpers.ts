@@ -240,7 +240,7 @@ function towerToFeature(t: CellTowerData): Feature {
 
 async function fetchTowerData(lat: number, lon: number): Promise<CellTowerData[] | null> {
 	const data = await fetchJSON<{ success: boolean; towers?: CellTowerData[] }>(
-		`/api/cell-towers/nearby?lat=${lat}&lon=${lon}&radius=5`
+		`/api/cell-towers/nearby?lat=${lat}&lon=${lon}&radius=25`
 	);
 	if (!data?.success) return null;
 	return data.towers?.length ? data.towers : null;

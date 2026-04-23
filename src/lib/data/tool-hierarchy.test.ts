@@ -117,10 +117,11 @@ describe('Tool Navigation Debug', () => {
 	// count is updated. If this file triggers false positives more than once
 	// or twice, convert to range checks (e.g. `toBeGreaterThanOrEqual(90)`) or
 	// delete the category counts in favor of the structural assertions above.
-	// Counts last updated 2026-04-21.
+	// Counts are synced with the toolHierarchy data — bump when tools are added
+	// under ONNET/OFFNET/etc. See git history for the most recent adjustment.
 
-	it('total tools across all categories is 96', () => {
-		expect(countTools(toolHierarchy.root).total).toBe(96);
+	it('total tools across all categories is 97', () => {
+		expect(countTools(toolHierarchy.root).total).toBe(97);
 	});
 
 	it('OFFNET has exactly 86 tools', () => {
@@ -129,10 +130,10 @@ describe('Tool Navigation Debug', () => {
 		expect(countTools(offnet).total).toBe(86);
 	});
 
-	it('ONNET has exactly 8 tools', () => {
+	it('ONNET has exactly 9 tools', () => {
 		// Safe: Test: Type assertion for test data construction
 		const onnet = findByPath(['onnet'], toolHierarchy.root) as ToolCategory;
-		expect(countTools(onnet).total).toBe(8);
+		expect(countTools(onnet).total).toBe(9);
 	});
 
 	it('RECON has 39 tools', () => {

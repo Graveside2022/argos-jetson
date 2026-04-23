@@ -25,6 +25,18 @@ export const onnetCategory: ToolCategory = {
 			defaultExpanded: false,
 			children: [
 				{
+					id: 'wireshark',
+					name: 'Wireshark',
+					description:
+						'Interactive packet capture and protocol analysis with 3000+ dissectors, streamed via noVNC',
+					icon: toolIcons.wireshark,
+					isInstalled: true,
+					deployment: 'native',
+					viewName: 'wireshark',
+					canOpen: true,
+					shouldShowControls: false
+				},
+				{
 					id: 'p0f',
 					name: 'p0f',
 					description:
