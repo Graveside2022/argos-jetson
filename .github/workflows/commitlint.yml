@@ -1,0 +1,27 @@
+name: Commitlint
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  commitlint:
+    name: Validate PR commits
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Full history so commitlint can walk every commit in the PR range,
+          # not just the synthetic merge commit.
+          fetch-depth: 0
+      - name: Validate all commits in PR
+        uses: wagoid/commitlint-github-action@v6
+        with:
+          configFile: commitlint.config.js
+          # Match the exact rules enforced locally.
+          failOnWarnings: false
+          helpURL: https://github.com/conventional-changelog/commitlint#what-is-commitlint

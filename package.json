@@ -50,10 +50,13 @@
 		"mcp:api": "tsx src/lib/server/mcp/servers/api-debugger.ts",
 		"mcp:test": "tsx src/lib/server/mcp/servers/test-runner.ts",
 		"mcp:install-b": "tsx scripts/ops/mcp-install.ts b",
-		"mcp:config-b": "tsx scripts/ops/mcp-config.ts b"
+		"mcp:config-b": "tsx scripts/ops/mcp-config.ts b",
+		"commitlint": "commitlint --edit"
 	},
 	"devDependencies": {
 		"@axe-core/playwright": "4.11.1",
+		"@commitlint/cli": "20.5.0",
+		"@commitlint/config-conventional": "20.0.0",
 		"@eslint/js": "9.39.2",
 		"@lucide/svelte": "0.561.0",
 		"@opentelemetry/auto-instrumentations-node": "^0.72.0",
