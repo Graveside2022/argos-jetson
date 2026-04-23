@@ -17,6 +17,7 @@ import {
 import { GOOGLE_SATELLITE_STYLE, mapSettings } from '$lib/stores/dashboard/map-settings-store';
 import { rfOverlays } from '$lib/stores/dashboard/rf-overlay-store';
 import { uasStore } from '$lib/stores/dragonsync/uas-store';
+import { rfVisualization } from '$lib/stores/rf-visualization.svelte';
 import { kismetStore } from '$lib/stores/tactical-map/kismet-store';
 import { takCotMessages } from '$lib/stores/tak-store';
 import { themeStore } from '$lib/stores/theme-store.svelte';
@@ -118,6 +119,19 @@ export function createMapState() {
 	const uasLinesGeoJSON: FeatureCollection = $derived(
 		buildUASConnectionLinesGeoJSON(uas$.current)
 	);
+
+	// Flying-Squirrel-style RF overlays — read directly from the runes store.
+	// `rfVisualization.features` is a class $state field, so these $derived
+	// reads are tracked and the GeoJSONSource data prop updates when load()
+	// writes new features.
+	const rfPathGeoJSON: FeatureCollection = $derived(rfVisualization.features.path);
+	const rfCentroidGeoJSON: FeatureCollection = $derived(rfVisualization.features.centroids);
+
+	// Fire one load on mount. The store internally LRU-caches by filter hash,
+	// so redundant calls are cheap; session-aware refetch is Phase A.3 work.
+	$effect(() => {
+		void rfVisualization.load();
+	});
 
 	$effect(() => {
 		fetch('/api/map-tiles/styles/alidade_smooth_dark.json', { method: 'HEAD' })
@@ -295,6 +309,12 @@ export function createMapState() {
 		},
 		get uasLinesGeoJSON() {
 			return uasLinesGeoJSON;
+		},
+		get rfPathGeoJSON() {
+			return rfPathGeoJSON;
+		},
+		get rfCentroidGeoJSON() {
+			return rfCentroidGeoJSON;
 		},
 		get gpsLngLat() {
 			return gpsDerived.gpsLngLat;
