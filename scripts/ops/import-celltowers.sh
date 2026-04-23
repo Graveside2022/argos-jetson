@@ -107,6 +107,7 @@ if [[ "${SKIP_PREBUILT:-0}" != "1" ]]; then
 fi
 
 # --- [2] CSV.gz: pre-placed, or [3] download from OpenCellID -----------------
+DOWNLOADED_FRESH_GZ=0
 if [[ -f "$CSV_GZ" ]]; then
   echo "[2] $CSV_GZ present — skipping OpenCellID download"
   echo "    (Delete $CSV_GZ to force re-download)"
@@ -128,10 +129,17 @@ else
   echo "[3] Downloading full cell tower database from OpenCellID (~500 MB)…"
   echo "    This may take several minutes depending on your connection."
   curl -fSL --progress-bar -o "$CSV_GZ" "$DOWNLOAD_URL"
+  DOWNLOADED_FRESH_GZ=1
   echo "    Downloaded: $(du -h "$CSV_GZ" | cut -f1)"
 fi
 
 # --- Decompress --------------------------------------------------------------
+# If we just downloaded a fresh gz, force re-decompress so stale cached CSV
+# from a previous run doesn't masquerade as the new dataset.
+if [[ "$DOWNLOADED_FRESH_GZ" -eq 1 && -f "$CSV_FILE" ]]; then
+  echo "[decompress] Fresh gz downloaded — invalidating stale $CSV_FILE"
+  rm -f "$CSV_FILE"
+fi
 if [[ -f "$CSV_FILE" ]]; then
   echo "[decompress] $CSV_FILE already present — skipping"
 else
@@ -180,6 +188,16 @@ tail -n +2 "$CSV_FILE" | sqlite3 "$DB_PATH" \
 
 ROW_COUNT=$(sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM towers;")
 echo "    Imported $ROW_COUNT towers"
+
+# Fail-fast: don't index / "complete" a DB that has zero rows. An empty DB
+# would short-circuit future runs at step [0] and silently serve empty
+# results to the cell-tower repo. Remove it and exit non-zero instead.
+if [[ "$ROW_COUNT" -le 0 ]]; then
+  echo "Error: import produced zero rows. Removing invalid DB."
+  echo "  Likely causes: corrupted CSV, truncated download, schema drift in source."
+  rm -f "$DB_PATH"
+  exit 1
+fi
 
 # --- Indexes + analyze -------------------------------------------------------
 echo "[index] Building spatial indexes…"
