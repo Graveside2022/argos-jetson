@@ -44,7 +44,8 @@ function signalMarkerToDbSignal(signal: SignalMarker): DbSignal {
 		bandwidth: extractBandwidth(signal),
 		modulation: extractModulation(signal),
 		source: signal.source,
-		metadata: signal.metadata ? JSON.stringify(signal.metadata) : undefined
+		metadata: signal.metadata ? JSON.stringify(signal.metadata) : undefined,
+		session_id: signal.sessionId ?? null
 	};
 }
 

@@ -19,6 +19,7 @@ import type {
 } from '$lib/types/bluedragon';
 import { logger } from '$lib/utils/logger';
 
+import { startNewSession } from '../session/session-tracker';
 import { activeFlagSummary, buildArgs } from './args';
 import { DeviceAggregator } from './device-aggregator';
 import {
@@ -29,6 +30,7 @@ import {
 	scheduleParserStart
 } from './events';
 import { ensureFifo, persistPid } from './pid-fifo';
+import { buildPersistCallback, startGpsPoll, stopGpsPoll } from './signal-persistence';
 import { freezeDeviceSnapshot, state } from './state';
 
 const BD_BIN =
@@ -96,7 +98,18 @@ function initRuntimeState(
 	state.options = options;
 	if (state.pid !== null) persistPid(state.pid);
 
-	const aggregator = new DeviceAggregator((op, device) => broadcastDevice(op, device));
+	// Start a fresh RF-visualization session so BLE observations land in a
+	// dedicated bucket (dashboard can filter heatmap per scan).
+	startNewSession('manual', 'Blue Dragon scan');
+
+	const persistence = startGpsPoll();
+	state.persistence = persistence;
+	const persistFrame = buildPersistCallback(persistence);
+
+	const aggregator = new DeviceAggregator(
+		(op, device) => broadcastDevice(op, device),
+		persistFrame
+	);
 	aggregator.start();
 	state.aggregator = aggregator;
 
@@ -230,6 +243,8 @@ async function performStop(): Promise<void> {
 	state.parser = null;
 	state.aggregator?.stop();
 	state.aggregator = null;
+	stopGpsPoll(state.persistence);
+	state.persistence = null;
 	freezeDeviceSnapshot();
 	if (state.process) await terminateProcess(state.process);
 	clearRuntimeState();

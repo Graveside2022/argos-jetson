@@ -36,6 +36,7 @@ export interface SignalMarker {
 	timestamp: number;
 	source: SignalSource;
 	metadata: SignalMetadata;
+	sessionId?: string; // RF-visualization session bucket (see services/session/session-tracker)
 }
 
 export interface SignalStats {

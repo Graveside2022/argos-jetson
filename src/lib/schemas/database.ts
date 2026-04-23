@@ -44,7 +44,8 @@ export const DbSignalSchema = z.object({
 	bandwidth: z.number().positive().nullable().optional(),
 	modulation: z.string().min(1).nullable().optional(),
 	source: z.string().min(1),
-	metadata: z.string().optional()
+	metadata: z.string().optional(),
+	session_id: z.string().min(1).nullable().optional()
 });
 
 /**
