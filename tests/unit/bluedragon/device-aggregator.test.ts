@@ -61,14 +61,26 @@ describe('DeviceAggregator', () => {
 	});
 
 	it('debounces broadcasts inside 500 ms window', () => {
-		const t0 = Date.now();
-		agg.ingest(makeFrame({ timestamp: t0, rssi: -60 }));
-		broadcast.mockClear();
-		agg.ingest(makeFrame({ timestamp: t0 + 100, rssi: -59 }));
-		agg.ingest(makeFrame({ timestamp: t0 + 200, rssi: -58 }));
-		expect(broadcast).not.toHaveBeenCalled();
-		agg.ingest(makeFrame({ timestamp: t0 + 600, rssi: -57 }));
-		expect(broadcast).toHaveBeenCalledTimes(1);
+		// Throttle compares against Date.now() — fake timers drive the clock.
+		vi.useFakeTimers();
+		try {
+			const t0 = Date.now();
+			vi.setSystemTime(t0);
+			agg.ingest(makeFrame({ timestamp: t0, rssi: -60 }));
+			broadcast.mockClear();
+
+			vi.setSystemTime(t0 + 100);
+			agg.ingest(makeFrame({ timestamp: t0 + 100, rssi: -59 }));
+			vi.setSystemTime(t0 + 200);
+			agg.ingest(makeFrame({ timestamp: t0 + 200, rssi: -58 }));
+			expect(broadcast).not.toHaveBeenCalled();
+
+			vi.setSystemTime(t0 + 600);
+			agg.ingest(makeFrame({ timestamp: t0 + 600, rssi: -57 }));
+			expect(broadcast).toHaveBeenCalledTimes(1);
+		} finally {
+			vi.useRealTimers();
+		}
 	});
 
 	it('reset clears state and emits removes', () => {
