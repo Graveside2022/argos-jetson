@@ -53,6 +53,13 @@ export interface PathVertex {
 	t: number;
 }
 
+export interface ObservationPoint {
+	lat: number;
+	lon: number;
+	dbm: number;
+	timestamp: number;
+}
+
 interface SignalRow {
 	device_id: string | null;
 	timestamp: number;
@@ -287,4 +294,43 @@ export function getDrivePath(
 		lastT = r.timestamp;
 	}
 	return out;
+}
+
+/**
+ * Raw observation rows for a single BSSID / device_id. Consumed by the
+ * Flying-Squirrel "highlight-on-select" UI: when the operator clicks an
+ * AP centroid, we draw rays from the centroid to each row returned here
+ * so the observer sees every data point that shaped the centroid
+ * estimate. `sessionId` / `bbox` / time filters inherit from the shared
+ * RfQueryFilters shape.
+ */
+export function getDeviceObservations(
+	filters: RfQueryFilters & { deviceId: string },
+	db: Database.Database = getRFDatabase().rawDb
+): ObservationPoint[] {
+	// Compose the standard WHERE (session/bbox/time) and AND in a
+	// device_id filter. Reusing buildWhere keeps filter semantics
+	// identical to the other aggregators (hex / centroid / path).
+	const base = buildWhere({
+		sessionId: filters.sessionId,
+		bbox: filters.bbox,
+		startTs: filters.startTs,
+		endTs: filters.endTs
+	});
+	const devClause = base.sql === '' ? 'WHERE device_id = ?' : `${base.sql} AND device_id = ?`;
+	const params = [...base.params, filters.deviceId];
+	const rows = db
+		.prepare(
+			`SELECT timestamp, latitude, longitude, power
+			 FROM signals ${devClause}
+			 ORDER BY timestamp ASC`
+		)
+		.all(...params) as Array<Pick<SignalRow, 'timestamp' | 'latitude' | 'longitude' | 'power'>>;
+
+	return rows.map((r) => ({
+		lat: r.latitude,
+		lon: r.longitude,
+		dbm: r.power,
+		timestamp: r.timestamp
+	}));
 }
