@@ -34,7 +34,18 @@ jobs:
       - name: 'Install dependencies'
         run: npm ci
 
+      - name: 'Restore ESLint cache'
+        uses: actions/cache@v4
+        with:
+          path: .eslintcache
+          # Invalidate whenever eslint config or deps change — otherwise
+          # warm cache survives across CI runs on the same config.
+          key: eslint-${{ runner.os }}-${{ hashFiles('package-lock.json', 'config/eslint.config.js') }}
+          restore-keys: |
+            eslint-${{ runner.os }}-
+
       - name: 'ESLint full-repo scan (cognitive complexity ≤5)'
         # Matches the local pre-commit gate: blocks any error including
         # sonarjs/cognitive-complexity, complexity (cyclomatic), and unused vars.
-        run: npx eslint . --config config/eslint.config.js
+        # --cache makes re-runs on unchanged files near-instant.
+        run: npx eslint . --config config/eslint.config.js --cache --cache-location .eslintcache --cache-strategy content
