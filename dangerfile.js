@@ -46,19 +46,29 @@ const GENERATED_GLOBS = [
 	'**/CHANGELOG.md'
 ];
 schedule(async () => {
-	const total = await danger.git.linesOfCode();
-	let generated = 0;
-	for (const pat of GENERATED_GLOBS) {
-		generated += await danger.git.linesOfCode(pat);
-	}
-	const lineCount = Math.max(0, total - generated);
-	if (lineCount > PR_SIZE_HARD) {
+	try {
+		const total = await danger.git.linesOfCode();
+		let generated = 0;
+		for (const pat of GENERATED_GLOBS) {
+			generated += await danger.git.linesOfCode(pat);
+		}
+		const lineCount = Math.max(0, total - generated);
+		if (lineCount > PR_SIZE_HARD) {
+			fail(
+				`PR is ${lineCount} human-authored lines (> ${PR_SIZE_HARD}). Split into smaller PRs — reviewers cannot meaningfully review at this scale. Generated files excluded: ${generated} lines.`
+			);
+		} else if (lineCount > PR_SIZE_SOFT) {
+			warn(
+				`PR is ${lineCount} human-authored lines (> ${PR_SIZE_SOFT}). Consider splitting for easier review.`
+			);
+		}
+	} catch (err) {
+		// Git metadata occasionally missing in CI (e.g. shallow clone edge cases).
+		// Fail loud with the error so the operator can retry or widen fetch-depth
+		// rather than silently skipping the size cap.
+		const msg = err instanceof Error ? err.message : String(err);
 		fail(
-			`PR is ${lineCount} human-authored lines (> ${PR_SIZE_HARD}). Split into smaller PRs — reviewers cannot meaningfully review at this scale. Generated files excluded: ${generated} lines.`
-		);
-	} else if (lineCount > PR_SIZE_SOFT) {
-		warn(
-			`PR is ${lineCount} human-authored lines (> ${PR_SIZE_SOFT}). Consider splitting for easier review.`
+			`Danger size-cap gate could not compute lines-of-code: ${msg}. Retry the CI run or ensure the checkout action uses fetch-depth: 0.`
 		);
 	}
 });
