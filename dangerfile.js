@@ -19,20 +19,40 @@
  * merge; `warn` rules post a comment but do not block.
  */
 
-const pr = danger.github.pr;
 const changed = [...danger.git.modified_files, ...danger.git.created_files];
 
-// ── 1. PR size cap ─────────────────────────────────────────────────────
+// ── 1. PR size cap (human-authored lines only — exclude generated files) ─
 const PR_SIZE_SOFT = 500;
 const PR_SIZE_HARD = 1200;
-const lineCount = (pr.additions ?? 0) + (pr.deletions ?? 0);
-if (lineCount > PR_SIZE_HARD) {
-	fail(
-		`PR is ${lineCount} lines (> ${PR_SIZE_HARD}). Split into smaller PRs — reviewers cannot meaningfully review at this scale.`
-	);
-} else if (lineCount > PR_SIZE_SOFT) {
-	warn(`PR is ${lineCount} lines (> ${PR_SIZE_SOFT}). Consider splitting for easier review.`);
-}
+// Globs for files that bloat the raw diff without being reviewable prose.
+// Lock files, changelogs, and snapshot fixtures all fall in here — they can
+// legitimately add thousands of lines on a small PR and would defeat the gate.
+const GENERATED_GLOBS = [
+	'package-lock.json',
+	'**/package-lock.json',
+	'yarn.lock',
+	'pnpm-lock.yaml',
+	'**/pnpm-lock.yaml',
+	'CHANGELOG.md',
+	'**/CHANGELOG.md'
+];
+schedule(async () => {
+	const total = await danger.git.linesOfCode();
+	let generated = 0;
+	for (const pat of GENERATED_GLOBS) {
+		generated += await danger.git.linesOfCode(pat);
+	}
+	const lineCount = Math.max(0, total - generated);
+	if (lineCount > PR_SIZE_HARD) {
+		fail(
+			`PR is ${lineCount} human-authored lines (> ${PR_SIZE_HARD}). Split into smaller PRs — reviewers cannot meaningfully review at this scale. Generated files excluded: ${generated} lines.`
+		);
+	} else if (lineCount > PR_SIZE_SOFT) {
+		warn(
+			`PR is ${lineCount} human-authored lines (> ${PR_SIZE_SOFT}). Consider splitting for easier review.`
+		);
+	}
+});
 
 // ── 2. Cross-subsystem sprawl ──────────────────────────────────────────
 function topLevelSrcDir(path) {
