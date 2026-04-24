@@ -1,0 +1,33 @@
+#!/usr/bin/env sh
+# Heavy-gate tier: runs once per `git push`, not once per commit.
+#
+# Rationale: pre-commit is now lean (lint-staged + scoped vitest) so
+# operators can commit in seconds. The full-repo typecheck + ESLint
+# scan + 516-test suite run here, before anything leaves the local
+# machine. CI (.github/workflows/ci.yml + lint.yml) is the third
+# layer that catches anything this misses.
+#
+# Skip with: git push --no-verify   (use sparingly — defeats the gate)
+#
+# All three checks share scripts/ops/mem-guard.sh's flock so two
+# concurrent pre-push runs (e.g. double-click `git push` in a UI)
+# can't race on RAM/CPU.
+
+set -e
+
+echo "[pre-push] typecheck (svelte-check)..."
+# npm run typecheck is already wrapped in mem-guard via its package.json
+# script definition — wrapping it again here would cause a nested-lock
+# failure (outer mem-guard holds flock, inner waits forever).
+npm run typecheck
+
+echo "[pre-push] full-repo ESLint (cached)..."
+npx eslint . --config config/eslint.config.js --cache --cache-location .eslintcache --cache-strategy content
+
+echo "[pre-push] test:unit:related:upstream (scoped to the diff being pushed)..."
+# Full 523-test suite now runs in CI only — pre-push scopes to files changed
+# vs the upstream tracking branch. Catches breakage in the actual diff without
+# paying ~120 s on pushes that touch a handful of files. CI is the safety net.
+npm run test:unit:related:upstream
+
+echo "[pre-push] ✓ all checks passed"

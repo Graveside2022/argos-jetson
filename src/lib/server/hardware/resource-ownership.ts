@@ -71,10 +71,12 @@ export function markFree(state: ResourceState): void {
 }
 
 /**
- * Freshly-claimed tool may not yet appear in an OS scan (process hasn't
- * spawned, container still pulling). Preserve the explicit owner this
- * long before trusting a null scan. Expires into normal "scan says gone
- * → markFree" so truly-crashed tools still get reclaimed.
+ * A freshly-claimed known tool may not yet appear in the OS scan
+ * (process hasn't spawned, container still pulling, docker daemon
+ * slow to enumerate). Preserve the explicit owner this long before
+ * trusting a null OS scan to mean "gone". After the window expires,
+ * the scheduled refresh resumes normal "scan says gone → markFree"
+ * semantics, so truly-crashed tools still get reclaimed.
  */
 const OWNER_PRESERVE_GRACE_MS = 10_000;
 

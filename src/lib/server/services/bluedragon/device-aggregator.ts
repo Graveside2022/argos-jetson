@@ -20,6 +20,8 @@ export interface BroadcastFn {
 	(op: 'upsert' | 'remove', device: BluetoothDevice): void;
 }
 
+export type PersistFrameFn = (frame: FrameObservation, addr: string) => void;
+
 const PRUNE_INTERVAL_MS = 60_000;
 const PRUNE_MAX_AGE_MS = 5 * 60_000;
 const MIN_BROADCAST_INTERVAL_MS = 500;
@@ -111,11 +113,13 @@ export class DeviceAggregator {
 	private devices = new Map<string, BluetoothDevice>();
 	private throttles = new Map<string, Throttle>();
 	private broadcast: BroadcastFn;
+	private persistFrame: PersistFrameFn | null;
 	private pruneTimer: ReturnType<typeof setInterval> | null = null;
 	private packetCount = 0;
 
-	constructor(broadcast: BroadcastFn) {
+	constructor(broadcast: BroadcastFn, persistFrame: PersistFrameFn | null = null) {
 		this.broadcast = broadcast;
+		this.persistFrame = persistFrame;
 	}
 
 	start(): void {
@@ -154,6 +158,7 @@ export class DeviceAggregator {
 	ingest(frame: FrameObservation): void {
 		this.packetCount++;
 		const addr = frame.addr.toLowerCase();
+		if (this.persistFrame) this.persistFrame(frame, addr);
 		const existing = this.devices.get(addr);
 
 		if (!existing) {

@@ -17,6 +17,7 @@ export interface DbSignal {
 	modulation?: string | null;
 	source: string;
 	metadata?: string;
+	session_id?: string | null;
 }
 
 export interface DbDevice {

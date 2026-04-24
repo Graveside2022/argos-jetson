@@ -54,7 +54,9 @@
 		"commitlint": "commitlint --edit",
 		"danger": "danger ci",
 		"danger:local": "danger pr",
-		"release:dry": "semantic-release --dry-run --no-ci"
+		"release:dry": "semantic-release --dry-run --no-ci",
+		"test:unit:related": "./scripts/ops/mem-guard.sh ./scripts/dev/run-related-tests.sh staged",
+		"test:unit:related:upstream": "./scripts/ops/mem-guard.sh ./scripts/dev/run-related-tests.sh upstream"
 	},
 	"devDependencies": {
 		"@axe-core/playwright": "4.11.1",
@@ -62,11 +64,6 @@
 		"@commitlint/config-conventional": "20.0.0",
 		"@eslint/js": "9.39.2",
 		"@lucide/svelte": "0.561.0",
-		"@opentelemetry/auto-instrumentations-node": "^0.72.0",
-		"@opentelemetry/exporter-trace-otlp-http": "^0.214.0",
-		"@opentelemetry/resources": "^2.6.1",
-		"@opentelemetry/sdk-node": "^0.214.0",
-		"@opentelemetry/semantic-conventions": "^1.40.0",
 		"@playwright/test": "1.53.2",
 		"@semantic-release/changelog": "6.0.3",
 		"@semantic-release/commit-analyzer": "13.0.0",
@@ -145,6 +142,7 @@
 		"clsx": "2.1.1",
 		"dotenv": "17.2.1",
 		"eventsource": "4.0.0",
+		"h3-js": "4.4.0",
 		"leaflet": "1.9.4",
 		"maplibre-gl": "5.6.1",
 		"mgrs": "2.1.0",

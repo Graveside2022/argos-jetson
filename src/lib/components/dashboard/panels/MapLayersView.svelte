@@ -8,12 +8,23 @@
 	} from '$lib/stores/dashboard/dashboard-store';
 	import { signalBands } from '$lib/utils/signal-utils';
 
+	import SessionSelector from './SessionSelector.svelte';
+
 	function setVisibilityMode(mode: VisibilityMode) {
 		visibilityMode.set(mode);
 	}
 </script>
 
 <div class="layers-view">
+	<!--
+		RF Visualization session scope — above the visibility filter
+		because it's the "which data" question, vs the other sections'
+		"how to render the data" question.
+	-->
+	<section class="panel-section">
+		<SessionSelector />
+	</section>
+
 	<!-- Visibility Filter -->
 	<section class="panel-section">
 		<div class="section-label">VISIBILITY FILTER</div>
@@ -125,6 +136,45 @@
 				onclick={() => toggleLayerVisibility('rfPropagation')}
 				role="switch"
 				aria-checked={$layerVisibility.rfPropagation}
+			>
+				<span class="toggle-knob"></span>
+			</button>
+		</label>
+
+		<label class="toggle-row">
+			<span class="toggle-label">RF Drive Path</span>
+			<button
+				class="toggle-switch"
+				class:on={$layerVisibility.rfDrivePath}
+				onclick={() => toggleLayerVisibility('rfDrivePath')}
+				role="switch"
+				aria-checked={$layerVisibility.rfDrivePath}
+			>
+				<span class="toggle-knob"></span>
+			</button>
+		</label>
+
+		<label class="toggle-row">
+			<span class="toggle-label">AP Centroids</span>
+			<button
+				class="toggle-switch"
+				class:on={$layerVisibility.rfApCentroid}
+				onclick={() => toggleLayerVisibility('rfApCentroid')}
+				role="switch"
+				aria-checked={$layerVisibility.rfApCentroid}
+			>
+				<span class="toggle-knob"></span>
+			</button>
+		</label>
+
+		<label class="toggle-row">
+			<span class="toggle-label">RSSI Heatmap</span>
+			<button
+				class="toggle-switch"
+				class:on={$layerVisibility.rfHeatmap}
+				onclick={() => toggleLayerVisibility('rfHeatmap')}
+				role="switch"
+				aria-checked={$layerVisibility.rfHeatmap}
 			>
 				<span class="toggle-knob"></span>
 			</button>

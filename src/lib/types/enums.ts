@@ -23,6 +23,7 @@ export const enum KismetEvent {
 export const enum SignalSource {
 	Kismet = 'kismet',
 	HackRF = 'hackrf',
+	BlueDragon = 'bluedragon',
 	Manual = 'manual',
 	RtlSdr = 'rtl-sdr',
 	Other = 'other'

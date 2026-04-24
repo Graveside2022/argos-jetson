@@ -8,6 +8,7 @@
 		CustomControl,
 		FillLayer,
 		GeoJSONSource,
+		HeatmapLayer,
 		LineLayer,
 		MapLibre,
 		Marker,
@@ -16,6 +17,35 @@
 		SymbolLayer as MapLibreSymbolLayer
 	} from 'svelte-maplibre-gl';
 
+	import {
+		RF_CENTROID_HALO_LAYER_ID,
+		RF_CENTROID_LAYER_ID,
+		RF_CENTROID_SOURCE_ID,
+		rfCentroidHaloLayer,
+		rfCentroidLayer
+	} from '$lib/map/layers/rf-centroid-layer';
+	import {
+		RF_HEATMAP_LAYER_ID,
+		RF_HEATMAP_SOURCE_ID,
+		rfHeatmapLayer
+	} from '$lib/map/layers/rf-heatmap-layer';
+	import {
+		RF_HIGHLIGHT_RAYS_LAYER_ID,
+		RF_HIGHLIGHT_RAYS_SOURCE_ID,
+		RF_HIGHLIGHT_RINGS_INNER_LAYER_ID,
+		RF_HIGHLIGHT_RINGS_OUTER_LAYER_ID,
+		RF_HIGHLIGHT_RINGS_SOURCE_ID,
+		rfHighlightRaysLayer,
+		rfHighlightRingsInnerLayer,
+		rfHighlightRingsOuterLayer
+	} from '$lib/map/layers/rf-highlight-layer';
+	import {
+		RF_PATH_CASING_LAYER_ID,
+		RF_PATH_LAYER_ID,
+		RF_PATH_SOURCE_ID,
+		rfPathCasingLayer,
+		rfPathLayer
+	} from '$lib/map/layers/rf-path-layer';
 	import { isolatedDeviceMAC } from '$lib/stores/dashboard/dashboard-store';
 	import { gpsStore } from '$lib/stores/tactical-map/gps-store';
 
@@ -215,6 +245,85 @@
 						'circle-stroke-color': '#ffffff',
 						'circle-stroke-opacity': 0.7
 					}}
+				/>
+			</GeoJSONSource>
+
+			<!--
+				Flying-Squirrel RF heatmap — H3-binned RSSI coverage rendered via
+				MapLibre's native heatmap layer. Authored FIRST among the RF layers
+				so the continuous density surface sits underneath drive-path,
+				centroid dots, and device markers (operator needs to see pins ON
+				the heatmap, not under it).
+			-->
+			<GeoJSONSource id={RF_HEATMAP_SOURCE_ID} data={ms.rfHeatmapGeoJSON}>
+				<HeatmapLayer
+					id={RF_HEATMAP_LAYER_ID}
+					layout={rfHeatmapLayer.layout}
+					paint={rfHeatmapLayer.paint}
+				/>
+			</GeoJSONSource>
+
+			<!--
+				Flying-Squirrel RF drive path — viridis-gradient line tracing the
+				operator's GPS track. Authored before devices-src so device markers
+				stay z-above the line. `lineMetrics={true}` is required for the
+				line-progress paint expression in rfPathLayer.
+			-->
+			<GeoJSONSource id={RF_PATH_SOURCE_ID} data={ms.rfPathGeoJSON} lineMetrics={true}>
+				<LineLayer
+					id={RF_PATH_CASING_LAYER_ID}
+					layout={rfPathCasingLayer.layout}
+					paint={rfPathCasingLayer.paint}
+				/>
+				<LineLayer
+					id={RF_PATH_LAYER_ID}
+					layout={rfPathLayer.layout}
+					paint={rfPathLayer.paint}
+				/>
+			</GeoJSONSource>
+
+			<!--
+				Flying-Squirrel RF AP centroids — RSSI-weighted mean position per
+				BSSID. Dots sized by obsCount, colored by maxDbm. Authored before
+				devices-src so cluster circles stay on top.
+			-->
+			<GeoJSONSource id={RF_CENTROID_SOURCE_ID} data={ms.rfCentroidGeoJSON}>
+				<CircleLayer
+					id={RF_CENTROID_HALO_LAYER_ID}
+					layout={rfCentroidHaloLayer.layout}
+					paint={rfCentroidHaloLayer.paint}
+				/>
+				<CircleLayer
+					id={RF_CENTROID_LAYER_ID}
+					layout={rfCentroidLayer.layout}
+					paint={rfCentroidLayer.paint}
+					onclick={ms.handleCentroidClick}
+				/>
+			</GeoJSONSource>
+
+			<!--
+				Highlight-on-select: rays from the selected centroid to every
+				contributing observation, plus concentric rings around the
+				centroid itself. Authored AFTER the centroid so the rings and
+				rays sit on top of it rather than underneath.
+			-->
+			<GeoJSONSource id={RF_HIGHLIGHT_RAYS_SOURCE_ID} data={ms.rfHighlightRaysGeoJSON}>
+				<LineLayer
+					id={RF_HIGHLIGHT_RAYS_LAYER_ID}
+					layout={rfHighlightRaysLayer.layout}
+					paint={rfHighlightRaysLayer.paint}
+				/>
+			</GeoJSONSource>
+			<GeoJSONSource id={RF_HIGHLIGHT_RINGS_SOURCE_ID} data={ms.rfHighlightRingsGeoJSON}>
+				<CircleLayer
+					id={RF_HIGHLIGHT_RINGS_OUTER_LAYER_ID}
+					layout={rfHighlightRingsOuterLayer.layout}
+					paint={rfHighlightRingsOuterLayer.paint}
+				/>
+				<CircleLayer
+					id={RF_HIGHLIGHT_RINGS_INNER_LAYER_ID}
+					layout={rfHighlightRingsInnerLayer.layout}
+					paint={rfHighlightRingsInnerLayer.paint}
 				/>
 			</GeoJSONSource>
 
