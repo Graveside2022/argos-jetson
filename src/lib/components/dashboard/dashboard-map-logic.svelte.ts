@@ -4,6 +4,7 @@ import type { LngLatLike } from 'maplibre-gl';
 import type maplibregl from 'maplibre-gl';
 import { fromStore } from 'svelte/store';
 
+import { RF_CENTROID_HALO_LAYER_ID, RF_CENTROID_LAYER_ID } from '$lib/map/layers/rf-centroid-layer';
 import type { SatelliteLayer } from '$lib/map/layers/satellite-layer';
 import type { SymbolLayer } from '$lib/map/layers/symbol-layer';
 import { promotedDevices, visibilityMode } from '$lib/map/visibility-engine';
@@ -323,7 +324,7 @@ export function createMapState() {
 	function handleCentroidClick(ev: maplibregl.MapMouseEvent) {
 		if (!map) return;
 		const features = map.queryRenderedFeatures(ev.point, {
-			layers: ['rf-centroid', 'rf-centroid-halo']
+			layers: [RF_CENTROID_LAYER_ID, RF_CENTROID_HALO_LAYER_ID]
 		});
 		const deviceId = (features[0]?.properties as { deviceId?: string } | undefined)?.deviceId;
 		if (deviceId) isolateDevice(deviceId);

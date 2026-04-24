@@ -67,6 +67,9 @@ export const GET = createHandler(async ({ url }) => {
 		throw error(400, parsed.error.issues.map((i) => i.message).join('; '));
 	}
 	const q = parsed.data;
+	if (q.start !== undefined && q.end !== undefined && q.start > q.end) {
+		throw error(400, 'start must be <= end');
+	}
 	const observations = getDeviceObservations({
 		deviceId: q.bssid,
 		sessionId: q.session,

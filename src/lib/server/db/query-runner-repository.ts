@@ -11,6 +11,8 @@
 
 import Database from 'better-sqlite3';
 
+import { logger } from '$lib/utils/logger';
+
 import { getRFDatabase } from './database';
 
 export type QueryParam = string | number | null;
@@ -39,8 +41,12 @@ export function runReadOnlyQuery(sql: string, params: readonly QueryParam[]): Qu
 	} finally {
 		try {
 			db.close();
-		} catch {
-			/* already closed */
+		} catch (closeErr) {
+			// Don't let a finally-thrown close error mask a query error that's
+			// already in flight. Log and continue so the outer error propagates.
+			logger.warn('readonly db.close() failed', {
+				err: closeErr instanceof Error ? closeErr.message : String(closeErr)
+			});
 		}
 	}
 }

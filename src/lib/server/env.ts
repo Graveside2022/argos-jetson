@@ -81,7 +81,8 @@ const envSchema = z.object({
 	ARGOS_WAL_CHECKPOINT_INTERVAL_MS: z.coerce
 		.number()
 		.int()
-		.positive()
+		.min(60_000) // 1 min — anything tighter thrashes WAL checkpointing
+		.max(86_400_000) // 1 day — anything looser defeats the point
 		.default(15 * 60 * 1000),
 
 	// Frontend-public variant of ARGOS_API_URL (Sprint 2 — env.ts consolidation).

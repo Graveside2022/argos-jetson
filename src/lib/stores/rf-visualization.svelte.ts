@@ -263,6 +263,11 @@ class RfVisualizationStore {
 	activeSessionId = $state<string | null>(null);
 	sessionsList = $state<RfSession[]>([]);
 	sessionsLoaded = $state(false);
+	// In-flight guard + terminal-failure flag. SessionSelector checks all three
+	// (loaded / loading / failed) so the effect can't retry on its own after a
+	// network failure — operator must refresh / re-trigger explicitly.
+	sessionsLoading = $state(false);
+	sessionsLoadFailed = $state(false);
 
 	// Highlight-on-select state. Populated when the operator clicks a
 	// centroid; cleared when they click elsewhere. `selectedObservations`
@@ -298,6 +303,9 @@ class RfVisualizationStore {
 	}
 
 	async loadSessions(): Promise<void> {
+		if (this.sessionsLoading) return;
+		this.sessionsLoading = true;
+		this.sessionsLoadFailed = false;
 		try {
 			const resp = await fetch('/api/sessions?limit=50', {
 				credentials: 'include',
@@ -310,6 +318,9 @@ class RfVisualizationStore {
 			this.sessionsLoaded = true;
 		} catch (err) {
 			this.error = err instanceof Error ? err.message : String(err);
+			this.sessionsLoadFailed = true;
+		} finally {
+			this.sessionsLoading = false;
 		}
 	}
 

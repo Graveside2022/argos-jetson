@@ -4,7 +4,7 @@ Implementation plan backing `spec.md`. Retro-filled to match what actually shipp
 
 ## Architecture summary
 
-```
+```text
 rf_signals.db (SQLite WAL)
   ▲
   │ (session_id tagged at write time)
@@ -77,5 +77,5 @@ Source values: `'kismet-start'` | `'manual'` | `'auto'` | `'legacy'`.
 ## Known follow-ups
 
 - **`process-manager.js` is 1.86 MB** in the server bundle (observed on the Phase A.3 build). Not an A.3 blocker but a candidate for a code-splitting ticket adjacent to Phase A.4.
-- **`hooks.server.ts` top-level `scanAllHardware()`** runs at import time — confirmed by build log emitting Alfa-adapter detection during SSR assembly. Tracked in memory as a followup to A.3.
+- **`hooks.server.ts` top-level `scanAllHardware()`** runs at import time — confirmed by build log emitting Alfa-adapter detection during SSR assembly. Tracked in memory as a follow-up to A.3.
 - **Cross-session AP fusion** (US-out-of-scope) will need a `device_seen_across_sessions` view or similar. Defer to Phase B.

@@ -12,10 +12,16 @@
 <script lang="ts">
 	import { rfVisualization } from '$lib/stores/rf-visualization.svelte';
 
-	// Load sessions once on mount. loadSessions() is idempotent — subsequent
-	// calls no-op if sessionsLoaded is true.
+	// Load sessions once on mount. Guard with sessionsLoading + sessionsLoadFailed
+	// so the effect can't retry on its own — a transient network failure leaves
+	// sessionsLoaded=false, which without a failure flag would let any future
+	// dep change trigger another fetch. One shot per mount.
 	$effect(() => {
-		if (!rfVisualization.sessionsLoaded) {
+		if (
+			!rfVisualization.sessionsLoaded &&
+			!rfVisualization.sessionsLoading &&
+			!rfVisualization.sessionsLoadFailed
+		) {
 			void rfVisualization.loadSessions();
 		}
 	});
