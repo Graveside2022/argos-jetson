@@ -162,11 +162,13 @@ export const layerVisibility = writable<Record<string, boolean>>({
 	accuracyCircle: true,
 	rfPropagation: false,
 	uasMarkers: true,
-	// Flying-Squirrel-style RF visualization layers — default off so they
-	// don't alter the existing dashboard until the operator opts in.
-	rfDrivePath: false,
-	rfApCentroid: false,
-	rfHeatmap: false
+	// Flying-Squirrel-style RF visualization layers — default ON now that
+	// Phase A.4 is live. Operators who start Kismet/BlueDragon expect to
+	// see the heatmap, centroids, and drive path immediately; burying them
+	// behind opt-in toggles defeats the point of the live-refresh pipeline.
+	rfDrivePath: true,
+	rfApCentroid: true,
+	rfHeatmap: true
 });
 
 /** Toggle a single map layer on/off */
