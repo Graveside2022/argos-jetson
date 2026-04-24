@@ -7,6 +7,8 @@ import {
 	startKismetExtended,
 	stopKismetExtended
 } from '$lib/server/services/kismet/kismet-control-service-extended';
+import { getKismetSignalSource } from '$lib/server/services/rf/kismet-source-singleton';
+import { getCurrentSessionId, startNewSession } from '$lib/server/services/session/session-tracker';
 import { safeParseWithHandling } from '$lib/utils/validation-error';
 
 export const _KismetControlSchema = z.object({
@@ -36,9 +38,28 @@ function resultStatus(result: KismetResult): number {
 	return result.error ? 400 : 500;
 }
 
+async function handleStart(): Promise<KismetResult> {
+	const result = await startKismetExtended();
+	// Flying-Squirrel integration: on a fresh Kismet run, open a new session
+	// and spin up the persistence-polling bridge so devices flow into
+	// rf_signals.db with a sessionId stamp.
+	if (result.success) {
+		startNewSession('kismet-start', 'Kismet WiFi discovery');
+		await getKismetSignalSource().start(getCurrentSessionId());
+	}
+	return result;
+}
+
+async function handleStop(): Promise<KismetResult> {
+	// Stop the persistence bridge first so the poller doesn't log fetch
+	// failures during Kismet's tear-down.
+	await getKismetSignalSource().stop();
+	return await stopKismetExtended();
+}
+
 const ACTION_HANDLERS: Record<string, () => Promise<KismetResult>> = {
-	start: startKismetExtended,
-	stop: stopKismetExtended,
+	start: handleStart,
+	stop: handleStop,
 	status: getKismetStatus
 };
 

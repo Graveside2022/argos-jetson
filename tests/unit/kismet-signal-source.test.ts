@@ -60,7 +60,8 @@ describe('kismet-signal-source', () => {
 		const src = createKismetSignalSource({
 			fetchDevices: fetchSpy,
 			intervalMs: 1000,
-			db
+			db,
+			fetchFallbackGps: () => Promise.resolve(null)
 		});
 		await src.start('sess-k');
 		await vi.advanceTimersByTimeAsync(10); // poll-on-start flush
@@ -82,7 +83,8 @@ describe('kismet-signal-source', () => {
 		const src = createKismetSignalSource({
 			fetchDevices: fetchSpy,
 			intervalMs: 1000,
-			db
+			db,
+			fetchFallbackGps: () => Promise.resolve(null)
 		});
 		await src.start('sess-k');
 		await vi.advanceTimersByTimeAsync(10);
@@ -98,7 +100,8 @@ describe('kismet-signal-source', () => {
 		const src = createKismetSignalSource({
 			fetchDevices: fetchSpy,
 			intervalMs: 1000,
-			db
+			db,
+			fetchFallbackGps: () => Promise.resolve(null)
 		});
 		expect(src.isRunning()).toBe(false);
 		await src.start('sess-k');
@@ -112,7 +115,8 @@ describe('kismet-signal-source', () => {
 		const src = createKismetSignalSource({
 			fetchDevices: fetchSpy,
 			intervalMs: 1000,
-			db
+			db,
+			fetchFallbackGps: () => Promise.resolve(null)
 		});
 		await src.start('sess-k');
 		await src.start('sess-k');
@@ -128,7 +132,8 @@ describe('kismet-signal-source', () => {
 		const src = createKismetSignalSource({
 			fetchDevices: fetchSpy,
 			intervalMs: 1000,
-			db
+			db,
+			fetchFallbackGps: () => Promise.resolve(null)
 		});
 		await src.start('sess-k');
 		await vi.advanceTimersByTimeAsync(20);
@@ -136,12 +141,65 @@ describe('kismet-signal-source', () => {
 		expect(src.isRunning()).toBe(false);
 	});
 
+	it('falls back to operator GPS when a device has no location fix', async () => {
+		fetchSpy.mockResolvedValue([dev({ location: undefined })]);
+		const src = createKismetSignalSource({
+			fetchDevices: fetchSpy,
+			intervalMs: 1000,
+			db,
+			fetchFallbackGps: () => Promise.resolve({ lat: 35.5, lon: -116.5 })
+		});
+		await src.start('sess-k');
+		await vi.advanceTimersByTimeAsync(10);
+		await src.stop();
+		const row = db.rawDb
+			.prepare(`SELECT latitude, longitude FROM signals WHERE session_id='sess-k' LIMIT 1`)
+			.get() as { latitude: number; longitude: number };
+		expect(row.latitude).toBeCloseTo(35.5);
+		expect(row.longitude).toBeCloseTo(-116.5);
+	});
+
+	it('rejects Null-Island sentinel (lat=0, lon=0) even if reported by Kismet', async () => {
+		fetchSpy.mockResolvedValue([dev({ location: { latitude: 0, longitude: 0 } })]);
+		const src = createKismetSignalSource({
+			fetchDevices: fetchSpy,
+			intervalMs: 1000,
+			db,
+			fetchFallbackGps: () => Promise.resolve(null)
+		});
+		await src.start('sess-k');
+		await vi.advanceTimersByTimeAsync(10);
+		await src.stop();
+		const count = db.rawDb
+			.prepare(`SELECT COUNT(*) as c FROM signals WHERE session_id='sess-k'`)
+			.get() as { c: number };
+		expect(count.c).toBe(0);
+	});
+
+	it('converts Kismet frequency kHz → MHz before insertion', async () => {
+		fetchSpy.mockResolvedValue([dev({ frequency: 5180000 })]); // 5.18 GHz
+		const src = createKismetSignalSource({
+			fetchDevices: fetchSpy,
+			intervalMs: 1000,
+			db,
+			fetchFallbackGps: () => Promise.resolve(null)
+		});
+		await src.start('sess-k');
+		await vi.advanceTimersByTimeAsync(10);
+		await src.stop();
+		const row = db.rawDb
+			.prepare(`SELECT frequency FROM signals WHERE session_id='sess-k' LIMIT 1`)
+			.get() as { frequency: number };
+		expect(row.frequency).toBe(5180);
+	});
+
 	it('stamps every inserted signal with source=kismet', async () => {
 		fetchSpy.mockResolvedValue([dev()]);
 		const src = createKismetSignalSource({
 			fetchDevices: fetchSpy,
 			intervalMs: 1000,
-			db
+			db,
+			fetchFallbackGps: () => Promise.resolve(null)
 		});
 		await src.start('sess-k');
 		await vi.advanceTimersByTimeAsync(10);

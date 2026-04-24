@@ -202,6 +202,17 @@ export function createMapState() {
 		void rfVisualization.load();
 	});
 
+	// Resolve the active session on mount so the heatmap/centroid/path layers
+	// scope to the CURRENT Kismet/BD run — not the union across all sessions.
+	// Before this, the layers only resolved after the operator opened the
+	// SessionSelector panel, which meant a fresh "Start Kismet" left the map
+	// showing pre-session test data instead of the observations just persisted.
+	$effect(() => {
+		if (!rfVisualization.sessionsLoaded && !rfVisualization.sessionsLoading) {
+			void rfVisualization.loadSessions();
+		}
+	});
+
 	// Live-refresh: open an SSE stream to /api/rf/stream for the active
 	// session. Reconnects automatically when the user switches sessions.
 	// Closed on component teardown so we don't leak EventSources.
