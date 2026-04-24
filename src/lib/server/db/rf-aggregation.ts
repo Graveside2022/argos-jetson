@@ -27,6 +27,10 @@ export interface RfQueryFilters {
 	bbox?: [minLon: number, minLat: number, maxLon: number, maxLat: number];
 	startTs?: number;
 	endTs?: number;
+	/** RSSI floor in dBm — only rows with power >= floor are considered. */
+	rssiFloorDbm?: number;
+	/** Match against signals.source (e.g. 'kismet', 'bluedragon'). */
+	source?: string;
 }
 
 export interface HexCell {
@@ -121,12 +125,26 @@ function addTimeClauses(b: ClauseBuilder, startTs?: number, endTs?: number): voi
 	}
 }
 
+function addRssiFloorClause(b: ClauseBuilder, floorDbm: number | undefined): void {
+	if (floorDbm === undefined) return;
+	b.clauses.push('power >= ?');
+	b.params.push(floorDbm);
+}
+
+function addSourceClause(b: ClauseBuilder, source: string | undefined): void {
+	if (!source) return;
+	b.clauses.push('source = ?');
+	b.params.push(source);
+}
+
 function buildWhere(filters: RfQueryFilters): { sql: string; params: unknown[] } {
 	const b: ClauseBuilder = { clauses: [], params: [] };
 	addSessionClause(b, filters.sessionId);
 	addDeviceClause(b, filters.deviceIds);
 	addBboxClause(b, filters.bbox);
 	addTimeClauses(b, filters.startTs, filters.endTs);
+	addRssiFloorClause(b, filters.rssiFloorDbm);
+	addSourceClause(b, filters.source);
 	return {
 		sql: b.clauses.length ? `WHERE ${b.clauses.join(' AND ')}` : '',
 		params: b.params

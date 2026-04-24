@@ -66,7 +66,13 @@ const QuerySchema = z.object({
 		.string()
 		.transform((v) => Number(v))
 		.pipe(z.number().finite())
-		.optional()
+		.optional(),
+	rssiFloor: z
+		.string()
+		.transform((v) => Number(v))
+		.pipe(z.number().finite())
+		.optional(),
+	source: z.enum(['kismet', 'bluedragon', 'gsm-evil', 'hackrf', 'rtl-sdr']).optional()
 });
 
 function toFilters(q: z.infer<typeof QuerySchema>): RfQueryFilters {
@@ -75,7 +81,9 @@ function toFilters(q: z.infer<typeof QuerySchema>): RfQueryFilters {
 		deviceIds: q.bssid,
 		bbox: q.bbox as RfQueryFilters['bbox'],
 		startTs: q.start,
-		endTs: q.end
+		endTs: q.end,
+		rssiFloorDbm: q.rssiFloor,
+		source: q.source
 	};
 }
 

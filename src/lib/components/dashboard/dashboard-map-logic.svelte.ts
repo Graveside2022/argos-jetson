@@ -23,6 +23,7 @@ import { kismetStore } from '$lib/stores/tactical-map/kismet-store';
 import { takCotMessages } from '$lib/stores/tak-store';
 import { themeStore } from '$lib/stores/theme-store.svelte';
 import { HackRFDataService } from '$lib/tactical-map/hackrf-data-service';
+import { ellipseToPolygon } from '$lib/utils/ellipse-geometry';
 
 import { MAP_UI_COLORS } from './map/map-colors';
 import { buildConnectionLinesGeoJSON, buildDeviceGeoJSON } from './map/map-geojson';
@@ -160,6 +161,15 @@ export function createMapState() {
 				properties: o.properties ?? {}
 			}))
 		};
+	});
+
+	// Confidence ellipse (PR-5). FeatureCollection with zero or one polygon
+	// feature — empty until the operator selects a device AND the observation
+	// fetch returned an ellipse for it.
+	const rfEllipseGeoJSON: FeatureCollection = $derived.by(() => {
+		const ell = rfVisualization.selectedEllipse;
+		if (!ell) return { type: 'FeatureCollection', features: [] };
+		return { type: 'FeatureCollection', features: [ellipseToPolygon(ell)] };
 	});
 
 	// Rings: a single Point at the selected centroid's location. The two
@@ -416,6 +426,9 @@ export function createMapState() {
 		},
 		get rfHighlightRingsGeoJSON() {
 			return rfHighlightRingsGeoJSON;
+		},
+		get rfEllipseGeoJSON() {
+			return rfEllipseGeoJSON;
 		},
 		get gpsLngLat() {
 			return gpsDerived.gpsLngLat;

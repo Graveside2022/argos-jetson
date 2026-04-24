@@ -47,6 +47,12 @@ export interface RfVisualizationFilters {
 	bbox?: [minLon: number, minLat: number, maxLon: number, maxLat: number];
 	h3res?: number;
 	zoom?: number;
+	rssiFloorDbm?: number;
+	source?: string;
+	/** Unix ms — include only signals with timestamp >= startTs. */
+	startTs?: number;
+	/** Unix ms — include only signals with timestamp <= endTs. */
+	endTs?: number;
 }
 
 interface AggregateResponse {
@@ -58,19 +64,27 @@ interface AggregateResponse {
 const CACHE_LIMIT = 5;
 const cache = new Map<string, AggregateResponse>();
 
+function nullIfUndef<T>(v: T | undefined): T | null {
+	return v === undefined ? null : v;
+}
+
 function fingerprintScope(filters: RfVisualizationFilters): Record<string, unknown> {
 	return {
-		s: filters.sessionId ?? null,
-		d: filters.deviceIds?.slice().sort() ?? null
+		s: nullIfUndef(filters.sessionId),
+		d: nullIfUndef(filters.deviceIds?.slice().sort()),
+		r: nullIfUndef(filters.rssiFloorDbm),
+		src: nullIfUndef(filters.source)
 	};
 }
 
 function fingerprintViewport(filters: RfVisualizationFilters): Record<string, unknown> {
+	const zoomBucket = filters.zoom !== undefined ? Math.floor(filters.zoom) : null;
 	return {
-		b: filters.bbox ?? null,
-		h: filters.h3res ?? null,
-		// Bucket zoom by integer — panning without zoom change must re-use cached payload.
-		z: filters.zoom !== undefined ? Math.floor(filters.zoom) : null
+		b: nullIfUndef(filters.bbox),
+		h: nullIfUndef(filters.h3res),
+		z: zoomBucket,
+		ts: nullIfUndef(filters.startTs),
+		te: nullIfUndef(filters.endTs)
 	};
 }
 
@@ -112,6 +126,10 @@ function buildQuery(filters: RfVisualizationFilters): string {
 	addOptionalParam(params, 'bbox', filters.bbox ? filters.bbox.join(',') : null);
 	addOptionalParam(params, 'h3res', optionalNumber(filters.h3res));
 	addOptionalParam(params, 'zoom', optionalNumber(filters.zoom));
+	addOptionalParam(params, 'rssiFloor', optionalNumber(filters.rssiFloorDbm));
+	addOptionalParam(params, 'source', filters.source);
+	addOptionalParam(params, 'start', optionalNumber(filters.startTs));
+	addOptionalParam(params, 'end', optionalNumber(filters.endTs));
 	return params.toString();
 }
 
@@ -231,8 +249,17 @@ interface ObservationPoint {
 	timestamp: number;
 }
 
+export interface DeviceEllipse {
+	centerLat: number;
+	centerLon: number;
+	semiMajorM: number;
+	semiMinorM: number;
+	rotationDeg: number;
+}
+
 interface ObservationsResponse {
 	observations: ObservationPoint[];
+	ellipse: DeviceEllipse | null;
 }
 
 const EMPTY_POINT_FC: FeatureCollection<Point> = { type: 'FeatureCollection', features: [] };
@@ -282,6 +309,7 @@ class RfVisualizationStore {
 	// centroid, used to draw rays from the centroid back to each point.
 	selectedDeviceId = $state<string | null>(null);
 	selectedObservations = $state<FeatureCollection<Point>>(EMPTY_POINT_FC);
+	selectedEllipse = $state<DeviceEllipse | null>(null);
 
 	// Live-refresh state — true while an SSE stream is open.
 	isLive = $state(false);
@@ -342,15 +370,17 @@ class RfVisualizationStore {
 		// the map doesn't flash stale rings/rays over the new session's data.
 		this.selectedDeviceId = null;
 		this.selectedObservations = EMPTY_POINT_FC;
+		this.selectedEllipse = null;
 		await this.load();
 	}
 
 	setSelectedDevice(id: string | null): void {
 		// Any context change — including switching from AP-A to AP-B — must
-		// invalidate the previous selection's observations. Otherwise the old
-		// rays linger until the new fetch lands.
+		// invalidate the previous selection's observations + ellipse. Otherwise
+		// the old rays / ellipse linger until the new fetch lands.
 		if (id !== this.selectedDeviceId) {
 			this.selectedObservations = EMPTY_POINT_FC;
+			this.selectedEllipse = null;
 		}
 		this.selectedDeviceId = id;
 		if (id === null) return;
@@ -363,28 +393,29 @@ class RfVisualizationStore {
 		return params.toString();
 	}
 
-	private async fetchObservations(id: string): Promise<ObservationPoint[]> {
+	private async fetchObservations(id: string): Promise<ObservationsResponse> {
 		const resp = await fetch(`/api/rf/observations?${this.buildObservationsQuery(id)}`, {
 			credentials: 'include',
 			headers: { accept: 'application/json' }
 		});
 		if (!resp.ok) throw new Error(`/api/rf/observations ${resp.status}`);
-		const data = (await resp.json()) as ObservationsResponse;
-		return data.observations ?? [];
+		return (await resp.json()) as ObservationsResponse;
 	}
 
 	// Stale-guarded assignment: drop the result if the selection has
 	// changed since the fetch began. Prevents fast AP-clicks from
 	// clobbering newer observations with an earlier in-flight response.
-	private assignObservations(id: string, obs: ObservationPoint[]): void {
+	private assignObservations(id: string, data: ObservationsResponse): void {
 		if (this.selectedDeviceId !== id) return;
-		this.selectedObservations = observationsToGeoJson(obs);
+		this.selectedObservations = observationsToGeoJson(data.observations ?? []);
+		this.selectedEllipse = data.ellipse ?? null;
 	}
 
 	private assignFetchError(id: string, err: unknown): void {
 		if (this.selectedDeviceId !== id) return;
 		this.error = err instanceof Error ? err.message : String(err);
 		this.selectedObservations = EMPTY_POINT_FC;
+		this.selectedEllipse = null;
 	}
 
 	async loadSelectedDeviceObservations(): Promise<void> {

@@ -148,6 +148,22 @@
 			placeholder="context for this session"
 		></textarea>
 	</div>
+
+	{#if rfVisualization.activeSessionId}
+		<div class="export-row">
+			<span class="exp-key">export</span>
+			<a
+				class="exp-btn"
+				href={`/api/sessions/${encodeURIComponent(rfVisualization.activeSessionId)}/export?format=csv`}
+				download>CSV</a
+			>
+			<a
+				class="exp-btn"
+				href={`/api/sessions/${encodeURIComponent(rfVisualization.activeSessionId)}/export?format=kml`}
+				download>KML</a
+			>
+		</div>
+	{/if}
 </div>
 
 <style>
@@ -204,5 +220,30 @@
 	textarea {
 		resize: vertical;
 		min-height: 2.5em;
+	}
+	.export-row {
+		display: flex;
+		align-items: center;
+		gap: 0.5em;
+		margin-top: 0.25em;
+	}
+	.exp-key {
+		font-size: 0.62em;
+		letter-spacing: 0.08em;
+		color: var(--muted-foreground);
+	}
+	.exp-btn {
+		font-family: inherit;
+		font-size: 0.72em;
+		color: var(--foreground);
+		background: var(--card);
+		border: 1px solid var(--border);
+		border-radius: 3px;
+		padding: 0.15em 0.55em;
+		text-decoration: none;
+	}
+	.exp-btn:hover {
+		border-color: var(--primary);
+		color: var(--primary);
 	}
 </style>
