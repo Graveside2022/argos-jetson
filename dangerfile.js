@@ -58,14 +58,10 @@ const serverCodeChanged = changed.some(
 		!f.endsWith('.spec.ts') &&
 		!f.endsWith('.spec.js')
 );
-const testChanged = changed.some(
-	(f) =>
-		f.startsWith('tests/') ||
-		f.endsWith('.test.ts') ||
-		f.endsWith('.test.js') ||
-		f.endsWith('.spec.ts') ||
-		f.endsWith('.spec.js')
-);
+// Only count real test files: path must be under src/ or tests/ AND end with a
+// known test-file pattern. Prior version counted any tests/ file (e.g. fixtures,
+// snapshots), letting non-test changes pass the "tests required" gate.
+const testChanged = changed.some((f) => /^(src|tests)\/.*\.(test|spec)\.(ts|js)$/.test(f));
 if (serverCodeChanged && !testChanged) {
 	fail(
 		'Server code under src/lib/server/ changed but no test files were added or modified. Add unit or integration tests.'

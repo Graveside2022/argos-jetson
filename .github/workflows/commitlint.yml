@@ -21,7 +21,7 @@ jobs:
       - name: Validate all commits in PR
         uses: wagoid/commitlint-github-action@v6
         with:
-          configFile: commitlint.config.js
+          configFile: commitlint.config.mjs
           # Match the exact rules enforced locally.
           failOnWarnings: false
           helpURL: https://github.com/conventional-changelog/commitlint#what-is-commitlint
