@@ -19,7 +19,16 @@
  * merge; `warn` rules post a comment but do not block.
  */
 
-const changed = [...danger.git.modified_files, ...danger.git.created_files];
+// Include deleted files too — a PR that deletes server code is still a
+// server-code change and must satisfy the tests-required gate. Dedupe so a
+// file that appears in multiple danger.git arrays isn't counted twice.
+const changed = Array.from(
+	new Set([
+		...(danger.git.modified_files || []),
+		...(danger.git.created_files || []),
+		...(danger.git.deleted_files || [])
+	])
+);
 
 // ── 1. PR size cap (human-authored lines only — exclude generated files) ─
 const PR_SIZE_SOFT = 500;
@@ -78,10 +87,14 @@ const serverCodeChanged = changed.some(
 		!f.endsWith('.spec.ts') &&
 		!f.endsWith('.spec.js')
 );
-// Only count real test files: path must be under src/ or tests/ AND end with a
-// known test-file pattern. Prior version counted any tests/ file (e.g. fixtures,
-// snapshots), letting non-test changes pass the "tests required" gate.
-const testChanged = changed.some((f) => /^(src|tests)\/.*\.(test|spec)\.(ts|js)$/.test(f));
+// Only match server-related test locations. Prior regex accepted any src/
+// test (e.g. src/lib/components/**/*.test.ts), letting a UI-only test satisfy
+// a server-code-changed gate. Narrow to server inline tests (src/lib/server)
+// + anything under tests/ (integration/unit/security/etc., which do exercise
+// server behavior by convention in this repo).
+const testChanged = changed.some((f) =>
+	/^(src\/lib\/server|tests)\/.*\.(test|spec)\.(ts|js)$/.test(f)
+);
 if (serverCodeChanged && !testChanged) {
 	fail(
 		'Server code under src/lib/server/ changed but no test files were added or modified. Add unit or integration tests.'
