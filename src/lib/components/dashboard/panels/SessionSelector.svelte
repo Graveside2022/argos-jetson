@@ -48,8 +48,14 @@
 		<div class="session-status">Loading sessions…</div>
 	{:else if rfVisualization.sessionsLoadFailed}
 		<div class="session-status session-error" role="alert">
-			<span class="session-error-msg">Failed to load sessions.</span>
+			<span class="session-error-msg" title={rfVisualization.error ?? ''}>
+				{rfVisualization.error ?? 'Failed to load sessions.'}
+			</span>
 			<button type="button" class="session-retry" onclick={retryLoad}>Retry</button>
+		</div>
+	{:else if rfVisualization.sessionsList.length === 0}
+		<div class="session-status">
+			No capture sessions yet. Start a Kismet scan to create one.
 		</div>
 	{:else}
 		<select
