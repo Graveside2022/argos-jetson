@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+# Enforce Conventional Commits via commitlint on every `git commit`.
+# PR-level re-validation in .github/workflows/commitlint.yml catches any
+# local --no-verify bypass.
+npx --no-install commitlint --edit "$1"
