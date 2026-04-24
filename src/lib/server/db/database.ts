@@ -12,6 +12,7 @@ import type { SignalMarker } from '$lib/types/signals';
 import { logger } from '$lib/utils/logger';
 
 import { env } from '../env';
+import { getSignalBus } from '../services/rf/signal-bus';
 import { DatabaseCleanupService } from './cleanup-service';
 import { DatabaseOptimizer } from './db-optimizer';
 import { runMigrations } from './migrations/run-migrations';
@@ -54,8 +55,22 @@ export class RFDatabase {
 			this.initializeSchema();
 		}
 
+		// runMigrations is async (the TS-migration path uses dynamic import) but the
+		// constructor is sync — swallow any rejection so it doesn't surface as an
+		// unhandled rejection AFTER the test/caller has moved on (including after
+		// db.close() has been called on short-lived in-memory DBs).
 		try {
-			runMigrations(this.db, join(process.cwd(), 'src/lib/server/db/migrations'));
+			const migrationsPromise = runMigrations(
+				this.db,
+				join(process.cwd(), 'src/lib/server/db/migrations')
+			);
+			Promise.resolve(migrationsPromise).catch((error: unknown) => {
+				logger.warn(
+					'Could not run migrations (async)',
+					{ error: String(error) },
+					'migrations-failed-async'
+				);
+			});
 		} catch (error) {
 			logger.warn('Could not run migrations', { error }, 'migrations-failed');
 		}
@@ -194,11 +209,15 @@ export class RFDatabase {
 	// ── Signal operations (delegated to signalRepository) ──────────────
 
 	insertSignal(signal: SignalMarker): DbSignal {
-		return signalRepo.insertSignal(this.db, this.statements, signal);
+		const inserted = signalRepo.insertSignal(this.db, this.statements, signal);
+		emitObservation(inserted);
+		return inserted;
 	}
 
 	insertSignalsBatch(signals: SignalMarker[]): number {
-		return signalRepo.insertSignalsBatch(this.db, this.statements, signals);
+		const count = signalRepo.insertSignalsBatch(this.db, this.statements, signals);
+		for (const signal of signals) emitObservationFromMarker(signal);
+		return count;
 	}
 
 	findSignalsInRadius(query: SpatialQuery & TimeQuery): SignalMarker[] {
@@ -278,6 +297,52 @@ export class RFDatabase {
 		if (this.cleanupService) this.cleanupService.stop();
 		this.statements.clear();
 		this.db.close();
+	}
+}
+
+/** Fan out a post-insert event for a single row returned by signalRepo. */
+function emitObservation(row: DbSignal): void {
+	try {
+		getSignalBus().emit({
+			signalId: row.signal_id,
+			sessionId: row.session_id ?? null,
+			source: row.source,
+			deviceId: row.device_id ?? null,
+			lat: row.latitude,
+			lon: row.longitude,
+			dbm: row.power,
+			frequency: row.frequency,
+			timestamp: row.timestamp
+		});
+	} catch (err) {
+		logger.debug(
+			'[database] signal-bus emit failed',
+			{ error: String(err) },
+			'signal-bus-emit-failed'
+		);
+	}
+}
+
+/** Fan out a post-batch-insert event from the input marker (no row-ID lookup). */
+function emitObservationFromMarker(signal: SignalMarker): void {
+	try {
+		getSignalBus().emit({
+			signalId: signal.id,
+			sessionId: signal.sessionId ?? null,
+			source: String(signal.source),
+			deviceId: null,
+			lat: signal.lat,
+			lon: signal.lon,
+			dbm: signal.power,
+			frequency: signal.frequency,
+			timestamp: signal.timestamp
+		});
+	} catch (err) {
+		logger.debug(
+			'[database] signal-bus emit failed (batch)',
+			{ error: String(err) },
+			'signal-bus-emit-failed-batch'
+		);
 	}
 }
 

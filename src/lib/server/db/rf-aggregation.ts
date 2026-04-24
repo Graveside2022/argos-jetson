@@ -72,6 +72,20 @@ const HEX_FEATURE_CAP = 10_000;
 const DEFAULT_H3_RES = 11;
 const MIN_H3_RES = 5;
 
+/**
+ * Pick an H3 resolution for a given MapLibre zoom.
+ *   zoom <  10 → 9   (~0.1 km²)
+ *   zoom 10–13 → 11  (~0.006 km² — prior default)
+ *   zoom >  13 → 13  (~0.0001 km²)
+ * NaN / undefined → prior default (11) so old clients keep working.
+ */
+export function h3ResForZoom(zoom: number | undefined): number {
+	if (zoom === undefined || !Number.isFinite(zoom)) return DEFAULT_H3_RES;
+	if (zoom < 10) return 9;
+	if (zoom <= 13) return 11;
+	return 13;
+}
+
 interface ClauseBuilder {
 	clauses: string[];
 	params: unknown[];

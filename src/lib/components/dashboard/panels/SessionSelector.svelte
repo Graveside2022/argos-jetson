@@ -43,7 +43,12 @@
 </script>
 
 <div class="session-selector">
-	<label class="session-label" for="rf-session-select">SESSION</label>
+	<div class="session-label-row">
+		<label class="session-label" for="rf-session-select">SESSION</label>
+		{#if rfVisualization.isLive}
+			<span class="live-chip" title="Live SSE stream open">● LIVE</span>
+		{/if}
+	</div>
 	{#if rfVisualization.sessionsLoading}
 		<div class="session-status">Loading sessions…</div>
 	{:else if rfVisualization.sessionsLoadFailed}
@@ -79,10 +84,25 @@
 		gap: 0.35em;
 		padding: 0.5em 0.75em;
 	}
+	.session-label-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5em;
+	}
 	.session-label {
 		font-size: 0.68em;
 		letter-spacing: 0.08em;
 		color: var(--muted-foreground);
+	}
+	.live-chip {
+		font-family: 'Fira Code', ui-monospace, monospace;
+		font-size: 0.62em;
+		letter-spacing: 0.12em;
+		color: #8bbfa0; /* semantic healthy — Lunaris token */
+		padding: 0.08em 0.4em;
+		border: 1px solid #8bbfa0;
+		border-radius: 3px;
 	}
 	.session-select {
 		background: var(--card);

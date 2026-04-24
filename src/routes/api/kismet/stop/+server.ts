@@ -3,6 +3,7 @@ import { json } from '@sveltejs/kit';
 import { createHandler } from '$lib/server/api/create-handler';
 import { errMsg } from '$lib/server/api/error-utils';
 import { execFileAsync } from '$lib/server/exec';
+import { getKismetSignalSource } from '$lib/server/services/rf/kismet-source-singleton';
 import { delay } from '$lib/utils/delay';
 import { logger } from '$lib/utils/logger';
 
@@ -52,6 +53,11 @@ async function cleanupKismonInterface(): Promise<void> {
 
 export const POST = createHandler(async () => {
 	logger.info('Stopping Kismet with robust cleanup');
+
+	// Stop the server-side persistence bridge FIRST so the poller doesn't
+	// log spurious fetch failures while Kismet is being torn down.
+	await getKismetSignalSource().stop();
+
 	const pids = await findKismetPids();
 	if (pids.length === 0) {
 		logger.info('No Kismet processes found');

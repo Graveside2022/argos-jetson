@@ -10,6 +10,8 @@
 
 import type { Feature, FeatureCollection, LineString, Point } from 'geojson';
 
+import { LiveRefreshController } from './rf-live-refresh';
+
 /** Path layer vertex arg from the server. */
 interface PathVertex {
 	lat: number;
@@ -44,6 +46,7 @@ export interface RfVisualizationFilters {
 	deviceIds?: string[];
 	bbox?: [minLon: number, minLat: number, maxLon: number, maxLat: number];
 	h3res?: number;
+	zoom?: number;
 }
 
 interface AggregateResponse {
@@ -65,7 +68,9 @@ function fingerprintScope(filters: RfVisualizationFilters): Record<string, unkno
 function fingerprintViewport(filters: RfVisualizationFilters): Record<string, unknown> {
 	return {
 		b: filters.bbox ?? null,
-		h: filters.h3res ?? null
+		h: filters.h3res ?? null,
+		// Bucket zoom by integer — panning without zoom change must re-use cached payload.
+		z: filters.zoom !== undefined ? Math.floor(filters.zoom) : null
 	};
 }
 
@@ -95,16 +100,18 @@ function addOptionalParam(
 	if (value !== undefined && value !== null && value !== '') params.set(key, value);
 }
 
+function optionalNumber(n: number | undefined): string | null {
+	return n !== undefined ? String(n) : null;
+}
+
 function buildQuery(filters: RfVisualizationFilters): string {
 	const params = new URLSearchParams({ layer: 'all' });
 	addOptionalParam(params, 'session', filters.sessionId);
-	addOptionalParam(
-		params,
-		'bssid',
-		filters.deviceIds?.length ? filters.deviceIds.join(',') : null
-	);
+	const bssid = filters.deviceIds?.length ? filters.deviceIds.join(',') : null;
+	addOptionalParam(params, 'bssid', bssid);
 	addOptionalParam(params, 'bbox', filters.bbox ? filters.bbox.join(',') : null);
-	addOptionalParam(params, 'h3res', filters.h3res !== undefined ? String(filters.h3res) : null);
+	addOptionalParam(params, 'h3res', optionalNumber(filters.h3res));
+	addOptionalParam(params, 'zoom', optionalNumber(filters.zoom));
 	return params.toString();
 }
 
@@ -276,6 +283,10 @@ class RfVisualizationStore {
 	selectedDeviceId = $state<string | null>(null);
 	selectedObservations = $state<FeatureCollection<Point>>(EMPTY_POINT_FC);
 
+	// Live-refresh state — true while an SSE stream is open.
+	isLive = $state(false);
+	private liveController: LiveRefreshController | null = null;
+
 	setFilters(update: Partial<RfVisualizationFilters>): void {
 		this.filters = { ...this.filters, ...update };
 	}
@@ -389,6 +400,28 @@ class RfVisualizationStore {
 	reset(): void {
 		this.features = EMPTY;
 		this.error = null;
+	}
+
+	/**
+	 * Open an SSE stream to /api/rf/stream and live-refresh the map as new
+	 * signals land. Safe to call repeatedly — the controller tears down any
+	 * prior connection. Call disconnectLive() when leaving the map view.
+	 */
+	connectLive(sessionId?: string | null): void {
+		if (typeof EventSource === 'undefined') return; // SSR / test env without EventSource
+		if (!this.liveController) {
+			this.liveController = new LiveRefreshController({
+				reload: () => this.load()
+			});
+		}
+		this.liveController.connect(sessionId ?? undefined);
+		this.isLive = this.liveController.isLive;
+	}
+
+	disconnectLive(): void {
+		if (!this.liveController) return;
+		this.liveController.disconnect();
+		this.isLive = this.liveController.isLive;
 	}
 }
 

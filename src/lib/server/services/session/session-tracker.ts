@@ -18,6 +18,13 @@ import { logger } from '$lib/utils/logger';
 
 export type SessionSource = 'kismet-start' | 'manual' | 'auto' | 'legacy';
 
+export interface MissionMetadata {
+	operatorId?: string | null;
+	assetId?: string | null;
+	areaName?: string | null;
+	notes?: string | null;
+}
+
 export interface Session {
 	id: string;
 	startedAt: number;
@@ -25,6 +32,10 @@ export interface Session {
 	label: string | null;
 	source: SessionSource;
 	metadata: Record<string, unknown> | null;
+	operatorId: string | null;
+	assetId: string | null;
+	areaName: string | null;
+	notes: string | null;
 }
 
 interface SessionRow {
@@ -34,6 +45,10 @@ interface SessionRow {
 	label: string | null;
 	source: string;
 	metadata: string | null;
+	operator_id: string | null;
+	asset_id: string | null;
+	area_name: string | null;
+	notes: string | null;
 }
 
 function rowToSession(row: SessionRow): Session {
@@ -43,8 +58,44 @@ function rowToSession(row: SessionRow): Session {
 		endedAt: row.ended_at,
 		label: row.label,
 		source: row.source as SessionSource,
-		metadata: row.metadata ? (JSON.parse(row.metadata) as Record<string, unknown>) : null
+		metadata: row.metadata ? (JSON.parse(row.metadata) as Record<string, unknown>) : null,
+		operatorId: row.operator_id,
+		assetId: row.asset_id,
+		areaName: row.area_name,
+		notes: row.notes
 	};
+}
+
+const METADATA_COLS: Array<{ key: keyof MissionMetadata; col: string }> = [
+	{ key: 'operatorId', col: 'operator_id' },
+	{ key: 'assetId', col: 'asset_id' },
+	{ key: 'areaName', col: 'area_name' },
+	{ key: 'notes', col: 'notes' }
+];
+
+function buildMetadataPatch(meta: MissionMetadata): {
+	fields: string[];
+	params: unknown[];
+} {
+	const fields: string[] = [];
+	const params: unknown[] = [];
+	for (const { key, col } of METADATA_COLS) {
+		if (meta[key] !== undefined) {
+			fields.push(`${col} = ?`);
+			params.push(meta[key]);
+		}
+	}
+	return { fields, params };
+}
+
+export function updateSessionMetadata(id: string, meta: MissionMetadata): Session | null {
+	const { fields, params } = buildMetadataPatch(meta);
+	if (fields.length === 0) return getSession(id);
+	params.push(id);
+	getRFDatabase()
+		.rawDb.prepare(`UPDATE sessions SET ${fields.join(', ')} WHERE id = ?`)
+		.run(...params);
+	return getSession(id);
 }
 
 function insertSession(db: Database.Database, session: Session): void {
@@ -76,7 +127,7 @@ function findOpenSession(db: Database.Database): SessionRow | null {
 	return (
 		(db
 			.prepare(
-				`SELECT id, started_at, ended_at, label, source, metadata
+				`SELECT id, started_at, ended_at, label, source, metadata, operator_id, asset_id, area_name, notes
 				 FROM sessions
 				 WHERE ended_at IS NULL AND id != 'legacy'
 				 ORDER BY started_at DESC LIMIT 1`
@@ -140,7 +191,11 @@ export function startNewSession(
 		endedAt: null,
 		label: label ?? null,
 		source,
-		metadata: metadata ?? null
+		metadata: metadata ?? null,
+		operatorId: null,
+		assetId: null,
+		areaName: null,
+		notes: null
 	});
 	state.currentId = id;
 	logger.info('[session-tracker] New session started', { id, source, label }, 'session-started');
@@ -159,7 +214,7 @@ export function endCurrentSession(): void {
 export function listSessions(limit = 50): Session[] {
 	const rows = getRFDatabase()
 		.rawDb.prepare(
-			`SELECT id, started_at, ended_at, label, source, metadata
+			`SELECT id, started_at, ended_at, label, source, metadata, operator_id, asset_id, area_name, notes
 			 FROM sessions
 			 ORDER BY started_at DESC
 			 LIMIT ?`
@@ -171,7 +226,7 @@ export function listSessions(limit = 50): Session[] {
 export function getSession(id: string): Session | null {
 	const row = getRFDatabase()
 		.rawDb.prepare(
-			`SELECT id, started_at, ended_at, label, source, metadata
+			`SELECT id, started_at, ended_at, label, source, metadata, operator_id, asset_id, area_name, notes
 			 FROM sessions WHERE id = ?`
 		)
 		.get(id) as SessionRow | undefined;

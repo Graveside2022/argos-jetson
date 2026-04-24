@@ -2,11 +2,14 @@ import { json } from '@sveltejs/kit';
 
 import { createHandler } from '$lib/server/api/create-handler';
 import { startKismet } from '$lib/server/services/kismet/kismet-control-service';
-import { startNewSession } from '$lib/server/services/session/session-tracker';
+import { getKismetSignalSource } from '$lib/server/services/rf/kismet-source-singleton';
+import { getCurrentSessionId, startNewSession } from '$lib/server/services/session/session-tracker';
 
 /**
  * POST /api/kismet/start
- * Starts Kismet WiFi discovery service
+ * Starts Kismet WiFi discovery service + the server-side persistence bridge
+ * that polls kismet-proxy and stamps every observation with the active
+ * session id. Prior to PR-3, only Blue Dragon signals were persisted.
  */
 export const POST = createHandler(async () => {
 	const result = await startKismet();
@@ -20,6 +23,9 @@ export const POST = createHandler(async () => {
 	if (result.status === 'started' || result.status === 'starting') {
 		startNewSession('kismet-start', 'Kismet WiFi discovery');
 	}
+
+	// Start the persistence bridge — idempotent, safe on 'already_running'.
+	await getKismetSignalSource().start(getCurrentSessionId());
 
 	return result;
 });

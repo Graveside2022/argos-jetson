@@ -192,6 +192,15 @@ export function createMapState() {
 		void rfVisualization.load();
 	});
 
+	// Live-refresh: open an SSE stream to /api/rf/stream for the active
+	// session. Reconnects automatically when the user switches sessions.
+	// Closed on component teardown so we don't leak EventSources.
+	$effect(() => {
+		const sid = rfVisualization.activeSessionId;
+		rfVisualization.connectLive(sid);
+		return () => rfVisualization.disconnectLive();
+	});
+
 	$effect(() => {
 		fetch('/api/map-tiles/styles/alidade_smooth_dark.json', { method: 'HEAD' })
 			.then((res) => {
@@ -302,6 +311,15 @@ export function createMapState() {
 			);
 			satLayer = r.satLayer;
 			symbolLayer = r.symbolLayer;
+			// Feed current zoom into the RF filter so the aggregation endpoint
+			// can pick an H3 resolution that matches the viewport. Seeded on
+			// load and updated on zoomend so pan-only interactions don't refetch.
+			rfVisualization.setFilters({ zoom: m.getZoom() });
+			void rfVisualization.load();
+			m.on('zoomend', () => {
+				rfVisualization.setFilters({ zoom: m.getZoom() });
+				void rfVisualization.load();
+			});
 		};
 		if (!map.loaded()) map.once('load', init);
 		else init();

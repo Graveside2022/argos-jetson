@@ -260,6 +260,8 @@
 					id={RF_HEATMAP_LAYER_ID}
 					layout={rfHeatmapLayer.layout}
 					paint={rfHeatmapLayer.paint}
+					minzoom={10}
+					maxzoom={17}
 				/>
 			</GeoJSONSource>
 
@@ -292,12 +294,14 @@
 					id={RF_CENTROID_HALO_LAYER_ID}
 					layout={rfCentroidHaloLayer.layout}
 					paint={rfCentroidHaloLayer.paint}
+					minzoom={13}
 				/>
 				<CircleLayer
 					id={RF_CENTROID_LAYER_ID}
 					layout={rfCentroidLayer.layout}
 					paint={rfCentroidLayer.paint}
 					onclick={ms.handleCentroidClick}
+					minzoom={13}
 				/>
 			</GeoJSONSource>
 
