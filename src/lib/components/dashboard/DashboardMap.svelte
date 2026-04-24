@@ -260,8 +260,8 @@
 					id={RF_HEATMAP_LAYER_ID}
 					layout={rfHeatmapLayer.layout}
 					paint={rfHeatmapLayer.paint}
-					minzoom={10}
-					maxzoom={17}
+					minzoom={8}
+					maxzoom={20}
 				/>
 			</GeoJSONSource>
 
