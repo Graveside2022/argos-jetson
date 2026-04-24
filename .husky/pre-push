@@ -24,7 +24,10 @@ npm run typecheck
 echo "[pre-push] full-repo ESLint (cached)..."
 npx eslint . --config config/eslint.config.js --cache --cache-location .eslintcache --cache-strategy content
 
-echo "[pre-push] test:unit (full 516-test suite)..."
-npm run test:unit
+echo "[pre-push] test:unit:related:upstream (scoped to the diff being pushed)..."
+# Full 523-test suite now runs in CI only — pre-push scopes to files changed
+# vs the upstream tracking branch. Catches breakage in the actual diff without
+# paying ~120 s on pushes that touch a handful of files. CI is the safety net.
+npm run test:unit:related:upstream
 
 echo "[pre-push] ✓ all checks passed"

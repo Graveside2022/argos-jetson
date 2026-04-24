@@ -165,7 +165,8 @@ export const layerVisibility = writable<Record<string, boolean>>({
 	// Flying-Squirrel-style RF visualization layers — default off so they
 	// don't alter the existing dashboard until the operator opts in.
 	rfDrivePath: false,
-	rfApCentroid: false
+	rfApCentroid: false,
+	rfHeatmap: false
 });
 
 /** Toggle a single map layer on/off */

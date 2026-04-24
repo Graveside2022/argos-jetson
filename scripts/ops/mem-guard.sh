@@ -17,13 +17,23 @@
 
 set -euo pipefail
 
-# --- Node memory ceiling ---
-# svelte-check + vitest workers are the two heaviest consumers in this repo
-# (svelte-check alone ~650 MB). Give them headroom without letting a single
-# process take the whole machine. Respect caller-provided overrides so
-# specialized runs (coverage, large snapshots) can widen the cap.
-: "${NODE_OPTIONS:=--max-old-space-size=1536}"
-export NODE_OPTIONS
+# --- Node memory ceiling (RAM-aware tiering) ---
+# Different workloads have different memory profiles:
+#   - svelte-check + vitest workers: ~650 MB each, OK with 1536
+#   - vite build + adapter-node SSR bundle: peaks ~2.8 GB RSS, needs 3072+
+# Solution: scale the heap cap to the host's actual RAM so the same
+# mem-guard call works on RPi5 (8 GB) and Jetson AGX Orin (64 GB).
+# Respect caller-provided NODE_OPTIONS overrides (specialized runs still win).
+if [ -z "${NODE_OPTIONS:-}" ]; then
+    _ram_mb=$(awk '/MemTotal/{print int($2/1024)}' /proc/meminfo 2>/dev/null || echo 0)
+    if   [ "${_ram_mb:-0}" -ge 24000 ]; then _heap=4096     # Jetson AGX Orin (64 GB)
+    elif [ "${_ram_mb:-0}" -ge 12000 ]; then _heap=3072     # Jetson Nano 16 GB / RPi5 16 GB
+    elif [ "${_ram_mb:-0}" -ge  6000 ]; then _heap=2048     # RPi5 8 GB (primary target)
+    else                                     _heap=1024     # minimal / edge devices
+    fi
+    export NODE_OPTIONS="--max-old-space-size=${_heap}"
+    unset _ram_mb _heap
+fi
 
 # --- Configuration ---
 THRESHOLD="${MEM_GUARD_THRESHOLD:-85}"

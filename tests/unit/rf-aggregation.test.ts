@@ -1,7 +1,12 @@
 import Database from 'better-sqlite3';
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { getApCentroids, getDrivePath, getRssiHexCells } from '$lib/server/db/rf-aggregation';
+import {
+	getApCentroids,
+	getDeviceObservations,
+	getDrivePath,
+	getRssiHexCells
+} from '$lib/server/db/rf-aggregation';
 
 function makeDb(): Database.Database {
 	const db = new Database(':memory:');
@@ -135,6 +140,54 @@ describe('rf-aggregation', () => {
 			expect(path).toHaveLength(3); // 1000, 1600, 2200
 			expect(path[0].t).toBe(1_000);
 			expect(path[2].t).toBe(2_200);
+		});
+	});
+
+	describe('getDeviceObservations — raw signals for one BSSID', () => {
+		it('returns only rows matching the given deviceId, sorted by timestamp', () => {
+			insert(db, { id: 's1', deviceId: 'ap-a', t: 3_000, lat: 0, lon: 0, dbm: -60 });
+			insert(db, { id: 's2', deviceId: 'ap-a', t: 1_000, lat: 0.1, lon: 0.1, dbm: -70 });
+			insert(db, { id: 's3', deviceId: 'ap-a', t: 2_000, lat: 0.2, lon: 0.2, dbm: -55 });
+			insert(db, { id: 's4', deviceId: 'ap-b', t: 1_500, lat: 5, lon: 5, dbm: -40 });
+			insert(db, { id: 's5', deviceId: 'ap-b', t: 2_500, lat: 6, lon: 6, dbm: -45 });
+
+			const obs = getDeviceObservations({ deviceId: 'ap-a' }, db);
+			expect(obs).toHaveLength(3);
+			expect(obs.map((o) => o.timestamp)).toEqual([1_000, 2_000, 3_000]);
+			expect(obs.every((o) => typeof o.dbm === 'number')).toBe(true);
+			// no ap-b rows leak into the ap-a result
+			expect(obs.map((o) => o.lat)).not.toContain(5);
+		});
+
+		it('applies sessionId filter alongside deviceId', () => {
+			insert(db, {
+				id: 'a',
+				deviceId: 'ap-x',
+				t: 1,
+				lat: 0,
+				lon: 0,
+				dbm: -60,
+				session: 'alpha'
+			});
+			insert(db, {
+				id: 'b',
+				deviceId: 'ap-x',
+				t: 2,
+				lat: 0,
+				lon: 0,
+				dbm: -65,
+				session: 'beta'
+			});
+
+			const alpha = getDeviceObservations({ deviceId: 'ap-x', sessionId: 'alpha' }, db);
+			expect(alpha).toHaveLength(1);
+			expect(alpha[0].timestamp).toBe(1);
+		});
+
+		it('returns empty array when no rows match', () => {
+			insert(db, { id: 'a', deviceId: 'ap-x', t: 1, lat: 0, lon: 0, dbm: -60 });
+			const obs = getDeviceObservations({ deviceId: 'not-a-device' }, db);
+			expect(obs).toEqual([]);
 		});
 	});
 });
