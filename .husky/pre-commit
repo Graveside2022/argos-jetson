@@ -1,51 +1,14 @@
 #!/usr/bin/env sh
-# Pre-commit chain (run in order, stops on first failure):
-#   1. lint-staged (eslint --fix + prettier --write on staged files)
-#   2. coderabbit review (informational, non-blocking)
+# Pre-commit chain: lint-staged only.
 #
-# Full-repo ESLint has moved to .husky/pre-push + .github/workflows/lint.yml
-# to keep per-commit time low. lint-staged still catches eslint errors in
-# the files this commit actually touches. For a manual full-repo check use:
-#   npx eslint . --config config/eslint.config.js --cache
+# CodeRabbit pre-commit was removed 2026-04-24 — it was adding 30-60 s per
+# commit, failing most invocations, and duplicated the server-side CodeRabbit
+# review that runs on every push to GitHub. The GitHub-side review is the
+# authoritative one; Claude's coderabbit:autofix skill processes its output.
 #
-# Skip the AI review with: SKIP_CODERABBIT=1 git commit ...
-# Skip everything with:    git commit --no-verify ...
+# Full-repo ESLint runs in .husky/pre-push + .github/workflows/lint.yml.
+# Skip everything with: git commit --no-verify
 
 set -e
 
-# 1) Lint + format staged files (blocking)
 npx lint-staged
-
-# 2) CodeRabbit review (non-blocking, informational)
-if [ "${SKIP_CODERABBIT:-0}" = "1" ]; then
-	echo "[pre-commit] SKIP_CODERABBIT=1 — skipping coderabbit review"
-	exit 0
-fi
-
-if ! command -v coderabbit >/dev/null 2>&1; then
-	echo "[pre-commit] coderabbit CLI not installed — skipping review (install: curl -fsSL https://cli.coderabbit.ai/install.sh | sh)"
-	exit 0
-fi
-
-if ! coderabbit auth status >/dev/null 2>&1; then
-	echo "[pre-commit] coderabbit not authenticated — skipping review (run: coderabbit auth login)"
-	exit 0
-fi
-
-echo "[pre-commit] running coderabbit review (set SKIP_CODERABBIT=1 to skip)..."
-LOG=/tmp/coderabbit-pre-commit-$$.log
-if coderabbit review --agent -t uncommitted >"$LOG" 2>&1; then
-	CRITICAL=$(grep -c '"severity":"critical"' "$LOG" || true)
-	MAJOR=$(grep -c '"severity":"major"' "$LOG" || true)
-	MINOR=$(grep -c '"severity":"minor"' "$LOG" || true)
-	INFO=$(grep -c '"severity":"info"' "$LOG" || true)
-	echo "[pre-commit] coderabbit findings — critical:$CRITICAL major:$MAJOR minor:$MINOR info:$INFO (full log: $LOG)"
-	if [ "$CRITICAL" -gt 0 ] || [ "$MAJOR" -gt 0 ]; then
-		echo "[pre-commit] ⚠  Major/critical findings detected. Review $LOG before pushing."
-		echo "[pre-commit]    (commit allowed; this hook is informational only)"
-	fi
-else
-	echo "[pre-commit] coderabbit review failed — continuing (see $LOG)"
-fi
-
-exit 0

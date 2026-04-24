@@ -50,6 +50,12 @@ pr_base=$(printf '%s' "$pr_json" | jq -r '.baseRefName // empty')
 
 if [ -z "$pr_number" ] || [ "$pr_state" != "OPEN" ]; then exit 0; fi
 
+# Safety gate: only drive the auto-merge flow for PRs targeting `dev`. Any
+# other base (main, release/*, etc.) is explicitly out of scope per the
+# project_review_workflow memory rule — emitting merge guidance for those
+# bases would conflict with the "main merges stay manual" policy.
+if [ "$pr_base" != "dev" ]; then exit 0; fi
+
 # Emit additionalContext. Wrapped in jq to safely escape the prompt payload.
 message="Push to PR #${pr_number} ('${branch}' → '${pr_base}') just completed. CodeRabbit is scanning now (typical 60-120 s). You MUST invoke the coderabbit:autofix skill once the review lands — poll via ScheduleWakeup with delaySeconds=90 to stay inside the prompt cache window. Process every actionable CodeRabbit comment; apply mechanical fixes directly; surface non-mechanical suggestions via superpowers:receiving-code-review for technical-rigor judgment. Iterate until review-clean AND all CI checks green. Then auto-merge to '${pr_base}' via 'gh pr merge ${pr_number} --merge --delete-branch' — this is the standing workflow for dev merges (no user approval gate). Do NOT auto-merge to main — main merges are always a separate, explicit user decision. Do NOT end the turn until the loop completes (merged) or a blocker needs user input (e.g. conflicting non-mechanical review feedback, failed CI that can't be autofixed)."
 

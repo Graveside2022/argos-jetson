@@ -51,7 +51,8 @@
 		"mcp:test": "tsx src/lib/server/mcp/servers/test-runner.ts",
 		"mcp:install-b": "tsx scripts/ops/mcp-install.ts b",
 		"mcp:config-b": "tsx scripts/ops/mcp-config.ts b",
-		"test:unit:related": "./scripts/ops/mem-guard.sh ./scripts/dev/run-related-tests.sh"
+		"test:unit:related": "./scripts/ops/mem-guard.sh ./scripts/dev/run-related-tests.sh staged",
+		"test:unit:related:upstream": "./scripts/ops/mem-guard.sh ./scripts/dev/run-related-tests.sh upstream"
 	},
 	"devDependencies": {
 		"@axe-core/playwright": "4.11.1",
