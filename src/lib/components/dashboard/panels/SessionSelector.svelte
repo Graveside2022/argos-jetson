@@ -5,9 +5,9 @@
 	to a single session. "All sessions" = null filter (server returns
 	union across the whole `signals` table).
 
-	Changing the selection kicks off rfVisualization.setSession() which
-	updates filters + triggers a reload. The store's LRU cache handles
-	repeat selections cheaply.
+	Three visible states: Loading (in-flight fetch), Error (failed
+	fetch with Retry), Ready (dropdown). Empty list is covered by
+	the always-present "All sessions" option in Ready state.
 -->
 <script lang="ts">
 	import { rfVisualization } from '$lib/stores/rf-visualization.svelte';
@@ -36,22 +36,34 @@
 		const value = (event.currentTarget as HTMLSelectElement).value;
 		void rfVisualization.setSession(value === '' ? null : value);
 	}
+
+	function retryLoad(): void {
+		void rfVisualization.loadSessions();
+	}
 </script>
 
 <div class="session-selector">
 	<label class="session-label" for="rf-session-select">SESSION</label>
-	<select
-		id="rf-session-select"
-		class="session-select"
-		value={rfVisualization.activeSessionId ?? ''}
-		onchange={handleChange}
-		disabled={!rfVisualization.sessionsLoaded}
-	>
-		<option value="">All sessions</option>
-		{#each rfVisualization.sessionsList as session (session.id)}
-			<option value={session.id}>{labelFor(session)}</option>
-		{/each}
-	</select>
+	{#if rfVisualization.sessionsLoading}
+		<div class="session-status">Loading sessions…</div>
+	{:else if rfVisualization.sessionsLoadFailed}
+		<div class="session-status session-error" role="alert">
+			<span class="session-error-msg">Failed to load sessions.</span>
+			<button type="button" class="session-retry" onclick={retryLoad}>Retry</button>
+		</div>
+	{:else}
+		<select
+			id="rf-session-select"
+			class="session-select"
+			value={rfVisualization.activeSessionId ?? ''}
+			onchange={handleChange}
+		>
+			<option value="">All sessions</option>
+			{#each rfVisualization.sessionsList as session (session.id)}
+				<option value={session.id}>{labelFor(session)}</option>
+			{/each}
+		</select>
+	{/if}
 </div>
 
 <style>
@@ -64,12 +76,12 @@
 	.session-label {
 		font-size: 0.68em;
 		letter-spacing: 0.08em;
-		color: var(--muted-foreground, #888);
+		color: var(--muted-foreground);
 	}
 	.session-select {
-		background: var(--card, #1a1a1a);
-		color: var(--foreground, #e6e6e6);
-		border: 1px solid var(--border, #2e2e2e);
+		background: var(--card);
+		color: var(--foreground);
+		border: 1px solid var(--border);
 		border-radius: 4px;
 		padding: 0.35em 0.5em;
 		font-size: 0.85em;
@@ -78,5 +90,42 @@
 	.session-select:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
+	}
+	.session-status {
+		font-size: 0.78em;
+		padding: 0.35em 0.5em;
+		color: var(--muted-foreground);
+		background: var(--card);
+		border: 1px solid var(--border);
+		border-radius: 4px;
+	}
+	.session-error {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5em;
+		color: var(--destructive);
+		border-color: var(--destructive);
+	}
+	.session-error-msg {
+		flex: 1 1 auto;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.session-retry {
+		flex: 0 0 auto;
+		background: transparent;
+		color: inherit;
+		border: 1px solid currentcolor;
+		border-radius: 3px;
+		padding: 0.15em 0.55em;
+		font-family: inherit;
+		font-size: 0.78em;
+		cursor: pointer;
+	}
+	.session-retry:hover {
+		background: var(--destructive);
+		color: var(--destructive-foreground);
 	}
 </style>

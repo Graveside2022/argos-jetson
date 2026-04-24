@@ -327,15 +327,22 @@ class RfVisualizationStore {
 	async setSession(id: string | null): Promise<void> {
 		this.activeSessionId = id;
 		this.setFilters({ sessionId: id ?? undefined });
+		// Context change — drop any AP highlight from the previous session so
+		// the map doesn't flash stale rings/rays over the new session's data.
+		this.selectedDeviceId = null;
+		this.selectedObservations = EMPTY_POINT_FC;
 		await this.load();
 	}
 
 	setSelectedDevice(id: string | null): void {
-		this.selectedDeviceId = id;
-		if (id === null) {
+		// Any context change — including switching from AP-A to AP-B — must
+		// invalidate the previous selection's observations. Otherwise the old
+		// rays linger until the new fetch lands.
+		if (id !== this.selectedDeviceId) {
 			this.selectedObservations = EMPTY_POINT_FC;
-			return;
 		}
+		this.selectedDeviceId = id;
+		if (id === null) return;
 		void this.loadSelectedDeviceObservations();
 	}
 
