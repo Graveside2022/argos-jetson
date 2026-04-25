@@ -327,3 +327,134 @@
 		@apply h-full transition-all duration-300;
 	}
 }
+
+/* ============================================================
+   Argos Mk II — Tactical console tokens (spec-024 PR1 / T005)
+   Activated via `<body data-ui="mk2">`. Off-flag = Lunaris :root above.
+   Components reference `var(--mk2-*)` directly OR Tailwind utilities
+   exposed via `@theme inline` below. PR 11 sunsets Lunaris :root.
+   ============================================================ */
+
+@theme inline {
+	--font-mk2-sans: var(--mk2-f-sans);
+	--font-mk2-mono: var(--mk2-f-mono);
+	--color-mk2-bg: var(--mk2-bg);
+	--color-mk2-bg-2: var(--mk2-bg-2);
+	--color-mk2-bg-3: var(--mk2-bg-3);
+	--color-mk2-panel: var(--mk2-panel);
+	--color-mk2-panel-hi: var(--mk2-panel-hi);
+	--color-mk2-rail: var(--mk2-rail-bg);
+	--color-mk2-line: var(--mk2-line);
+	--color-mk2-line-2: var(--mk2-line-2);
+	--color-mk2-line-hi: var(--mk2-line-hi);
+	--color-mk2-ink: var(--mk2-ink);
+	--color-mk2-ink-2: var(--mk2-ink-2);
+	--color-mk2-ink-3: var(--mk2-ink-3);
+	--color-mk2-ink-4: var(--mk2-ink-4);
+	--color-mk2-accent: var(--mk2-accent);
+	--color-mk2-amber: var(--mk2-amber);
+	--color-mk2-green: var(--mk2-green);
+	--color-mk2-cyan: var(--mk2-cyan);
+	--color-mk2-magenta: var(--mk2-magenta);
+	--color-mk2-steel: var(--mk2-steel);
+	--color-mk2-red: var(--mk2-red);
+}
+
+[data-ui='mk2'] {
+	/* chassis dimensions (per prototype docs/Argos (1).zip → styles.css) */
+	--mk2-rail-w: 56px;
+	--mk2-bar-h: 44px;
+	--mk2-status-h: 22px;
+	--mk2-inspector-w: 340px;
+	--mk2-row-h: 26px;
+	--mk2-u: 4px;
+
+	/* surfaces — deep-black layered (oklch perceptual) */
+	--mk2-bg: oklch(13% 0.008 255);
+	--mk2-bg-2: oklch(16% 0.01 255);
+	--mk2-bg-3: oklch(19% 0.012 255);
+	--mk2-panel: oklch(17% 0.011 255);
+	--mk2-panel-hi: oklch(21% 0.013 255);
+	--mk2-rail-bg: oklch(11% 0.008 255);
+	--mk2-line: oklch(26% 0.014 255);
+	--mk2-line-2: oklch(32% 0.015 255);
+	--mk2-line-hi: oklch(42% 0.02 255);
+
+	/* ink — 4-step text hierarchy */
+	--mk2-ink: oklch(94% 0.008 255);
+	--mk2-ink-2: oklch(78% 0.01 255);
+	--mk2-ink-3: oklch(58% 0.011 255);
+	--mk2-ink-4: oklch(42% 0.013 255);
+
+	/* tactical accent swatches (5 base + supporting) */
+	--mk2-amber: oklch(80% 0.155 78);
+	--mk2-amber-dim: oklch(62% 0.14 78);
+	--mk2-amber-ink: oklch(22% 0.08 78);
+	--mk2-green: oklch(72% 0.17 148);
+	--mk2-green-dim: oklch(55% 0.15 148);
+	--mk2-cyan: oklch(78% 0.11 215);
+	--mk2-magenta: oklch(68% 0.195 338);
+	--mk2-steel: oklch(72% 0.045 250);
+	--mk2-red: oklch(65% 0.22 22);
+	--mk2-red-dim: oklch(48% 0.18 22);
+
+	/* default accent — overridable via [data-accent="..."] below */
+	--mk2-accent: var(--mk2-amber);
+
+	/* type scale (6 steps, 9–15 px) */
+	--mk2-fs-1: 9px;
+	--mk2-fs-2: 10px;
+	--mk2-fs-3: 11px;
+	--mk2-fs-4: 12px;
+	--mk2-fs-5: 13px;
+	--mk2-fs-6: 15px;
+
+	/* fonts */
+	--mk2-f-sans: 'Geist', ui-sans-serif, system-ui, sans-serif;
+	--mk2-f-mono: 'Fira Code', ui-monospace, 'Geist Mono', SFMono-Regular, Menlo, monospace;
+
+	/* radii (2–4 px range) */
+	--mk2-r-0: 0px;
+	--mk2-r-1: 2px;
+	--mk2-r-2: 4px;
+
+	/* motion (80–180 ms tactical band) */
+	--mk2-mo-1: 80ms;
+	--mk2-mo-2: 120ms;
+	--mk2-mo-3: 180ms;
+
+	/* baseline body styling under Mk II flag */
+	background: var(--mk2-bg);
+	color: var(--mk2-ink);
+	font-family: var(--mk2-f-sans);
+	font-size: var(--mk2-fs-5);
+	line-height: 1.45;
+	-webkit-font-smoothing: antialiased;
+}
+
+/* accent variants — <body data-ui="mk2" data-accent="..."> */
+[data-ui='mk2'][data-accent='amber'] {
+	--mk2-accent: var(--mk2-amber);
+}
+[data-ui='mk2'][data-accent='green'] {
+	--mk2-accent: var(--mk2-green);
+}
+[data-ui='mk2'][data-accent='cyan'] {
+	--mk2-accent: var(--mk2-cyan);
+}
+[data-ui='mk2'][data-accent='magenta'] {
+	--mk2-accent: var(--mk2-magenta);
+}
+[data-ui='mk2'][data-accent='steel'] {
+	--mk2-accent: var(--mk2-steel);
+}
+
+/* density variants — <body data-ui="mk2" data-density="..."> */
+[data-ui='mk2'][data-density='compact'] {
+	--mk2-row-h: 22px;
+	--mk2-bar-h: 38px;
+}
+[data-ui='mk2'][data-density='comfy'] {
+	--mk2-row-h: 30px;
+	--mk2-bar-h: 48px;
+}
