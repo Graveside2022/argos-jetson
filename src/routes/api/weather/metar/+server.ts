@@ -11,6 +11,7 @@ import type { RequestHandler } from './$types';
 // ARGOS_API_KEY auth is enforced upstream by hooks.server.ts; nothing extra here.
 
 const ICAO_RE = /^[A-Z0-9]{4}$/;
+const STATION_NAME_MAX = 64;
 
 function resolveStation(url: URL): string {
 	const raw = url.searchParams.get('station');
@@ -20,9 +21,16 @@ function resolveStation(url: URL): string {
 	return station;
 }
 
+function normalizeStationName(raw: string | null): string | undefined {
+	if (raw === null) return undefined;
+	const collapsed = raw.trim().replace(/\s+/g, ' ');
+	if (collapsed.length === 0) return undefined;
+	return collapsed.slice(0, STATION_NAME_MAX);
+}
+
 export const GET: RequestHandler = createHandler(async ({ url }) => {
 	const station = resolveStation(url);
-	const stationName = url.searchParams.get('stationName') ?? undefined;
+	const stationName = normalizeStationName(url.searchParams.get('stationName'));
 	const result = await getMetar({ station, stationName });
 	if (!result) throw error(503, 'METAR unavailable — upstream failed and no disk cache');
 	return { wx: result.wx, stale: result.stale };

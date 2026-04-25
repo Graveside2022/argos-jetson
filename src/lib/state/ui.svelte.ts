@@ -13,12 +13,35 @@ export interface LsState<T> {
 	value: T;
 }
 
+export class PersistentStorageError extends Error {
+	readonly key: string;
+	readonly operation: 'read' | 'write';
+	readonly originalError: unknown;
+	constructor(key: string, operation: 'read' | 'write', originalError: unknown) {
+		super(
+			`localStorage ${operation} failed for "${key}": ${(originalError as Error)?.message}`
+		);
+		this.name = 'PersistentStorageError';
+		this.key = key;
+		this.operation = operation;
+		this.originalError = originalError;
+	}
+}
+
 function readLs<T>(key: string): T | undefined {
 	if (typeof localStorage === 'undefined') return undefined;
+	let raw: string | null;
 	try {
-		const raw = localStorage.getItem(key);
-		return raw === null ? undefined : (JSON.parse(raw) as T);
-	} catch {
+		raw = localStorage.getItem(key);
+	} catch (err) {
+		console.warn(new PersistentStorageError(key, 'read', err));
+		return undefined;
+	}
+	if (raw === null) return undefined;
+	try {
+		return JSON.parse(raw) as T;
+	} catch (err) {
+		console.warn(new PersistentStorageError(key, 'read', err));
 		return undefined;
 	}
 }
@@ -27,13 +50,21 @@ function writeLs<T>(key: string, val: T): void {
 	if (typeof localStorage === 'undefined') return;
 	try {
 		localStorage.setItem(key, JSON.stringify(val));
-	} catch {
-		// quota exceeded / private mode — silent: state stays in memory only
+	} catch (err) {
+		// quota exceeded / private mode — surface as typed warning so devtools
+		// shows the cause, but state stays in memory.
+		console.warn(new PersistentStorageError(key, 'write', err));
 	}
 }
 
-export function lsState<T>(key: string, initial: T): LsState<T> {
-	let inner = $state<T>(readLs<T>(key) ?? initial);
+export function lsState<T>(key: string, initial: T, validate?: (v: unknown) => v is T): LsState<T> {
+	const persisted = readLs<unknown>(key);
+	const seed = validate
+		? validate(persisted)
+			? persisted
+			: initial
+		: ((persisted as T | undefined) ?? initial);
+	let inner = $state<T>(seed);
 	return {
 		get value() {
 			return inner;
@@ -48,5 +79,10 @@ export function lsState<T>(key: string, initial: T): LsState<T> {
 export const ACCENTS: AccentName[] = ['amber', 'green', 'cyan', 'magenta', 'steel'];
 export const DENSITIES: Density[] = ['compact', 'normal', 'comfy'];
 
-export const accentStore = lsState<AccentName>('argos.mk2.accent', 'amber');
-export const densityStore = lsState<Density>('argos.mk2.density', 'normal');
+const isAccent = (v: unknown): v is AccentName =>
+	typeof v === 'string' && (ACCENTS as readonly string[]).includes(v);
+const isDensity = (v: unknown): v is Density =>
+	typeof v === 'string' && (DENSITIES as readonly string[]).includes(v);
+
+export const accentStore = lsState<AccentName>('argos.mk2.accent', 'amber', isAccent);
+export const densityStore = lsState<Density>('argos.mk2.density', 'normal', isDensity);

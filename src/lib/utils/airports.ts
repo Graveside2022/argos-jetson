@@ -34,7 +34,14 @@ export function findNearest(
 	return { ...best, distanceKm: bestKm };
 }
 
-export async function loadAirports(fetchFn: typeof fetch = fetch): Promise<Airport[]> {
+// Caller MUST pass a fetch implementation with the right base context:
+// - browser: pass globalThis.fetch (relative URL resolves against the page)
+// - SvelteKit load: pass the `fetch` arg from the load event
+// - Node server context: pass a fetch that has an absolute base URL or
+//   resolves /airports.json from `process.cwd() + 'static/'`.
+// No default — relative URLs without a base fail in Node and silently 404 in
+// SSR.
+export async function loadAirports(fetchFn: typeof fetch): Promise<Airport[]> {
 	const res = await fetchFn('/airports.json');
 	if (!res.ok) throw new Error(`airports.json HTTP ${res.status}`);
 	return (await res.json()) as Airport[];

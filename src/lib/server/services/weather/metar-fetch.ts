@@ -1,4 +1,5 @@
 import type { WeatherReport } from '$lib/types/weather';
+import { logger } from '$lib/utils/logger';
 
 import { AviationMetarListSchema } from './aviationweather-schema';
 import * as cache from './metar-cache';
@@ -56,8 +57,10 @@ export async function getMetar(opts: UpstreamOpts): Promise<MetarLookup | null> 
 	try {
 		const live = await fetchAndParse(opts);
 		if (live) return { wx: live, stale: false };
-	} catch {
-		// fall through to disk cache for offline-mode resilience
+	} catch (err) {
+		// Upstream / parse failure → fall through to disk cache for offline-mode
+		// resilience, but log so observability surfaces the cause.
+		logger.warn(`[metar-fetch] upstream failed for ${opts.station}: ${(err as Error).message}`);
 	}
 
 	const stale = await cache.getStale(opts.station);

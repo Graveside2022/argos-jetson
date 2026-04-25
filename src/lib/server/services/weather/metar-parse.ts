@@ -33,12 +33,34 @@ function classifyCategory(ceilingFt: number | null, visKm: number): FlightCatego
 	return hit ? hit.cat : 'VFR';
 }
 
+function parseFractionToken(token: string): number {
+	const [num, den] = token.split('/');
+	const a = Number(num);
+	const b = Number(den);
+	return Number.isFinite(a) && Number.isFinite(b) && b !== 0 ? a / b : NaN;
+}
+
+function parseMixedFraction(trimmed: string): number {
+	const parts = trimmed.split(/\s+/);
+	if (parts.length === 2) {
+		const whole = Number(parts[0]);
+		const frac = parseFractionToken(parts[1]);
+		return Number.isFinite(whole) && Number.isFinite(frac) ? whole + frac : NaN;
+	}
+	return parseFractionToken(trimmed);
+}
+
+function parseVisibilitySm(raw: string): number {
+	const trimmed = raw.replace('+', '').trim();
+	if (trimmed.includes('/')) return parseMixedFraction(trimmed);
+	return Number(trimmed);
+}
+
 function parseVisibility(raw: AviationMetar['visib']): number {
 	if (raw == null) return 0;
 	if (typeof raw === 'number') return raw * SM_TO_KM;
-	const trimmed = raw.replace('+', '').trim();
-	const n = Number(trimmed);
-	return Number.isFinite(n) ? n * SM_TO_KM : 0;
+	const sm = parseVisibilitySm(raw);
+	return Number.isFinite(sm) ? sm * SM_TO_KM : 0;
 }
 
 function parseWindDir(raw: AviationMetar['wdir']): number {
@@ -47,12 +69,17 @@ function parseWindDir(raw: AviationMetar['wdir']): number {
 	return Number.isFinite(n) ? n : 0;
 }
 
+function isVariableWind(wdir: AviationMetar['wdir']): boolean {
+	return typeof wdir === 'string' && wdir.toUpperCase() === 'VRB';
+}
+
 function buildWind(metar: AviationMetar): WindReport {
+	const variable = isVariableWind(metar.wdir);
 	return {
-		dir: parseWindDir(metar.wdir),
+		dir: variable ? 0 : parseWindDir(metar.wdir),
 		spd: metar.wspd ?? 0,
 		gust: metar.wgst ?? null,
-		variable: null
+		variable: variable ? 'VRB' : null
 	};
 }
 

@@ -2,6 +2,7 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
 import type { WeatherReport } from '$lib/types/weather';
+import { logger } from '$lib/utils/logger';
 
 // spec-024 PR1 T012 — METAR cache (in-memory + disk fallback for offline ops).
 // 15-min TTL on memory hits; disk cache survives process restarts and is
@@ -48,12 +49,22 @@ export async function getStale(icao: string): Promise<WeatherReport | null> {
 	}
 }
 
+async function writeDisk(key: string, data: WeatherReport): Promise<void> {
+	try {
+		await fs.mkdir(DISK_DIR, { recursive: true });
+		await fs.writeFile(diskPath(key), JSON.stringify(data));
+	} catch (err) {
+		logger.warn(`[metar-cache] disk write failed for ${key}: ${(err as Error).message}`);
+	}
+}
+
 export async function set(icao: string, data: WeatherReport): Promise<void> {
 	const key = safeKey(icao);
 	if (!key) return;
+	// Memory.set is authoritative — disk persistence is best-effort so a fresh
+	// METAR is never downgraded by a transient ENOSPC / EACCES on data/tmp.
 	memory.set(key, { data, expiresAt: Date.now() + TTL_MS });
-	await fs.mkdir(DISK_DIR, { recursive: true });
-	await fs.writeFile(diskPath(key), JSON.stringify(data));
+	await writeDisk(key, data);
 }
 
 export const __test = { TTL_MS, safeKey };
