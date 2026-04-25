@@ -15,6 +15,7 @@ import { env } from '../env';
 import { getSignalBus } from '../services/rf/signal-bus';
 import { DatabaseCleanupService } from './cleanup-service';
 import { DatabaseOptimizer } from './db-optimizer';
+import { generateDeviceId } from './geo';
 import { runMigrations } from './migrations/run-migrations';
 import * as networkRepo from './network-repository';
 import * as signalRepo from './signal-repository';
@@ -348,14 +349,21 @@ function emitObservation(row: DbSignal): void {
 	}
 }
 
-/** Fan out a post-batch-insert event from the input marker (no row-ID lookup). */
+/**
+ * Fan out a post-batch-insert event from the input marker.
+ *
+ * Derives `deviceId` via the same `generateDeviceId()` that the signal
+ * repository uses when persisting, so batch-emitted observations retain
+ * device association — previously this was hardcoded to `null`, leaving SSE
+ * subscribers unable to correlate a batch signal back to its device row.
+ */
 function emitObservationFromMarker(signal: SignalMarker): void {
 	try {
 		getSignalBus().emit({
 			signalId: signal.id,
 			sessionId: signal.sessionId ?? null,
 			source: String(signal.source),
-			deviceId: null,
+			deviceId: generateDeviceId(signal),
 			lat: signal.lat,
 			lon: signal.lon,
 			dbm: signal.power,

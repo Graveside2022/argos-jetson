@@ -48,20 +48,35 @@ export class GpsFetchError extends Error {
 	}
 }
 
-async function fetchArgosGps(): Promise<{ lat: number; lon: number } | null> {
+/**
+ * Result tuple returned by {@link fetchArgosGps}. Mirrors `Result<T>` from
+ * `$lib/server/result` but specialised for the fallback-GPS contract so
+ * callers can distinguish:
+ *   - `[fix, null]`       — GPS fix available
+ *   - `[null, null]`      — GPS service responded but has no fix yet
+ *   - `[null, error]`     — GPS fetch threw; observability/UI may surface
+ */
+export type GpsFetchResult = [{ lat: number; lon: number } | null, GpsFetchError | null];
+
+/**
+ * Fetch the operator's current GPS position via the Argos GPS service,
+ * returning a typed Result-tuple. The previous contract swallowed errors
+ * and returned `null` — indistinguishable from "no fix" — which made GPS
+ * outages invisible to the Kismet adapter. Now the adapter can log the
+ * error message verbatim and (in the future) surface a UI warning.
+ */
+async function fetchArgosGps(): Promise<GpsFetchResult> {
 	const [pos, err] = await safe(() => getGpsPosition());
 	if (err) {
-		// Surface the original error via logger so it isn't lost; return null so
-		// the adapter contract (no fix available) is preserved.
 		const wrapped = new GpsFetchError(err);
 		logger.warn(
 			'[kismet-source-singleton] GPS fallback fetch failed',
 			{ error: wrapped.message, cause: err.message },
 			'kismet-gps-fallback-failed'
 		);
-		return null;
+		return [null, wrapped];
 	}
-	return extractFix(pos);
+	return [extractFix(pos), null];
 }
 
 let instance: KismetSignalSource | null = null;

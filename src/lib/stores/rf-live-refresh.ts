@@ -122,8 +122,14 @@ export class LiveRefreshController {
 	private buildUrl(sessionId?: string): string {
 		const base = this.callbacks.streamUrl ?? DEFAULT_STREAM_URL;
 		if (!sessionId) return base;
+		// Use the right separator based on whether `base` already carries a
+		// query string. Naively appending `?session=…` to a URL that already
+		// has params (e.g. `/api/rf/stream?include=ellipses`) produces an
+		// invalid URL with two `?`s, which the server parses as a single
+		// opaque param.
+		const sep = base.includes('?') ? '&' : '?';
 		const params = new URLSearchParams({ session: sessionId });
-		return `${base}?${params.toString()}`;
+		return `${base}${sep}${params.toString()}`;
 	}
 
 	private scheduleReload(): void {

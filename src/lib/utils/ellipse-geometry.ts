@@ -35,7 +35,11 @@ export function ellipseToPolygon(e: DeviceEllipse): Feature<Polygon> {
 	const safeMplon = Math.abs(mplon) < MPLON_EPS ? null : mplon;
 	const ring: [number, number][] = [];
 
-	for (let i = 0; i <= POINTS; i++) {
+	// Emit POINTS distinct vertices around the ellipse. We then close the
+	// ring by appending an exact copy of ring[0] — relying on `t = 2π` to
+	// reproduce the first vertex risks floating-point drift, which would
+	// violate GeoJSON's Polygon-ring closure requirement (RFC 7946 §3.1.6).
+	for (let i = 0; i < POINTS; i++) {
 		const t = (i / POINTS) * 2 * Math.PI;
 		// Ellipse parametric in local meters.
 		const xm = e.semiMajorM * Math.cos(t);
@@ -47,6 +51,8 @@ export function ellipseToPolygon(e: DeviceEllipse): Feature<Polygon> {
 		const lat = e.centerLat + yr / METERS_PER_DEG_LAT;
 		ring.push([lon, lat]);
 	}
+	// Close the ring by repeating the first vertex exactly.
+	ring.push([ring[0][0], ring[0][1]]);
 
 	return {
 		type: 'Feature',

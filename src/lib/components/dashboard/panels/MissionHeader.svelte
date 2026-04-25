@@ -14,10 +14,17 @@
 		notes: string;
 	}
 
-	let fields = $state<MissionFields>({ operatorId: '', assetId: '', areaName: '', notes: '' });
+	const EMPTY_FIELDS: MissionFields = { operatorId: '', assetId: '', areaName: '', notes: '' };
+
+	let fields = $state<MissionFields>({ ...EMPTY_FIELDS });
+	let savedFields = $state<MissionFields>({ ...EMPTY_FIELDS });
 	let saving = $state(false);
 	let saveError = $state<string | null>(null);
 	let loadedSessionId = $state<string | null>(null);
+	// Tracks the in-flight PATCH so concurrent blur events serialize per-mission;
+	// without this two overlapping PATCHes can resolve out of order, letting an
+	// older response win and silently overwrite the operator's newer edits.
+	let pendingSave: Promise<void> = Promise.resolve();
 
 	type MissionResponse = {
 		operatorId: string | null;
@@ -35,12 +42,14 @@
 	}
 
 	function applyMissionResponse(id: string, data: MissionResponse): void {
-		fields = {
+		const next: MissionFields = {
 			operatorId: data.operatorId ?? '',
 			assetId: data.assetId ?? '',
 			areaName: data.areaName ?? '',
 			notes: data.notes ?? ''
 		};
+		fields = { ...next };
+		savedFields = { ...next };
 		loadedSessionId = id;
 	}
 
@@ -77,49 +86,105 @@
 
 	$effect(() => {
 		const id = rfVisualization.activeSessionId;
-		if (!id) return;
+		if (!id) {
+			// Disconnected — clear local state so the inputs don't show the
+			// previous mission's metadata, and so persist() short-circuits even
+			// if the user already started typing before the session ended.
+			fields = { ...EMPTY_FIELDS };
+			savedFields = { ...EMPTY_FIELDS };
+			loadedSessionId = null;
+			saveError = null;
+			return;
+		}
 		if (loadedSessionId === id) return;
 		void loadMetadata(id);
 	});
 
+	const disconnected = $derived(rfVisualization.activeSessionId === null);
+
+	/**
+	 * Build a minimal PATCH body containing only fields whose value differs
+	 * from the last server-confirmed snapshot. Sending unchanged fields makes
+	 * concurrent blur-triggered PATCHes overwrite each other; minimising the
+	 * body limits the blast radius if ordering is still off.
+	 */
 	function buildPatchBody(): Record<string, string | null> {
-		return {
-			operatorId: fields.operatorId || null,
-			assetId: fields.assetId || null,
-			areaName: fields.areaName || null,
-			notes: fields.notes || null
-		};
+		const body: Record<string, string | null> = {};
+		(Object.keys(fields) as Array<keyof MissionFields>).forEach((k) => {
+			if (fields[k] !== savedFields[k]) body[k] = fields[k] || null;
+		});
+		return body;
 	}
 
-	async function patchMission(id: string): Promise<void> {
+	async function patchMission(id: string, body: Record<string, string | null>): Promise<void> {
 		const resp = await fetch(`/api/sessions/${encodeURIComponent(id)}`, {
 			method: 'PATCH',
 			credentials: 'include',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(buildPatchBody())
+			body: JSON.stringify(body)
 		});
 		if (!resp.ok) throw new Error(`PATCH /api/sessions/${id} ${resp.status}`);
 	}
 
-	async function persist(): Promise<void> {
-		const id = rfVisualization.activeSessionId;
-		if (!id) return;
-		saving = true;
-		saveError = null;
+	async function attemptPatch(
+		startId: string,
+		body: Record<string, string | null>,
+		snapshot: MissionFields
+	): Promise<void> {
 		try {
-			await patchMission(id);
+			await patchMission(startId, body);
+			// Bail if the operator switched sessions during the request; the
+			// server-side state for `startId` is updated, but our local
+			// `savedFields` belongs to whatever the active session is now.
+			if (rfVisualization.activeSessionId === startId) {
+				savedFields = snapshot;
+			}
 		} catch (err) {
 			saveError = err instanceof Error ? err.message : String(err);
-		} finally {
-			saving = false;
 		}
+	}
+
+	async function runPersist(startId: string): Promise<void> {
+		// Re-check the active session immediately before issuing the PATCH —
+		// if it changed (or was cleared) while we were queued, drop the write.
+		if (rfVisualization.activeSessionId !== startId) return;
+		const body = buildPatchBody();
+		if (Object.keys(body).length === 0) return; // nothing changed
+		// Snapshot what we're about to commit so a follow-up PATCH only sends
+		// fields the user has touched again.
+		const snapshot: MissionFields = { ...fields };
+		saving = true;
+		saveError = null;
+		await attemptPatch(startId, body, snapshot);
+		saving = false;
+	}
+
+	async function persist(): Promise<void> {
+		const id = rfVisualization.activeSessionId;
+		if (!id) return; // disconnected — short-circuit
+		// Chain onto any pending save so writes serialize per session. Even if
+		// the previous save rejected we still proceed (its error already lives
+		// in `saveError`).
+		const prev = pendingSave;
+		pendingSave = (async () => {
+			try {
+				await prev;
+			} catch {
+				/* prior failure already surfaced */
+			}
+			await runPersist(id);
+		})();
+		return pendingSave;
 	}
 </script>
 
 <div class="mission-header">
 	<div class="label-row">
 		<label class="mh-label" for="mh-operator">MISSION METADATA</label>
-		{#if saving}
+		{#if disconnected}
+			<span class="mh-status" title="No active session — start one to edit">disconnected</span
+			>
+		{:else if saving}
 			<span class="mh-status">saving…</span>
 		{:else if saveError}
 			<span class="mh-status mh-err" title={saveError}>error</span>
@@ -134,7 +199,8 @@
 			bind:value={fields.operatorId}
 			onblur={() => void persist()}
 			maxlength="64"
-			placeholder="call-sign"
+			placeholder={disconnected ? 'no active session' : 'call-sign'}
+			disabled={disconnected}
 		/>
 	</div>
 	<div class="field">
@@ -145,7 +211,8 @@
 			bind:value={fields.assetId}
 			onblur={() => void persist()}
 			maxlength="64"
-			placeholder="e.g. TRK-04"
+			placeholder={disconnected ? 'no active session' : 'e.g. TRK-04'}
+			disabled={disconnected}
 		/>
 	</div>
 	<div class="field">
@@ -156,7 +223,8 @@
 			bind:value={fields.areaName}
 			onblur={() => void persist()}
 			maxlength="128"
-			placeholder="e.g. Fort Irwin NTC"
+			placeholder={disconnected ? 'no active session' : 'e.g. Fort Irwin NTC'}
+			disabled={disconnected}
 		/>
 	</div>
 	<div class="field">
@@ -167,7 +235,8 @@
 			onblur={() => void persist()}
 			maxlength="1024"
 			rows="2"
-			placeholder="context for this session"
+			placeholder={disconnected ? 'no active session' : 'context for this session'}
+			disabled={disconnected}
 		></textarea>
 	</div>
 
@@ -238,6 +307,11 @@
 	textarea:focus {
 		outline: none;
 		border-color: var(--primary);
+	}
+	input:disabled,
+	textarea:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
 	}
 	textarea {
 		resize: vertical;

@@ -51,11 +51,25 @@ function escapeXml(s: string): string {
 		.replace(/"/g, '&quot;');
 }
 
+const FORMULA_PREFIX = /^[=+\-@\t\r]/;
+const NEEDS_CSV_QUOTE = /[,"\n]/;
+
+/** Defang spreadsheet formula triggers per OWASP CSV Injection / CWE-1236. */
+function neutralizeFormula(s: string): string {
+	return FORMULA_PREFIX.test(s) ? `'${s}` : s;
+}
+
+/**
+ * CSV-injection-safe cell encoder. Spreadsheets (Excel, Google Sheets,
+ * LibreOffice) treat cells starting with `=`, `+`, `-`, `@`, `\t`, or `\r`
+ * as formulas; an attacker controlling Kismet device metadata (SSID,
+ * manufacturer, etc.) could exfiltrate data or trigger commands when the
+ * exported CSV is opened.
+ */
 function escapeCsv(s: string): string {
-	if (s.includes(',') || s.includes('"') || s.includes('\n')) {
-		return `"${s.replace(/"/g, '""')}"`;
-	}
-	return s;
+	const value = neutralizeFormula(s);
+	const mustQuote = value !== s || NEEDS_CSV_QUOTE.test(value);
+	return mustQuote ? `"${value.replace(/"/g, '""')}"` : value;
 }
 
 function csvHeader(): string {
@@ -111,9 +125,17 @@ function fillChunk(
 ): { chunks: string[]; emitted: number } {
 	const chunks: string[] = [];
 	let emitted = 0;
-	for (const row of rows) {
-		chunks.push(format === 'csv' ? csvRow(row) : kmlPlacemark(row));
-		if (++emitted >= CHUNK_ROWS) break;
+	// Use explicit next() rather than `for...of` so we can call rows.return()
+	// to finalize the underlying SQLite statement deterministically when we
+	// stop early at CHUNK_ROWS. Relying on for...of's IteratorClose-on-break
+	// works in modern engines but is harder to reason about across the
+	// ReadableStream pull boundary, where the iterator is reused between
+	// invocations until exhausted.
+	while (emitted < CHUNK_ROWS) {
+		const res = rows.next();
+		if (res.done) break;
+		chunks.push(format === 'csv' ? csvRow(res.value) : kmlPlacemark(res.value));
+		emitted++;
 	}
 	return { chunks, emitted };
 }
@@ -134,9 +156,17 @@ function makeChunkedSource(
 			const { chunks, emitted } = fillChunk(rows, format);
 			if (chunks.length > 0) controller.enqueue(encoder.encode(chunks.join('')));
 			if (emitted < CHUNK_ROWS) {
+				// Iterator exhausted — finalize the prepared statement explicitly
+				// rather than waiting on GC.
+				rows.return?.(undefined);
 				if (format === 'kml') controller.enqueue(encoder.encode(kmlClose()));
 				controller.close();
 			}
+		},
+		cancel() {
+			// Consumer aborted (e.g. client disconnected) — finalize the SQLite
+			// iterator so its statement isn't held open until GC.
+			rows.return?.(undefined);
 		}
 	});
 }

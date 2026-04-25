@@ -14,7 +14,7 @@
 
 import { randomUUID } from 'node:crypto';
 
-import { getRFDatabase, type RFDatabase } from '$lib/server/db/database';
+import { getRFDatabaseReady, type RFDatabase } from '$lib/server/db/database';
 import type { KismetDevice } from '$lib/server/kismet/types';
 import { getGpsPosition } from '$lib/server/services/gps/gps-position-service';
 import { SignalSource } from '$lib/types/enums';
@@ -35,8 +35,15 @@ export interface KismetSignalSourceDeps {
 	 * location (or the sentinel 0,0), the adapter stamps the observation
 	 * with the operator's current position instead. Prod default: the
 	 * Argos GPS service; tests inject a stub.
+	 *
+	 * Returns either a bare position (legacy contract) OR a Result tuple
+	 * `[fix | null, Error | null]` so callers can surface fetch errors
+	 * separately from "no fix yet". A bare-null/position return is treated
+	 * as `[value, null]` for back-compat with existing test stubs.
 	 */
-	fetchFallbackGps?: () => Promise<{ lat: number; lon: number } | null>;
+	fetchFallbackGps?: () => Promise<
+		{ lat: number; lon: number } | null | [{ lat: number; lon: number } | null, Error | null]
+	>;
 }
 
 export interface KismetSignalSource extends SignalSourceAdapter {
@@ -144,8 +151,23 @@ export function createKismetSignalSource(deps: KismetSignalSourceDeps): KismetSi
 	}
 
 	async function getFallbackGps(): Promise<{ lat: number; lon: number } | null> {
-		if (deps.fetchFallbackGps) return deps.fetchFallbackGps();
-		return defaultArgosGps();
+		if (!deps.fetchFallbackGps) return defaultArgosGps();
+		const result = await deps.fetchFallbackGps();
+		// Result-tuple contract `[fix, error]` — log the error so a GPS service
+		// outage is visible, then return the fix (which may itself be null).
+		if (Array.isArray(result)) {
+			const [fix, err] = result;
+			if (err) {
+				logger.debug(
+					'[kismet-source] fallback GPS error surfaced',
+					{ error: err.message },
+					'kismet-source-fallback-gps-error'
+				);
+			}
+			return fix;
+		}
+		// Legacy bare-value contract.
+		return result;
 	}
 
 	function withFallback(
@@ -159,7 +181,11 @@ export function createKismetSignalSource(deps: KismetSignalSourceDeps): KismetSi
 
 	async function fetchAndPersist(sid: string): Promise<void> {
 		const devices = await deps.fetchDevices();
-		const db = deps.db ?? getRFDatabase();
+		// Block on `ready()` so migration 006 (session_id column) has finished
+		// before we attempt to insert. Without this gate the very first poll
+		// after process boot can race the migration and fail with
+		// "table signals has no column named session_id".
+		const db = deps.db ?? (await getRFDatabaseReady());
 		const gps = await getFallbackGps();
 		for (const d of devices) {
 			const located = withFallback(d, gps);
