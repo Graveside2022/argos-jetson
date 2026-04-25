@@ -4,6 +4,7 @@ import { createHandler } from '$lib/server/api/create-handler';
 import { errMsg } from '$lib/server/api/error-utils';
 import { execFileAsync } from '$lib/server/exec';
 import { getKismetSignalSource } from '$lib/server/services/rf/kismet-source-singleton';
+import { getCurrentSessionId } from '$lib/server/services/session/session-tracker';
 import { delay } from '$lib/utils/delay';
 import { logger } from '$lib/utils/logger';
 
@@ -54,13 +55,11 @@ async function cleanupKismonInterface(): Promise<void> {
 export const POST = createHandler(async () => {
 	logger.info('Stopping Kismet with robust cleanup');
 
-	// Stop the server-side persistence bridge FIRST so the poller doesn't
-	// log spurious fetch failures while Kismet is being torn down.
-	await getKismetSignalSource().stop();
-
 	const pids = await findKismetPids();
 	if (pids.length === 0) {
 		logger.info('No Kismet processes found');
+		// Bridge is bound to Kismet — nothing to bridge if Kismet is gone.
+		await getKismetSignalSource().stop();
 		return { success: true, status: 'stopped', message: 'Kismet was not running' };
 	}
 
@@ -68,13 +67,29 @@ export const POST = createHandler(async () => {
 	await terminateKismet();
 	await cleanupKismonInterface();
 
+	// Confirm Kismet is actually stopped BEFORE tearing down the persistence
+	// bridge. If termination failed, the bridge must keep running so signals
+	// continue flowing into rf_signals.db while the operator retries.
 	if (await isKismetRunning()) {
-		logger.error('Kismet processes may still be running');
+		logger.error('Kismet processes may still be running — leaving bridge active');
+		// Defensive: ensure the bridge is up (idempotent if already running).
+		try {
+			await getKismetSignalSource().start(getCurrentSessionId());
+		} catch (err) {
+			logger.warn(
+				'Failed to keep Kismet bridge active after stop failure',
+				{ error: errMsg(err) },
+				'kismet-bridge-restart-failed'
+			);
+		}
 		return json(
 			{ success: false, status: 'error', message: 'Failed to stop all Kismet processes' },
 			{ status: 500 }
 		);
 	}
+
+	// Termination confirmed — now safe to stop the bridge.
+	await getKismetSignalSource().stop();
 
 	logger.info('Verification passed: No Kismet processes found');
 	return {

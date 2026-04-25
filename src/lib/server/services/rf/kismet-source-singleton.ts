@@ -4,7 +4,9 @@
  */
 
 import { KismetProxy } from '$lib/server/kismet/kismet-proxy';
+import { safe } from '$lib/server/result';
 import { getGpsPosition } from '$lib/server/services/gps/gps-position-service';
+import { logger } from '$lib/utils/logger';
 
 import { createKismetSignalSource, type KismetSignalSource } from './kismet-signal-source';
 import { getSignalSource, registerSignalSource } from './signal-sources';
@@ -34,12 +36,32 @@ function extractFix(
 	return { lat: data.latitude as number, lon: data.longitude as number };
 }
 
+/**
+ * Typed error class so callers (and observability) can distinguish a GPS
+ * fallback failure from "no fix yet". Wraps the original error rather than
+ * silently swallowing it.
+ */
+export class GpsFetchError extends Error {
+	constructor(public readonly cause: Error) {
+		super(`GPS fallback fetch failed: ${cause.message}`);
+		this.name = 'GpsFetchError';
+	}
+}
+
 async function fetchArgosGps(): Promise<{ lat: number; lon: number } | null> {
-	try {
-		return extractFix(await getGpsPosition());
-	} catch {
+	const [pos, err] = await safe(() => getGpsPosition());
+	if (err) {
+		// Surface the original error via logger so it isn't lost; return null so
+		// the adapter contract (no fix available) is preserved.
+		const wrapped = new GpsFetchError(err);
+		logger.warn(
+			'[kismet-source-singleton] GPS fallback fetch failed',
+			{ error: wrapped.message, cause: err.message },
+			'kismet-gps-fallback-failed'
+		);
 		return null;
 	}
+	return extractFix(pos);
 }
 
 let instance: KismetSignalSource | null = null;

@@ -442,7 +442,13 @@ class RfVisualizationStore {
 		if (typeof EventSource === 'undefined') return; // SSR / test env without EventSource
 		if (!this.liveController) {
 			this.liveController = new LiveRefreshController({
-				reload: () => this.load()
+				reload: () => this.load(),
+				// Reflect the underlying EventSource state — flips false on
+				// drop/error, back true on reconnect, without waiting for
+				// disconnectLive() to be called explicitly.
+				onLiveChange: (live) => {
+					this.isLive = live;
+				}
 			});
 		}
 		this.liveController.connect(sessionId ?? undefined);

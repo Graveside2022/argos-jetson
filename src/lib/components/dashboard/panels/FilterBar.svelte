@@ -6,34 +6,106 @@
 <script lang="ts">
 	import { rfVisualization } from '$lib/stores/rf-visualization.svelte';
 
+	type PanelState =
+		| 'Empty'
+		| 'Loading'
+		| 'Default'
+		| 'Active'
+		| 'Error'
+		| 'Success'
+		| 'Disabled'
+		| 'Disconnected';
+
+	/** Typed error so callers/UI can surface a corrective action rather than a swallowed string. */
+	class ParseError extends Error {
+		readonly field: string;
+		constructor(message: string, field: string) {
+			super(message);
+			this.name = 'ParseError';
+			this.field = field;
+		}
+	}
+
 	let source = $state<string>('');
 	let rssiFloor = $state<string>('');
+	let panelState = $state<PanelState>('Default');
+	let errorMessage = $state<string>('');
+
+	const isBusy = $derived(panelState === 'Loading' || panelState === 'Disabled');
+	const hasActiveFilters = $derived(source !== '' || rssiFloor.trim() !== '');
 
 	function parseFloor(raw: string): number | undefined {
-		const n = Number(raw);
-		return raw.trim() === '' || !Number.isFinite(n) ? undefined : n;
+		const trimmed = raw.trim();
+		if (trimmed === '') return undefined;
+		const n = Number(trimmed);
+		if (!Number.isFinite(n)) {
+			throw new ParseError(
+				`RSSI floor "${raw}" is not a number — enter a value like -70`,
+				'rssiFloor'
+			);
+		}
+		return n;
+	}
+
+	async function runReload(activeAfter: boolean): Promise<void> {
+		panelState = 'Loading';
+		errorMessage = '';
+		try {
+			await rfVisualization.load();
+			panelState = activeAfter ? 'Active' : 'Success';
+		} catch (err) {
+			panelState = 'Error';
+			errorMessage =
+				err instanceof Error
+					? err.message
+					: 'Failed to apply filters — check the RF API and retry.';
+			// Re-throw so callers can chain logic on failure if needed.
+			throw err;
+		}
 	}
 
 	async function applyFilters(): Promise<void> {
-		rfVisualization.setFilters({
-			source: source || undefined,
-			rssiFloorDbm: parseFloor(rssiFloor)
-		});
-		await rfVisualization.load();
+		try {
+			const rssiFloorDbm = parseFloor(rssiFloor);
+			rfVisualization.setFilters({
+				source: source || undefined,
+				rssiFloorDbm
+			});
+			await runReload(hasActiveFilters);
+		} catch (err) {
+			if (err instanceof ParseError) {
+				panelState = 'Error';
+				errorMessage = err.message;
+				return;
+			}
+			// Reload errors already set state in runReload — swallow at the
+			// boundary so unhandled rejections don't surface in the console.
+		}
 	}
 
 	async function clearFilters(): Promise<void> {
 		source = '';
 		rssiFloor = '';
 		rfVisualization.setFilters({ source: undefined, rssiFloorDbm: undefined });
-		await rfVisualization.load();
+		try {
+			await runReload(false);
+		} catch {
+			/* state already set in runReload */
+		}
 	}
 </script>
 
-<div class="filter-bar">
+<div class="filter-bar" data-state={panelState}>
 	<div class="label-row">
 		<span class="fb-label">FILTERS</span>
-		<button type="button" class="fb-clear" onclick={() => void clearFilters()}>clear</button>
+		<button
+			type="button"
+			class="fb-clear"
+			disabled={isBusy}
+			onclick={() => void clearFilters()}
+		>
+			{panelState === 'Loading' ? 'loading…' : 'clear'}
+		</button>
 	</div>
 
 	<div class="field">
@@ -41,6 +113,7 @@
 		<select
 			id="fb-source"
 			bind:value={source}
+			disabled={isBusy}
 			onchange={() => void applyFilters()}
 			class="fb-select"
 		>
@@ -64,10 +137,15 @@
 			max="0"
 			placeholder="-70"
 			bind:value={rssiFloor}
+			disabled={isBusy}
 			onblur={() => void applyFilters()}
 			class="fb-input"
 		/>
 	</div>
+
+	{#if panelState === 'Error' && errorMessage}
+		<p class="fb-error" role="alert">{errorMessage}</p>
+	{/if}
 </div>
 
 <style>
@@ -126,5 +204,18 @@
 	.fb-input:focus {
 		outline: none;
 		border-color: var(--primary);
+	}
+	.fb-select:disabled,
+	.fb-input:disabled,
+	.fb-clear:disabled {
+		opacity: 0.55;
+		cursor: not-allowed;
+	}
+	.fb-error {
+		font-size: 0.7em;
+		color: var(--error-desat);
+		margin: 0;
+		padding: 0.2em 0;
+		font-family: inherit;
 	}
 </style>

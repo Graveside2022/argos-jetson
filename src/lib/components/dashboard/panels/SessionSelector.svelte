@@ -99,9 +99,9 @@
 		font-family: 'Fira Code', ui-monospace, monospace;
 		font-size: 0.62em;
 		letter-spacing: 0.12em;
-		color: #8bbfa0; /* semantic healthy — Lunaris token */
+		color: var(--success);
 		padding: 0.08em 0.4em;
-		border: 1px solid #8bbfa0;
+		border: 1px solid var(--success);
 		border-radius: 3px;
 	}
 	.session-select {

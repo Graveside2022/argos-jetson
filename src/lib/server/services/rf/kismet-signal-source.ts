@@ -80,12 +80,20 @@ function deviceDbm(d: KismetDevice): number {
 	return d.signal?.last_signal ?? d.signalStrength ?? 0;
 }
 
-function deviceToMarker(d: LocatedDevice, sessionId: string): SignalMarker {
+/**
+ * Convert Kismet's kHz frequency to MHz, clamping into the DbSignalSchema
+ * window (1..6000 MHz). Returns `null` when the device reports no frequency
+ * — callers should drop the observation instead of synthesizing a 1 MHz
+ * value that misrepresents an unknown frequency.
+ */
+function kismetFrequencyMHz(d: KismetDevice): number | null {
+	const raw = d.frequency;
+	if (typeof raw !== 'number' || !Number.isFinite(raw) || raw <= 0) return null;
+	return Math.min(6000, Math.max(1, Math.round(raw / 1000)));
+}
+
+function deviceToMarker(d: LocatedDevice, freqMHz: number, sessionId: string): SignalMarker {
 	const { latitude: lat, longitude: lon } = d.location;
-	// Kismet reports `kismet.device.base.frequency` in kHz; DbSignalSchema
-	// validates MHz (max 6000). Convert and clamp so a 5 GHz WiFi device
-	// doesn't fail Zod with "Must be <= 6000".
-	const freqMHz = Math.min(6000, Math.max(1, Math.round((d.frequency ?? 0) / 1000)));
 	return {
 		id: `kismet:${d.mac}:${randomUUID()}`,
 		lat,
@@ -113,8 +121,19 @@ export function createKismetSignalSource(deps: KismetSignalSourceDeps): KismetSi
 	let activeSession: string | null = null;
 
 	function persistDevice(db: RFDatabase, d: LocatedDevice, sid: string): void {
+		const freqMHz = kismetFrequencyMHz(d);
+		if (freqMHz === null) {
+			// Drop observations with unknown frequency rather than fabricating
+			// a misleading 1 MHz placeholder.
+			logger.debug(
+				'[kismet-source] dropping device — unknown frequency',
+				{ mac: d.mac },
+				'kismet-source-unknown-frequency'
+			);
+			return;
+		}
 		try {
-			db.insertSignal(deviceToMarker(d, sid));
+			db.insertSignal(deviceToMarker(d, freqMHz, sid));
 		} catch (err) {
 			logger.debug(
 				'[kismet-source] insert failed',

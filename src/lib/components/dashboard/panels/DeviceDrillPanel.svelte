@@ -15,25 +15,38 @@
 		lastSeenTs: number;
 	}
 
-	type FeatProps = { dbm?: number; timestamp?: number };
+	type FeatProps = { dbm?: number | null; timestamp?: number | null };
 	interface Acc {
 		min: number;
 		max: number;
 		sum: number;
+		dbmCount: number;
 		firstTs: number;
 		lastTs: number;
 	}
 
+	/**
+	 * Skip observations whose `dbm` is missing/non-finite — defaulting them
+	 * to 0 would bias `min`, `max`, and the mean. Timestamps are folded
+	 * independently so an observation with a valid `ts` but no `dbm` still
+	 * contributes to firstSeen/lastSeen.
+	 */
 	function foldProps(acc: Acc, props: FeatProps): Acc {
-		const dbm = Number(props.dbm ?? 0);
-		const ts = Number(props.timestamp ?? 0);
-		return {
-			min: Math.min(acc.min, dbm),
-			max: Math.max(acc.max, dbm),
-			sum: acc.sum + dbm,
-			firstTs: Math.min(acc.firstTs, ts),
-			lastTs: Math.max(acc.lastTs, ts)
-		};
+		const rawDbm = props.dbm;
+		const rawTs = props.timestamp;
+		const next: Acc = { ...acc };
+
+		if (typeof rawDbm === 'number' && Number.isFinite(rawDbm)) {
+			next.min = Math.min(acc.min, rawDbm);
+			next.max = Math.max(acc.max, rawDbm);
+			next.sum = acc.sum + rawDbm;
+			next.dbmCount = acc.dbmCount + 1;
+		}
+		if (typeof rawTs === 'number' && Number.isFinite(rawTs)) {
+			next.firstTs = Math.min(acc.firstTs, rawTs);
+			next.lastTs = Math.max(acc.lastTs, rawTs);
+		}
+		return next;
 	}
 
 	function statsFromFeatures(): ObsStats | null {
@@ -43,15 +56,17 @@
 			min: Infinity,
 			max: -Infinity,
 			sum: 0,
+			dbmCount: 0,
 			firstTs: Infinity,
 			lastTs: -Infinity
 		};
 		const a = feats.reduce((acc, f) => foldProps(acc, (f.properties ?? {}) as FeatProps), seed);
+		const meanDbm = a.dbmCount > 0 ? a.sum / a.dbmCount : Number.NaN;
 		return {
 			count: feats.length,
 			minDbm: a.min,
 			maxDbm: a.max,
-			meanDbm: a.sum / feats.length,
+			meanDbm,
 			firstSeenTs: a.firstTs,
 			lastSeenTs: a.lastTs
 		};

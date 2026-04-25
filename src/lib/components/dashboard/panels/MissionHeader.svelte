@@ -44,13 +44,35 @@
 		loadedSessionId = id;
 	}
 
-	async function loadMetadata(id: string): Promise<void> {
-		saveError = null;
+	function isStillActive(startId: string): boolean {
+		return rfVisualization.activeSessionId === startId;
+	}
+
+	function formatError(err: unknown): string {
+		return err instanceof Error ? err.message : String(err);
+	}
+
+	async function safeFetchMission(
+		startId: string
+	): Promise<{ data: MissionResponse | null; error: string | null }> {
 		try {
-			applyMissionResponse(id, await fetchMission(id));
+			return { data: await fetchMission(startId), error: null };
 		} catch (err) {
-			saveError = err instanceof Error ? err.message : String(err);
+			return { data: null, error: formatError(err) };
 		}
+	}
+
+	async function loadMetadata(id: string): Promise<void> {
+		// Capture the session id at the START of the fetch. If the active
+		// session changes mid-flight (e.g. operator clicks a different row in
+		// the SessionSelector), discard the stale response so it doesn't
+		// overwrite the newer session's metadata or surface a phantom error.
+		const startId = id;
+		saveError = null;
+		const { data, error } = await safeFetchMission(startId);
+		if (!isStillActive(startId)) return;
+		if (data) applyMissionResponse(startId, data);
+		else saveError = error;
 	}
 
 	$effect(() => {
@@ -190,7 +212,7 @@
 		color: var(--muted-foreground);
 	}
 	.mh-err {
-		color: #c45b4a;
+		color: var(--error-desat);
 	}
 	.field {
 		display: flex;

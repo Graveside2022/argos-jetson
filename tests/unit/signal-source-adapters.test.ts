@@ -37,10 +37,36 @@ describe('SignalSourceAdapter built-ins', () => {
 	});
 
 	it('gsm-evil adapter.start launches a poll timer; stop clears it', async () => {
-		await gsmEvilSignalSource.start('sess-x');
-		// Double-start must not stack timers.
-		await gsmEvilSignalSource.start('sess-x');
-		await gsmEvilSignalSource.stop();
+		// Spy on the timer primitives the adapter uses (module-level
+		// `setInterval` / `clearInterval`) so we can assert the lifecycle
+		// without relying on private fields.
+		const setSpy = vi.spyOn(global, 'setInterval');
+		const clearSpy = vi.spyOn(global, 'clearInterval');
+
+		try {
+			await gsmEvilSignalSource.start('sess-x');
+			expect(setSpy).toHaveBeenCalledTimes(1);
+			const firstHandle = setSpy.mock.results[0]?.value;
+			expect(firstHandle).toBeTruthy();
+
+			// Double-start must not stack timers — no additional setInterval
+			// call, and the existing handle must remain.
+			await gsmEvilSignalSource.start('sess-x');
+			expect(setSpy).toHaveBeenCalledTimes(1);
+
+			// Stop must clear the same handle that start produced.
+			await gsmEvilSignalSource.stop();
+			expect(clearSpy).toHaveBeenCalledTimes(1);
+			expect(clearSpy.mock.calls[0]?.[0]).toBe(firstHandle);
+
+			// After stop, restart should produce a fresh handle (not reuse the cleared one).
+			await gsmEvilSignalSource.start('sess-x');
+			expect(setSpy).toHaveBeenCalledTimes(2);
+			await gsmEvilSignalSource.stop();
+		} finally {
+			setSpy.mockRestore();
+			clearSpy.mockRestore();
+		}
 	});
 
 	it('registerSignalSources() adds both BD and GSM Evil to the registry', () => {

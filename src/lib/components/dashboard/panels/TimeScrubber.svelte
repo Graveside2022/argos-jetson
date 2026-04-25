@@ -4,6 +4,8 @@
 	server. Two thumbs (start + end) implemented as two range inputs.
 -->
 <script lang="ts">
+	import { onDestroy } from 'svelte';
+
 	import { rfVisualization } from '$lib/stores/rf-visualization.svelte';
 
 	interface ActiveSessionRange {
@@ -52,6 +54,41 @@
 		}, 250);
 	}
 
+	// Cancel any pending debounced apply on unmount so a stale timer can't
+	// call rfVisualization.setFilters/load against a destroyed component.
+	onDestroy(() => {
+		if (debounceTimer) {
+			clearTimeout(debounceTimer);
+			debounceTimer = null;
+		}
+	});
+
+	/**
+	 * Clamp a slider value into [min,max] and ensure start ≤ end. Called from
+	 * each range input's `oninput` so the server never receives an inverted
+	 * window if the operator drags one thumb past the other.
+	 */
+	function onStartInput(event: Event): void {
+		if (!range) return;
+		const raw = Number((event.currentTarget as HTMLInputElement).value);
+		if (!Number.isFinite(raw)) return;
+		const clamped = Math.min(Math.max(raw, range.min), endTs ?? range.max);
+		startTs = clamped;
+		// Reflect clamping in the input itself so the thumb snaps visually.
+		(event.currentTarget as HTMLInputElement).value = String(clamped);
+		scheduleApply();
+	}
+
+	function onEndInput(event: Event): void {
+		if (!range) return;
+		const raw = Number((event.currentTarget as HTMLInputElement).value);
+		if (!Number.isFinite(raw)) return;
+		const clamped = Math.max(Math.min(raw, range.max), startTs ?? range.min);
+		endTs = clamped;
+		(event.currentTarget as HTMLInputElement).value = String(clamped);
+		scheduleApply();
+	}
+
 	function reset(): void {
 		if (!range) return;
 		startTs = range.min;
@@ -82,7 +119,7 @@
 					max={range.max}
 					step="1000"
 					bind:value={startTs}
-					oninput={scheduleApply}
+					oninput={onStartInput}
 				/>
 				<span class="sc-val">{fmtTs(startTs)}</span>
 			</label>
@@ -95,7 +132,7 @@
 					max={range.max}
 					step="1000"
 					bind:value={endTs}
-					oninput={scheduleApply}
+					oninput={onEndInput}
 				/>
 				<span class="sc-val">{fmtTs(endTs)}</span>
 			</label>

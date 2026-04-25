@@ -26,6 +26,13 @@ export interface LiveRefreshCallbacks {
 	reconcileMs?: number;
 	/** Override for the SSE URL base. Default /api/rf/stream. */
 	streamUrl?: string;
+	/**
+	 * Notify the consumer (e.g. an RF visualization store) whenever the
+	 * underlying EventSource transitions between open and not-open. Lets
+	 * upstream UI flip an "isLive" indicator off when the SSE drops without
+	 * an explicit `disconnect()` call.
+	 */
+	onLiveChange?: (live: boolean) => void;
 }
 
 export class LiveRefreshController {
@@ -33,11 +40,19 @@ export class LiveRefreshController {
 	private debounceTimer: ReturnType<typeof setTimeout> | null = null;
 	private reconcileTimer: ReturnType<typeof setInterval> | null = null;
 	private live = false;
+	private boundOnOpen: (() => void) | null = null;
+	private boundOnError: (() => void) | null = null;
 
 	constructor(private readonly callbacks: LiveRefreshCallbacks) {}
 
 	get isLive(): boolean {
 		return this.live;
+	}
+
+	private setLive(next: boolean): void {
+		if (this.live === next) return;
+		this.live = next;
+		this.callbacks.onLiveChange?.(next);
 	}
 
 	connect(sessionId?: string): void {
@@ -48,7 +63,23 @@ export class LiveRefreshController {
 		const factory = this.callbacks.eventSourceFactory ?? ((u: string) => new EventSource(u));
 		const source = factory(url);
 		this.source = source;
-		this.live = true;
+		// Optimistic — flipped to true on `open`, back to false on `error` /
+		// readyState !== OPEN. Tests that don't fire `open` rely on this
+		// initial-true to assert the connect() sequence ran.
+		this.setLive(true);
+
+		// Wire EventSource lifecycle so isLive reflects ACTUAL state, not
+		// just the connect()/disconnect() boundary.
+		this.boundOnOpen = () => this.setLive(true);
+		this.boundOnError = () => {
+			// EventSource auto-reconnects after `error` (readyState becomes
+			// CONNECTING = 0), but the connection is not currently OPEN. Mark
+			// not-live and let `open` flip it back when (if) reconnect succeeds.
+			const rs = this.source?.readyState;
+			this.setLive(rs === 1 /* OPEN */);
+		};
+		source.addEventListener('open', this.boundOnOpen);
+		source.addEventListener('error', this.boundOnError);
 
 		source.addEventListener('observation', () => this.scheduleReload());
 		// `connected` and `heartbeat` are intentionally ignored — they are
@@ -60,11 +91,18 @@ export class LiveRefreshController {
 		}, reconcileMs);
 	}
 
-	disconnect(): void {
-		if (this.source) {
-			this.source.close();
-			this.source = null;
-		}
+	private teardownSource(): void {
+		const src = this.source;
+		if (!src) return;
+		if (this.boundOnOpen) src.removeEventListener('open', this.boundOnOpen);
+		if (this.boundOnError) src.removeEventListener('error', this.boundOnError);
+		src.close();
+		this.source = null;
+		this.boundOnOpen = null;
+		this.boundOnError = null;
+	}
+
+	private clearTimers(): void {
 		if (this.debounceTimer) {
 			clearTimeout(this.debounceTimer);
 			this.debounceTimer = null;
@@ -73,7 +111,12 @@ export class LiveRefreshController {
 			clearInterval(this.reconcileTimer);
 			this.reconcileTimer = null;
 		}
-		this.live = false;
+	}
+
+	disconnect(): void {
+		this.teardownSource();
+		this.clearTimers();
+		this.setLive(false);
 	}
 
 	private buildUrl(sessionId?: string): string {

@@ -94,7 +94,7 @@ function kmlClose(): string {
 }
 
 function kmlPlacemark(r: ExportRow): string {
-	const desc = `${r.power} dBm @ ${r.frequency} Hz | ${new Date(r.timestamp).toISOString()}`;
+	const desc = `${r.power} dBm @ ${r.frequency} MHz | ${new Date(r.timestamp).toISOString()}`;
 	const name = r.deviceId ?? r.signalId;
 	return (
 		`<Placemark>` +

@@ -64,11 +64,13 @@ const QuerySchema = z.object({
 	h3res: IntSchema.optional(),
 	zoom: z
 		.string()
+		.regex(/^-?\d+(\.\d+)?$/)
 		.transform((v) => Number(v))
 		.pipe(z.number().finite())
 		.optional(),
 	rssiFloor: z
 		.string()
+		.regex(/^-?\d+(\.\d+)?$/)
 		.transform((v) => Number(v))
 		.pipe(z.number().finite())
 		.optional(),

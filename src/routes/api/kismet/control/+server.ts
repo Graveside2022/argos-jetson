@@ -31,19 +31,29 @@ const MOCK_RESPONSES: Record<string, Record<string, unknown>> = {
 	status: { success: true, isRunning: false, status: 'inactive' }
 };
 
-type KismetResult = { success: boolean; error?: string };
+type KismetResult = { success: boolean; error?: string; message?: string };
 
 function resultStatus(result: KismetResult): number {
 	if (result.success) return 200;
 	return result.error ? 400 : 500;
 }
 
+/**
+ * Detect the "already running" branch returned by `preflightCheck()` in
+ * kismet-control-service-extended. The service uses a `message` field rather
+ * than a discriminator, so we match on the canonical string.
+ */
+function isAlreadyRunning(result: KismetResult): boolean {
+	return /already running/i.test(result.message ?? '');
+}
+
 async function handleStart(): Promise<KismetResult> {
 	const result = await startKismetExtended();
 	// Flying-Squirrel integration: on a fresh Kismet run, open a new session
 	// and spin up the persistence-polling bridge so devices flow into
-	// rf_signals.db with a sessionId stamp.
-	if (result.success) {
+	// rf_signals.db with a sessionId stamp. If Kismet was already running we
+	// must NOT clobber its existing session — leave the bridge / session alone.
+	if (result.success && !isAlreadyRunning(result)) {
 		startNewSession('kismet-start', 'Kismet WiFi discovery');
 		await getKismetSignalSource().start(getCurrentSessionId());
 	}
