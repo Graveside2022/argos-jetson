@@ -9,9 +9,16 @@
 		loading?: boolean;
 		error?: string | null;
 		disabled?: boolean;
+		empty?: boolean;
 	}
 
-	let { wx = null, loading = false, error = null, disabled = false }: Props = $props();
+	let {
+		wx = null,
+		loading = false,
+		error = null,
+		disabled = false,
+		empty = false
+	}: Props = $props();
 
 	const CAT_STROKE: Record<FlightCategory, string> = {
 		VFR: 'var(--mk2-green)',
@@ -55,6 +62,8 @@
 		<div class="wx-empty mono">FETCHING METAR…</div>
 	{:else if error}
 		<div class="wx-empty mono error">METAR FAILED · {error}</div>
+	{:else if empty}
+		<div class="wx-empty mono">NO METAR DATA — AWAITING FETCH</div>
 	{:else if !wx}
 		<div class="wx-empty mono">DISCONNECTED — NO GPS / STATION</div>
 	{:else}

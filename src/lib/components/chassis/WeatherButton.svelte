@@ -14,9 +14,16 @@
 		loading?: boolean;
 		error?: string | null;
 		disabled?: boolean;
+		empty?: boolean;
 	}
 
-	let { wx = null, loading = false, error = null, disabled = false }: Props = $props();
+	let {
+		wx = null,
+		loading = false,
+		error = null,
+		disabled = false,
+		empty = false
+	}: Props = $props();
 
 	let open = $state(false);
 	let wrapEl: HTMLDivElement | undefined = $state();
@@ -85,7 +92,7 @@
 	</button>
 
 	{#if open}
-		<WeatherPanel {wx} {loading} {error} {disabled} />
+		<WeatherPanel {wx} {loading} {error} {disabled} {empty} />
 	{/if}
 </div>
 
