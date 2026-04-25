@@ -32,7 +32,7 @@ Tracking per-PR tasks against the migration plan in `plan.md`. Commit SHAs fille
 
 ## PR 3 — Bottom Drawer (~3 days)
 
-- [ ] **T019** `Drawer.svelte` — 6 fixed-order tabs (terminal/logs/captures/wifi/bluetooth/uas), click-active-to-collapse, drag-resize handle. Height clamped `min(120, innerHeight - 200)`.
+- [ ] **T019** `Drawer.svelte` — 6 fixed-order tabs (terminal/logs/captures/wifi/bluetooth/uas), click-active-to-collapse, drag-resize handle. Height clamped to `max(120, innerHeight - 200)` (matches prototype `chassis.jsx` BottomDrawer — floor 120 px so the drawer never collapses smaller than the tab strip, even on tiny viewports).
 - [ ] **T020** Terminal tab embeds existing tmux viewer per memory `project_argos_terminal_path_fix.md`. Empty-state when `vite-plugin-terminal` absent (memory `project_argos_terminal_prod_gap.md`).
 - [ ] **T021** Other tabs: stub content wrapping existing API surfaces (`/api/kismet/devices`, `/api/bluetooth/...`, `/api/dragonsync/...`).
 - [ ] **T022** Verify drawer floor (200 px) holds across viewport resize.
