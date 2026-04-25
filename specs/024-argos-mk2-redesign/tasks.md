@@ -22,7 +22,7 @@ Tracking per-PR tasks against the migration plan in `plan.md`. Commit SHAs fille
 - [x] **T012** `src/routes/api/weather/metar/+server.ts` — cached 15-min TTL proxy to `aviationweather.gov/api/data/metar`. ARGOS_API_KEY auth. Disk cache for offline.
 - [x] **T013** `static/airports.json` — nearest-station lookup (1.7 KB gzipped, 58 stations).
 - [x] **T014** `src/lib/state/ui.svelte.ts` — `lsState()` rune helper, accent / density stores.
-- [ ] **T015** Verify in Chrome DevTools MCP: `?ui=mk2` renders, no console errors, `?ui=` legacy unbroken, heap delta < 5 MB.
+- [x] **T015** Verify in Chrome DevTools MCP: `?ui=mk2` renders, no console errors, `?ui=` legacy unbroken, heap delta < 5 MB. — verified on PR2 worktree (vite :5174, headless chromium :9222, isolated contexts). Heap Δ = **−0.03 MB** (≪ 5 MB). DOM nodes identical (287 each). Body bg flips `rgb(17,17,17)` → `oklch(0.13 0.008 255)`. `data-ui` / `data-accent` / `data-density` mirror correctly; legacy mode strips them. Only console error is a pre-existing WebGL GPU-sandbox failure in MapLibre — present on both flags, unrelated to spec-024.
 
 ## PR 2 — Primitives + Tweaks (~2 days)
 
