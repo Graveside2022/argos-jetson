@@ -22,13 +22,15 @@ Tracking per-PR tasks against the migration plan in `plan.md`. Commit SHAs fille
 - [x] **T012** `src/routes/api/weather/metar/+server.ts` — cached 15-min TTL proxy to `aviationweather.gov/api/data/metar`. ARGOS_API_KEY auth. Disk cache for offline.
 - [x] **T013** `static/airports.json` — nearest-station lookup (1.7 KB gzipped, 58 stations).
 - [x] **T014** `src/lib/state/ui.svelte.ts` — `lsState()` rune helper, accent / density stores.
-- [ ] **T015** Verify in Chrome DevTools MCP: `?ui=mk2` renders, no console errors, `?ui=` legacy unbroken, heap delta < 5 MB.
+- [x] **T015** Verify in Chrome DevTools MCP: `?ui=mk2` renders, no console errors, `?ui=` legacy unbroken, heap delta < 5 MB. — verified on PR2 worktree (vite :5174, headless chromium :9222, isolated contexts). Heap Δ = **−0.03 MB** (≪ 5 MB). DOM nodes identical (287 each). Body bg flips `rgb(17,17,17)` → `oklch(0.13 0.008 255)`. `data-ui` / `data-accent` / `data-density` mirror correctly; legacy mode strips them. Only console error is a pre-existing WebGL GPU-sandbox failure in MapLibre — present on both flags, unrelated to spec-024.
 
 ## PR 2 — Primitives + Tweaks (~2 days)
 
-- [ ] **T016** `Panel.svelte` (with bracket-corner tag), `IconBtn.svelte`, `Metric.svelte`, `Dot.svelte`, `KV.svelte`, `Sparkline.svelte` (pure SVG), `Tweaks.svelte`.
-- [ ] **T017** Tweaks accent picker = 5 swatches (amber/green/cyan/magenta/steel). Density = compact/normal/comfy. Persist + apply live via CSS variable updates.
-- [ ] **T018** Round-trip every component through `mcp__svelte-remote__svelte-autofixer` until clean.
+- [x] **T016** `Panel.svelte` (with bracket-corner tag), `IconBtn.svelte`, `Metric.svelte`, `Dot.svelte`, `KV.svelte`, `Sparkline.svelte` (pure SVG), `Tweaks.svelte`. — landed in `src/lib/components/mk2/`
+- [x] **T017** Tweaks accent picker = 5 swatches (amber/green/cyan/magenta/steel). Density = compact/normal/comfy. Persist + apply live via CSS variable updates. — `+layout.svelte` mirrors `accentStore`/`densityStore` onto `body[data-accent|data-density]`; PR1 CSS selectors apply live, no re-render
+- [x] **T018** Round-trip every component through `mcp__svelte-remote__svelte-autofixer` until clean. — svelte-remote MCP unavailable on jetson2 host (verified via `claude mcp list`); substituted file-scoped `npx eslint` + `npx svelte-check` (0 errors / 0 warnings on PR2 files). **Waiver tracked as T018a below** — once svelte-remote MCP is registered on jetson2, PR2 component files must be re-run through the full `list-sections → get-documentation → svelte-autofixer` chain.
+
+- [ ] **T018a** (waiver follow-up) Re-run `mcp__svelte-remote__list-sections` → `get-documentation` → `svelte-autofixer` against `src/lib/components/mk2/{Panel,IconBtn,Metric,Dot,KV,Sparkline,Tweaks}.svelte` once svelte-remote MCP is registered on jetson2. **Why:** PR2 ESLint+svelte-check substitution doesn't catch Svelte 5 idiom drift that the official autofixer would (e.g., legacy `<slot>` patterns, deprecated reactivity hints). **How to apply:** verify host registration with `claude mcp list | grep svelte-remote`; on hit, run the full chain and amend any drift in a follow-up commit on `dev`.
 
 ## PR 3 — Bottom Drawer (~3 days)
 
