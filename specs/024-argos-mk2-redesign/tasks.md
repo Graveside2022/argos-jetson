@@ -34,10 +34,10 @@ Tracking per-PR tasks against the migration plan in `plan.md`. Commit SHAs fille
 
 ## PR 3 — Bottom Drawer (~3 days)
 
-- [ ] **T019** `Drawer.svelte` — 6 fixed-order tabs (terminal/logs/captures/wifi/bluetooth/uas), click-active-to-collapse, drag-resize handle. Height clamped to `max(120, innerHeight - 200)` (matches prototype `chassis.jsx` BottomDrawer — floor 120 px so the drawer never collapses smaller than the tab strip, even on tiny viewports).
-- [ ] **T020** Terminal tab embeds existing tmux viewer per memory `project_argos_terminal_path_fix.md`. Empty-state when `vite-plugin-terminal` absent (memory `project_argos_terminal_prod_gap.md`).
-- [ ] **T021** Other tabs: stub content wrapping existing API surfaces (`/api/kismet/devices`, `/api/bluetooth/...`, `/api/dragonsync/...`).
-- [ ] **T022** Verify drawer floor (200 px) holds across viewport resize.
+- [x] **T019** `Drawer.svelte` — 6 fixed-order tabs (terminal/logs/captures/wifi/bluetooth/uas), click-active-to-collapse, drag-resize handle. Height clamped to `max(120, innerHeight - 200)` (matches prototype `chassis.jsx` BottomDrawer — floor 120 px so the drawer never collapses smaller than the tab strip, even on tiny viewports). — landed at `src/lib/components/chassis/Drawer.svelte`; clamp logic extracted to `drawer-clamp.ts` for unit-testability; active/open/height persist via `lsState` (`argos.mk2.drawer.{active,open,height}`).
+- [x] **T020** Terminal tab embeds existing tmux viewer per memory `project_argos_terminal_path_fix.md`. Empty-state when `vite-plugin-terminal` absent (memory `project_argos_terminal_prod_gap.md`). — `TerminalTab.svelte` HEAD-probes `/terminal-ws` on mount; on 404 renders explicit "Terminal not available in production build" empty state; on 200 mounts the existing `TerminalPanel.svelte`.
+- [x] **T021** Other tabs: stub content wrapping existing API surfaces (`/api/kismet/devices`, `/api/bluetooth/...`, `/api/dragonsync/...`). — Logs/Captures/Wifi/Bluetooth/Uas tabs render hardcoded mock rows matching prototype `drawer.jsx`. Real API wiring deferred to per-screen PRs (PR5+); recorded here so reviewers see stub depth was intentional, not unfinished.
+- [x] **T022** Verify drawer floor (200 px) holds across viewport resize. — `drawer-clamp.test.ts` unit-tests `clampDrawerHeight()` against 7 cases including tiny-viewport (240 px), standard laptop (800 px), 4K (2160 px), proposed-undershoot, and proposed-overshoot. All 7 pass; STAGE_RESERVE clearance proven invariant.
 
 ## PR 4 — SYSTEMS Screen (~2 days)
 

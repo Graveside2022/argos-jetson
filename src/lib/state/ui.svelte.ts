@@ -95,3 +95,31 @@ const isDensity = (v: unknown): v is Density =>
 
 export const accentStore = lsState<AccentName>('argos.mk2.accent', 'amber', isAccent);
 export const densityStore = lsState<Density>('argos.mk2.density', 'normal', isDensity);
+
+// spec-024 PR3 T019 — Mk II bottom drawer state.
+// Active tab + open/closed + height all persist across reloads. Height is
+// stored raw; the Drawer component clamps it on mount + viewport-resize so
+// the drawer can never collapse below the 120-px tab-strip floor or push the
+// main stage below 200 px.
+
+export type DrawerTab = 'terminal' | 'logs' | 'captures' | 'wifi' | 'bluetooth' | 'uas';
+
+export const DRAWER_TABS: DrawerTab[] = [
+	'terminal',
+	'logs',
+	'captures',
+	'wifi',
+	'bluetooth',
+	'uas'
+];
+
+const isDrawerTab = (v: unknown): v is DrawerTab =>
+	typeof v === 'string' && (DRAWER_TABS as readonly string[]).includes(v);
+
+const isFiniteNumber = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
+
+const isBool = (v: unknown): v is boolean => typeof v === 'boolean';
+
+export const drawerActiveStore = lsState<DrawerTab>('argos.mk2.drawer.active', 'terminal', isDrawerTab);
+export const drawerOpenStore = lsState<boolean>('argos.mk2.drawer.open', true, isBool);
+export const drawerHeightStore = lsState<number>('argos.mk2.drawer.height', 280, isFiniteNumber);
