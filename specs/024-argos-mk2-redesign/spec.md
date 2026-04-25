@@ -14,7 +14,7 @@ Operators using Argos today land on dense routes with low information hierarchy 
 
 The Mk II prototype delivers a unified shell — 56 px icon rail (`--rail-w` in prototype CSS), ARGOS topbar with weather + MGRS + Z-time, 6-tab bottom drawer, statusbar — into which every existing screen plugs. It also introduces three first-class concepts the current UI lacks: **mission metadata** (engagement / operator / target persisted server-side), **a Tools Flyout (⌘K)** that maps to existing routes via a 3-pillar OFFNET/ONNET/OSINT taxonomy, and **a Workflows panel** for tmux session orchestration with full dock-anywhere drag.
 
-The redesign is a **complete fork**, not a layer over Lunaris. New stylesheet (`argos-mk2.css`), new chassis components, new screen-\* surfaces. Lunaris ships unchanged until the flip-day PR (#11), then deletes.
+The redesign is a **complete fork**, not a layer over Lunaris. New token block in `src/app.css` selected via `[data-ui="mk2"]` (Tailwind v4 `@theme inline` pattern), new chassis components, new screen-\* surfaces. Lunaris ships unchanged in `:root` until the flip-day PR (#11), then deletes.
 
 ## User stories
 
