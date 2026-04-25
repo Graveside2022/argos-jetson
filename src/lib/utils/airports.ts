@@ -15,6 +15,40 @@ export interface NearestAirport extends Airport {
 	distanceKm: number;
 }
 
+export class AirportsFetchError extends Error {
+	constructor(
+		message: string,
+		readonly cause?: unknown
+	) {
+		super(message);
+		this.name = 'AirportsFetchError';
+	}
+}
+
+export class AirportsValidationError extends Error {
+	constructor(
+		message: string,
+		readonly index?: number
+	) {
+		super(message);
+		this.name = 'AirportsValidationError';
+	}
+}
+
+function hasIcao(a: Record<string, unknown>): boolean {
+	return typeof a.icao === 'string' && a.icao.length > 0;
+}
+
+function hasNumericCoords(a: Record<string, unknown>): boolean {
+	return typeof a.lat === 'number' && typeof a.lon === 'number';
+}
+
+function isAirport(v: unknown): v is Airport {
+	if (!v || typeof v !== 'object') return false;
+	const a = v as Record<string, unknown>;
+	return hasIcao(a) && typeof a.name === 'string' && hasNumericCoords(a);
+}
+
 export function findNearest(
 	airports: readonly Airport[],
 	lat: number,
@@ -40,9 +74,22 @@ export function findNearest(
 // - Node server context: pass a fetch that has an absolute base URL or
 //   resolves /airports.json from `process.cwd() + 'static/'`.
 // No default — relative URLs without a base fail in Node and silently 404 in
-// SSR.
+// SSR. Throws AirportsFetchError on transport failure or
+// AirportsValidationError when the payload doesn't match the Airport shape.
 export async function loadAirports(fetchFn: typeof fetch): Promise<Airport[]> {
 	const res = await fetchFn('/airports.json');
-	if (!res.ok) throw new Error(`airports.json HTTP ${res.status}`);
-	return (await res.json()) as Airport[];
+	if (!res.ok) throw new AirportsFetchError(`airports.json HTTP ${res.status}`);
+	const payload = (await res.json()) as unknown;
+	if (!Array.isArray(payload)) {
+		throw new AirportsValidationError('airports.json must be a JSON array');
+	}
+	for (let i = 0; i < payload.length; i++) {
+		if (!isAirport(payload[i])) {
+			throw new AirportsValidationError(
+				`airports.json[${i}] missing required Airport fields (icao/name/lat/lon)`,
+				i
+			);
+		}
+	}
+	return payload as Airport[];
 }

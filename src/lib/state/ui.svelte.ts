@@ -57,21 +57,30 @@ function writeLs<T>(key: string, val: T): void {
 	}
 }
 
-export function lsState<T>(key: string, initial: T, validate?: (v: unknown) => v is T): LsState<T> {
+function seedValue<T>(key: string, initial: T, validate?: (v: unknown) => v is T): T {
 	const persisted = readLs<unknown>(key);
-	const seed = validate
-		? validate(persisted)
-			? persisted
-			: initial
-		: ((persisted as T | undefined) ?? initial);
-	let inner = $state<T>(seed);
+	if (validate) return validate(persisted) ? persisted : initial;
+	return (persisted as T | undefined) ?? initial;
+}
+
+export function lsState<T>(key: string, initial: T, validate?: (v: unknown) => v is T): LsState<T> {
+	let inner = $state<T>(seedValue(key, initial, validate));
+	// Persist on every mutation, including nested object/array updates that the
+	// setter alone would miss. $effect.root is module-safe; cleanup is implicit
+	// in the module's lifetime.
+	if (typeof window !== 'undefined') {
+		$effect.root(() => {
+			$effect(() => {
+				writeLs(key, $state.snapshot(inner) as T);
+			});
+		});
+	}
 	return {
 		get value() {
 			return inner;
 		},
 		set value(v: T) {
 			inner = v;
-			writeLs(key, v);
 		}
 	};
 }
