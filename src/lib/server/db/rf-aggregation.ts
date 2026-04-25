@@ -27,6 +27,10 @@ export interface RfQueryFilters {
 	bbox?: [minLon: number, minLat: number, maxLon: number, maxLat: number];
 	startTs?: number;
 	endTs?: number;
+	/** RSSI floor in dBm — only rows with power >= floor are considered. */
+	rssiFloorDbm?: number;
+	/** Match against signals.source (e.g. 'kismet', 'bluedragon'). */
+	source?: string;
 }
 
 export interface HexCell {
@@ -72,6 +76,20 @@ const HEX_FEATURE_CAP = 10_000;
 const DEFAULT_H3_RES = 11;
 const MIN_H3_RES = 5;
 
+/**
+ * Pick an H3 resolution for a given MapLibre zoom.
+ *   zoom <  10 → 9   (~0.1 km²)
+ *   zoom 10–13 → 11  (~0.006 km² — prior default)
+ *   zoom >  13 → 13  (~0.0001 km²)
+ * NaN / undefined → prior default (11) so old clients keep working.
+ */
+export function h3ResForZoom(zoom: number | undefined): number {
+	if (zoom === undefined || !Number.isFinite(zoom)) return DEFAULT_H3_RES;
+	if (zoom < 10) return 9;
+	if (zoom <= 13) return 11;
+	return 13;
+}
+
 interface ClauseBuilder {
 	clauses: string[];
 	params: unknown[];
@@ -107,12 +125,26 @@ function addTimeClauses(b: ClauseBuilder, startTs?: number, endTs?: number): voi
 	}
 }
 
+function addRssiFloorClause(b: ClauseBuilder, floorDbm: number | undefined): void {
+	if (floorDbm === undefined) return;
+	b.clauses.push('power >= ?');
+	b.params.push(floorDbm);
+}
+
+function addSourceClause(b: ClauseBuilder, source: string | undefined): void {
+	if (!source) return;
+	b.clauses.push('source = ?');
+	b.params.push(source);
+}
+
 function buildWhere(filters: RfQueryFilters): { sql: string; params: unknown[] } {
 	const b: ClauseBuilder = { clauses: [], params: [] };
 	addSessionClause(b, filters.sessionId);
 	addDeviceClause(b, filters.deviceIds);
 	addBboxClause(b, filters.bbox);
 	addTimeClauses(b, filters.startTs, filters.endTs);
+	addRssiFloorClause(b, filters.rssiFloorDbm);
+	addSourceClause(b, filters.source);
 	return {
 		sql: b.clauses.length ? `WHERE ${b.clauses.join(' AND ')}` : '',
 		params: b.params

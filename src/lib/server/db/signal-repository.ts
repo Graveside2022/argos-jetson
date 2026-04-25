@@ -140,34 +140,41 @@ function tryInsertSignal(stmt: Database.Statement, signal: DbSignal): boolean {
 
 /**
  * Batch insert multiple signals in a single transaction.
- * Returns the number of successfully inserted rows.
+ * Returns the set of `signal_id`s that were successfully persisted (i.e. passed
+ * validation and were not rejected by a UNIQUE constraint or other DB error).
+ * Callers can use this to emit downstream events only for actually-persisted rows.
  */
 export function insertSignalsBatch(
 	db: Database.Database,
 	statements: Map<string, Database.Statement>,
 	signals: SignalMarker[]
-): number {
+): Set<string> {
 	const insertStmt = statements.get('insertSignal');
 	if (!insertStmt) throw new Error('Insert signal statement not found');
 
 	const validatedSignals = validateSignalBatch(signals.map(signalMarkerToDbSignal));
 	if (validatedSignals.length === 0) {
 		logger.error('All signals in batch failed validation', {}, 'batch-validation-failed');
-		return 0;
+		return new Set<string>();
 	}
 
 	db.transaction(() => forEachUniqueDevice(validatedSignals, (s) => ensureDeviceExists(db, s)))();
 
+	const persistedIds = new Set<string>();
 	const insertMany = db.transaction((sigs: DbSignal[]) => {
-		return sigs.reduce((count, s) => count + (tryInsertSignal(insertStmt, s) ? 1 : 0), 0);
+		for (const s of sigs) {
+			if (tryInsertSignal(insertStmt, s)) {
+				persistedIds.add(s.signal_id);
+			}
+		}
 	});
 
 	try {
-		const successCount = insertMany(validatedSignals);
+		insertMany(validatedSignals);
 		db.transaction(() =>
 			forEachUniqueDevice(validatedSignals, (s) => updateDeviceFromSignal(db, statements, s))
 		)();
-		return successCount;
+		return persistedIds;
 	} catch (error) {
 		logger.error('Batch insert transaction failed', { error }, 'batch-insert-failed');
 		throw error;

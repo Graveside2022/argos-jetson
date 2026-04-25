@@ -6,6 +6,7 @@ import {
 	getApCentroids,
 	getDrivePath,
 	getRssiHexCells,
+	h3ResForZoom,
 	type RfQueryFilters
 } from '$lib/server/db/rf-aggregation';
 
@@ -60,7 +61,20 @@ const QuerySchema = z.object({
 	bbox: BBoxSchema.optional(),
 	start: IntSchema.optional(),
 	end: IntSchema.optional(),
-	h3res: IntSchema.optional()
+	h3res: IntSchema.optional(),
+	zoom: z
+		.string()
+		.regex(/^-?\d+(\.\d+)?$/)
+		.transform((v) => Number(v))
+		.pipe(z.number().finite())
+		.optional(),
+	rssiFloor: z
+		.string()
+		.regex(/^-?\d+(\.\d+)?$/)
+		.transform((v) => Number(v))
+		.pipe(z.number().finite())
+		.optional(),
+	source: z.enum(['kismet', 'bluedragon', 'gsm-evil', 'hackrf', 'rtl-sdr']).optional()
 });
 
 function toFilters(q: z.infer<typeof QuerySchema>): RfQueryFilters {
@@ -69,7 +83,9 @@ function toFilters(q: z.infer<typeof QuerySchema>): RfQueryFilters {
 		deviceIds: q.bssid,
 		bbox: q.bbox as RfQueryFilters['bbox'],
 		startTs: q.start,
-		endTs: q.end
+		endTs: q.end,
+		rssiFloorDbm: q.rssiFloor,
+		source: q.source
 	};
 }
 
@@ -103,5 +119,6 @@ export const GET = createHandler(async ({ url }) => {
 		throw error(400, parsed.error.issues.map((i) => i.message).join('; '));
 	}
 	const q = parsed.data;
-	return json(runLayer(q.layer, toFilters(q), q.h3res ?? 11));
+	const h3res = q.h3res ?? h3ResForZoom(q.zoom);
+	return json(runLayer(q.layer, toFilters(q), h3res));
 });

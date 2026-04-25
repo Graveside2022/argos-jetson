@@ -2,6 +2,7 @@ import { error, json } from '@sveltejs/kit';
 import { z } from 'zod';
 
 import { createHandler } from '$lib/server/api/create-handler';
+import { computeDeviceEllipse } from '$lib/server/db/device-ellipse';
 import { getDeviceObservations } from '$lib/server/db/rf-aggregation';
 
 /**
@@ -77,5 +78,6 @@ export const GET = createHandler(async ({ url }) => {
 		startTs: q.start,
 		endTs: q.end
 	});
-	return json({ observations });
+	const ellipse = computeDeviceEllipse(observations);
+	return json({ observations, ellipse });
 });

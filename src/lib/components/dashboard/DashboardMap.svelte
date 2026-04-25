@@ -260,6 +260,8 @@
 					id={RF_HEATMAP_LAYER_ID}
 					layout={rfHeatmapLayer.layout}
 					paint={rfHeatmapLayer.paint}
+					minzoom={8}
+					maxzoom={20}
 				/>
 			</GeoJSONSource>
 
@@ -292,12 +294,14 @@
 					id={RF_CENTROID_HALO_LAYER_ID}
 					layout={rfCentroidHaloLayer.layout}
 					paint={rfCentroidHaloLayer.paint}
+					minzoom={13}
 				/>
 				<CircleLayer
 					id={RF_CENTROID_LAYER_ID}
 					layout={rfCentroidLayer.layout}
 					paint={rfCentroidLayer.paint}
 					onclick={ms.handleCentroidClick}
+					minzoom={13}
 				/>
 			</GeoJSONSource>
 
@@ -307,6 +311,24 @@
 				centroid itself. Authored AFTER the centroid so the rings and
 				rays sit on top of it rather than underneath.
 			-->
+			<!--
+				PR-5 Confidence ellipse — RSSI-weighted 2σ region around the
+				selected device. Visible at zoom 15+ so it doesn't overwhelm
+				wide-area views. Minzoom chosen to match PR-2's heatmap hide
+				point (17) so the grammar escalates: heatmap -> centroid ->
+				ellipse as the operator zooms in on a single AP.
+			-->
+			<GeoJSONSource id="rf-ellipse-src" data={ms.rfEllipseGeoJSON}>
+				<FillLayer
+					id="rf-ellipse"
+					minzoom={15}
+					paint={{
+						'fill-color': '#A8B8E0',
+						'fill-opacity': 0.12,
+						'fill-outline-color': '#A8B8E0'
+					}}
+				/>
+			</GeoJSONSource>
 			<GeoJSONSource id={RF_HIGHLIGHT_RAYS_SOURCE_ID} data={ms.rfHighlightRaysGeoJSON}>
 				<LineLayer
 					id={RF_HIGHLIGHT_RAYS_LAYER_ID}

@@ -23,6 +23,7 @@ import { kismetStore } from '$lib/stores/tactical-map/kismet-store';
 import { takCotMessages } from '$lib/stores/tak-store';
 import { themeStore } from '$lib/stores/theme-store.svelte';
 import { HackRFDataService } from '$lib/tactical-map/hackrf-data-service';
+import { ellipseToPolygon } from '$lib/utils/ellipse-geometry';
 
 import { MAP_UI_COLORS } from './map/map-colors';
 import { buildConnectionLinesGeoJSON, buildDeviceGeoJSON } from './map/map-geojson';
@@ -162,6 +163,15 @@ export function createMapState() {
 		};
 	});
 
+	// Confidence ellipse (PR-5). FeatureCollection with zero or one polygon
+	// feature — empty until the operator selects a device AND the observation
+	// fetch returned an ellipse for it.
+	const rfEllipseGeoJSON: FeatureCollection = $derived.by(() => {
+		const ell = rfVisualization.selectedEllipse;
+		if (!ell) return { type: 'FeatureCollection', features: [] };
+		return { type: 'FeatureCollection', features: [ellipseToPolygon(ell)] };
+	});
+
 	// Rings: a single Point at the selected centroid's location. The two
 	// concentric ring CircleLayers render around it.
 	const rfHighlightRingsGeoJSON: FeatureCollection = $derived.by(() => {
@@ -190,6 +200,26 @@ export function createMapState() {
 	// so redundant calls are cheap; session-aware refetch is Phase A.3 work.
 	$effect(() => {
 		void rfVisualization.load();
+	});
+
+	// Resolve the active session on mount so the heatmap/centroid/path layers
+	// scope to the CURRENT Kismet/BD run — not the union across all sessions.
+	// Before this, the layers only resolved after the operator opened the
+	// SessionSelector panel, which meant a fresh "Start Kismet" left the map
+	// showing pre-session test data instead of the observations just persisted.
+	$effect(() => {
+		if (!rfVisualization.sessionsLoaded && !rfVisualization.sessionsLoading) {
+			void rfVisualization.loadSessions();
+		}
+	});
+
+	// Live-refresh: open an SSE stream to /api/rf/stream for the active
+	// session. Reconnects automatically when the user switches sessions.
+	// Closed on component teardown so we don't leak EventSources.
+	$effect(() => {
+		const sid = rfVisualization.activeSessionId;
+		rfVisualization.connectLive(sid);
+		return () => rfVisualization.disconnectLive();
 	});
 
 	$effect(() => {
@@ -302,6 +332,15 @@ export function createMapState() {
 			);
 			satLayer = r.satLayer;
 			symbolLayer = r.symbolLayer;
+			// Feed current zoom into the RF filter so the aggregation endpoint
+			// can pick an H3 resolution that matches the viewport. Seeded on
+			// load and updated on zoomend so pan-only interactions don't refetch.
+			rfVisualization.setFilters({ zoom: m.getZoom() });
+			void rfVisualization.load();
+			m.on('zoomend', () => {
+				rfVisualization.setFilters({ zoom: m.getZoom() });
+				void rfVisualization.load();
+			});
 		};
 		if (!map.loaded()) map.once('load', init);
 		else init();
@@ -398,6 +437,9 @@ export function createMapState() {
 		},
 		get rfHighlightRingsGeoJSON() {
 			return rfHighlightRingsGeoJSON;
+		},
+		get rfEllipseGeoJSON() {
+			return rfEllipseGeoJSON;
 		},
 		get gpsLngLat() {
 			return gpsDerived.gpsLngLat;

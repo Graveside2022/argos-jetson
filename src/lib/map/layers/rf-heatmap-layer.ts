@@ -60,9 +60,12 @@ export const rfHeatmapLayer: HeatmapLayerSpecification = {
 			1,
 			'rgba(200, 85, 65, 0.85)' // muted red (hottest)
 		],
-		// Radius scales with zoom so tight suburban clusters don't
-		// collapse at low zoom but continental surveys stay readable.
-		'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 10, 12, 14, 20, 18, 38],
+		// Radius scales with zoom. Tuned so a single stationary-operator
+		// hex cell still shows a visible gradient blob (prior values of
+		// 12/20/38 left 1-cell heatmaps invisible under the centroid
+		// cluster). Larger at close zooms so a parked rig shows a clear
+		// coverage bubble even before movement fans observations out.
+		'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 10, 18, 14, 45, 18, 85],
 		// Bounded opacity keeps centroid + device-dot markers legible
 		// when the heatmap is toggled on alongside them.
 		'heatmap-opacity': 0.7

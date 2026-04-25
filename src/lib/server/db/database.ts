@@ -12,8 +12,10 @@ import type { SignalMarker } from '$lib/types/signals';
 import { logger } from '$lib/utils/logger';
 
 import { env } from '../env';
+import { getSignalBus } from '../services/rf/signal-bus';
 import { DatabaseCleanupService } from './cleanup-service';
 import { DatabaseOptimizer } from './db-optimizer';
+import { generateDeviceId } from './geo';
 import { runMigrations } from './migrations/run-migrations';
 import * as networkRepo from './network-repository';
 import * as signalRepo from './signal-repository';
@@ -35,6 +37,12 @@ export class RFDatabase {
 	private statements: Map<string, Database.Statement> = new Map();
 	private cleanupService: DatabaseCleanupService | null = null;
 	private optimizer: DatabaseOptimizer;
+	/**
+	 * Resolves once `runMigrations()` has finished (or rejected). Callers that
+	 * need the schema fully migrated before issuing queries should `await`
+	 * `ready()` — `getRFDatabase()` exposes this via its own helper.
+	 */
+	private readonly initPromise: Promise<void>;
 
 	constructor(dbPath: string = './rf_signals.db') {
 		this.db = new Database(dbPath);
@@ -54,14 +62,41 @@ export class RFDatabase {
 			this.initializeSchema();
 		}
 
-		try {
-			runMigrations(this.db, join(process.cwd(), 'src/lib/server/db/migrations'));
-		} catch (error) {
-			logger.warn('Could not run migrations', { error }, 'migrations-failed');
-		}
+		// runMigrations is async (the TS-migration path uses dynamic import) but the
+		// constructor is sync — store the promise on the instance so callers that
+		// need migrations completed (e.g. server startup) can `await db.ready()`.
+		// Rejections are still logged and swallowed here so a failed migration
+		// doesn't surface as an unhandled rejection AFTER the test/caller has
+		// moved on (including after db.close() on short-lived in-memory DBs).
+		const dbHandle = this.db;
+		this.initPromise = (async () => {
+			try {
+				await runMigrations(dbHandle, join(process.cwd(), 'src/lib/server/db/migrations'));
+			} catch (error) {
+				logger.warn(
+					'Could not run migrations (async)',
+					{ error: String(error) },
+					'migrations-failed-async'
+				);
+			}
+		})();
+		// Defensive: ensure no unhandled rejection if `ready()` is never awaited.
+		this.initPromise.catch(() => {
+			/* logged above */
+		});
 
 		this.prepareStatements();
 		this.initializeCleanupService();
+	}
+
+	/**
+	 * Resolves once async migrations have completed (or failed and been
+	 * logged). Synchronous DB operations work without awaiting this — but any
+	 * code path that depends on a migrated schema (new columns/indexes/tables)
+	 * should `await db.ready()` first.
+	 */
+	ready(): Promise<void> {
+		return this.initPromise;
 	}
 
 	private initializeSchema() {
@@ -194,11 +229,21 @@ export class RFDatabase {
 	// ── Signal operations (delegated to signalRepository) ──────────────
 
 	insertSignal(signal: SignalMarker): DbSignal {
-		return signalRepo.insertSignal(this.db, this.statements, signal);
+		const inserted = signalRepo.insertSignal(this.db, this.statements, signal);
+		emitObservation(inserted);
+		return inserted;
 	}
 
 	insertSignalsBatch(signals: SignalMarker[]): number {
-		return signalRepo.insertSignalsBatch(this.db, this.statements, signals);
+		const persistedIds = signalRepo.insertSignalsBatch(this.db, this.statements, signals);
+		// Only emit observations for signals truly persisted (not validation- or
+		// UNIQUE-conflict-rejected) so SSE/bus subscribers don't receive ghosts.
+		for (const signal of signals) {
+			if (persistedIds.has(signal.id)) {
+				emitObservationFromMarker(signal);
+			}
+		}
+		return persistedIds.size;
 	}
 
 	findSignalsInRadius(query: SpatialQuery & TimeQuery): SignalMarker[] {
@@ -281,6 +326,59 @@ export class RFDatabase {
 	}
 }
 
+/** Fan out a post-insert event for a single row returned by signalRepo. */
+function emitObservation(row: DbSignal): void {
+	try {
+		getSignalBus().emit({
+			signalId: row.signal_id,
+			sessionId: row.session_id ?? null,
+			source: row.source,
+			deviceId: row.device_id ?? null,
+			lat: row.latitude,
+			lon: row.longitude,
+			dbm: row.power,
+			frequency: row.frequency,
+			timestamp: row.timestamp
+		});
+	} catch (err) {
+		logger.debug(
+			'[database] signal-bus emit failed',
+			{ error: String(err) },
+			'signal-bus-emit-failed'
+		);
+	}
+}
+
+/**
+ * Fan out a post-batch-insert event from the input marker.
+ *
+ * Derives `deviceId` via the same `generateDeviceId()` that the signal
+ * repository uses when persisting, so batch-emitted observations retain
+ * device association — previously this was hardcoded to `null`, leaving SSE
+ * subscribers unable to correlate a batch signal back to its device row.
+ */
+function emitObservationFromMarker(signal: SignalMarker): void {
+	try {
+		getSignalBus().emit({
+			signalId: signal.id,
+			sessionId: signal.sessionId ?? null,
+			source: String(signal.source),
+			deviceId: generateDeviceId(signal),
+			lat: signal.lat,
+			lon: signal.lon,
+			dbm: signal.power,
+			frequency: signal.frequency,
+			timestamp: signal.timestamp
+		});
+	} catch (err) {
+		logger.debug(
+			'[database] signal-bus emit failed (batch)',
+			{ error: String(err) },
+			'signal-bus-emit-failed-batch'
+		);
+	}
+}
+
 // Singleton instance
 let dbInstance: RFDatabase | null = null;
 
@@ -290,6 +388,18 @@ export function getRFDatabase(): RFDatabase {
 		dbInstance = new RFDatabase();
 	}
 	return dbInstance;
+}
+
+/**
+ * Returns the singleton RFDatabase instance only after async migrations have
+ * completed. Use this from server startup paths or any code that depends on a
+ * fully-migrated schema. Synchronous queries against legacy tables are safe
+ * via {@link getRFDatabase}.
+ */
+export async function getRFDatabaseReady(): Promise<RFDatabase> {
+	const db = getRFDatabase();
+	await db.ready();
+	return db;
 }
 
 // Guarded via globalThis to prevent listener accumulation on Vite HMR reloads.
