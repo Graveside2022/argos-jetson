@@ -44,10 +44,23 @@
 		return String(n).padStart(2, '0');
 	}
 
+	const INTERACTIVE_SELECTOR =
+		'[role="dialog"], [role="menu"], [role="menuitem"], [role="listbox"], [role="combobox"], dialog, select, [contenteditable="true"]';
+
 	function isFormField(target: EventTarget | null): boolean {
 		if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement)
 			return true;
 		return target instanceof HTMLElement && target.isContentEditable;
+	}
+
+	function isInsideInteractive(target: EventTarget | null): boolean {
+		return target instanceof HTMLElement && target.closest(INTERACTIVE_SELECTOR) !== null;
+	}
+
+	function shouldSkipHotkey(e: KeyboardEvent): boolean {
+		if (e.defaultPrevented) return true;
+		if (isFormField(e.target)) return true;
+		return isInsideInteractive(e.target);
 	}
 
 	function digitKeyToIndex(key: string): number | null {
@@ -56,7 +69,7 @@
 	}
 
 	function handleHotkey(e: KeyboardEvent): void {
-		if (isFormField(e.target)) return;
+		if (shouldSkipHotkey(e)) return;
 		const idx = digitKeyToIndex(e.key);
 		if (idx === null) return;
 		const slot = slots[idx];

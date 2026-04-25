@@ -411,7 +411,7 @@
 
 	/* fonts */
 	--mk2-f-sans: 'Geist', ui-sans-serif, system-ui, sans-serif;
-	--mk2-f-mono: 'Geist Mono', ui-monospace, 'Fira Code', SFMono-Regular, Menlo, monospace;
+	--mk2-f-mono: 'Fira Code', ui-monospace, 'Geist Mono', SFMono-Regular, Menlo, monospace;
 
 	/* radii (2–4 px range) */
 	--mk2-r-0: 0px;

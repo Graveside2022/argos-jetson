@@ -74,6 +74,8 @@
 		display: flex;
 		align-items: center;
 		gap: 6px;
+		font-family: var(--mk2-f-mono);
+		font-variant-numeric: tabular-nums;
 	}
 
 	.spacer {

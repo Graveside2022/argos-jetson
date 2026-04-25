@@ -27,10 +27,11 @@
 	}
 
 	let now = $state(fmtZ(new Date()));
+	// fmtZ resolution is minute-precision (DDHHMM), so 60s tick is sufficient.
 	$effect(() => {
 		const id = setInterval(() => {
 			now = fmtZ(new Date());
-		}, 1000);
+		}, 60_000);
 		return () => clearInterval(id);
 	});
 
