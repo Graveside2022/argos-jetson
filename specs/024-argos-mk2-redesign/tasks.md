@@ -20,7 +20,7 @@ Tracking per-PR tasks against the migration plan in `plan.md`. Commit SHAs fille
 - [x] **T010** `Statusbar.svelte` — LINK / CPU / MEM / TEMP / NVMe / SESSION + kbd hint chips.
 - [x] **T011** `WeatherButton.svelte` — METAR popover, VFR/MVFR/IFR/LIFR badge, 6-cell weather grid, GO/NO-GO ops matrix (manned aircraft / drone-UAS / balloon / radio-SIGINT).
 - [x] **T012** `src/routes/api/weather/metar/+server.ts` — cached 15-min TTL proxy to `aviationweather.gov/api/data/metar`. ARGOS_API_KEY auth. Disk cache for offline.
-- [ ] **T013** `static/airports.json` — nearest-station lookup (~3 KB gzipped).
+- [x] **T013** `static/airports.json` — nearest-station lookup (~3 KB gzipped).
 - [ ] **T014** `src/lib/state/ui.svelte.ts` — `lsState()` rune helper, accent / density stores.
 - [ ] **T015** Verify in Chrome DevTools MCP: `?ui=mk2` renders, no console errors, `?ui=` legacy unbroken, heap delta < 5 MB.
 
