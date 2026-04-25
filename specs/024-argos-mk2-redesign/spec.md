@@ -5,7 +5,7 @@
 - **Author:** drafted 2026-04-25
 - **Branch:** `feature/024-mk2-redesign`
 - **Reference prototype:** `docs/Argos (1).zip` — React/JSX, Babel-standalone, 14 source files + styles.css + 50+ designer screenshots. Extract to `/tmp/argos-redesign/` for in-browser walkthrough; serve via `python3 -m http.server 8765 --directory /tmp/argos-redesign`.
-- **Migration plan:** `~/.claude/plans/do-you-see-the-delightful-hollerith.md` (user-approved 2026-04-25)
+- **Migration plan:** `specs/024-argos-mk2-redesign/plan.md` (in this directory) — user-approved 2026-04-25
 - **Supersedes:** spec 012 (Lunaris) — closing addendum will land in PR 11 (flip-day)
 
 ## Why

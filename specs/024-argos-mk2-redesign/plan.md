@@ -1,6 +1,6 @@
 # Plan 024 — Argos Mk II UI Redesign
 
-Implementation plan backing `spec.md`. Full migration plan with rationale is at `~/.claude/plans/do-you-see-the-delightful-hollerith.md`. This file is the in-tree summary.
+Implementation plan backing `spec.md`. This file is the canonical in-repo source of truth — architecture, tech choices, the 11-PR sequence, locked decisions, reuse map, spike-first gates, and per-PR verification all live below. No external plan reference.
 
 ## Architecture summary
 

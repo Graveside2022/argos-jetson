@@ -97,7 +97,7 @@ Tracking per-PR tasks against the migration plan in `plan.md`. Commit SHAs fille
 
 ## Out of phase (deferred specs)
 
-- A11y semantics for Mk II chassis (separate spec)
-- Mobile responsive layout (separate spec)
-- Cloud / multi-device sync of localStorage state (separate spec)
-- Light-mode support (intentionally out of scope — Mk II is dark-only)
+- A11y semantics for Mk II chassis — `spec-025` (TBD)
+- Mobile responsive layout — `spec-026` (TBD)
+- Cloud / multi-device sync of localStorage state — `spec-027` (TBD)
+- Light-mode support — intentionally out of scope (Mk II is dark-only). No follow-up spec.
