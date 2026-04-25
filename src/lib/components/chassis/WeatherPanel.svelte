@@ -1,10 +1,7 @@
 <script lang="ts">
 	import type { FlightCategory, WeatherReport } from '$lib/types/weather';
 
-	import OpsRow from './OpsRow.svelte';
-
 	// spec-024 PR1 T011 — popover body for WeatherButton.
-	// Renders empty / loading / error states alongside the populated layout.
 	// Click-outside / Escape close-handling stays in the parent (WeatherButton).
 
 	interface Props {
@@ -30,6 +27,17 @@
 		<div class="wx-cell-label mono">{label}</div>
 		<div class="wx-cell-main mono">{main}</div>
 		<div class="wx-cell-sub mono">{sub}</div>
+	</div>
+{/snippet}
+
+{#snippet opsRow(ok: boolean, label: string, note: string)}
+	<div class="wx-fc-row">
+		<div class="wx-fc-dot" class:ok class:no={!ok}></div>
+		<div class="wx-fc-label mono">{label}</div>
+		<div class="wx-fc-state mono" style:color={ok ? 'var(--mk2-green)' : 'var(--mk2-amber)'}>
+			{ok ? 'GO' : 'NO-GO'}
+		</div>
+		<div class="wx-fc-note mono">{note}</div>
 	</div>
 {/snippet}
 
@@ -76,14 +84,10 @@
 		<div class="wx-section">
 			<div class="wx-section-head">OPERATIONS — CAN WE FLY / TRANSMIT?</div>
 			<div class="wx-fc-list">
-				<OpsRow ok={wx.ops.manned.ok} label="MANNED AIRCRAFT" note={wx.ops.manned.note} />
-				<OpsRow ok={wx.ops.uas.ok} label="DRONE / UAS" note={wx.ops.uas.note} />
-				<OpsRow
-					ok={wx.ops.balloon.ok}
-					label="HIGH-ALT BALLOON"
-					note={wx.ops.balloon.note}
-				/>
-				<OpsRow ok={wx.ops.radio.ok} label="RADIO / SIGINT" note={wx.ops.radio.note} />
+				{@render opsRow(wx.ops.manned.ok, 'MANNED AIRCRAFT', wx.ops.manned.note)}
+				{@render opsRow(wx.ops.uas.ok, 'DRONE / UAS', wx.ops.uas.note)}
+				{@render opsRow(wx.ops.balloon.ok, 'HIGH-ALT BALLOON', wx.ops.balloon.note)}
+				{@render opsRow(wx.ops.radio.ok, 'RADIO / SIGINT', wx.ops.radio.note)}
 			</div>
 		</div>
 
@@ -213,6 +217,51 @@
 	.wx-fc-list {
 		display: flex;
 		flex-direction: column;
+	}
+
+	.wx-fc-row {
+		display: grid;
+		grid-template-columns: 12px 150px 56px 1fr;
+		gap: 10px;
+		align-items: center;
+		padding: 8px 0;
+		border-bottom: 1px dashed var(--mk2-line);
+		font-size: var(--mk2-fs-3);
+	}
+
+	.wx-fc-row:last-child {
+		border-bottom: 0;
+	}
+
+	.wx-fc-dot {
+		width: 8px;
+		height: 8px;
+		background: var(--mk2-ink-4);
+	}
+
+	.wx-fc-dot.ok {
+		background: var(--mk2-green);
+		box-shadow: 0 0 6px color-mix(in oklch, var(--mk2-green) 70%, transparent);
+	}
+
+	.wx-fc-dot.no {
+		background: var(--mk2-amber);
+		box-shadow: 0 0 6px color-mix(in oklch, var(--mk2-amber) 70%, transparent);
+	}
+
+	.wx-fc-label {
+		color: var(--mk2-ink);
+		letter-spacing: 0.06em;
+	}
+
+	.wx-fc-state {
+		font-size: var(--mk2-fs-2);
+		letter-spacing: 0.14em;
+	}
+
+	.wx-fc-note {
+		color: var(--mk2-ink-3);
+		font-size: var(--mk2-fs-2);
 	}
 
 	.wx-foot {
