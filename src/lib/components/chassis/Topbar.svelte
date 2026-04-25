@@ -27,12 +27,22 @@
 	}
 
 	let now = $state(fmtZ(new Date()));
-	// fmtZ resolution is minute-precision (DDHHMM), so 60s tick is sufficient.
+	// fmtZ is minute-precision (DDHHMM); align ticks to UTC minute boundaries
+	// so the visible value is never stale by more than ~1s after rollover.
+	function tick(): void {
+		now = fmtZ(new Date());
+	}
 	$effect(() => {
-		const id = setInterval(() => {
-			now = fmtZ(new Date());
-		}, 60_000);
-		return () => clearInterval(id);
+		const msToNext = 60_000 - (Date.now() % 60_000);
+		let intervalId: ReturnType<typeof setInterval> | undefined;
+		const timeoutId = setTimeout(() => {
+			tick();
+			intervalId = setInterval(tick, 60_000);
+		}, msToNext);
+		return () => {
+			clearTimeout(timeoutId);
+			if (intervalId) clearInterval(intervalId);
+		};
 	});
 
 	const latStr = $derived(

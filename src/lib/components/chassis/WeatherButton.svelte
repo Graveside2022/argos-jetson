@@ -7,16 +7,23 @@
 
 	// spec-024 PR1 T011 — Mk II weather popover trigger.
 	// Button + open state + click-outside / Escape close. Popover body lives in
-	// WeatherPanel.svelte; ops rows live in OpsRow.svelte. Split per CR feedback
-	// to keep this file under the 300-LOC repo cap.
+	// WeatherPanel.svelte. Split per CR feedback to stay under the 300-LOC cap.
 
 	interface Props {
 		wx?: WeatherReport | null;
 		loading?: boolean;
 		error?: string | null;
+		disabled?: boolean;
+		empty?: boolean;
 	}
 
-	let { wx = null, loading = false, error = null }: Props = $props();
+	let {
+		wx = null,
+		loading = false,
+		error = null,
+		disabled = false,
+		empty = false
+	}: Props = $props();
 
 	let open = $state(false);
 	let wrapEl: HTMLDivElement | undefined = $state();
@@ -74,6 +81,7 @@
 		title="Weather & flight conditions"
 		aria-haspopup="dialog"
 		aria-expanded={open}
+		aria-disabled={disabled}
 		onclick={() => (open = !open)}
 	>
 		<CloudSun size={13} />
@@ -83,7 +91,7 @@
 	</button>
 
 	{#if open}
-		<WeatherPanel {wx} {loading} {error} />
+		<WeatherPanel {wx} {loading} {error} {disabled} {empty} />
 	{/if}
 </div>
 
