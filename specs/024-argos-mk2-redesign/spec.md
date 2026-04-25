@@ -12,13 +12,13 @@
 
 Operators using Argos today land on dense routes with low information hierarchy and no shared chassis between the major subsystems (HackRF, Kismet, GSM Evil, DragonSync, agents). Each route was built standalone with its own header / status indicators / panel chrome. There is no first-class mission concept, no central tool launcher, no consistent left-rail navigation.
 
-The Mk II prototype delivers a unified shell — 48 px icon rail, ARGOS topbar with weather + MGRS + Z-time, 6-tab bottom drawer, statusbar — into which every existing screen plugs. It also introduces three first-class concepts the current UI lacks: **mission metadata** (engagement / operator / target persisted server-side), **a Tools Flyout (⌘K)** that maps to existing routes via a 3-pillar OFFNET/ONNET/OSINT taxonomy, and **a Workflows panel** for tmux session orchestration with full dock-anywhere drag.
+The Mk II prototype delivers a unified shell — 56 px icon rail (`--rail-w` in prototype CSS), ARGOS topbar with weather + MGRS + Z-time, 6-tab bottom drawer, statusbar — into which every existing screen plugs. It also introduces three first-class concepts the current UI lacks: **mission metadata** (engagement / operator / target persisted server-side), **a Tools Flyout (⌘K)** that maps to existing routes via a 3-pillar OFFNET/ONNET/OSINT taxonomy, and **a Workflows panel** for tmux session orchestration with full dock-anywhere drag.
 
 The redesign is a **complete fork**, not a layer over Lunaris. New stylesheet (`argos-mk2.css`), new chassis components, new screen-\* surfaces. Lunaris ships unchanged until the flip-day PR (#11), then deletes.
 
 ## User stories
 
-- **US-1** As an operator, every route shares the same 48 px left rail with numeric hotkeys (1–9), so I can switch screens by reflex.
+- **US-1** As an operator, every route shares the same 56 px left rail with numeric hotkeys (1–9), so I can switch screens by reflex.
 - **US-2** As an operator, the topbar always shows my position (city + lat/lon + MGRS), Zulu time, and a weather button I can click to see METAR + flight-cat + drone/SIGINT GO/NO-GO.
 - **US-3** As an operator, the bottom drawer gives me persistent access to terminal / logs / captures / WiFi / Bluetooth / UAS regardless of which screen I'm on. Drag the drawer top edge to resize. Click an active tab to collapse.
 - **US-4** As an operator, I can press ⌘K to open a Tools Flyout with a 3-pillar OFFNET/ONNET/OSINT layout and search-as-you-type.

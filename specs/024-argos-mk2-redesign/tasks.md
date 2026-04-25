@@ -14,7 +14,7 @@ Tracking per-PR tasks against the migration plan in `plan.md`. Commit SHAs fille
 
 - [ ] **T005** Add Mk II token block to `src/app.css` as `[data-ui="mk2"]` selector (Tailwind v4 `@theme inline` pattern) — deep-black surfaces, amber accent (oklch), 5 accent swatches, 6-step type scale (9–15 px), 2–4 px radii, 80–180 ms motion. Lunaris stays in default `:root` for off-flag rendering. **Also fix CLAUDE.md:** replace stale `palantir-design-system.css` reference with `src/app.css :root` (the path doesn't exist in the repo).
 - [ ] **T006** Add `?ui=mk2` flag in `src/routes/+layout.svelte` — sets `<body data-ui="mk2">` so the new token block applies. Off-flag = `<body>` has no attribute, Lunaris `:root` renders unchanged.
-- [ ] **T007** `src/lib/components/chassis/Chassis.svelte` — 48 px rail / topbar / main / drawer / 24 px statusbar grid.
+- [ ] **T007** `src/lib/components/chassis/Chassis.svelte` — 56 px rail (per prototype `--rail-w: 56px`) / 44 px topbar (`--bar-h`) / main / drawer / 22 px statusbar (matches prototype `grid-template-rows: var(--bar-h) 1fr 22px`).
 - [ ] **T008** `Topbar.svelte` — brand + ARGOS MK II + Weather button + city + lat/lon + MGRS + Z-clock (client `$effect` ticker).
 - [ ] **T009** `LeftRail.svelte` — fixed AGENTS / OVERVIEW / MAP at top, dynamic pinned tools middle, fixed SYSTEMS bottom. 1–9 numeric hotkeys. (Drag-reorder deferred to PR 9.)
 - [ ] **T010** `Statusbar.svelte` — LINK / CPU / MEM / TEMP / NVMe / SESSION + kbd hint chips.
@@ -50,7 +50,7 @@ Tracking per-PR tasks against the migration plan in `plan.md`. Commit SHAs fille
 
 - [ ] **T027** Migration `008_extend_missions_for_strip.sql` — `ALTER TABLE missions ADD COLUMN operator TEXT; ADD COLUMN target TEXT; ADD COLUMN link_budget REAL`. Optional: relax `type` enum to add `'field-rotation'` (or remove constraint entirely).
 - [ ] **T028** Extend `Mission` type in `services/reports/types.ts` and `mission-store.ts` row mappers to surface new columns.
-- [ ] **T029** Add `PATCH /api/missions/[id]/+server.ts` if not already exposed (verify; `[id]/+server.ts` exists). No new endpoints otherwise.
+- [ ] **T029** Add `GET` + `PATCH` exports to existing `src/routes/api/missions/[id]/+server.ts` (currently only exposes `DELETE`). `GET` returns the single mission via existing `getMission(db, id)`. `PATCH` validates body via Zod and writes via a new `updateMission(db, id, fields)` in `mission-store.ts`. No new files — extend existing.
 - [ ] **T030** `MissionStrip.svelte` — engagement / operator / target / mission timer / link budget. Editable on click. PATCH on blur. Multi-mission switcher.
 - [ ] **T031** `SensorTile.svelte` × 4 (sweep / devices / GPS / system) with sparklines.
 - [ ] **T032** `DetectionsList.svelte` — ranked SIG-A-XXX with bearing / distance / RSSI / confidence bars.
