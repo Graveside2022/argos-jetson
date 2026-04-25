@@ -1,6 +1,9 @@
 <script lang="ts">
+	import { Settings2 } from '@lucide/svelte';
 	import type { Snippet } from 'svelte';
 
+	import IconBtn from '$lib/components/mk2/IconBtn.svelte';
+	import Tweaks from '$lib/components/mk2/Tweaks.svelte';
 	import { latLonToMGRS } from '$lib/utils/mgrs-converter';
 
 	// spec-024 PR1 T008 — Mk II topbar.
@@ -8,6 +11,7 @@
 	// + Z-clock (DDHHMM Zulu, ticks every 1s via $effect).
 	// MGRS derives from lat/lon via existing src/lib/utils/mgrs-converter.ts.
 	// WeatherButton (T011) renders into the `weather` snippet slot.
+	// PR2 T017 — gear IconBtn toggles the floating Tweaks panel.
 
 	interface Props {
 		city?: string;
@@ -17,6 +21,8 @@
 		weather?: Snippet;
 	}
 	let { city = '—', lat, lon, version = '0.0.2', weather }: Props = $props();
+
+	let tweaksOpen = $state(false);
 
 	function fmtZ(d: Date): string {
 		return (
@@ -68,7 +74,18 @@
 	<span class="mono ink-3">{latStr} · {lonStr}</span>
 	<span class="mono ink-3">{mgrs}</span>
 	<span class="mono accent">{now}Z</span>
+	<IconBtn
+		title="Tweaks"
+		ariaLabel="Open tweaks"
+		variant="ghost"
+		active={tweaksOpen}
+		onclick={() => (tweaksOpen = !tweaksOpen)}
+	>
+		<Settings2 size={14} />
+	</IconBtn>
 </div>
+
+<Tweaks open={tweaksOpen} onclose={() => (tweaksOpen = false)} />
 
 <style>
 	.brand {
