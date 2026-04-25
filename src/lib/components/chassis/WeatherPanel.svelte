@@ -8,9 +8,10 @@
 		wx?: WeatherReport | null;
 		loading?: boolean;
 		error?: string | null;
+		disabled?: boolean;
 	}
 
-	let { wx = null, loading = false, error = null }: Props = $props();
+	let { wx = null, loading = false, error = null, disabled = false }: Props = $props();
 
 	const CAT_STROKE: Record<FlightCategory, string> = {
 		VFR: 'var(--mk2-green)',
@@ -41,13 +42,21 @@
 	</div>
 {/snippet}
 
-<div class="wx-panel" role="dialog" aria-label="Weather details">
-	{#if loading}
+<div
+	class="wx-panel"
+	role="dialog"
+	aria-label="Weather details"
+	aria-busy={loading}
+	aria-disabled={disabled}
+>
+	{#if disabled}
+		<div class="wx-empty mono">WEATHER DISABLED</div>
+	{:else if loading}
 		<div class="wx-empty mono">FETCHING METAR…</div>
 	{:else if error}
 		<div class="wx-empty mono error">METAR FAILED · {error}</div>
 	{:else if !wx}
-		<div class="wx-empty mono">NO STATION RESOLVED — GPS UNAVAILABLE</div>
+		<div class="wx-empty mono">DISCONNECTED — NO GPS / STATION</div>
 	{:else}
 		<div class="wx-panel-head">
 			<div class="head-meta">
@@ -108,7 +117,7 @@
 		max-width: calc(100vw - 32px);
 		background: var(--mk2-panel);
 		border: 1px solid var(--mk2-line-hi);
-		box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+		box-shadow: 0 24px 60px color-mix(in srgb, var(--mk2-bg) 70%, transparent);
 		z-index: 9999;
 		color: var(--mk2-ink);
 		font-size: var(--mk2-fs-4);
