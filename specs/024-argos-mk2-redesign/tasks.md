@@ -48,7 +48,13 @@ Tracking per-PR tasks against the migration plan in `plan.md`. Commit SHAs fille
 
 **Existing (DO NOT rebuild):** `Mission` entity (`src/lib/server/services/reports/types.ts`), `mission-store.ts` with `createMission` / `setActiveMission` / `getActiveMission` / `listMissions` / `deleteMission`, `mission-repository.ts`, `POST /api/missions`, `GET /api/missions/list`, `POST /api/missions/[id]/activate`, `/api/missions/[id]/+server.ts`. Migration `20260412_create_reports_missions.sql` already provides id / name / type / unit / ao_mgrs / created_at / active.
 
-- [ ] **T027** Migration `008_extend_missions_for_strip.sql` — `ALTER TABLE missions ADD COLUMN operator TEXT; ADD COLUMN target TEXT; ADD COLUMN link_budget REAL`. Optional: relax `type` enum to add `'field-rotation'` (or remove constraint entirely).
+- [ ] **T027** Migration `008_extend_missions_for_strip.sql` — three separate SQLite ALTER statements (single ALTER per column is required by SQLite):
+   ```sql
+   ALTER TABLE missions ADD COLUMN operator TEXT;
+   ALTER TABLE missions ADD COLUMN target TEXT;
+   ALTER TABLE missions ADD COLUMN link_budget REAL;
+   ```
+   Optional follow-up migration `009_*.sql` if `type` enum needs relaxing — keep schema changes one-per-migration so rollbacks stay clean.
 - [ ] **T028** Extend `Mission` type in `services/reports/types.ts` and `mission-store.ts` row mappers to surface new columns.
 - [ ] **T029** Add `GET` + `PATCH` exports to existing `src/routes/api/missions/[id]/+server.ts` (currently only exposes `DELETE`). `GET` returns the single mission via existing `getMission(db, id)`. `PATCH` validates body via Zod and writes via a new `updateMission(db, id, fields)` in `mission-store.ts`. No new files — extend existing.
 - [ ] **T030** `MissionStrip.svelte` — engagement / operator / target / mission timer / link budget. Editable on click. PATCH on blur. Multi-mission switcher.

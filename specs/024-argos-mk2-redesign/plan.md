@@ -37,7 +37,7 @@ src/lib/server/db/migrations/008_*  ◄── missions table (PR 5)
 - **Svelte 5 runes only.** No legacy stores in new components.
 - **CLAUDE.md Rule 3 enforced**: every `.svelte` file edit round-trips through `mcp__svelte-remote__list-sections` → `get-documentation` → `svelte-autofixer` until clean.
 
-## PR sequence (~50 dev-days, 11 PRs)
+## PR sequence (~44 dev-days, 11 PRs)
 
 | #   | Scope                                                        | Days |
 | --- | ------------------------------------------------------------ | ---- |
