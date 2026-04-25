@@ -81,7 +81,6 @@
 		title="Weather & flight conditions"
 		aria-haspopup="dialog"
 		aria-expanded={open}
-		{disabled}
 		aria-disabled={disabled}
 		onclick={() => (open = !open)}
 	>
