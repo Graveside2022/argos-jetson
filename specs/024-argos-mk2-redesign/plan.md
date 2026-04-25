@@ -5,7 +5,8 @@ Implementation plan backing `spec.md`. This file is the canonical in-repo source
 ## Architecture summary
 
 ```text
-src/lib/styles/argos-mk2.css        ◄── standalone Mk II token sheet (forks Lunaris, NOT layered)
+src/app.css                         ◄── Mk II token block as [data-ui="mk2"] (Tailwind v4 @theme inline pattern)
+                                          Lunaris stays in default :root for off-flag rendering
                                           │
                                           ▼
 src/lib/components/chassis/         ◄── Chassis / Topbar / LeftRail / Statusbar / WeatherButton
@@ -28,7 +29,7 @@ src/lib/server/db/migrations/008_*  ◄── missions table (PR 5)
 
 ## Tech choices
 
-- **Token strategy**: Fork. New `argos-mk2.css` standalone, not layered over `palantir-design-system.css`. Lunaris untouched until PR 11 deletes it.
+- **Token strategy**: Fork via Tailwind v4 `@theme inline` + `[data-ui="mk2"]` data-attribute selector — single `src/app.css` file holds both Lunaris (`:root`) and Mk II tokens (`[data-ui="mk2"]`), runtime-switchable via `<body data-ui="mk2">`. This is the documented Tailwind v4 pattern for dual-theme switching ([docs](https://tailwindcss.com/docs/colors#using-theme-inline)). PR 11 deletes the Lunaris `:root` block.
 - **No new dependencies**. SVG and canvas only. No charting / animation / DnD libraries (per memory `feedback_no_install_without_approval.md`).
 - **Native HTML5 DnD + window-level pointer listeners** for the dock-anywhere Workflows drag.
 - **localStorage** for accent / density / drawer height / pin order / dock state. **SQLite** for missions (server-side persistence).
@@ -38,19 +39,19 @@ src/lib/server/db/migrations/008_*  ◄── missions table (PR 5)
 
 ## PR sequence (~50 dev-days, 11 PRs)
 
-| #   | Scope                                              | Days |
-| --- | -------------------------------------------------- | ---- |
-| 1   | Tokens + chassis skeleton + Weather endpoint       | 6    |
-| 2   | Primitives + Tweaks panel                          | 2    |
-| 3   | Bottom drawer (no drag-reorder)                    | 3    |
-| 4   | SYSTEMS screen                                     | 2    |
-| 5   | OVERVIEW + Mission Strip backend (`/api/missions`) | 9    |
-| 6   | MAP screen (MapLibre into chassis)                 | 3    |
-| 7   | AGENTS + Workflows full dock-anywhere              | 14   |
-| 8   | Tools Flyout (curated 12-15 tool catalog)          | 2    |
-| 9   | Spectrum + SVG waterfall (spike-gated)             | 4    |
-| 10  | GSM + Kismet screens                               | 3    |
-| 11  | Flip default + Lunaris sunset                      | 2    |
+| #   | Scope                                                        | Days |
+| --- | ------------------------------------------------------------ | ---- |
+| 1   | Tokens + chassis skeleton + Weather endpoint                 | 6    |
+| 2   | Primitives + Tweaks panel                                    | 2    |
+| 3   | Bottom drawer (no drag-reorder)                              | 3    |
+| 4   | SYSTEMS screen                                               | 2    |
+| 5   | OVERVIEW + Mission Strip (extends existing `Mission` entity) | 3    |
+| 6   | MAP screen (MapLibre into chassis)                           | 3    |
+| 7   | AGENTS + Workflows full dock-anywhere                        | 14   |
+| 8   | Tools Flyout (curated 12-15 tool catalog)                    | 2    |
+| 9   | Spectrum + SVG waterfall (spike-gated)                       | 4    |
+| 10  | GSM + Kismet screens                                         | 3    |
+| 11  | Flip default + Lunaris sunset                                | 2    |
 
 ## Decisions locked (2026-04-25)
 

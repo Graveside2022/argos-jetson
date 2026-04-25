@@ -12,8 +12,8 @@ Tracking per-PR tasks against the migration plan in `plan.md`. Commit SHAs fille
 
 ## PR 1 — Chassis + Tokens + Weather (~6 days)
 
-- [ ] **T005** Add `src/lib/styles/argos-mk2.css` token sheet — deep-black surfaces, amber accent (oklch), 5 accent swatches, 6-step type scale (9–15 px), 2–4 px radii, 80–180 ms motion.
-- [ ] **T006** Add `?ui=mk2` flag in `src/routes/+layout.svelte`. Off-flag = legacy renders unchanged.
+- [ ] **T005** Add Mk II token block to `src/app.css` as `[data-ui="mk2"]` selector (Tailwind v4 `@theme inline` pattern) — deep-black surfaces, amber accent (oklch), 5 accent swatches, 6-step type scale (9–15 px), 2–4 px radii, 80–180 ms motion. Lunaris stays in default `:root` for off-flag rendering. **Also fix CLAUDE.md:** replace stale `palantir-design-system.css` reference with `src/app.css :root` (the path doesn't exist in the repo).
+- [ ] **T006** Add `?ui=mk2` flag in `src/routes/+layout.svelte` — sets `<body data-ui="mk2">` so the new token block applies. Off-flag = `<body>` has no attribute, Lunaris `:root` renders unchanged.
 - [ ] **T007** `src/lib/components/chassis/Chassis.svelte` — 48 px rail / topbar / main / drawer / 24 px statusbar grid.
 - [ ] **T008** `Topbar.svelte` — brand + ARGOS MK II + Weather button + city + lat/lon + MGRS + Z-clock (client `$effect` ticker).
 - [ ] **T009** `LeftRail.svelte` — fixed AGENTS / OVERVIEW / MAP at top, dynamic pinned tools middle, fixed SYSTEMS bottom. 1–9 numeric hotkeys. (Drag-reorder deferred to PR 9.)
@@ -44,11 +44,13 @@ Tracking per-PR tasks against the migration plan in `plan.md`. Commit SHAs fille
 - [ ] **T025** DISK USAGE bars — mount + fs + GB used/total + %.
 - [ ] **T026** 5 sub-tabs (HOST METRICS / HARDWARE / PROCESSES / SERVICES / NETWORK). State persisted.
 
-## PR 5 — OVERVIEW + Mission Strip Backend (~9 days)
+## PR 5 — OVERVIEW + Mission Strip (~3 days, scope reduced from 9 — existing `Mission` entity reused)
 
-- [ ] **T027** Migration `008_add_missions_table.sql` — id, started_at, ended_at, name, engagement, operator, target, link_budget, notes, archived.
-- [ ] **T028** `src/lib/server/db/missions.ts` repository.
-- [ ] **T029** `src/routes/api/missions/+server.ts` (GET list, POST create) + `[id]/+server.ts` (GET / PATCH / DELETE) + `[id]/activate/+server.ts`.
+**Existing (DO NOT rebuild):** `Mission` entity (`src/lib/server/services/reports/types.ts`), `mission-store.ts` with `createMission` / `setActiveMission` / `getActiveMission` / `listMissions` / `deleteMission`, `mission-repository.ts`, `POST /api/missions`, `GET /api/missions/list`, `POST /api/missions/[id]/activate`, `/api/missions/[id]/+server.ts`. Migration `20260412_create_reports_missions.sql` already provides id / name / type / unit / ao_mgrs / created_at / active.
+
+- [ ] **T027** Migration `008_extend_missions_for_strip.sql` — `ALTER TABLE missions ADD COLUMN operator TEXT; ADD COLUMN target TEXT; ADD COLUMN link_budget REAL`. Optional: relax `type` enum to add `'field-rotation'` (or remove constraint entirely).
+- [ ] **T028** Extend `Mission` type in `services/reports/types.ts` and `mission-store.ts` row mappers to surface new columns.
+- [ ] **T029** Add `PATCH /api/missions/[id]/+server.ts` if not already exposed (verify; `[id]/+server.ts` exists). No new endpoints otherwise.
 - [ ] **T030** `MissionStrip.svelte` — engagement / operator / target / mission timer / link budget. Editable on click. PATCH on blur. Multi-mission switcher.
 - [ ] **T031** `SensorTile.svelte` × 4 (sweep / devices / GPS / system) with sparklines.
 - [ ] **T032** `DetectionsList.svelte` — ranked SIG-A-XXX with bearing / distance / RSSI / confidence bars.
