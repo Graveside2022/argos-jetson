@@ -41,15 +41,15 @@
 
 	.dot.ok {
 		background: var(--mk2-green);
-		box-shadow: 0 0 0 2px oklch(72% 0.17 148 / 0.15);
+		box-shadow: 0 0 0 2px color-mix(in oklch, var(--mk2-green) 15%, transparent);
 	}
 	.dot.warn {
 		background: var(--mk2-amber);
-		box-shadow: 0 0 0 2px oklch(80% 0.155 78 / 0.18);
+		box-shadow: 0 0 0 2px color-mix(in oklch, var(--mk2-amber) 18%, transparent);
 	}
 	.dot.err {
 		background: var(--mk2-red);
-		box-shadow: 0 0 0 2px oklch(65% 0.22 22 / 0.2);
+		box-shadow: 0 0 0 2px color-mix(in oklch, var(--mk2-red) 20%, transparent);
 	}
 	.dot.inactive {
 		background: var(--mk2-ink-4);

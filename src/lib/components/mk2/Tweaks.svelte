@@ -24,14 +24,15 @@
 
 	let { open = false, onclose }: Props = $props();
 
-	// Swatch colors — keep keys in lockstep with `AccentName` so adding a sixth
-	// is a single-line append. Steel matches `--mk2-steel` from app.css.
+	// Swatch colors — bind to Mk II accent tokens (declared in app.css PR1 T005)
+	// so future palette retones flow through automatically. Keep keys in lockstep
+	// with `AccentName` — adding a sixth accent is a single-line append.
 	const SWATCH_FILL: Record<AccentName, string> = {
-		amber: 'oklch(80% 0.155 78)',
-		green: 'oklch(72% 0.17 148)',
-		cyan: 'oklch(78% 0.11 215)',
-		magenta: 'oklch(68% 0.195 338)',
-		steel: 'oklch(72% 0.045 250)'
+		amber: 'var(--mk2-amber)',
+		green: 'var(--mk2-green)',
+		cyan: 'var(--mk2-cyan)',
+		magenta: 'var(--mk2-magenta)',
+		steel: 'var(--mk2-steel)'
 	};
 
 	function setAccent(a: AccentName): void {

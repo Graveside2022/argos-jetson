@@ -64,7 +64,7 @@
 	role="img"
 	aria-label={ariaLabel}
 	style:width="100%"
-	style:height="{height}px"
+	style:height={`${height}px`}
 	style:display="block"
 >
 	{#if fill && geometry.area}

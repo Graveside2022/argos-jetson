@@ -27,6 +27,8 @@
 		onclick,
 		children
 	}: Props = $props();
+
+	const accessibleName = $derived(ariaLabel ?? title ?? 'Icon button');
 </script>
 
 <button
@@ -35,7 +37,7 @@
 	class:active
 	{title}
 	{disabled}
-	aria-label={ariaLabel ?? title}
+	aria-label={accessibleName}
 	aria-pressed={active}
 	{onclick}
 >

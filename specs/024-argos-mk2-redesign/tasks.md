@@ -28,7 +28,9 @@ Tracking per-PR tasks against the migration plan in `plan.md`. Commit SHAs fille
 
 - [x] **T016** `Panel.svelte` (with bracket-corner tag), `IconBtn.svelte`, `Metric.svelte`, `Dot.svelte`, `KV.svelte`, `Sparkline.svelte` (pure SVG), `Tweaks.svelte`. — landed in `src/lib/components/mk2/`
 - [x] **T017** Tweaks accent picker = 5 swatches (amber/green/cyan/magenta/steel). Density = compact/normal/comfy. Persist + apply live via CSS variable updates. — `+layout.svelte` mirrors `accentStore`/`densityStore` onto `body[data-accent|data-density]`; PR1 CSS selectors apply live, no re-render
-- [x] **T018** Round-trip every component through `mcp__svelte-remote__svelte-autofixer` until clean. — svelte-remote MCP unavailable on jetson2 host; substituted file-scoped `npx eslint` + `npx svelte-check` (0 errors / 0 warnings on PR2 files); PR description notes the substitution.
+- [x] **T018** Round-trip every component through `mcp__svelte-remote__svelte-autofixer` until clean. — svelte-remote MCP unavailable on jetson2 host (verified via `claude mcp list`); substituted file-scoped `npx eslint` + `npx svelte-check` (0 errors / 0 warnings on PR2 files). **Waiver tracked as T018a below** — once svelte-remote MCP is registered on jetson2, PR2 component files must be re-run through the full `list-sections → get-documentation → svelte-autofixer` chain.
+
+- [ ] **T018a** (waiver follow-up) Re-run `mcp__svelte-remote__list-sections` → `get-documentation` → `svelte-autofixer` against `src/lib/components/mk2/{Panel,IconBtn,Metric,Dot,KV,Sparkline,Tweaks}.svelte` once svelte-remote MCP is registered on jetson2. **Why:** PR2 ESLint+svelte-check substitution doesn't catch Svelte 5 idiom drift that the official autofixer would (e.g., legacy `<slot>` patterns, deprecated reactivity hints). **How to apply:** verify host registration with `claude mcp list | grep svelte-remote`; on hit, run the full chain and amend any drift in a follow-up commit on `dev`.
 
 ## PR 3 — Bottom Drawer (~3 days)
 

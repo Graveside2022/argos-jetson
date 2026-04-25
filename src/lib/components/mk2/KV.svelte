@@ -14,7 +14,7 @@
 </script>
 
 <div class="dlist">
-	{#each rows as [k, v] (k)}
+	{#each rows as [k, v], i (`${k}-${i}`)}
 		<div class="row">
 			<div class="k">{k}</div>
 			<div class="v">{v}</div>

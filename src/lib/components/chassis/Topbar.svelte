@@ -75,8 +75,8 @@
 	<span class="mono ink-3">{mgrs}</span>
 	<span class="mono accent">{now}Z</span>
 	<IconBtn
-		title="Tweaks"
-		ariaLabel="Open tweaks"
+		title={tweaksOpen ? 'Close tweaks' : 'Open tweaks'}
+		ariaLabel={tweaksOpen ? 'Close tweaks' : 'Open tweaks'}
 		variant="ghost"
 		active={tweaksOpen}
 		onclick={() => (tweaksOpen = !tweaksOpen)}
