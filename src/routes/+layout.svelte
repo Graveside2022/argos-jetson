@@ -5,12 +5,24 @@
 	import { onMount } from 'svelte';
 	import { Toaster } from 'svelte-sonner';
 
+	import { page } from '$app/state';
 	import { markCSSLoaded } from '$lib/utils/css-loader';
 
 	interface Props {
 		children: Snippet;
 	}
 	let { children }: Props = $props();
+
+	// spec-024 PR1 T006 — Mk II flag: ?ui=mk2 mirrors to <body data-ui="mk2">.
+	// `<svelte:body>` rejects custom attrs, and hooks.server.ts is anti-scope through PR 11
+	// (per spec-024 plan.md), so we toggle the attribute via $effect on the client.
+	$effect(() => {
+		if (page.url.searchParams.get('ui') === 'mk2') {
+			document.body.setAttribute('data-ui', 'mk2');
+		} else {
+			document.body.removeAttribute('data-ui');
+		}
+	});
 
 	// CSS loading detection to prevent FOUC
 	onMount(() => {
