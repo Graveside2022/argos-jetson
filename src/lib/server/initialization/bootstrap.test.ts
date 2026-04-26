@@ -37,7 +37,7 @@ describe('initServerProcesses', () => {
 
 	it('skips every initializer when building=true', async () => {
 		const { initServerProcesses } = await import('./bootstrap');
-		initServerProcesses(true);
+		await initServerProcesses(true);
 		expect(scanAllHardwareMock).not.toHaveBeenCalled();
 		expect(takInitMock).not.toHaveBeenCalled();
 		expect(gpInitMock).not.toHaveBeenCalled();
@@ -46,10 +46,24 @@ describe('initServerProcesses', () => {
 
 	it('runs every initializer when building=false', async () => {
 		const { initServerProcesses } = await import('./bootstrap');
-		initServerProcesses(false);
-		await new Promise((resolve) => setImmediate(resolve));
+		await initServerProcesses(false);
 		expect(scanAllHardwareMock).toHaveBeenCalledOnce();
 		expect(takInitMock).toHaveBeenCalledOnce();
+		expect(gpInitMock).toHaveBeenCalledOnce();
+		expect(monitorStartMock).toHaveBeenCalledWith(30_000);
+	});
+
+	it('still starts globalHardwareMonitor when scanAllHardware rejects', async () => {
+		scanAllHardwareMock.mockRejectedValueOnce(new Error('USB unplugged'));
+		const { initServerProcesses } = await import('./bootstrap');
+		await initServerProcesses(false);
+		expect(monitorStartMock).toHaveBeenCalledWith(30_000);
+	});
+
+	it('continues bootstrap when TakService.initialize rejects', async () => {
+		takInitMock.mockRejectedValueOnce(new Error('TAK socket bind failed'));
+		const { initServerProcesses } = await import('./bootstrap');
+		await initServerProcesses(false);
 		expect(gpInitMock).toHaveBeenCalledOnce();
 		expect(monitorStartMock).toHaveBeenCalledWith(30_000);
 	});

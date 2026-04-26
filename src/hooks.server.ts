@@ -56,7 +56,9 @@ const wss = new WebSocketServer({ noServer: true, maxPayload: 262144 }); // 256K
 const wsManager = WebSocketManager.getInstance();
 
 // Skipped during `vite build` SSR-trace pass (issue #15). See bootstrap.ts.
-initServerProcesses(building);
+// Fire-and-forget: each external call inside is wrapped in `safe()`, so the
+// returned promise resolves; the void prevents floating-promise lint hits.
+void initServerProcesses(building);
 
 // Handle WebSocket connections -- delegates to ws-connection-handler module
 wss.on('connection', (ws: WebSocket, request) => {
