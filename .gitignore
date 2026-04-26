@@ -193,6 +193,10 @@ service/
 tools/
 completed/
 
+# ── Stray release / ops artifacts (keep on disk; hide from git) ──
+docs/cell_towers.csv*
+scripts/ops/*.bak.*
+
 # ── AI Development Tools ────────────────────────────────────
 .gemini/
 .agent/
