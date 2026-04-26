@@ -59,6 +59,28 @@ function gb(bytes: number | undefined): number | undefined {
 	return bytes == null ? undefined : bytes / BYTES_PER_GB;
 }
 
+interface GpsFix {
+	lat: number;
+	lon: number;
+	satellites?: number;
+	fix?: number;
+}
+
+// Endpoint contract narrows latitude/longitude to `number` in our local type
+// but the wire payload allows `null` until GPS gets a fix. Centralise the
+// success/null guard so pollGps() stays under the cyclomatic-complexity cap.
+function extractGpsFix(r: { success: boolean; data: GpsPosition } | null): GpsFix | null {
+	if (r == null || !r.success) return null;
+	return validateGpsFix(r.data);
+}
+
+function validateGpsFix(d: GpsPosition | null | undefined): GpsFix | null {
+	if (d == null) return null;
+	if (d.latitude == null) return null;
+	if (d.longitude == null) return null;
+	return { lat: d.latitude, lon: d.longitude, satellites: d.satellites, fix: d.fix };
+}
+
 function mapMetrics(data: SystemMetrics): ChassisState['system'] {
 	const out: ChassisState['system'] = {};
 	if (data.cpu) {
@@ -126,15 +148,11 @@ export function createChassisState(): ChassisState {
 
 	async function pollGps(): Promise<void> {
 		const r = await fetchJson<{ success: boolean; data: GpsPosition }>('/api/gps/position');
-		if (!r?.success || !r.data) return;
-		state.gps = {
-			lat: r.data.latitude,
-			lon: r.data.longitude,
-			satellites: r.data.satellites,
-			fix: r.data.fix
-		};
+		const fix = extractGpsFix(r);
+		if (!fix) return;
+		state.gps = fix;
 		const list = await ensureAirports();
-		const nearest = findNearest(list, r.data.latitude, r.data.longitude);
+		const nearest = findNearest(list, fix.lat, fix.lon);
 		if (nearest) state.station = { icao: nearest.icao, name: nearest.name };
 	}
 

@@ -3,15 +3,79 @@
   The LeftRail keeps AGENTS at slot 01 to preserve the published prototype's
   numbering; this placeholder absorbs the navigation hit so a click doesn't 404
   before PR7 ships ScreenAgents.svelte.
+
+  The route has only one possible state today ("not yet built"), but the
+  project's "all components must handle all states" guideline still applies.
+  We branch on a single `viewState` rune so the structure is in place when
+  PR7 wires real agents/sessions data; today every branch but `default`
+  short-circuits to the same coming-soon shell so reviewers see the contract.
 -->
-<div class="placeholder">
-	<div class="placeholder-eyebrow">SPEC-024 · PR7</div>
-	<div class="placeholder-title">AGENTS</div>
-	<div class="placeholder-body">
-		Mission-Control bar, 9-session grid, and workflows dock-anywhere ship in
-		<code>spec-024 PR7</code>. Until then this slot is wired but empty.
+<script lang="ts">
+	type ViewState =
+		| 'default'
+		| 'empty'
+		| 'loading'
+		| 'active'
+		| 'success'
+		| 'error'
+		| 'disabled'
+		| 'disconnected';
+
+	const viewState: ViewState = 'default';
+</script>
+
+{#if viewState === 'loading'}
+	<div class="placeholder" role="status" aria-live="polite" aria-busy="true">
+		<div class="placeholder-eyebrow">SPEC-024 · PR7</div>
+		<div class="placeholder-title">AGENTS · LOADING</div>
+		<div class="placeholder-body">Loading agent sessions…</div>
 	</div>
-</div>
+{:else if viewState === 'empty'}
+	<div class="placeholder" aria-live="polite">
+		<div class="placeholder-eyebrow">SPEC-024 · PR7</div>
+		<div class="placeholder-title">AGENTS · EMPTY</div>
+		<div class="placeholder-body">No agent sessions available.</div>
+	</div>
+{:else if viewState === 'active'}
+	<div class="placeholder" aria-live="polite">
+		<div class="placeholder-eyebrow">SPEC-024 · PR7</div>
+		<div class="placeholder-title">AGENTS · ACTIVE</div>
+		<div class="placeholder-body">Active agent sessions render here in PR7.</div>
+	</div>
+{:else if viewState === 'success'}
+	<div class="placeholder" aria-live="polite">
+		<div class="placeholder-eyebrow">SPEC-024 · PR7</div>
+		<div class="placeholder-title">AGENTS · SUCCESS</div>
+		<div class="placeholder-body">Agent action completed.</div>
+	</div>
+{:else if viewState === 'error'}
+	<div class="placeholder" role="alert" aria-live="assertive">
+		<div class="placeholder-eyebrow">SPEC-024 · PR7</div>
+		<div class="placeholder-title">AGENTS · ERROR</div>
+		<div class="placeholder-body">Agent runtime unavailable. Try again later.</div>
+	</div>
+{:else if viewState === 'disabled'}
+	<div class="placeholder" aria-disabled="true" aria-live="polite">
+		<div class="placeholder-eyebrow">SPEC-024 · PR7</div>
+		<div class="placeholder-title">AGENTS · DISABLED</div>
+		<div class="placeholder-body">Agent runtime is disabled in this build.</div>
+	</div>
+{:else if viewState === 'disconnected'}
+	<div class="placeholder" role="alert" aria-live="assertive">
+		<div class="placeholder-eyebrow">SPEC-024 · PR7</div>
+		<div class="placeholder-title">AGENTS · DISCONNECTED</div>
+		<div class="placeholder-body">Lost connection to agent runtime — reconnecting…</div>
+	</div>
+{:else}
+	<div class="placeholder" aria-live="polite">
+		<div class="placeholder-eyebrow">SPEC-024 · PR7</div>
+		<div class="placeholder-title">AGENTS</div>
+		<div class="placeholder-body">
+			Mission-Control bar, 9-session grid, and workflows dock-anywhere ship in
+			<code>spec-024 PR7</code>. Until then this slot is wired but empty.
+		</div>
+	</div>
+{/if}
 
 <style>
 	.placeholder {
