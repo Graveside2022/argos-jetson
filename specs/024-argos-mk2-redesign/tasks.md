@@ -93,12 +93,19 @@ Tracking per-PR tasks against the migration plan in `plan.md`. Commit SHAs fille
 
 **Merged**: PR #40 — `aab18d86` (T046 + T047 tools flyout, with CR fix iteration f2dbf414 covering focus trap, overlay design token, ⌘K-from-search hotkey).
 
-## PR 9 — Spectrum + SVG Waterfall (~4 days, **spike-first**)
+## PR 9 — Spectrum + Waterfall + Multi-SDR Abstraction (~7 days, **spike-first**, split into 9a/9b/9c + T051)
 
-- [ ] **T048** Spike: 1 day — render 80×320 SVG cells @ 10 Hz on Jetson, profile via Chrome DevTools MCP `performance_start_trace`. Frame time > 4 ms or heap creep → fall back to `<canvas>` 2D.
-- [ ] **T049** `Spectrum.svelte` — sweep control (START/STOP/RBW/LNA/VGA/AMP) + peak-hold graph.
-- [ ] **T050** `Waterfall.svelte` — 80-row heatmap, frequency ruler, time labels. Bind to existing `/api/rf/stream` SSE.
-- [ ] **T051** Drawer tab drag-reorder + rail drag-reorder (deferred from PR 1 / PR 3) — reuse same DnD machinery as PR 7.
+Locked design: see `~/.claude/plans/what-professional-design-decisions-hazy-flame.md` (rev 2026-04-26 post-PR8). Architecture: `SpectrumSource` interface + factory dispatch on `HardwareDevice` enum. Per-SDR backend implementations preserve hardware-specific tuning. Wire transport: SSE (existing pattern, NOT WebSocket strawman). Render: Canvas 2D + `putImageData` + `drawImage(canvas, 0, 1)` self-blit per [MDN](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/putImageData) + OpenWebRX precedent.
+
+- [ ] **T048** Spike (1 day, throwaway branch `spike/024-pr9-waterfall-render`) — measure Canvas 2D render perf for 80×320 cells @ 10 Hz on Jetson against live `/api/rf/data-stream` SSE. Hardware preflight: `curl /api/hackrf/status`. Profile via Chrome DevTools MCP `performance_start_trace` for 60 s in isolated context. **Decision gate**: P95 frame ≤ 6 ms AND heap delta < 5 MB → ship Canvas 2D. Fail → port to WebGL2 sliding-texture (`texSubImage2D`), re-profile. Findings recorded in `SPIKE_FINDINGS.md`; spike branch never merges.
+
+- [ ] **T049** PR9a — server abstraction + HackRF impl + UI. New: `src/lib/server/spectrum/{types,hackrf-source,factory,source-registry}.ts` + `src/lib/schemas/spectrum.ts` + `src/routes/api/spectrum/{start,stop,stream,status}/+server.ts` + `src/lib/state/spectrum.svelte.ts` + `src/lib/components/screens/{Spectrum,Waterfall,SpectrumControls,ScreenSpectrum}.svelte` + `src/routes/dashboard/mk2/spectrum/+page.svelte`. HackRFSpectrumSource subscribes `sweepManager.on('spectrum_data', ...)` (event confirmed at `src/lib/server/hackrf/sweep-coordinator.ts:200`). Canvas 2D render path locked per spike outcome.
+
+- [ ] **T050** PR9b — B205 mini backend. New: `src/lib/server/spectrum/b205-source.ts` + co-located `b205_spectrum.py` (UHD `MultiUSRP("type=b200,master_clock_rate=16e6,num_recv_frames=512,recv_frame_size=8192")` per [Ettus manual](https://files.ettus.com/manual/page_usrp_b200.html), anti-overflow knobs from memory `project_uas_phase3_overflow_fix`) + `SpectrumControlsB205.svelte` + `SpectrumDevicePicker.svelte`. Spawn pattern: `child_process.spawn` + `readline.createInterface` (precedent: `src/lib/server/services/dragonsync/c2-subscriber.ts:17-18,58`). Schema: extend `DeviceTypeSchema` at `src/lib/schemas/rf.ts:16` from `['hackrf', 'auto']` → `['hackrf', 'b205', 'auto']` (one-character non-breaking change).
+
+- [ ] **T053** PR9c — MCP diagnostic surface. Append 3 `ToolDefinition` entries to `src/lib/server/mcp/servers/streaming-inspector.ts:24` (existing `tools[]` array): `inspect_spectrum_stream`, `get_spectrum_status`, `list_available_sdrs`. Schema per `BaseMCPServer.ToolDefinition` (`src/lib/server/mcp/shared/base-server.ts:30`). All 7 existing Argos MCP servers expose Tools only — match pattern, no Resources. Transport: stdio (no change). ~140 LOC addition, no new files, no new dependencies.
+
+- [ ] **T051** Drawer tab drag-reorder + rail drag-reorder (deferred from PR 1 / PR 3) — reuse same DnD machinery as PR 7. Independent small PR; not blocking PR9.
 
 ## PR 10 — GSM + Kismet Screens (~3 days)
 
