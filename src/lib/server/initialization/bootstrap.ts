@@ -9,12 +9,7 @@ import { logger } from '$lib/utils/logger';
 
 const HARDWARE_MONITOR_INTERVAL_MS = 30_000;
 
-export async function initServerProcesses(building: boolean): Promise<void> {
-	if (building) {
-		logger.info('Server-process bootstrap skipped (vite build pass)');
-		return;
-	}
-
+async function bootstrapHardware(): Promise<void> {
 	const [scan, scanErr] = await safe(() => scanAllHardware());
 	if (scan) {
 		logger.info('Hardware detection complete', {
@@ -27,19 +22,28 @@ export async function initServerProcesses(building: boolean): Promise<void> {
 	} else {
 		logger.error('Failed to scan hardware', { error: scanErr });
 	}
-
-	// Start the periodic monitor regardless of initial scan outcome — a missed boot
-	// scan shouldn't strand later detections (e.g. USB hot-plug after launch).
+	// Start the periodic monitor regardless of initial-scan outcome — a missed
+	// boot scan shouldn't strand later detections (e.g. USB hot-plug).
 	globalHardwareMonitor.start(HARDWARE_MONITOR_INTERVAL_MS);
 	logger.info('Hardware monitoring started');
+}
 
-	const [, takErr] = await safe(() => TakService.getInstance().initialize());
-	if (takErr) {
-		logger.error('Failed to initialize TakService', { error: takErr });
-	}
+async function bootstrapTak(): Promise<void> {
+	const [, err] = await safe(() => TakService.getInstance().initialize());
+	if (err) logger.error('Failed to initialize TakService', { error: err });
+}
 
-	const [, gpErr] = await safe(() => GlobalProtectService.getInstance().initialize());
-	if (gpErr) {
-		logger.error('Failed to initialize GlobalProtectService', { error: gpErr });
+async function bootstrapGlobalProtect(): Promise<void> {
+	const [, err] = await safe(() => GlobalProtectService.getInstance().initialize());
+	if (err) logger.error('Failed to initialize GlobalProtectService', { error: err });
+}
+
+export async function initServerProcesses(building: boolean): Promise<void> {
+	if (building) {
+		logger.info('Server-process bootstrap skipped (vite build pass)');
+		return;
 	}
+	await bootstrapHardware();
+	await bootstrapTak();
+	await bootstrapGlobalProtect();
 }
