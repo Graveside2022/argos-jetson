@@ -4,7 +4,6 @@
 	import DiskRow from './DiskRow.svelte';
 	import MetricCard from './MetricCard.svelte';
 	import { bytesPerSecond, METRIC_WINDOW, pushSample } from './system-metrics-buffer';
-	import TabStatusBanner from './TabStatusBanner.svelte';
 
 	const POLL_METRICS_MS = 1200;
 	const POLL_INFO_MS = 5000;
@@ -135,14 +134,11 @@
 
 <div class="host-tab" data-state={tabState}>
 	{#if tabState === 'loading'}
-		<TabStatusBanner kind="loading" endpoint="/api/system/metrics" />
+		<p class="loading mono" aria-live="polite">connecting to /api/system/metrics…</p>
 	{:else if tabState === 'error'}
-		<TabStatusBanner
-			kind="error"
-			endpoint="/api/system/metrics"
-			message={lastError ?? 'unknown'}
-			retrySeconds={POLL_METRICS_MS / 1000}
-		/>
+		<p class="err mono" role="alert">
+			cannot reach /api/system/metrics — {lastError}. Check ARGOS_API_KEY; retrying every {POLL_METRICS_MS / 1000}s.
+		</p>
 	{:else}
 		<div class="metric-grid">
 			<MetricCard
@@ -238,6 +234,11 @@
 	.empty {
 		font-size: var(--mk2-fs-2);
 		color: var(--mk2-ink-4);
+	}
+
+	.loading {
+		font-size: var(--mk2-fs-3);
+		color: var(--mk2-ink-3);
 	}
 
 	.err {

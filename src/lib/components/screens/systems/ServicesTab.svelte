@@ -1,8 +1,6 @@
 <script lang="ts">
 	import Dot from '$lib/components/mk2/Dot.svelte';
 
-	import TabStatusBanner from './TabStatusBanner.svelte';
-
 	const POLL_MS = 4000;
 
 	type HealthStatus = 'healthy' | 'degraded' | 'zombie' | 'stopped';
@@ -93,14 +91,11 @@
 	</div>
 
 	{#if tabState === 'loading'}
-		<TabStatusBanner kind="loading" endpoint="/api/system/services" />
+		<p class="loading mono" aria-live="polite">connecting to /api/system/services…</p>
 	{:else if tabState === 'error'}
-		<TabStatusBanner
-			kind="error"
-			endpoint="/api/system/services"
-			message={lastError ?? 'unknown'}
-			retrySeconds={POLL_MS / 1000}
-		/>
+		<p class="err mono" role="alert">
+			cannot reach /api/system/services — {lastError}. Check ARGOS_API_KEY; retrying every {POLL_MS / 1000}s.
+		</p>
 	{:else if tabState === 'empty'}
 		<p class="empty mono">no services configured server-side.</p>
 	{:else}
@@ -205,6 +200,11 @@
 	.empty {
 		font-size: var(--mk2-fs-2);
 		color: var(--mk2-ink-4);
+	}
+
+	.loading {
+		font-size: var(--mk2-fs-3);
+		color: var(--mk2-ink-3);
 	}
 
 	.err {
