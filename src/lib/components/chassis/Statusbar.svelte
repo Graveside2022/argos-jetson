@@ -42,7 +42,7 @@
 	const mem = $derived(
 		system.memUsedGb == null || system.memTotalGb == null
 			? '—'
-			: `${system.memUsedGb.toFixed(1)}/${system.memTotalGb} GB`
+			: `${system.memUsedGb.toFixed(1)}/${system.memTotalGb.toFixed(1)} GB`
 	);
 	const temp = $derived(system.tempC == null ? '—' : `${Math.round(system.tempC)}°C`);
 	const nvme = $derived(

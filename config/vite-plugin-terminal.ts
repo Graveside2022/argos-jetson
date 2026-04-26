@@ -15,6 +15,20 @@ export function terminalPlugin(): Plugin {
 			httpServer.on('upgrade', (req, socket, head) => {
 				handleTerminalUpgrade(req, socket, head);
 			});
+
+			// Reply 200 to HEAD /terminal-ws so client probes can detect plugin
+			// availability without attempting a WebSocket upgrade. In production
+			// (`node build`, no plugin loaded), the route 404s — exactly the
+			// signal TerminalTab uses to render its empty state.
+			server.middlewares.use('/terminal-ws', (req, res, next) => {
+				if (req.method === 'HEAD') {
+					res.statusCode = 200;
+					res.end();
+					return;
+				}
+				next();
+			});
+
 			console.warn('[argos-terminal] Terminal WebSocket attached at /terminal-ws');
 			// Match prod-server.ts + env enum default '0': pre-spawn fires only when explicitly opted-in.
 			if (process.env.ARGOS_TERMINAL_PRESPAWN === '1') {
