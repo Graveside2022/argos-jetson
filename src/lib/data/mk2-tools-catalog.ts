@@ -70,6 +70,14 @@ export const mk2ToolsCatalog: readonly Mk2Tool[] = [
 		action: { kind: 'drawer', tab: 'bluetooth' }
 	},
 	{
+		id: 'spectrum-analyzer',
+		name: 'Spectrum Analyzer',
+		description: 'FFT spectrum + waterfall — HackRF / B205 (PR9)',
+		icon: Activity,
+		pillar: 'OFFNET',
+		action: { kind: 'route', href: '/dashboard/mk2/spectrum' }
+	},
+	{
 		id: 'openwebrx-plus',
 		name: 'OpenWebRX+',
 		description: 'Multi-band SDR receiver — separate tenant',
