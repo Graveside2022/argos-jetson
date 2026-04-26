@@ -143,7 +143,9 @@ function nullableString(v: unknown): string | null {
 }
 
 function nullableNumber(v: unknown): number | null {
-	return v == null ? null : Number(v);
+	if (v == null) return null;
+	const n = Number(v);
+	return Number.isFinite(n) ? n : null;
 }
 
 export function missionRowToMission(row: Record<string, unknown>): Mission {

@@ -17,6 +17,7 @@ import {
 	getMission,
 	updateMission
 } from '$lib/server/services/reports/mission-store';
+import type { MissionPatch } from '$lib/server/services/reports/types';
 
 export const _MissionPatchSchema = z
 	.object({
@@ -52,11 +53,13 @@ export const PATCH = createHandler(
 			return json({ success: false, error: 'Missing mission id' }, { status: 400 });
 		}
 
-		const raw = await request.json();
-		const parsed = _MissionPatchSchema.parse(raw);
+		// validateBody (createHandler option below) has already enforced
+		// _MissionPatchSchema on a cloned request — re-read here only to
+		// consume the body, then cast to the inferred patch shape.
+		const patch = (await request.json()) as MissionPatch;
 
 		const db = getRFDatabase().rawDb;
-		const mission = updateMission(db, id, parsed);
+		const mission = updateMission(db, id, patch);
 		if (!mission) {
 			return json({ success: false, error: 'Mission not found' }, { status: 404 });
 		}
