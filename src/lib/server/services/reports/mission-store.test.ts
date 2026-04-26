@@ -39,11 +39,7 @@ describe('mission-store — strip metadata round-trip', () => {
 	});
 
 	afterEach(() => {
-		try {
-			db.close();
-		} catch {
-			/* noop */
-		}
+		db.close();
 	});
 
 	it('createMission persists operator/target/link_budget', () => {
