@@ -36,19 +36,27 @@ function isErrorWithCode(err: unknown): err is { code?: string; message?: string
 }
 
 describe('mission-store — strip metadata', () => {
-	let db: Database.Database;
+	let db: Database.Database | undefined;
 
 	beforeEach(() => {
 		db = makeDb();
 	});
 
 	afterEach(() => {
-		db.close();
+		// guard against setup failure where beforeEach threw before assigning
+		if (db) db.close();
+		db = undefined;
 	});
+
+	function requireDb(): Database.Database {
+		if (!db) throw new Error('db not initialized — beforeEach must run');
+		return db;
+	}
 
 	describe('createMission', () => {
 		it('persists operator/target/link_budget', () => {
-			const m = createMission(db, {
+			const handle = requireDb();
+			const m = createMission(handle, {
 				name: 'Op Aurora',
 				type: 'emcon-survey',
 				unit: 'A/1-75',
@@ -61,7 +69,7 @@ describe('mission-store — strip metadata', () => {
 			expect(m.target).toBe('east ridge');
 			expect(m.link_budget).toBe(-84.5);
 
-			const fetched = getMission(db, m.id);
+			const fetched = getMission(handle, m.id);
 			expect(fetched).not.toBeNull();
 			expect(fetched?.operator).toBe('SSG Doe');
 			expect(fetched?.target).toBe('east ridge');
@@ -69,7 +77,7 @@ describe('mission-store — strip metadata', () => {
 		});
 
 		it('defaults new strip fields to null when omitted', () => {
-			const m = createMission(db, { name: 'Op Bravo', type: 'sitrep-loop' });
+			const m = createMission(requireDb(), { name: 'Op Bravo', type: 'sitrep-loop' });
 			expect(m.operator).toBeNull();
 			expect(m.target).toBeNull();
 			expect(m.link_budget).toBeNull();
@@ -78,13 +86,14 @@ describe('mission-store — strip metadata', () => {
 
 	describe('updateMission', () => {
 		it('partial patch leaves unrelated fields intact', () => {
-			const m = createMission(db, {
+			const handle = requireDb();
+			const m = createMission(handle, {
 				name: 'Op Charlie',
 				type: 'sitrep-loop',
 				unit: 'B/2-3',
 				operator: 'CPT Old'
 			});
-			const updated = updateMission(db, m.id, { operator: 'CPT New' });
+			const updated = updateMission(handle, m.id, { operator: 'CPT New' });
 			expect(updated).not.toBeNull();
 			expect(updated?.operator).toBe('CPT New');
 			expect(updated?.unit).toBe('B/2-3');
@@ -93,32 +102,35 @@ describe('mission-store — strip metadata', () => {
 		});
 
 		it('explicit null clears that field', () => {
-			const m = createMission(db, {
+			const handle = requireDb();
+			const m = createMission(handle, {
 				name: 'Op Delta',
 				type: 'sitrep-loop',
 				operator: 'SGT Smith',
 				target: 'AO 7'
 			});
-			const cleared = updateMission(db, m.id, { target: null });
+			const cleared = updateMission(handle, m.id, { target: null });
 			expect(cleared?.operator).toBe('SGT Smith');
 			expect(cleared?.target).toBeNull();
 		});
 
 		it('rewrites name when patch.name present', () => {
-			const m = createMission(db, { name: 'Op Echo', type: 'sitrep-loop' });
-			const renamed = updateMission(db, m.id, { name: 'Op Echo Renamed' });
+			const handle = requireDb();
+			const m = createMission(handle, { name: 'Op Echo', type: 'sitrep-loop' });
+			const renamed = updateMission(handle, m.id, { name: 'Op Echo Renamed' });
 			expect(renamed?.name).toBe('Op Echo Renamed');
 			expect(renamed?.id).toBe(m.id);
 		});
 
 		it('returns null for unknown id', () => {
-			const result = updateMission(db, 'm_does_not_exist', { operator: 'X' });
+			const result = updateMission(requireDb(), 'm_does_not_exist', { operator: 'X' });
 			expect(result).toBeNull();
 		});
 
 		it('preserves link_budget precision (REAL)', () => {
-			const m = createMission(db, { name: 'Op Foxtrot', type: 'sitrep-loop' });
-			const updated = updateMission(db, m.id, { link_budget: -73.125 });
+			const handle = requireDb();
+			const m = createMission(handle, { name: 'Op Foxtrot', type: 'sitrep-loop' });
+			const updated = updateMission(handle, m.id, { link_budget: -73.125 });
 			expect(updated?.link_budget).toBe(-73.125);
 		});
 	});
