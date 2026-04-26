@@ -126,12 +126,14 @@ async function getBatteryInfo(): Promise<{ level: number; charging: boolean } | 
 
 async function getSystemInfo(): Promise<SystemInfo> {
 	const hostname = os.hostname();
+	const kernel = os.release();
+	const loadAvg = os.loadavg() as [number, number, number];
 	const { primaryIp, tailscaleIp } = await getNetworkIps();
 	const wifiInterfaces = await getWifiInterfaces();
 
 	const cpuInfo = os.cpus();
 	const cpuCores = cpuInfo.length;
-	const cpuUsage = Math.min(100, (os.loadavg()[0] / cpuCores) * 100);
+	const cpuUsage = Math.min(100, (loadAvg[0] / cpuCores) * 100);
 
 	const totalMem = os.totalmem();
 	const freeMem = os.freemem();
@@ -145,6 +147,8 @@ async function getSystemInfo(): Promise<SystemInfo> {
 
 	return {
 		hostname,
+		kernel,
+		loadAvg,
 		ip: primaryIp,
 		tailscaleIp,
 		wifiInterfaces,

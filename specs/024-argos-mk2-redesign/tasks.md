@@ -41,10 +41,10 @@ Tracking per-PR tasks against the migration plan in `plan.md`. Commit SHAs fille
 
 ## PR 4 — SYSTEMS Screen (~2 days)
 
-- [ ] **T023** Host overview header — argos-field-XX / kernel / uptime / load avg / OK count / WARN count.
-- [ ] **T024** 4 sparkline gauge tiles — CPU% / MEM% / NET MB/s / TEMP°C. Bind to existing `/api/system/*`.
-- [ ] **T025** DISK USAGE bars — mount + fs + GB used/total + %.
-- [ ] **T026** 5 sub-tabs (HOST METRICS / HARDWARE / PROCESSES / SERVICES / NETWORK). State persisted.
+- [x] **T023** Host overview header — argos-field-XX / kernel / uptime / load avg / OK count / WARN count. — `SystemsScreen.svelte` header strip; hostname/kernel/uptime/loadAvg pulled from `/api/system/info` (extended with `kernel: os.release()` + `loadAvg: os.loadavg()`); OK/WARN counts derived from `/api/system/services` `healthy_count` vs `total_count`.
+- [x] **T024** 4 sparkline gauge tiles — CPU% / MEM% / NET MB/s / TEMP°C. Bind to existing `/api/system/*`. — `HostMetricsTab.svelte` polls `/api/system/metrics` every 1.2 s (matches prototype cadence); CPU + MEM + TEMP read directly; NET derived client-side via `bytesPerSecond()` differencing the cumulative `network.{rx,tx}` byte counters between samples (the endpoint surfaces raw `/proc/net/dev` totals). Rolling 40-sample buffer per metric via `pushSample()` (pure helper, 13 unit tests).
+- [x] **T025** DISK USAGE bars — mount + fs + GB used/total + %. — Single root mount in PR4 (matches what `/api/system/info.storage` exposes today). 75% red threshold per prototype. Multi-mount expansion deferred to PR5+ when `/api/system/info` gains a `mounts[]` field.
+- [x] **T026** 5 sub-tabs (HOST METRICS / HARDWARE / PROCESSES / SERVICES / NETWORK). State persisted. — Tab strip with active-underline indicator. `systemsTabStore` (`lsState<SystemsTab>('argos.mk2.systems.tab', 'host')`) persists selection across reloads with a typed validator. HOST METRICS + SERVICES wire real data; HW / PROC / NET ship empty-state placeholders pointing at the missing `/api/{hardware/inventory,system/processes,system/interfaces}` endpoints (PR5+ scope). Mount into chassis happens in PR5 (T034) — PR4 ships dormant component. Verified end-to-end via temporary `/dev/systems-preview` route (deleted before commit) on `vite :5174` worktree + Chrome DevTools MCP isolated context: all 5 tabs render, 4 sparklines populate, disk fill 74%, console clean (zero errors).
 
 ## PR 5 — OVERVIEW + Mission Strip (~3 days, scope reduced from 9 — existing `Mission` entity reused)
 
