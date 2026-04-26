@@ -107,7 +107,7 @@ Tracking per-PR tasks against the migration plan in `plan.md`. Commit SHAs fille
 
 ## PR 11 — Flip + Lunaris Sunset (~2 days)
 
-- [ ] **T054** Flip default `?ui=mk2`. Add `?ui=lunaris` escape hatch for one release.
+- [x] **T054** Flip default `?ui=mk2`. Add `?ui=lunaris` escape hatch for one release.
 - [ ] **T055** Next release: delete `palantir-design-system.css`, old `app.css` Lunaris rules, every legacy chassis component, all non-Mk II route variants.
 - [ ] **T056** Spec 012 closing addendum: superseded by spec 024.
 

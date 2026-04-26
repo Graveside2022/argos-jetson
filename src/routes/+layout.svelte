@@ -14,42 +14,40 @@
 	}
 	let { children }: Props = $props();
 
-	// spec-024 PR1 T006 / PR6 — Mk II flag: any /dashboard/mk2/* path or
-	// the legacy ?ui=mk2 query mirrors to <body data-ui="mk2"> so the
-	// PR1 token block in app.css activates. PR6 made the route the
-	// canonical source-of-truth (URL = state); the query is still
-	// recognized so old bookmarks work during the transition. PR11
-	// will sunset both the legacy DashboardShell and this conditional.
+	// spec-024 PR11 (T054) — Mk II is the default UI. `?ui=lunaris` is the
+	// one-release escape hatch back to the legacy Lunaris shell; T055 next
+	// release deletes both that escape and the legacy chassis. Reads:
+	//   default                       → body[data-ui="mk2"]
+	//   ?ui=lunaris                   → no data-ui attribute (Lunaris :root)
+	//   ?ui=mk2 (old bookmark)        → still mk2 (idempotent)
 	$effect(() => {
-		const isMk2 =
-			page.url.pathname.startsWith('/dashboard/mk2') ||
-			page.url.searchParams.get('ui') === 'mk2';
-		if (isMk2) {
-			document.body.setAttribute('data-ui', 'mk2');
-		} else {
+		const isLunaris = page.url.searchParams.get('ui') === 'lunaris';
+		if (isLunaris) {
 			document.body.removeAttribute('data-ui');
+		} else {
+			document.body.setAttribute('data-ui', 'mk2');
 		}
 	});
 
 	// spec-024 PR2 T017 — Mk II tweaks: mirror accent + density stores onto
 	// <body data-accent="..."> + <body data-density="..."> so the pre-wired
 	// CSS selectors in app.css apply live without any component coupling.
-	// Effects run only when the Mk II flag is on so legacy mode stays clean.
+	// Lunaris escape hatch strips both attributes so legacy mode stays clean.
 	$effect(() => {
-		const isMk2 = page.url.searchParams.get('ui') === 'mk2';
-		if (isMk2) {
-			document.body.setAttribute('data-accent', accentStore.value);
-		} else {
+		const isLunaris = page.url.searchParams.get('ui') === 'lunaris';
+		if (isLunaris) {
 			document.body.removeAttribute('data-accent');
+		} else {
+			document.body.setAttribute('data-accent', accentStore.value);
 		}
 	});
 
 	$effect(() => {
-		const isMk2 = page.url.searchParams.get('ui') === 'mk2';
-		if (isMk2) {
-			document.body.setAttribute('data-density', densityStore.value);
-		} else {
+		const isLunaris = page.url.searchParams.get('ui') === 'lunaris';
+		if (isLunaris) {
 			document.body.removeAttribute('data-density');
+		} else {
+			document.body.setAttribute('data-density', densityStore.value);
 		}
 	});
 
