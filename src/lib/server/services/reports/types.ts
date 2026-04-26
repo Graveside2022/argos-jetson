@@ -26,9 +26,16 @@ export type Mission = {
 	type: MissionType;
 	unit: string | null;
 	ao_mgrs: string | null;
+	operator: string | null;
+	target: string | null;
+	link_budget: number | null;
 	created_at: number;
 	active: boolean;
 };
+
+export type MissionPatch = Partial<
+	Pick<Mission, 'name' | 'unit' | 'ao_mgrs' | 'operator' | 'target' | 'link_budget'>
+>;
 
 export type CaptureRow = {
 	id: string;
