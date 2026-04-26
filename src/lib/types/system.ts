@@ -5,6 +5,8 @@
 
 export interface SystemInfo {
 	hostname: string;
+	kernel?: string;
+	loadAvg?: [number, number, number];
 	ip: string;
 	tailscaleIp: string | null;
 	wifiInterfaces: Array<{

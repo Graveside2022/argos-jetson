@@ -41,10 +41,10 @@ Tracking per-PR tasks against the migration plan in `plan.md`. Commit SHAs fille
 
 ## PR 4 — SYSTEMS Screen (~2 days)
 
-- [ ] **T023** Host overview header — argos-field-XX / kernel / uptime / load avg / OK count / WARN count.
-- [ ] **T024** 4 sparkline gauge tiles — CPU% / MEM% / NET MB/s / TEMP°C. Bind to existing `/api/system/*`.
-- [ ] **T025** DISK USAGE bars — mount + fs + GB used/total + %.
-- [ ] **T026** 5 sub-tabs (HOST METRICS / HARDWARE / PROCESSES / SERVICES / NETWORK). State persisted.
+- [x] **T023** Host overview header — argos-field-XX / kernel / uptime / load avg / OK count / WARN count. — `SystemsScreen.svelte`; pulls `/api/system/info` (extended with `kernel`+`loadAvg`) + `/api/system/services` for OK/WARN counts.
+- [x] **T024** 4 sparkline gauge tiles — CPU% / MEM% / NET MB/s / TEMP°C. — `HostMetricsTab.svelte` polls `/api/system/metrics` @ 1.2 s; NET derived client-side via `bytesPerSecond()` from cumulative `network.{rx,tx}` counters. Rolling 40-sample buffer (13 unit tests).
+- [x] **T025** DISK USAGE bar. — Single root mount (matches `/api/system/info.storage`); 75% red threshold; multi-mount deferred to PR5+.
+- [x] **T026** 5 sub-tabs + persistence. — `systemsTabStore` (`lsState<SystemsTab>`) persists selection. HOST + SERVICES wire real data; HW / PROC / NET ship `PlaceholderTab` stubs (full state envelope) pointing at missing endpoints. Chassis mount = PR5 (T034).
 
 ## PR 5 — OVERVIEW + Mission Strip (~3 days, scope reduced from 9 — existing `Mission` entity reused)
 
