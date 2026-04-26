@@ -20,12 +20,15 @@
 	import LeftRail from '$lib/components/chassis/LeftRail.svelte';
 	import Statusbar from '$lib/components/chassis/Statusbar.svelte';
 	import Topbar from '$lib/components/chassis/Topbar.svelte';
+	import WeatherButton from '$lib/components/chassis/WeatherButton.svelte';
+	import { createChassisState } from '$lib/state/chassis.svelte';
 
 	interface Props {
 		children: Snippet;
 	}
 
 	let { children }: Props = $props();
+	const chassis = createChassisState();
 	// PR1 T005 keys all Mk II tokens off `body[data-ui="mk2"]`. The root
 	// +layout.svelte handles the body attribute centrally based on URL
 	// pathname, so this nested layout doesn't need its own toggle —
@@ -34,7 +37,7 @@
 
 <Chassis>
 	{#snippet topbar()}
-		<Topbar />
+		<Topbar lat={chassis.gps.lat} lon={chassis.gps.lon} weather={weatherSlot} />
 	{/snippet}
 	{#snippet rail()}
 		<LeftRail />
@@ -46,6 +49,15 @@
 		<Drawer />
 	{/snippet}
 	{#snippet statusbar()}
-		<Statusbar />
+		<Statusbar link={chassis.link} system={chassis.system} session={chassis.session} />
 	{/snippet}
 </Chassis>
+
+{#snippet weatherSlot()}
+	<WeatherButton
+		wx={chassis.weather.wx}
+		loading={chassis.weather.loading}
+		error={chassis.weather.error}
+		empty={chassis.weather.wx == null && !chassis.weather.loading && chassis.weather.error == null}
+	/>
+{/snippet}
