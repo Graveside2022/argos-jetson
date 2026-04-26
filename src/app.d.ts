@@ -16,6 +16,7 @@ declare global {
 	var __argos_hooks_shutdown_registered: boolean | undefined;
 	var __argos_eld_monitor_started: boolean | undefined;
 	var __argos_session_tracker: { currentId: string | null } | undefined;
+	var __argos_rfdatabase: import('$lib/server/db/database').RFDatabase | undefined;
 
 	namespace App {
 		// interface Error {}

@@ -379,15 +379,18 @@ function emitObservationFromMarker(signal: SignalMarker): void {
 	}
 }
 
-// Singleton instance
-let dbInstance: RFDatabase | null = null;
-
-/** Returns the singleton RFDatabase instance, creating it on first call. */
+/**
+ * Returns the singleton RFDatabase instance, creating it on first call.
+ * Stored on `globalThis.__argos_rfdatabase` so the instance survives Vite HMR
+ * reloads — module-scope storage would reset on every reload, kicking off a
+ * second migration runner that races the first via the `migrations.filename
+ * UNIQUE` index. Same pattern as the other __argos_* singletons in app.d.ts.
+ */
 export function getRFDatabase(): RFDatabase {
-	if (!dbInstance) {
-		dbInstance = new RFDatabase();
+	if (!globalThis.__argos_rfdatabase) {
+		globalThis.__argos_rfdatabase = new RFDatabase();
 	}
-	return dbInstance;
+	return globalThis.__argos_rfdatabase;
 }
 
 /**
@@ -409,9 +412,9 @@ if (!globalThis.__argos_db_shutdown_registered) {
 
 	const shutdownDb = (signal: string) => {
 		logger.info(`${signal} received, closing database`, {}, 'database-shutdown');
-		if (dbInstance) {
-			dbInstance.close();
-			dbInstance = null;
+		if (globalThis.__argos_rfdatabase) {
+			globalThis.__argos_rfdatabase.close();
+			globalThis.__argos_rfdatabase = undefined;
 		}
 	};
 

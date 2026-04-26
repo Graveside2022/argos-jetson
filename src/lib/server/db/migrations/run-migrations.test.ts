@@ -1,6 +1,6 @@
-import { readdirSync } from 'fs';
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { readdirSync } from 'node:fs';
+import { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { describe, expect, it } from 'vitest';
 
@@ -40,9 +40,12 @@ describe('migration filename ordering', () => {
 			.map((f, i) => (/^0\d\d_/.test(f) ? i : -1))
 			.filter((i) => i >= 0)
 			.pop();
-		const firstDated = files.findIndex((f) => /^2026\d{4}_/.test(f));
+		// Match any 8-digit YYYYMMDD prefix so the assertion still validates
+		// the legacy-vs-dated boundary in 2027+ when current `2026...` files age out.
+		const firstDated = files.findIndex((f) => /^\d{8}_/.test(f));
 
-		if (lastLegacy !== undefined && firstDated >= 0) {
+		if (lastLegacy !== undefined) {
+			expect(firstDated).toBeGreaterThanOrEqual(0);
 			expect(firstDated).toBeGreaterThan(lastLegacy);
 		}
 	});
