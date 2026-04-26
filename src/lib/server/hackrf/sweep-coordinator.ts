@@ -41,7 +41,7 @@ export function sweepArgsFromCenter(frequency: { value: number; unit: string }):
 	return { startMHz: centerMHz - 10, endMHz: centerMHz + 10, binWidthHz: 100_000 };
 }
 
-function buildHackrfArgs(sweepArgs: SweepArgs): string[] {
+export function buildHackrfArgs(sweepArgs: SweepArgs): string[] {
 	const { startMHz, endMHz, binWidthHz } = sweepArgs;
 	const centerFreqMHz = (startMHz + endMHz) / 2;
 	const gains = selectGains(centerFreqMHz);
