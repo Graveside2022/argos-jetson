@@ -58,3 +58,18 @@ export function haversineMeters(lat1: number, lon1: number, lat2: number, lon2: 
 export function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
 	return haversineMeters(lat1, lon1, lat2, lon2) / 1000;
 }
+
+/**
+ * Forward azimuth (great-circle initial bearing) from point 1 to point 2,
+ * in degrees [0, 360). 0 = north, 90 = east. Used for operator-bearing
+ * displays where the receiver position is known.
+ */
+export function bearingDeg(lat1: number, lon1: number, lat2: number, lon2: number): number {
+	const φ1 = (lat1 * Math.PI) / 180;
+	const φ2 = (lat2 * Math.PI) / 180;
+	const Δλ = ((lon2 - lon1) * Math.PI) / 180;
+	const y = Math.sin(Δλ) * Math.cos(φ2);
+	const x = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
+	const θ = Math.atan2(y, x);
+	return ((θ * 180) / Math.PI + 360) % 360;
+}
