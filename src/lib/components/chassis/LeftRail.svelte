@@ -3,10 +3,17 @@
 	import { Bot, LayoutDashboard, Map, Plus, Wrench } from '@lucide/svelte';
 	import type { Component } from 'svelte';
 
+	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
+
 	// spec-024 PR1 T009 — Mk II left rail.
-	// Fixed AGENTS / OVERVIEW / MAP at top, dynamic pinned tools middle,
-	// fixed SYSTEMS bottom. 1–9 numeric hotkeys.
-	// Drag-reorder is deferred to PR9 (T051).
+	// PR6 conversion: rail slots are now anchor links into the
+	// /dashboard/mk2/{id} nested routes; the layout chassis stays
+	// mounted across screen swaps (Datadog-style persistent shell).
+	// Active state derives from URL pathname so browser back/forward
+	// updates the rail automatically. Hotkeys (1-9) call goto() with
+	// the same URL, so keyboard nav and click nav share one path.
+	// Drag-reorder still deferred to PR9 (T051).
 
 	type View = string;
 
@@ -17,10 +24,8 @@
 	}
 
 	interface Props {
-		view?: View;
 		pinned?: PinnedTool[];
 		toolsOpen?: boolean;
-		onView?: (id: View) => void;
 		onOpenTools?: () => void;
 	}
 
@@ -30,18 +35,30 @@
 		{ id: 'map', label: 'MAP', icon: Map }
 	];
 
-	let {
-		view = 'overview',
-		pinned = [],
-		toolsOpen = false,
-		onView,
-		onOpenTools
-	}: Props = $props();
+	const SYSTEMS: PinnedTool = { id: 'systems', label: 'SYSTEMS', icon: Wrench };
+
+	let { pinned = [], toolsOpen = false, onOpenTools }: Props = $props();
 
 	const slots = $derived([...FIXED, ...pinned]);
 
+	// Derive active screen from URL: /dashboard/mk2/<id> → <id>.
+	// Pathnames outside the mk2 namespace produce null, which means no
+	// rail slot is highlighted.
+	const ROUTE_RE = /^\/dashboard\/mk2\/([^/?#]+)/;
+
+	function activeIdFrom(pathname: string): string | null {
+		const m = pathname.match(ROUTE_RE);
+		return m ? m[1] : null;
+	}
+
+	const active = $derived(activeIdFrom(page.url.pathname));
+
 	function pad2(n: number): string {
 		return String(n).padStart(2, '0');
+	}
+
+	function hrefFor(id: View): string {
+		return `/dashboard/mk2/${id}`;
 	}
 
 	const INTERACTIVE_SELECTOR =
@@ -75,32 +92,34 @@
 		const slot = slots[idx];
 		if (!slot) return;
 		e.preventDefault();
-		onView?.(slot.id);
+		void goto(hrefFor(slot.id));
 	}
 
 	$effect(() => {
 		window.addEventListener('keydown', handleHotkey);
 		return () => window.removeEventListener('keydown', handleHotkey);
 	});
+
+	const systemsActive = $derived(active === SYSTEMS.id);
 </script>
 
 <nav class="rail-inner" aria-label="Primary navigation">
 	{#each slots as item, i (item.id)}
+		{@const isActive = active === item.id && !toolsOpen}
 		<div class="rail-slot">
-			<button
-				type="button"
+			<a
 				class="rail-btn"
-				class:active={view === item.id && !toolsOpen}
+				class:active={isActive}
 				class:fixed={i < FIXED.length}
+				href={hrefFor(item.id)}
 				title="{pad2(i + 1)} {item.label}"
 				aria-label={item.label}
-				aria-current={view === item.id && !toolsOpen ? 'page' : undefined}
-				onclick={() => onView?.(item.id)}
+				aria-current={isActive ? 'page' : undefined}
 			>
 				<span class="rail-num">{pad2(i + 1)}</span>
 				<item.icon size={16} />
-				{#if view === item.id && !toolsOpen}<span class="rail-tick"></span>{/if}
-			</button>
+				{#if isActive}<span class="rail-tick"></span>{/if}
+			</a>
 		</div>
 	{/each}
 
@@ -119,18 +138,17 @@
 
 	<div class="rail-spacer"></div>
 
-	<button
-		type="button"
+	<a
 		class="rail-btn rail-bottom"
-		class:active={view === 'systems'}
+		class:active={systemsActive}
+		href={hrefFor(SYSTEMS.id)}
 		title="SYSTEMS · host metrics, hardware, processes"
 		aria-label="Systems"
-		aria-current={view === 'systems' ? 'page' : undefined}
-		onclick={() => onView?.('systems')}
+		aria-current={systemsActive ? 'page' : undefined}
 	>
 		<Wrench size={16} />
-		{#if view === 'systems'}<span class="rail-tick"></span>{/if}
-	</button>
+		{#if systemsActive}<span class="rail-tick"></span>{/if}
+	</a>
 </nav>
 
 <style>
@@ -158,6 +176,7 @@
 		border-bottom: 1px solid var(--mk2-line);
 		color: var(--mk2-ink-3);
 		cursor: pointer;
+		text-decoration: none;
 		transition:
 			background var(--mk2-mo-1),
 			color var(--mk2-mo-1);

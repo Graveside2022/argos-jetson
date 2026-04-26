@@ -73,3 +73,29 @@ export function bearingDeg(lat1: number, lon1: number, lat2: number, lon2: numbe
 	const θ = Math.atan2(y, x);
 	return ((θ * 180) / Math.PI + 360) % 360;
 }
+
+/**
+ * Inverse of haversine: project a point at `bearingDeg` and `distanceM`
+ * from a known origin. Returns `[lon, lat]` so the result drops directly
+ * into a MapLibre LineString without re-ordering. Used by PR6 MAP screen
+ * to render bearing rays from the operator GPS fix to each detection.
+ */
+export function destinationPoint(
+	lat: number,
+	lon: number,
+	bearing: number,
+	distanceM: number
+): [number, number] {
+	const R = GEO.EARTH_RADIUS_M;
+	const δ = distanceM / R;
+	const θ = (bearing * Math.PI) / 180;
+	const φ1 = (lat * Math.PI) / 180;
+	const λ1 = (lon * Math.PI) / 180;
+	const sinφ2 = Math.sin(φ1) * Math.cos(δ) + Math.cos(φ1) * Math.sin(δ) * Math.cos(θ);
+	const φ2 = Math.asin(sinφ2);
+	const y = Math.sin(θ) * Math.sin(δ) * Math.cos(φ1);
+	const x = Math.cos(δ) - Math.sin(φ1) * sinφ2;
+	const λ2 = λ1 + Math.atan2(y, x);
+	const lonOut = (((λ2 * 180) / Math.PI + 540) % 360) - 180;
+	return [lonOut, (φ2 * 180) / Math.PI];
+}
