@@ -51,6 +51,25 @@ else
   warn "Database directory not writable: $DB_DIR"
 fi
 
+# Truncate the WAL on boot. Long-lived RO handles can leave -wal growing
+# unbounded between graceful shutdowns; `PRAGMA wal_checkpoint(TRUNCATE)`
+# is safe to run while other readers/writers are attached (the live argos
+# service may already hold a handle). See memory: rf_signals.db WAL ballooning.
+WAL_FILE="${DB_PATH}-wal"
+if [[ -f "$DB_PATH" && -f "$WAL_FILE" ]]; then
+  if ! command -v sqlite3 >/dev/null 2>&1; then
+    warn "sqlite3 not installed — skipping WAL checkpoint on $DB_PATH"
+  else
+    WAL_BEFORE=$(stat -c %s "$WAL_FILE" 2>/dev/null || echo 0)
+    if sqlite3 "$DB_PATH" 'PRAGMA wal_checkpoint(TRUNCATE);' >/dev/null 2>&1; then
+      WAL_AFTER=$(stat -c %s "$WAL_FILE" 2>/dev/null || echo 0)
+      pass "WAL truncated on $(basename "$DB_PATH") ($((WAL_BEFORE / 1024))kB → $((WAL_AFTER / 1024))kB)"
+    else
+      warn "sqlite3 wal_checkpoint failed for $DB_PATH"
+    fi
+  fi
+fi
+
 # --- 4. Critical services ---
 for svc in gpsd earlyoom; do
   if systemctl is-active "$svc" >/dev/null 2>&1; then
