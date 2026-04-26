@@ -61,11 +61,20 @@ if [[ -f "$DB_PATH" && -f "$WAL_FILE" ]]; then
     warn "sqlite3 not installed — skipping WAL checkpoint on $DB_PATH"
   else
     WAL_BEFORE=$(stat -c %s "$WAL_FILE" 2>/dev/null || echo 0)
-    if sqlite3 "$DB_PATH" 'PRAGMA wal_checkpoint(TRUNCATE);' >/dev/null 2>&1; then
-      WAL_AFTER=$(stat -c %s "$WAL_FILE" 2>/dev/null || echo 0)
-      pass "WAL truncated on $(basename "$DB_PATH") ($((WAL_BEFORE / 1024))kB → $((WAL_AFTER / 1024))kB)"
+    # PRAGMA wal_checkpoint(TRUNCATE) returns `busy|log|checkpointed` (pipe-separated).
+    # The sqlite3 CLI exits 0 even when busy=1, so we must inspect the busy flag
+    # ourselves; otherwise a contended checkpoint silently logs a false success.
+    CHECKPOINT_RESULT=$(sqlite3 "$DB_PATH" 'PRAGMA wal_checkpoint(TRUNCATE);' 2>/dev/null || true)
+    if [[ -z "$CHECKPOINT_RESULT" ]]; then
+      warn "sqlite3 wal_checkpoint produced no result for $DB_PATH"
     else
-      warn "sqlite3 wal_checkpoint failed for $DB_PATH"
+      BUSY_FLAG=$(echo "$CHECKPOINT_RESULT" | awk -F'|' 'NR==1{print $1}')
+      WAL_AFTER=$(stat -c %s "$WAL_FILE" 2>/dev/null || echo 0)
+      if [[ "$BUSY_FLAG" == "0" ]]; then
+        pass "WAL truncated on $(basename "$DB_PATH") ($((WAL_BEFORE / 1024))kB → $((WAL_AFTER / 1024))kB)"
+      else
+        warn "WAL checkpoint blocked on $(basename "$DB_PATH") (busy=$BUSY_FLAG, $((WAL_BEFORE / 1024))kB)"
+      fi
     fi
   fi
 fi
