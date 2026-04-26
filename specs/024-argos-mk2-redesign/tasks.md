@@ -50,27 +50,31 @@ Tracking per-PR tasks against the migration plan in `plan.md`. Commit SHAs fille
 
 **Existing (DO NOT rebuild):** `Mission` entity (`src/lib/server/services/reports/types.ts`), `mission-store.ts` with `createMission` / `setActiveMission` / `getActiveMission` / `listMissions` / `deleteMission`, `mission-repository.ts`, `POST /api/missions`, `GET /api/missions/list`, `POST /api/missions/[id]/activate`, `/api/missions/[id]/+server.ts`. Migration `20260412_create_reports_missions.sql` already provides id / name / type / unit / ao_mgrs / created_at / active.
 
-- [ ] **T027** Migration `008_extend_missions_for_strip.sql` — three separate SQLite ALTER statements (single ALTER per column is required by SQLite):
+- [x] **T027** Migration `008_extend_missions_for_strip.sql` — three separate SQLite ALTER statements (single ALTER per column is required by SQLite):
    ```sql
    ALTER TABLE missions ADD COLUMN operator TEXT;
    ALTER TABLE missions ADD COLUMN target TEXT;
    ALTER TABLE missions ADD COLUMN link_budget REAL;
    ```
    Optional follow-up migration `009_*.sql` if `type` enum needs relaxing — keep schema changes one-per-migration so rollbacks stay clean.
-- [ ] **T028** Extend `Mission` type in `services/reports/types.ts` and `mission-store.ts` row mappers to surface new columns.
-- [ ] **T029** Add `GET` + `PATCH` exports to existing `src/routes/api/missions/[id]/+server.ts` (currently only exposes `DELETE`). `GET` returns the single mission via existing `getMission(db, id)`. `PATCH` validates body via Zod and writes via a new `updateMission(db, id, fields)` in `mission-store.ts`. No new files — extend existing.
-- [ ] **T030** `MissionStrip.svelte` — engagement / operator / target / mission timer / link budget. Editable on click. PATCH on blur. Multi-mission switcher.
-- [ ] **T031** `SensorTile.svelte` × 4 (sweep / devices / GPS / system) with sparklines.
-- [ ] **T032** `DetectionsList.svelte` — ranked SIG-A-XXX with bearing / distance / RSSI / confidence bars.
-- [ ] **T033** `EventStream.svelte` — rolling log, click event → modal with KV detail.
-- [ ] **T034** Mk II `/dashboard/+page.svelte` variant gated on `?ui=mk2`.
+- [x] **T028** Extend `Mission` type in `services/reports/types.ts` and `mission-store.ts` row mappers to surface new columns.
+- [x] **T029** Add `GET` + `PATCH` exports to existing `src/routes/api/missions/[id]/+server.ts` (currently only exposes `DELETE`). `GET` returns the single mission via existing `getMission(db, id)`. `PATCH` validates body via Zod and writes via a new `updateMission(db, id, fields)` in `mission-store.ts`. No new files — extend existing.
+- [x] **T030** `MissionStrip.svelte` — engagement / operator / target / mission timer / link budget. Editable on click. PATCH on blur. Multi-mission switcher.
+- [x] **T031** `SensorTile.svelte` × 4 (sweep / devices / GPS / system) with sparklines.
+- [x] **T032** `DetectionsList.svelte` — ranked SIG-A-XXX with bearing / distance / RSSI / confidence bars.
+- [x] **T033** `EventStream.svelte` — rolling log, click event → modal with KV detail.
+- [x] **T034** Mk II `/dashboard/+page.svelte` variant gated on `?ui=mk2`.
+
+**Merged**: PR #25 — `54791ee5` (T027-T029 missions backend) · PR #26 — `dd6c79a8` (T030+T034 mission strip + Mk II overview screen) · PR #27 — `0f407e3a` (T031-T033 overview tiles).
 
 ## PR 6 — MAP Screen (~3 days)
 
-- [ ] **T035** Mk II `/map/+page.svelte` (or fold into dashboard) with MapLibre + chassis.
-- [ ] **T036** Reuse `RFVisualizationLayer.svelte` + RF stores from spec 023.
-- [ ] **T037** Add own-position marker + bearing rays for current detections.
-- [ ] **T038** Layer panel chip group.
+- [x] **T035** Mk II `/map/+page.svelte` (or fold into dashboard) with MapLibre + chassis.
+- [x] **T036** Reuse `RFVisualizationLayer.svelte` + RF stores from spec 023.
+- [x] **T037** Add own-position marker + bearing rays for current detections.
+- [x] **T038** Layer panel chip group.
+
+**Merged**: PR #28 — `f74a6421` (T035-T038 map screen + nested-route chassis).
 
 ## PR 7 — AGENTS + Workflows Full Dock-Anywhere (~14 days, **spike-first**)
 
@@ -96,8 +100,10 @@ Tracking per-PR tasks against the migration plan in `plan.md`. Commit SHAs fille
 
 ## PR 10 — GSM + Kismet Screens (~3 days)
 
-- [ ] **T052** `ScreenGsm.svelte` — ARFCN tuner / IMSI capture table / cell info strip / selection inspector (TRACK/TAG/EXPORT/SIM-LOOKUP/FLAG).
-- [ ] **T053** `ScreenKismet.svelte` — device table (MAC/vendor/SSID/channel/RSSI), sortable, selection inspector (PCAP FILTER/TRIANGULATE/DEAUTH/BLACKLIST).
+- [x] **T052** `ScreenGsm.svelte` — ARFCN tuner / IMSI capture table / cell info strip / selection inspector (TRACK/TAG/EXPORT/SIM-LOOKUP/FLAG).
+- [x] **T053** `ScreenKismet.svelte` — device table (MAC/vendor/SSID/channel/RSSI), sortable, selection inspector (PCAP FILTER/TRIANGULATE/DEAUTH/BLACKLIST).
+
+**Merged**: PR #29 — `0313837b` (T053 Kismet screen) · PR #30 — `212fb893` (T052 GSM screen).
 
 ## PR 11 — Flip + Lunaris Sunset (~2 days)
 
