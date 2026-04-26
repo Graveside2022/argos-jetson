@@ -34,6 +34,19 @@
 	let info = $state<SystemInfo | null>(null);
 	let healthyCount = $state(0);
 	let totalCount = $state(0);
+	let headerError = $state<string | null>(null);
+	let firstHeaderSampleArrived = $state(false);
+
+	// CR fix #5 — explicit screen-level state envelope. Loading covers the
+	// initial wait for /api/system/info; Error covers a header poll failure
+	// that has not yet recovered (the chassis stays usable — tabs render —
+	// but the header surfaces a Dot+message). Active = Default once info
+	// flows; Disabled + Disconnected reduce to Error semantically (auth
+	// failure / endpoint down both look the same to the operator).
+	type ScreenState = 'loading' | 'default' | 'error';
+	const screenState = $derived<ScreenState>(
+		!firstHeaderSampleArrived ? 'loading' : headerError !== null ? 'error' : 'default'
+	);
 
 	const TABS: ReadonlyArray<{ id: SystemsTab; label: string }> = [
 		{ id: 'host', label: 'HOST METRICS' },
@@ -62,14 +75,23 @@
 				fetch('/api/system/info'),
 				fetch('/api/system/services')
 			]);
-			if (infoRes.ok) info = (await infoRes.json()) as SystemInfo;
-			if (svcRes.ok) {
-				const json: ServicesResponse = await svcRes.json();
-				healthyCount = json.healthy_count;
-				totalCount = json.total_count;
-			}
-		} catch {
-			// header is best-effort; per-tab components surface their own errors
+			if (!infoRes.ok) throw new Error(`info ${infoRes.status}`);
+			if (!svcRes.ok) throw new Error(`services ${svcRes.status}`);
+			info = (await infoRes.json()) as SystemInfo;
+			const json: ServicesResponse = await svcRes.json();
+			healthyCount = json.healthy_count;
+			totalCount = json.total_count;
+			headerError = null;
+		} catch (err) {
+			// CR fix #4 — surface header poll failures via headerError + visible
+			// signal in the header strip rather than swallowing. Tabs still
+			// render their own data with their own error paths; the screen
+			// header just gains a stale-data dot + message so operators see why
+			// uptime / load / OK counts may be frozen.
+			headerError = err instanceof Error ? err.message : String(err);
+			console.warn('[SystemsScreen] header poll failed:', headerError);
+		} finally {
+			firstHeaderSampleArrived = true;
 		}
 	}
 
@@ -84,7 +106,7 @@
 	}
 </script>
 
-<div class="sys-screen">
+<div class="sys-screen" data-state={screenState}>
 	<header class="sys-head">
 		<div class="sys-head-left">
 			<div class="eyebrow mono">SYSTEMS OVERVIEW</div>
@@ -96,12 +118,22 @@
 			</div>
 		</div>
 		<div class="sys-head-right">
-			<span class="stat mono"><Dot kind="ok" label="uptime" /> UPTIME {info ? fmtUptime(info.uptime) : '—'}</span>
-			<span class="stat mono"><Dot kind="ok" label="load" /> LOAD {fmtLoad(info?.loadAvg)}</span>
-			<span class="stat mono"><Dot kind="ok" label="ok services" /> {healthyCount} OK</span>
-			<span class="stat mono">
-				<Dot kind={warnCount > 0 ? 'warn' : 'inactive'} label="warn services" /> {warnCount} WARN
-			</span>
+			{#if screenState === 'loading'}
+				<span class="stat mono" aria-live="polite">
+					<Dot kind="inactive" label="loading" /> LOADING…
+				</span>
+			{:else if screenState === 'error'}
+				<span class="stat mono" role="alert">
+					<Dot kind="err" label="header stale" /> HEADER STALE — {headerError}
+				</span>
+			{:else}
+				<span class="stat mono"><Dot kind="ok" label="uptime" /> UPTIME {info ? fmtUptime(info.uptime) : '—'}</span>
+				<span class="stat mono"><Dot kind="ok" label="load" /> LOAD {fmtLoad(info?.loadAvg)}</span>
+				<span class="stat mono"><Dot kind="ok" label="ok services" /> {healthyCount} OK</span>
+				<span class="stat mono">
+					<Dot kind={warnCount > 0 ? 'warn' : 'inactive'} label="warn services" /> {warnCount} WARN
+				</span>
+			{/if}
 		</div>
 	</header>
 

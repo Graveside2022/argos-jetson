@@ -32,6 +32,24 @@
 	let healthyCount = $state(0);
 	let totalCount = $state(0);
 	let lastError = $state<string | null>(null);
+	let firstSampleArrived = $state(false);
+
+	// CR fix #3 — explicit state envelope. Per CLAUDE.md component-state
+	// contract, the template branches on a single derived value rather than
+	// on a chain of falsy checks. Active = Default once rows flow; Disabled +
+	// Disconnected collapse to Error because nothing in this tab can be
+	// programmatically toggled — both reduce to "/api/system/services
+	// unreachable" with the same recovery hint.
+	type TabState = 'loading' | 'empty' | 'default' | 'error';
+	const tabState = $derived<TabState>(
+		!firstSampleArrived && lastError === null
+			? 'loading'
+			: lastError !== null && services.length === 0
+				? 'error'
+				: services.length === 0
+					? 'empty'
+					: 'default'
+	);
 
 	function dotKind(status: HealthStatus): 'ok' | 'warn' | 'err' | 'inactive' {
 		if (status === 'healthy') return 'ok';
@@ -48,8 +66,10 @@
 			healthyCount = json.healthy_count;
 			totalCount = json.total_count;
 			lastError = null;
+			firstSampleArrived = true;
 		} catch (err) {
 			lastError = err instanceof Error ? err.message : String(err);
+			firstSampleArrived = true;
 		}
 	}
 
@@ -60,17 +80,22 @@
 	});
 </script>
 
-<div class="svc-tab">
+<div class="svc-tab" data-state={tabState}>
 	<div class="summary mono">
 		<span><span class="label">HEALTHY</span> {healthyCount}</span>
 		<span><span class="label">TOTAL</span> {totalCount}</span>
 		<span><span class="label">SOURCE</span> /api/system/services</span>
 	</div>
 
-	{#if services.length === 0 && !lastError}
-		<p class="empty mono">awaiting first sample…</p>
-	{:else if services.length === 0}
-		<p class="err mono" role="alert">{lastError}</p>
+	{#if tabState === 'loading'}
+		<p class="loading mono" aria-live="polite">connecting to /api/system/services…</p>
+	{:else if tabState === 'error'}
+		<p class="err mono" role="alert">
+			cannot reach /api/system/services — {lastError}. Check ARGOS_API_KEY +
+			service status; retrying every {POLL_MS / 1000}s.
+		</p>
+	{:else if tabState === 'empty'}
+		<p class="empty mono">no services configured server-side.</p>
 	{:else}
 		<table class="svc-table">
 			<thead>
@@ -88,10 +113,9 @@
 				{/each}
 			</tbody>
 		</table>
-	{/if}
-
-	{#if lastError && services.length > 0}
-		<p class="err mono" role="alert">last poll error: {lastError}</p>
+		{#if lastError}
+			<p class="err mono" role="alert">last poll error: {lastError}</p>
+		{/if}
 	{/if}
 </div>
 
@@ -174,6 +198,11 @@
 	.empty {
 		font-size: var(--mk2-fs-2);
 		color: var(--mk2-ink-4);
+	}
+
+	.loading {
+		font-size: var(--mk2-fs-3);
+		color: var(--mk2-ink-3);
 	}
 
 	.err {
