@@ -26,7 +26,7 @@ import { EventEmitter } from 'events';
 import { logger } from '$lib/utils/logger';
 
 import type { TakServerConfig, TakStatus } from '../../types/tak';
-import { RFDatabase } from '../db/database';
+import { getRFDatabase, RFDatabase } from '../db/database';
 import { broadcastTakCot, broadcastTakStatus } from './tak-broadcast';
 import {
 	computeReconnectDelay,
@@ -57,7 +57,11 @@ export class TakService extends EventEmitter {
 
 	private constructor() {
 		super();
-		this.db = new RFDatabase();
+		// Reuse the shared RFDatabase singleton. Constructing a new instance
+		// triggers a second migration runner against the same on-disk DB, which
+		// races the primary runner and fails with `UNIQUE constraint failed:
+		// migrations.filename` on fresh installs (spec-024 reproducer).
+		this.db = getRFDatabase();
 		this.saBroadcaster = new TakSaBroadcaster(this);
 		this.throttler = new CotThrottler(() => this.tak);
 	}

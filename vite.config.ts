@@ -10,6 +10,9 @@ export default defineConfig({
 	server: {
 		host: '0.0.0.0',
 		port: 5173,
+		fs: {
+			allow: ['/home/jetson2/code/Argos', '/home/jetson2/code/Argos.mig-fix']
+		},
 		watch: {
 			ignored: [
 				'**/*.db',
