@@ -24,7 +24,7 @@ TLS/SSL Analysis / Cryptographic Assessment / Vulnerability Scanning
 
 ## Repository
 
-https://github.com/c0r0n3r/cryptolyzer
+<https://github.com/c0r0n3r/cryptolyzer>
 
 ---
 

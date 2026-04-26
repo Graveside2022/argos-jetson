@@ -1,7 +1,7 @@
-import { type Writable,writable } from 'svelte/store';
+import { type Writable, writable } from 'svelte/store';
 // Re-export canonical Leaflet types from $lib/types/map (Phase 0.6.2 backward compat)
-export type { LeafletCircle, LeafletCircleMarker,LeafletMap, LeafletMarker } from '$lib/types/map';
-import type { LeafletCircle,LeafletMap, LeafletMarker } from '$lib/types/map';
+export type { LeafletCircle, LeafletCircleMarker, LeafletMap, LeafletMarker } from '$lib/types/map';
+import type { LeafletCircle, LeafletMap, LeafletMarker } from '$lib/types/map';
 
 export interface MapState {
 	map: LeafletMap | null;

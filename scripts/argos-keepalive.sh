@@ -20,7 +20,8 @@ FAILURE_COUNT=0
 RUNNING=true
 
 log() {
-  local msg="[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+  local msg
+  msg="[$(date '+%Y-%m-%d %H:%M:%S')] $1"
   echo "$msg" >> "$LOG_FILE"
   [[ "${DEBUG:-0}" == "1" ]] && echo "$msg"
 }

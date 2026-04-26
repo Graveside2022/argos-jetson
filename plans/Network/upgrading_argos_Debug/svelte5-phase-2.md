@@ -86,11 +86,11 @@ git tag pre-migrate-devicespanel
 **Before (Lines 11-17):**
 
 ```typescript
-let searchQuery = "";
-let whitelistInput = "";
+let searchQuery = '';
+let whitelistInput = '';
 let whitelistedMACs: string[] = [];
-let sortColumn: "mac" | "rssi" | "type" = "rssi";
-let sortDirection: "asc" | "desc" = "desc";
+let sortColumn: 'mac' | 'rssi' | 'type' = 'rssi';
+let sortDirection: 'asc' | 'desc' = 'desc';
 let selectedMAC: string | null = null;
 let hiddenBands = new Set<string>();
 ```
@@ -98,11 +98,11 @@ let hiddenBands = new Set<string>();
 **After:**
 
 ```typescript
-let searchQuery = $state("");
-let whitelistInput = $state("");
+let searchQuery = $state('');
+let whitelistInput = $state('');
 let whitelistedMACs = $state<string[]>([]);
-let sortColumn = $state<"mac" | "rssi" | "type">("rssi");
-let sortDirection = $state<"asc" | "desc">("desc");
+let sortColumn = $state<'mac' | 'rssi' | 'type'>('rssi');
+let sortDirection = $state<'asc' | 'desc'>('desc');
 let selectedMAC = $state<string | null>(null);
 let hiddenBands = $state(new Set<string>());
 ```
@@ -118,14 +118,14 @@ let hiddenBands = $state(new Set<string>());
 **Before (Line 3):**
 
 ```typescript
-import { kismetStore } from "$lib/stores/tactical-map/kismetStore";
+import { kismetStore } from '$lib/stores/tactical-map/kismetStore';
 // Likely has: $: data = $kismetStore; or manual subscribe
 ```
 
 **After:**
 
 ```typescript
-import { kismetStore } from "$lib/stores/tactical-map/kismetStore";
+import { kismetStore } from '$lib/stores/tactical-map/kismetStore';
 
 let kismetData = $derived($kismetStore);
 ```
@@ -149,24 +149,22 @@ $: devices = (() => {
 			const band = getSignalBandKey(rssi);
 			if (hiddenBands.has(band)) return false;
 			if (!q) return true;
-			const mac = (d.mac || "").toLowerCase();
-			const ssid = (d.ssid || "").toLowerCase();
-			const mfr = (d.manufacturer || d.manuf || "").toLowerCase();
+			const mac = (d.mac || '').toLowerCase();
+			const ssid = (d.ssid || '').toLowerCase();
+			const mfr = (d.manufacturer || d.manuf || '').toLowerCase();
 			return mac.includes(q) || ssid.includes(q) || mfr.includes(q);
 		})
 		.sort((a, b) => {
 			let cmp = 0;
-			if (sortColumn === "mac") {
-				cmp = (a.mac || "").localeCompare(b.mac || "");
-			} else if (sortColumn === "rssi") {
-				cmp =
-					(b.signal?.last_signal ?? -100) -
-					(a.signal?.last_signal ?? -100);
-			} else if (sortColumn === "type") {
+			if (sortColumn === 'mac') {
+				cmp = (a.mac || '').localeCompare(b.mac || '');
+			} else if (sortColumn === 'rssi') {
+				cmp = (b.signal?.last_signal ?? -100) - (a.signal?.last_signal ?? -100);
+			} else if (sortColumn === 'type') {
 				const order: Record<string, number> = { ap: 0, client: 1 };
 				cmp = (order[a.type] ?? 2) - (order[b.type] ?? 2);
 			}
-			return sortDirection === "asc" ? cmp : -cmp;
+			return sortDirection === 'asc' ? cmp : -cmp;
 		});
 })();
 ```
@@ -184,24 +182,22 @@ let devices = $derived.by(() => {
 			const band = getSignalBandKey(rssi);
 			if (hiddenBands.has(band)) return false;
 			if (!q) return true;
-			const mac = (d.mac || "").toLowerCase();
-			const ssid = (d.ssid || "").toLowerCase();
-			const mfr = (d.manufacturer || d.manuf || "").toLowerCase();
+			const mac = (d.mac || '').toLowerCase();
+			const ssid = (d.ssid || '').toLowerCase();
+			const mfr = (d.manufacturer || d.manuf || '').toLowerCase();
 			return mac.includes(q) || ssid.includes(q) || mfr.includes(q);
 		})
 		.sort((a, b) => {
 			let cmp = 0;
-			if (sortColumn === "mac") {
-				cmp = (a.mac || "").localeCompare(b.mac || "");
-			} else if (sortColumn === "rssi") {
-				cmp =
-					(b.signal?.last_signal ?? -100) -
-					(a.signal?.last_signal ?? -100);
-			} else if (sortColumn === "type") {
+			if (sortColumn === 'mac') {
+				cmp = (a.mac || '').localeCompare(b.mac || '');
+			} else if (sortColumn === 'rssi') {
+				cmp = (b.signal?.last_signal ?? -100) - (a.signal?.last_signal ?? -100);
+			} else if (sortColumn === 'type') {
 				const order: Record<string, number> = { ap: 0, client: 1 };
 				cmp = (order[a.type] ?? 2) - (order[b.type] ?? 2);
 			}
-			return sortDirection === "asc" ? cmp : -cmp;
+			return sortDirection === 'asc' ? cmp : -cmp;
 		});
 });
 ```
@@ -250,12 +246,12 @@ function toggleBand(key: string) {
 **Subtask 1.6.2: Verify sorting function**
 
 ```typescript
-function handleSort(col: "mac" | "rssi" | "type") {
+function handleSort(col: 'mac' | 'rssi' | 'type') {
 	if (sortColumn === col) {
-		sortDirection = sortDirection === "asc" ? "desc" : "asc";
+		sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
 	} else {
 		sortColumn = col;
-		sortDirection = col === "mac" ? "asc" : "desc";
+		sortDirection = col === 'mac' ? 'asc' : 'desc';
 	}
 	// No changes needed - $state automatically reactive
 }
@@ -312,71 +308,71 @@ npm run dev
 **File:** `tests/unit/components/dashboard/panels/DevicesPanel.test.ts`
 
 ```typescript
-import { describe, it, expect, beforeEach } from "vitest";
-import { render } from "@testing-library/svelte";
-import { fireEvent } from "@testing-library/dom";
-import DevicesPanel from "$lib/components/dashboard/panels/DevicesPanel.svelte";
-import { kismetStore } from "$lib/stores/tactical-map/kismetStore";
+import { describe, it, expect, beforeEach } from 'vitest';
+import { render } from '@testing-library/svelte';
+import { fireEvent } from '@testing-library/dom';
+import DevicesPanel from '$lib/components/dashboard/panels/DevicesPanel.svelte';
+import { kismetStore } from '$lib/stores/tactical-map/kismetStore';
 
-describe("DevicesPanel - Svelte 5", () => {
+describe('DevicesPanel - Svelte 5', () => {
 	beforeEach(() => {
 		// Setup mock Kismet data
 		kismetStore.set({
-			status: "running",
+			status: 'running',
 			devices: new Map([
 				[
-					"AA:BB:CC:DD:EE:FF",
+					'AA:BB:CC:DD:EE:FF',
 					{
-						mac: "AA:BB:CC:DD:EE:FF",
-						ssid: "TestNetwork",
-						type: "ap",
+						mac: 'AA:BB:CC:DD:EE:FF',
+						ssid: 'TestNetwork',
+						type: 'ap',
 						signal: { last_signal: -50 },
-						manufacturer: "Apple",
-					},
+						manufacturer: 'Apple'
+					}
 				],
 				[
-					"11:22:33:44:55:66",
+					'11:22:33:44:55:66',
 					{
-						mac: "11:22:33:44:55:66",
-						ssid: "SecondNetwork",
-						type: "ap",
+						mac: '11:22:33:44:55:66',
+						ssid: 'SecondNetwork',
+						type: 'ap',
 						signal: { last_signal: -70 },
-						manufacturer: "Samsung",
-					},
-				],
+						manufacturer: 'Samsung'
+					}
+				]
 			]),
-			stats: { total: 2, active: 2 },
+			stats: { total: 2, active: 2 }
 		});
 	});
 
-	it("renders device list", () => {
+	it('renders device list', () => {
 		const { container } = render(DevicesPanel);
-		expect(container.querySelectorAll(".device-row").length).toBe(2);
+		expect(container.querySelectorAll('.device-row').length).toBe(2);
 	});
 
-	it("filters devices by search query", async () => {
+	it('filters devices by search query', async () => {
 		const { container, getByPlaceholderText } = render(DevicesPanel);
 
 		const searchInput = getByPlaceholderText(/search/i);
-		await fireEvent.input(searchInput, { target: { value: "test" } });
+		await fireEvent.input(searchInput, { target: { value: 'test' } });
 
 		// Should show only TestNetwork
-		expect(container.querySelectorAll(".device-row").length).toBe(1);
-		expect(container.textContent).toContain("TestNetwork");
+		expect(container.querySelectorAll('.device-row').length).toBe(1);
+		expect(container.textContent).toContain('TestNetwork');
 	});
 
-	it("sorts devices by MAC address", async () => {
+	it('sorts devices by MAC address', async () => {
 		const { container, getByText } = render(DevicesPanel);
 
 		const macHeader = getByText(/MAC Address/i);
 		await fireEvent.click(macHeader);
 
-		const rows = container.querySelectorAll(".device-row");
-		expect(rows[0].textContent).toContain("11:22:33:44:55:66");
-		expect(rows[1].textContent).toContain("AA:BB:CC:DD:EE:FF");
+		const rows = container.querySelectorAll('.device-row');
+		expect(rows[0].textContent).toContain('11:22:33:44:55:66');
+		expect(rows[1].textContent).toContain('AA:BB:CC:DD:EE:FF');
 	});
 
-	it("filters devices by signal band", async () => {
+	it('filters devices by signal band', async () => {
 		const { container, getByText } = render(DevicesPanel);
 
 		// Click to hide "excellent" band (-50 dBm)
@@ -384,17 +380,17 @@ describe("DevicesPanel - Svelte 5", () => {
 		await fireEvent.click(excellentChip);
 
 		// Should show only SecondNetwork (-70 dBm)
-		expect(container.querySelectorAll(".device-row").length).toBe(1);
-		expect(container.textContent).toContain("SecondNetwork");
+		expect(container.querySelectorAll('.device-row').length).toBe(1);
+		expect(container.textContent).toContain('SecondNetwork');
 	});
 
-	it("selects device on row click", async () => {
+	it('selects device on row click', async () => {
 		const { container } = render(DevicesPanel);
 
-		const firstRow = container.querySelector(".device-row");
+		const firstRow = container.querySelector('.device-row');
 		await fireEvent.click(firstRow!);
 
-		expect(firstRow?.classList.contains("selected")).toBe(true);
+		expect(firstRow?.classList.contains('selected')).toBe(true);
 	});
 });
 ```
@@ -482,8 +478,8 @@ git tag post-migrate-devicespanel
 
 ```typescript
 // Local state
-let searchFilter = $state("");
-let sortMode = $state<"time" | "strength" | "frequency">("time");
+let searchFilter = $state('');
+let sortMode = $state<'time' | 'strength' | 'frequency'>('time');
 let selectedSignal = $state<string | null>(null);
 
 // Store subscription
@@ -494,14 +490,14 @@ let filteredSignals = $derived.by(() => {
 	return signalsData
 		.filter((s) => s.name.includes(searchFilter))
 		.sort((a, b) => {
-			if (sortMode === "time") return b.timestamp - a.timestamp;
-			if (sortMode === "strength") return b.strength - a.strength;
+			if (sortMode === 'time') return b.timestamp - a.timestamp;
+			if (sortMode === 'strength') return b.strength - a.strength;
 			return a.frequency - b.frequency;
 		});
 });
 ```
 
-### Remaining Map Components (11):
+### Remaining Map Components (11)
 
 - MapControls.svelte
 - SignalDetailPanel.svelte
@@ -527,7 +523,7 @@ let filteredSignals = $derived.by(() => {
 
 ```typescript
 // State
-let filterMode = $state<"all" | "ap" | "client">("all");
+let filterMode = $state<'all' | 'ap' | 'client'>('all');
 let minRSSI = $state(-100);
 
 // Store
@@ -536,14 +532,14 @@ let devices = $derived($kismetStore.devices);
 // Filtered
 let filteredDevices = $derived.by(() => {
 	return Array.from(devices.values()).filter((d) => {
-		if (filterMode !== "all" && d.type !== filterMode) return false;
+		if (filterMode !== 'all' && d.type !== filterMode) return false;
 		if (d.signal.last_signal < minRSSI) return false;
 		return true;
 	});
 });
 ```
 
-### Remaining Kismet Components (4):
+### Remaining Kismet Components (4)
 
 - AlertsPanel.svelte (3 hours)
 - MapView.svelte (4 hours)

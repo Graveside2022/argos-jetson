@@ -107,7 +107,6 @@ class LDAPEnum(TacticalModule):
 
     @staticmethod
     def _query_users(conn, base_dn: str) -> list[dict]:
-        import ldap3
         conn.search(base_dn, "(objectClass=user)",
                      attributes=["sAMAccountName", "displayName", "mail",
                                  "lastLogon", "userAccountControl", "memberOf"])

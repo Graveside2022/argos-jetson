@@ -24,7 +24,7 @@ Wardriving / WiFi Spectrum Analysis / Bluetooth Detection / Signal Hunting / Fie
 
 ## Repository
 
-- **GitHub**: https://github.com/ghostop14/sparrow-wifi
+- **GitHub**: <https://github.com/ghostop14/sparrow-wifi>
 - **Language**: Python 3, Qt5 (PyQt5)
 - **License**: GPL-3.0
 

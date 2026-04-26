@@ -1,5 +1,44 @@
 #!/usr/bin/env sh
-# Enforce Conventional Commits via commitlint on every `git commit`.
-# PR-level re-validation in .github/workflows/commitlint.yml catches any
-# local --no-verify bypass.
-npx --no-install commitlint --edit "$1"
+# Conventional Commits enforcement.
+# Subject must be: type(scope)?!?: description
+#
+# Bypass: SKIP_COMMIT_MSG=1 git commit ...  OR  git commit --no-verify ...
+
+set -e
+
+if [ "${SKIP_COMMIT_MSG:-0}" = "1" ]; then
+	echo "[commit-msg] SKIP_COMMIT_MSG=1 — skipping"
+	exit 0
+fi
+
+MSG_FILE=$1
+[ -f "$MSG_FILE" ] || exit 0
+
+MSG_HEAD=$(grep -vE '^(#|$)' "$MSG_FILE" | head -1)
+
+case "$MSG_HEAD" in
+	"Merge "*|"Revert "*|"fixup!"*|"squash!"*|"amend!"*|"WIP"*|"Initial commit"*)
+		exit 0
+		;;
+esac
+
+# Pattern enforces commitlint defaults: type-enum lowercase, scope-case lowercase,
+# subject-case starts-lowercase, subject-full-stop never, min 2 chars.
+PATTERN='^(feat|fix|chore|docs|refactor|test|perf|ci|build|style|revert)(\([a-z0-9][a-z0-9._/-]*\))?!?: [a-z].*[^.]$'
+
+if ! echo "$MSG_HEAD" | grep -qE "$PATTERN"; then
+	echo "[commit-msg] ❌ subject does not match Conventional Commits format" >&2
+	echo "[commit-msg]   got:    $MSG_HEAD" >&2
+	echo "[commit-msg]   expect: type(scope)?: subject  (lowercase first char, no trailing period)" >&2
+	echo "[commit-msg]   example: feat(kismet): add fusion controller" >&2
+	echo "[commit-msg]   types:  feat | fix | chore | docs | refactor | test | perf | ci | build | style | revert" >&2
+	echo "[commit-msg] bypass: SKIP_COMMIT_MSG=1 git commit ..." >&2
+	exit 1
+fi
+
+LEN=$(printf '%s' "$MSG_HEAD" | wc -c)
+if [ "$LEN" -gt 72 ]; then
+	echo "[commit-msg] ⚠ subject is ${LEN} chars (>72). GitHub will truncate it — consider shortening." >&2
+fi
+
+exit 0

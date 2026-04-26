@@ -198,7 +198,12 @@ docs/cell_towers.csv*
 scripts/ops/*.bak.*
 
 # ── AI Development Tools ────────────────────────────────────
-.gemini/
+# .gemini/ workspace cruft is ignored; the GitHub App's repo-level config
+# (.gemini/config.yaml) and optional styleguide.md are tracked so review
+# policy lives in the repo.
+.gemini/*
+!.gemini/config.yaml
+!.gemini/styleguide.md
 .agent/
 .development-archive/
 _bmad/

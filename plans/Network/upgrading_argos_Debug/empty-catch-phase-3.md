@@ -89,11 +89,11 @@ try {
 	logInfo(`Tool ${tool} not found (optional)`, {
 		error: errorMsg,
 		timestamp: Date.now(),
-		operation: "tool.check",
+		operation: 'tool.check',
 		tool,
-		impact: "Tool-specific features unavailable",
+		impact: 'Tool-specific features unavailable',
 		required: false,
-		recovery: "Install if needed: apt install " + tool,
+		recovery: 'Install if needed: apt install ' + tool
 	});
 	return { available: false, version: null };
 }
@@ -384,7 +384,7 @@ grep ERROR /var/log/argos/*.log | awk '{print $1,$2}' | uniq -c | awk '$1 > 10'
 
 ---
 
-## Project Complete!
+## Project Complete
 
 All empty catch blocks have been fixed with comprehensive error logging.
 

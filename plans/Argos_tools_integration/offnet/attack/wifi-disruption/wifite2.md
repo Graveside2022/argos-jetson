@@ -26,7 +26,7 @@ WiFi Automated Exploitation / WPA/WPA2/WPS Cracking
 
 ## Repository
 
-https://github.com/derv82/wifite2
+<https://github.com/derv82/wifite2>
 
 ---
 

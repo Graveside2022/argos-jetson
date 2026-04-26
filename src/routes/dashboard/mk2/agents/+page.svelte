@@ -21,7 +21,9 @@
 		| 'disabled'
 		| 'disconnected';
 
-	const viewState: ViewState = 'default';
+	// Cast widens the literal type so the placeholder branches below remain
+	// reachable to the type checker; PR7 will replace this with reactive state.
+	const viewState = 'default' as ViewState;
 </script>
 
 {#if viewState === 'loading'}

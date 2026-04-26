@@ -24,7 +24,7 @@ ZigBee Traffic Analysis / Passive Protocol Inspection
 
 ## Repository
 
-https://github.com/akestoridis/zigator
+<https://github.com/akestoridis/zigator>
 
 ---
 

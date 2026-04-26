@@ -114,7 +114,8 @@ test_script_exists() {
 test_help_output() {
     echo -e "\n${YELLOW}Test: Help output${NC}"
     
-    local output=$("$SCRIPT_PATH" --help 2>&1 || true)
+    local output
+    output=$("$SCRIPT_PATH" --help 2>&1 || true)
     assert_contains "$output" "Usage:" "Help shows usage"
     assert_contains "$output" "--daemon" "Help mentions daemon mode"
     assert_contains "$output" "--status" "Help mentions status command"
@@ -132,7 +133,8 @@ test_pid_file_creation() {
     
     # Clean up
     if [[ -f "$TEST_PID_FILE" ]]; then
-        local pid=$(cat "$TEST_PID_FILE")
+        local pid
+        pid=$(cat "$TEST_PID_FILE")
         kill "$pid" 2>/dev/null || true
         rm -f "$TEST_PID_FILE"
     fi
@@ -143,7 +145,8 @@ test_status_command() {
     echo -e "\n${YELLOW}Test: Status command${NC}"
     
     # Test when not running
-    local output=$("$SCRIPT_PATH" --status 2>&1 || true)
+    local output
+    output=$("$SCRIPT_PATH" --status 2>&1 || true)
     assert_contains "$output" "not running" "Status shows not running when stopped"
     
     # Start daemon and test status
@@ -160,7 +163,7 @@ test_status_command() {
         "$SCRIPT_PATH" --stop >/dev/null 2>&1 || true
     fi
     
-    kill $daemon_pid 2>/dev/null || true
+    kill "$daemon_pid" 2>/dev/null || true
 }
 
 # Test process counting functions
@@ -173,12 +176,14 @@ test_process_counting() {
     sleep 9999 &
     local dummy2=$!
     
-    # Count processes
-    local count=$(pgrep -f "sleep 9999" | wc -l)
+    # Count processes — scope to direct children of this test shell to avoid
+    # matching unrelated `sleep 9999` processes on shared CI runners.
+    local count
+    count=$(pgrep -P "$$" -f '^sleep 9999$' | wc -l)
     assert_equals "2" "$count" "Can count dummy processes"
     
     # Clean up
-    kill $dummy1 $dummy2 2>/dev/null || true
+    kill "$dummy1" "$dummy2" 2>/dev/null || true
 }
 
 # Test log file creation
@@ -191,7 +196,8 @@ test_logging() {
     assert_file_exists "$TEST_LOG" "Log file created"
     
     if [[ -f "$TEST_LOG" ]]; then
-        local log_content=$(cat "$TEST_LOG")
+        local log_content
+        log_content=$(cat "$TEST_LOG")
         assert_contains "$log_content" "running single check" "Log contains expected message"
         assert_contains "$log_content" "Single check completed" "Log shows completion"
     fi
@@ -200,10 +206,6 @@ test_logging() {
 # Test duplicate detection logic
 test_duplicate_detection() {
     echo -e "\n${YELLOW}Test: Duplicate process detection${NC}"
-    
-    # Verify the script can identify duplicate processes
-    local script_dir=$(dirname "$SCRIPT_PATH")
-    local script_name=$(basename "$SCRIPT_PATH")
     
     # Test that script functions are available when sourced
     # This is a simplified test since we can't easily test the actual killing
@@ -222,7 +224,8 @@ test_memory_configuration() {
     echo -e "\n${YELLOW}Test: Memory threshold configuration${NC}"
     
     # Check that script defines memory threshold
-    local threshold=$(grep "^MEMORY_THRESHOLD_MB=" "$SCRIPT_PATH" | cut -d= -f2)
+    local threshold
+    threshold=$(grep "^MEMORY_THRESHOLD_MB=" "$SCRIPT_PATH" | cut -d= -f2)
     assert_true "[[ -n '$threshold' ]]" "Memory threshold is defined"
     assert_true "[[ '$threshold' -gt 0 ]]" "Memory threshold is positive number"
 }
@@ -232,7 +235,8 @@ test_service_configuration() {
     echo -e "\n${YELLOW}Test: Service configuration${NC}"
     
     # Check that script defines service name
-    local service=$(grep "^ARGOS_SERVICE=" "$SCRIPT_PATH" | cut -d= -f2 | tr -d '"')
+    local service
+    service=$(grep "^ARGOS_SERVICE=" "$SCRIPT_PATH" | cut -d= -f2 | tr -d '"')
     assert_equals "argos.service" "$service" "Correct service name configured"
 }
 
@@ -241,7 +245,8 @@ test_error_handling() {
     echo -e "\n${YELLOW}Test: Error handling${NC}"
     
     # Test with invalid command
-    local output=$("$SCRIPT_PATH" --invalid-option 2>&1 || true)
+    local output
+    output=$("$SCRIPT_PATH" --invalid-option 2>&1 || true)
     assert_contains "$output" "Unknown option" "Handles unknown options"
     
     # Test running when already running (simulate)
@@ -255,9 +260,11 @@ test_error_handling() {
 test_performance() {
     echo -e "\n${YELLOW}Test: Performance${NC}"
     
-    local start_time=$(date +%s)
+    local start_time
+    start_time=$(date +%s)
     timeout 2 "$SCRIPT_PATH" --help >/dev/null 2>&1
-    local end_time=$(date +%s)
+    local end_time
+    end_time=$(date +%s)
     local duration=$((end_time - start_time))
     
     assert_true "[[ $duration -lt 2 ]]" "Help command completes in under 2 seconds"
@@ -274,11 +281,13 @@ test_integration() {
     
     # Check it's running
     if [[ -f "$TEST_PID_FILE" ]]; then
-        local pid=$(cat "$TEST_PID_FILE")
+        local pid
+        pid=$(cat "$TEST_PID_FILE")
         assert_true "kill -0 $pid 2>/dev/null" "Daemon process is running"
         
         # Check status
-        local status=$("$SCRIPT_PATH" --status 2>&1)
+        local status
+        status=$("$SCRIPT_PATH" --status 2>&1)
         assert_contains "$status" "running" "Status reports running"
         
         # Stop daemon
@@ -291,7 +300,7 @@ test_integration() {
     fi
     
     # Clean up
-    kill $daemon_pid 2>/dev/null || true
+    kill "$daemon_pid" 2>/dev/null || true
 }
 
 # Main test runner

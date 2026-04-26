@@ -73,7 +73,7 @@ describe.runIf(canRun)('WebSocket Connection Tests', () => {
 			const dataPromise = new Promise((resolve) => {
 				if (!ws) return;
 				ws.on('message', (data: unknown) => {
-		// Safe: Test data structure assertion
+					// Safe: Test data structure assertion
 					const message = JSON.parse(String(data)) as Record<string, unknown>;
 					resolve(message);
 				});
@@ -131,7 +131,7 @@ describe.runIf(canRun)('WebSocket Connection Tests', () => {
 			const responsePromise = new Promise((resolve) => {
 				if (!ws) return;
 				ws.on('message', (data: unknown) => {
-		// Safe: Test data structure assertion
+					// Safe: Test data structure assertion
 					const message = JSON.parse(String(data)) as Record<string, unknown>;
 					if (message.requestId === requestId) {
 						resolve(message);
@@ -147,7 +147,7 @@ describe.runIf(canRun)('WebSocket Connection Tests', () => {
 				})
 			);
 
-		// Safe: Test data structure assertion
+			// Safe: Test data structure assertion
 			const response = (await responsePromise) as Record<string, unknown>;
 			expect(response).toHaveProperty('requestId', requestId);
 			expect(response).toHaveProperty('status');
@@ -223,7 +223,7 @@ describe.runIf(canRun)('WebSocket Connection Tests', () => {
 			const errorPromise = new Promise((resolve) => {
 				if (!ws) return;
 				ws.on('message', (data: unknown) => {
-		// Safe: Test data structure assertion
+					// Safe: Test data structure assertion
 					const message = JSON.parse(String(data)) as Record<string, unknown>;
 					if (message.type === 'error') {
 						resolve(message);
@@ -233,7 +233,7 @@ describe.runIf(canRun)('WebSocket Connection Tests', () => {
 
 			ws.send('{ invalid json');
 
-		// Safe: Test data structure assertion
+			// Safe: Test data structure assertion
 			const error = (await errorPromise) as Record<string, unknown>;
 			expect(error).toHaveProperty('type', 'error');
 			expect(error).toHaveProperty('message');
@@ -250,7 +250,7 @@ describe.runIf(canRun)('WebSocket Connection Tests', () => {
 			const capturedWs = ws;
 			const validResponse = new Promise((resolve) => {
 				capturedWs.on('message', (data: unknown) => {
-		// Safe: Test data structure assertion
+					// Safe: Test data structure assertion
 					const message = JSON.parse(String(data)) as Record<string, unknown>;
 					if (message.type === 'pong') {
 						resolve(true);

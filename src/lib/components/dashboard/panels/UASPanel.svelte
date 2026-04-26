@@ -185,7 +185,8 @@
 		rssi: (d) => `${d.rssi} dBm`,
 		transport: (d) => d.transport || '--',
 		make_model: (d) => mm(d),
-		last_update_time: (d) => ago(d.last_update_time)
+		last_update_time: (d) =>
+			ago(d.last_update_time > 1e12 ? d.last_update_time : d.last_update_time * 1000)
 	};
 
 	function cell(d: DragonSyncDrone, k: SortKey): string {
@@ -268,7 +269,9 @@
 			>C2 Scanner <span class="dot" class:up={$uasStore.c2ScannerRunning}></span></span
 		>
 		<span class="spacer"></span>
-		<span class="count">{$uasStore.droneCount} drones</span>
+		<span class="count"
+			>{$uasStore.drones.size} drone{$uasStore.drones.size === 1 ? '' : 's'}</span
+		>
 		{#if $uasStore.status === 'stopped'}
 			<button class="btn-start" onclick={onStart} disabled={starting}>
 				{starting ? 'Starting...' : 'Start'}

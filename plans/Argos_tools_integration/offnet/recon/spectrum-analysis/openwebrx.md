@@ -26,7 +26,7 @@ Web-Based SDR Receiver / Multi-User Radio Interface / Signal Demodulation
 
 ## Repository
 
-https://github.com/jketterl/openwebrx (OpenWebRX+, actively maintained fork)
+<https://github.com/jketterl/openwebrx> (OpenWebRX+, actively maintained fork)
 
 ---
 

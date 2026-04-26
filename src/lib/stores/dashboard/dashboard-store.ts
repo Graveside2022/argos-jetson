@@ -107,7 +107,8 @@ export type ActiveView =
 	| 'sparrow-wifi'
 	| 'sdrpp'
 	| 'trunk-recorder'
-	| 'uas-scan';
+	| 'uas-scan'
+	| 'wireshark';
 
 const VALID_VIEWS: ReadonlySet<string> = new Set<ActiveView>([
 	'map',
@@ -133,7 +134,8 @@ const VALID_VIEWS: ReadonlySet<string> = new Set<ActiveView>([
 	'logs-analytics',
 	'sparrow-wifi',
 	'sdrpp',
-	'uas-scan'
+	'uas-scan',
+	'wireshark'
 ]);
 
 export const activeView = persistedWritable<ActiveView>('activeView', 'map', {

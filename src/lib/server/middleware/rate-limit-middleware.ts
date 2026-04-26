@@ -62,6 +62,13 @@ export function getRateLimitKey(event: Parameters<Handle>[0]['event'], prefix: s
 }
 
 /**
+ * DragonSync control endpoint — exact path, NOT a prefix.
+ * Declared separately so matchers can use exact/subpath check instead of
+ * `startsWith` (which would also match /api/dragonsync/controller, etc.).
+ */
+const DRAGONSYNC_CONTROL_PATH = '/api/dragonsync/control';
+
+/**
  * Path prefixes that should be rate-limited on the 30 req/min hardware
  * tier instead of the 200 req/min generic API tier.
  *
@@ -96,7 +103,7 @@ const HARDWARE_PATH_PREFIXES = [
 	'/api/novasdr/',
 	'/api/bluedragon/',
 	'/api/bluehood/',
-	'/api/dragonsync/',
+	DRAGONSYNC_CONTROL_PATH,
 	'/api/trunk-recorder/',
 	'/api/hardware/',
 
@@ -107,11 +114,25 @@ const HARDWARE_PATH_PREFIXES = [
 ] as const;
 
 /**
+ * Exact-match + subpath matcher for /api/dragonsync/control.
+ * Avoids prefix collision with sibling paths like /api/dragonsync/controller
+ * (which does not exist today but would be misclassified if added).
+ */
+function isDragonSyncControlPath(path: string): boolean {
+	return path === DRAGONSYNC_CONTROL_PATH || path.startsWith(`${DRAGONSYNC_CONTROL_PATH}/`);
+}
+
+/**
  * Check if a path is a hardware control endpoint.
  * Hardware control endpoints have stricter rate limits.
  */
 export function isHardwareControlPath(path: string): boolean {
-	return HARDWARE_PATH_PREFIXES.some((p) => path.startsWith(p));
+	if (isDragonSyncControlPath(path)) return true;
+	return HARDWARE_PATH_PREFIXES.some((p) => p !== DRAGONSYNC_CONTROL_PATH && path.startsWith(p));
+}
+
+export function isDragonSyncReadPath(path: string): boolean {
+	return path.startsWith('/api/dragonsync/') && !isDragonSyncControlPath(path);
 }
 
 /** Check if this path should skip rate limiting (streaming/SSE endpoints and map tiles). */
@@ -166,6 +187,18 @@ function checkApiRateLimit(event: Parameters<Handle>[0]['event']): Response | nu
 	);
 }
 
+function checkDragonSyncReadRateLimit(event: Parameters<Handle>[0]['event']): Response | null {
+	const dsrKey = getRateLimitKey(event, 'dsr');
+	if (rateLimiter.check(dsrKey, 600, 600 / 60)) return null;
+	return buildRateLimitResponse(
+		getSafeClientAddress(event),
+		event.request.method,
+		event.url.pathname,
+		'DragonSync read rate limit exceeded (600 req/min)',
+		'10'
+	);
+}
+
 /**
  * Apply rate limiting to a request. Returns a 429 Response if rate limit
  * is exceeded, or null if the request should proceed.
@@ -174,6 +207,7 @@ export function checkRateLimit(event: Parameters<Handle>[0]['event']): Response 
 	const path = event.url.pathname;
 	if (isStreamingPath(path)) return null;
 	if (isHardwareControlPath(path)) return checkHardwareRateLimit(event);
+	if (isDragonSyncReadPath(path)) return checkDragonSyncReadRateLimit(event);
 	if (path.startsWith('/api/')) return checkApiRateLimit(event);
 	return null;
 }

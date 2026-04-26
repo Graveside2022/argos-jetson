@@ -13,10 +13,10 @@
 
 > **RUNS ON ARGOS RPi 5: YES** — Already deployed as core positioning service
 
-| Method               | Supported | Notes                                                                      |
-| -------------------- | --------- | -------------------------------------------------------------------------- |
-| **Docker Container** | N/A       | gpsd requires direct USB access to GPS dongle; native install recommended  |
-| **Native Install**   | YES       | **ACTIVE** — `apt install gpsd gpsd-clients` on Kali ARM64                 |
+| Method               | Supported | Notes                                                                     |
+| -------------------- | --------- | ------------------------------------------------------------------------- |
+| **Docker Container** | N/A       | gpsd requires direct USB access to GPS dongle; native install recommended |
+| **Native Install**   | YES       | **ACTIVE** — `apt install gpsd gpsd-clients` on Kali ARM64                |
 
 ---
 
@@ -30,8 +30,8 @@ GPS / Positioning / Geolocation Service
 
 ## Repository
 
-- **Source**: https://gitlab.com/gpsd/gpsd
-- **Documentation**: https://gpsd.io/
+- **Source**: <https://gitlab.com/gpsd/gpsd>
+- **Documentation**: <https://gpsd.io/>
 - **Language**: C/Python
 - **License**: BSD-2-Clause
 
@@ -114,6 +114,7 @@ GPS Dongle (USB) → gpsd (TCP :2947) → GpsService (circuit breaker) → /api/
 ### Service Pattern
 
 The GPS service uses a **circuit breaker** pattern:
+
 - Connects to gpsd via TCP socket (`gps-socket.ts`)
 - After 3 consecutive failures, enters 30-second cooldown
 - During cooldown, returns cached position (5s TTL) or null
@@ -121,24 +122,24 @@ The GPS service uses a **circuit breaker** pattern:
 
 ### Key Files
 
-| File | Purpose |
-|---|---|
-| `src/lib/server/services/gps/gps-position-service.ts` | Main position data service |
-| `src/lib/server/services/gps/gps-satellite-service.ts` | Satellite visibility data |
-| `src/lib/server/services/gps/gps-socket.ts` | TCP socket connection to gpsd |
-| `src/lib/server/services/gps/gps-data-parser.ts` | NMEA/JSON response parsing |
+| File                                                           | Purpose                        |
+| -------------------------------------------------------------- | ------------------------------ |
+| `src/lib/server/services/gps/gps-position-service.ts`          | Main position data service     |
+| `src/lib/server/services/gps/gps-satellite-service.ts`         | Satellite visibility data      |
+| `src/lib/server/services/gps/gps-socket.ts`                    | TCP socket connection to gpsd  |
+| `src/lib/server/services/gps/gps-data-parser.ts`               | NMEA/JSON response parsing     |
 | `src/lib/server/services/gps/gps-satellite-circuit-breaker.ts` | Circuit breaker implementation |
-| `src/lib/server/services/gps/gps-response-builder.ts` | API response formatting |
-| `src/lib/server/services/gps/gps-types.ts` | TypeScript type definitions |
-| `src/lib/stores/tactical-map/gps-store.ts` | Client-side GPS state store |
+| `src/lib/server/services/gps/gps-response-builder.ts`          | API response formatting        |
+| `src/lib/server/services/gps/gps-types.ts`                     | TypeScript type definitions    |
+| `src/lib/stores/tactical-map/gps-store.ts`                     | Client-side GPS state store    |
 
 ### API Routes
 
-| Route | Method | Purpose |
-|---|---|---|
-| `/api/gps/position` | GET | Current GPS position (lat, lon, alt, speed, heading) |
-| `/api/gps/location` | GET | Formatted location data |
-| `/api/gps/satellites` | GET | Satellite visibility and signal strength |
+| Route                 | Method | Purpose                                              |
+| --------------------- | ------ | ---------------------------------------------------- |
+| `/api/gps/position`   | GET    | Current GPS position (lat, lon, alt, speed, heading) |
+| `/api/gps/location`   | GET    | Formatted location data                              |
+| `/api/gps/satellites` | GET    | Satellite visibility and signal strength             |
 
 ---
 
@@ -157,13 +158,13 @@ The GPS service uses a **circuit breaker** pattern:
 
 ### Supported GPS Hardware
 
-| Chipset | Model Examples | Status |
-|---|---|---|
-| u-blox 7 | VK-172, G-Mouse | ✅ Tested |
-| u-blox 8 | BN-880, NEO-M8N | ✅ Recommended |
-| u-blox 9 | NEO-M9N, ZED-F9P | ✅ High precision |
-| SiRFstar IV | GlobalSat BU-353S4 | ✅ Compatible |
-| MediaTek | Various USB dongles | ✅ Compatible |
+| Chipset     | Model Examples      | Status            |
+| ----------- | ------------------- | ----------------- |
+| u-blox 7    | VK-172, G-Mouse     | ✅ Tested         |
+| u-blox 8    | BN-880, NEO-M8N     | ✅ Recommended    |
+| u-blox 9    | NEO-M9N, ZED-F9P    | ✅ High precision |
+| SiRFstar IV | GlobalSat BU-353S4  | ✅ Compatible     |
+| MediaTek    | Various USB dongles | ✅ Compatible     |
 
 ### Verdict
 

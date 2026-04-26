@@ -37,7 +37,7 @@ TETRA Protocol Decoding / European Digital Radio / SIGINT
 
 ## Repository
 
-- **GitHub**: https://github.com/sq5bpf/osmo-tetra-sq5bpf
+- **GitHub**: <https://github.com/sq5bpf/osmo-tetra-sq5bpf>
 - **Language**: C
 - **License**: GPL (Osmocom)
 - **Stars**: ~59

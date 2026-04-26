@@ -38,8 +38,8 @@ Satellite SIGINT / Iridium Interception / L-band Reception
 
 ## Repository
 
-- **GitHub**: https://github.com/muccc/gr-iridium
-- **Companion**: https://github.com/muccc/iridium-toolkit
+- **GitHub**: <https://github.com/muccc/gr-iridium>
+- **Companion**: <https://github.com/muccc/iridium-toolkit>
 - **Language**: Python / C++ (GNU Radio OOT)
 - **License**: GPL-3.0
 - **Stars**: ~457

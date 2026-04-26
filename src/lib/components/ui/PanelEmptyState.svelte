@@ -65,7 +65,11 @@
 		text-align: center;
 		/* Chrome text in Lunaris = Geist. Fall back to system sans-serif so
 		   the primitive still renders correctly if Geist fails to load. */
-		font-family: 'Geist', system-ui, -apple-system, sans-serif;
+		font-family:
+			'Geist',
+			system-ui,
+			-apple-system,
+			sans-serif;
 	}
 
 	.icon-slot {

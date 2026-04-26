@@ -6,9 +6,9 @@ Open-source tool by the EFF (Electronic Frontier Foundation) for detecting IMSI 
 
 ## Links
 
-- **GitHub:** https://github.com/EFForg/rayhunter
-- **Docs:** https://www.eff.org/deeplinks/2025/03/meet-rayhunter-new-open-source-tool-detect-cell-phone-surveillance
-- **EFF Page:** https://www.eff.org/pages/rayhunter
+- **GitHub:** <https://github.com/EFForg/rayhunter>
+- **Docs:** <https://www.eff.org/deeplinks/2025/03/meet-rayhunter-new-open-source-tool-detect-cell-phone-surveillance>
+- **EFF Page:** <https://www.eff.org/pages/rayhunter>
 
 ## What It Does
 

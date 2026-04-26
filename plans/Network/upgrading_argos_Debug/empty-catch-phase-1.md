@@ -59,26 +59,22 @@ try {
 	this.setupWebSocketHandlers();
 } catch (error: unknown) {
 	const errorMsg = error instanceof Error ? error.message : String(error);
-	logWarn(
-		"HackRF WebSocket setup failed, service will continue without real-time updates",
-		{
-			error: errorMsg,
-			timestamp: Date.now(),
-			device: "HackRF",
-			operation: "WebSocket.setup",
-			context: "ws://localhost:5173/ws/hackrf",
-			impact: "Real-time updates unavailable (using polling)",
-			fallback: "polling-only-mode",
-			recovery:
-				"Service will retry WebSocket connection every 30 seconds",
-		},
-	);
+	logWarn('HackRF WebSocket setup failed, service will continue without real-time updates', {
+		error: errorMsg,
+		timestamp: Date.now(),
+		device: 'HackRF',
+		operation: 'WebSocket.setup',
+		context: 'ws://localhost:5173/ws/hackrf',
+		impact: 'Real-time updates unavailable (using polling)',
+		fallback: 'polling-only-mode',
+		recovery: 'Service will retry WebSocket connection every 30 seconds'
+	});
 
 	// Update UI state to show degraded mode
 	this.updateState({
-		error: "Real-time updates unavailable (using polling)",
+		error: 'Real-time updates unavailable (using polling)',
 		isConnecting: false,
-		connectionMode: "polling",
+		connectionMode: 'polling'
 	});
 }
 ```
@@ -154,7 +150,7 @@ git tag fix-1.1-complete
 
 ```typescript
 try {
-	const config = await fetch("/api/hackrf/config");
+	const config = await fetch('/api/hackrf/config');
 	this.config = await config.json();
 } catch {
 	// Failed to load config
@@ -165,23 +161,23 @@ try {
 
 ```typescript
 try {
-	const config = await fetch("/api/hackrf/config");
+	const config = await fetch('/api/hackrf/config');
 	this.config = await config.json();
 } catch (error: unknown) {
 	const errorMsg = error instanceof Error ? error.message : String(error);
-	logWarn("HackRF config loading failed, using default configuration", {
+	logWarn('HackRF config loading failed, using default configuration', {
 		error: errorMsg,
 		timestamp: Date.now(),
-		device: "HackRF",
-		operation: "config.load",
-		endpoint: "/api/hackrf/config",
-		impact: "Using default frequency/gain settings",
-		fallback: "default-config",
+		device: 'HackRF',
+		operation: 'config.load',
+		endpoint: '/api/hackrf/config',
+		impact: 'Using default frequency/gain settings',
+		fallback: 'default-config',
 		defaults: {
 			centerFreq: 915000000,
 			sampleRate: 20000000,
-			gain: 20,
-		},
+			gain: 20
+		}
 	});
 
 	// Use safe defaults
@@ -189,7 +185,7 @@ try {
 		centerFreq: 915000000,
 		sampleRate: 20000000,
 		gain: 20,
-		bandwidth: 20000000,
+		bandwidth: 20000000
 	};
 }
 ```
@@ -251,7 +247,7 @@ git tag fix-1.2-complete
 
 ```typescript
 try {
-	const status = await fetch("/api/hackrf/status");
+	const status = await fetch('/api/hackrf/status');
 	this.updateState(await status.json());
 } catch {
 	// Failed to update status
@@ -262,7 +258,7 @@ try {
 
 ```typescript
 try {
-	const status = await fetch("/api/hackrf/status");
+	const status = await fetch('/api/hackrf/status');
 	this.updateState(await status.json());
 } catch (error: unknown) {
 	const errorMsg = error instanceof Error ? error.message : String(error);
@@ -270,23 +266,23 @@ try {
 	// Rate limit: Only log every 60 seconds to avoid flooding
 	const now = Date.now();
 	if (!this.lastStatusErrorLog || now - this.lastStatusErrorLog > 60000) {
-		logWarn("HackRF status polling failed, UI may show stale data", {
+		logWarn('HackRF status polling failed, UI may show stale data', {
 			error: errorMsg,
 			timestamp: now,
-			device: "HackRF",
-			operation: "status.poll",
-			endpoint: "/api/hackrf/status",
-			impact: "Status indicators may be outdated",
-			fallback: "retry-on-next-interval",
-			retryInterval: "5 seconds",
+			device: 'HackRF',
+			operation: 'status.poll',
+			endpoint: '/api/hackrf/status',
+			impact: 'Status indicators may be outdated',
+			fallback: 'retry-on-next-interval',
+			retryInterval: '5 seconds'
 		});
 		this.lastStatusErrorLog = now;
 	}
 
 	// Update UI to show stale status warning
 	this.updateState({
-		statusWarning: "Status updates unavailable",
-		lastUpdate: new Date().toISOString(),
+		statusWarning: 'Status updates unavailable',
+		lastUpdate: new Date().toISOString()
 	});
 }
 ```
@@ -364,40 +360,37 @@ try {
 ```typescript
 try {
 	await this.loadConfig();
-	logInfo("HackRF configuration refreshed successfully", {
+	logInfo('HackRF configuration refreshed successfully', {
 		timestamp: Date.now(),
-		device: "HackRF",
-		operation: "config.refresh",
+		device: 'HackRF',
+		operation: 'config.refresh',
 		newConfig: {
 			centerFreq: this.config.centerFreq,
 			sampleRate: this.config.sampleRate,
-			gain: this.config.gain,
-		},
+			gain: this.config.gain
+		}
 	});
 } catch (error: unknown) {
 	const errorMsg = error instanceof Error ? error.message : String(error);
-	logError(
-		"HackRF config refresh failed, service using previous configuration",
-		{
-			error: errorMsg,
-			timestamp: Date.now(),
-			device: "HackRF",
-			operation: "config.refresh",
-			impact: "Service continues with previous settings",
-			fallback: "previous-config",
-			currentConfig: {
-				centerFreq: this.config.centerFreq,
-				sampleRate: this.config.sampleRate,
-				gain: this.config.gain,
-			},
-			recovery: "Try manual refresh or restart service",
+	logError('HackRF config refresh failed, service using previous configuration', {
+		error: errorMsg,
+		timestamp: Date.now(),
+		device: 'HackRF',
+		operation: 'config.refresh',
+		impact: 'Service continues with previous settings',
+		fallback: 'previous-config',
+		currentConfig: {
+			centerFreq: this.config.centerFreq,
+			sampleRate: this.config.sampleRate,
+			gain: this.config.gain
 		},
-	);
+		recovery: 'Try manual refresh or restart service'
+	});
 
 	// Show error in UI
 	this.updateState({
-		configError: "Config refresh failed, using previous settings",
-		lastConfigUpdate: new Date().toISOString(),
+		configError: 'Config refresh failed, using previous settings',
+		lastConfigUpdate: new Date().toISOString()
 	});
 }
 ```
@@ -481,51 +474,47 @@ try {
 ```typescript
 try {
 	await this.refreshDeviceList();
-	logInfo("Hardware detection refresh completed", {
+	logInfo('Hardware detection refresh completed', {
 		timestamp: Date.now(),
-		operation: "hardware.detect",
+		operation: 'hardware.detect',
 		devicesFound: {
 			hackrf: this.devices.hackrf.available,
 			alfa: this.devices.alfa.available,
-			bluetooth: this.devices.bluetooth.available,
+			bluetooth: this.devices.bluetooth.available
 		},
 		owners: {
 			hackrf: this.devices.hackrf.owner,
 			alfa: this.devices.alfa.owner,
-			bluetooth: this.devices.bluetooth.owner,
-		},
+			bluetooth: this.devices.bluetooth.owner
+		}
 	});
 } catch (error: unknown) {
 	const errorMsg = error instanceof Error ? error.message : String(error);
-	logError(
-		"Hardware detection refresh failed - devices may show as unavailable",
-		{
-			error: errorMsg,
-			timestamp: Date.now(),
-			operation: "hardware.detect",
-			impact: "CRITICAL: Devices may appear unavailable when functional",
-			consequence: "Services cannot acquire hardware",
-			fallback:
-				"Using cached device state from last successful detection",
-			cachedState: {
-				hackrf: this.devices.hackrf.available,
-				alfa: this.devices.alfa.available,
-				bluetooth: this.devices.bluetooth.available,
-			},
-			recovery: "Will retry on next manual refresh or service restart",
-			diagnostics: {
-				checkUSB: 'lsusb | grep -E "HackRF|ALFA"',
-				checkProcesses: 'ps aux | grep -E "hackrf|kismet"',
-				checkPermissions: "ls -la /dev/bus/usb/",
-			},
+	logError('Hardware detection refresh failed - devices may show as unavailable', {
+		error: errorMsg,
+		timestamp: Date.now(),
+		operation: 'hardware.detect',
+		impact: 'CRITICAL: Devices may appear unavailable when functional',
+		consequence: 'Services cannot acquire hardware',
+		fallback: 'Using cached device state from last successful detection',
+		cachedState: {
+			hackrf: this.devices.hackrf.available,
+			alfa: this.devices.alfa.available,
+			bluetooth: this.devices.bluetooth.available
 		},
-	);
+		recovery: 'Will retry on next manual refresh or service restart',
+		diagnostics: {
+			checkUSB: 'lsusb | grep -E "HackRF|ALFA"',
+			checkProcesses: 'ps aux | grep -E "hackrf|kismet"',
+			checkPermissions: 'ls -la /dev/bus/usb/'
+		}
+	});
 
 	// Update UI with detection warning
 	this.updateState({
 		detectionError: true,
-		detectionMessage: "Hardware detection failed - using cached state",
-		lastDetection: new Date().toISOString(),
+		detectionMessage: 'Hardware detection failed - using cached state',
+		lastDetection: new Date().toISOString()
 	});
 }
 ```
@@ -625,8 +614,8 @@ git tag fix-2.1-complete
 
 ```typescript
 try {
-	db.pragma("journal_mode = WAL");
-	db.pragma("synchronous = NORMAL");
+	db.pragma('journal_mode = WAL');
+	db.pragma('synchronous = NORMAL');
 } catch {
 	// Some pragmas might not be available
 }
@@ -636,28 +625,27 @@ try {
 
 ```typescript
 try {
-	db.pragma("journal_mode = WAL");
-	db.pragma("synchronous = NORMAL");
-	logInfo("Database pragmas configured successfully", {
+	db.pragma('journal_mode = WAL');
+	db.pragma('synchronous = NORMAL');
+	logInfo('Database pragmas configured successfully', {
 		timestamp: Date.now(),
-		operation: "db.configure",
+		operation: 'db.configure',
 		pragmas: {
-			journal_mode: "WAL",
-			synchronous: "NORMAL",
-		},
+			journal_mode: 'WAL',
+			synchronous: 'NORMAL'
+		}
 	});
 } catch (error: unknown) {
 	const errorMsg = error instanceof Error ? error.message : String(error);
-	logWarn("Database pragma configuration failed, using SQLite defaults", {
+	logWarn('Database pragma configuration failed, using SQLite defaults', {
 		error: errorMsg,
 		timestamp: Date.now(),
-		operation: "db.configure",
-		attemptedPragmas: ["journal_mode=WAL", "synchronous=NORMAL"],
-		impact: "Database performance may be suboptimal",
-		fallback: "SQLite default settings",
-		consequence: "Queries may be slower, more disk I/O",
-		recovery:
-			"Check SQLite version: sqlite3 --version (WAL requires 3.7.0+)",
+		operation: 'db.configure',
+		attemptedPragmas: ['journal_mode=WAL', 'synchronous=NORMAL'],
+		impact: 'Database performance may be suboptimal',
+		fallback: 'SQLite default settings',
+		consequence: 'Queries may be slower, more disk I/O',
+		recovery: 'Check SQLite version: sqlite3 --version (WAL requires 3.7.0+)'
 	});
 }
 ```
@@ -702,7 +690,7 @@ git tag fix-3.1-complete
 
 ```typescript
 try {
-	const gpsData = await execAsync("nc localhost 2947");
+	const gpsData = await execAsync('nc localhost 2947');
 	return parseGPSData(gpsData);
 } catch {
 	// nc failed, try gpspipe as fallback
@@ -713,22 +701,22 @@ try {
 
 ```typescript
 try {
-	const gpsData = await execAsync("nc localhost 2947");
+	const gpsData = await execAsync('nc localhost 2947');
 	return parseGPSData(gpsData);
 } catch (error: unknown) {
 	const errorMsg = error instanceof Error ? error.message : String(error);
-	logWarn("Primary GPS source (nc) failed, attempting fallback to gpspipe", {
+	logWarn('Primary GPS source (nc) failed, attempting fallback to gpspipe', {
 		error: errorMsg,
 		timestamp: Date.now(),
-		operation: "gps.fetch",
-		source: "nc-localhost-2947",
-		impact: "Switching to fallback GPS source",
-		fallback: "gpspipe",
+		operation: 'gps.fetch',
+		source: 'nc-localhost-2947',
+		impact: 'Switching to fallback GPS source',
+		fallback: 'gpspipe',
 		diagnostics: {
-			checkGPSD: "systemctl status gpsd",
-			checkPort: "netstat -an | grep 2947",
-			checkProcess: "ps aux | grep gpsd",
-		},
+			checkGPSD: 'systemctl status gpsd',
+			checkPort: 'netstat -an | grep 2947',
+			checkProcess: 'ps aux | grep gpsd'
+		}
 	});
 }
 ```
@@ -743,7 +731,7 @@ try {
 
 ```typescript
 try {
-	const gpsData = await execAsync("gpspipe -w -n 10");
+	const gpsData = await execAsync('gpspipe -w -n 10');
 	return parseGPSData(gpsData);
 } catch {
 	// gpspipe also failed
@@ -754,38 +742,37 @@ try {
 
 ```typescript
 try {
-	const gpsData = await execAsync("gpspipe -w -n 10");
-	logInfo("GPS fallback source (gpspipe) succeeded", {
+	const gpsData = await execAsync('gpspipe -w -n 10');
+	logInfo('GPS fallback source (gpspipe) succeeded', {
 		timestamp: Date.now(),
-		operation: "gps.fetch",
-		source: "gpspipe",
-		result: "success",
+		operation: 'gps.fetch',
+		source: 'gpspipe',
+		result: 'success'
 	});
 	return parseGPSData(gpsData);
 } catch (error: unknown) {
 	const errorMsg = error instanceof Error ? error.message : String(error);
-	logError("GPS completely unavailable - both nc and gpspipe failed", {
+	logError('GPS completely unavailable - both nc and gpspipe failed', {
 		error: errorMsg,
 		timestamp: Date.now(),
-		operation: "gps.fetch",
-		attemptedSources: ["nc localhost 2947", "gpspipe -w -n 10"],
-		impact: "CRITICAL: No GPS data available",
-		consequence:
-			"Tactical map cannot show position, signals not geolocated",
-		recovery: "Check GPS hardware and gpsd service",
+		operation: 'gps.fetch',
+		attemptedSources: ['nc localhost 2947', 'gpspipe -w -n 10'],
+		impact: 'CRITICAL: No GPS data available',
+		consequence: 'Tactical map cannot show position, signals not geolocated',
+		recovery: 'Check GPS hardware and gpsd service',
 		diagnostics: {
-			checkGPSD: "systemctl status gpsd",
-			checkDevice: "ls -la /dev/ttyUSB* /dev/ttyACM*",
-			checkSatellites: "cgps -s",
-			restartGPSD: "sudo systemctl restart gpsd",
-		},
+			checkGPSD: 'systemctl status gpsd',
+			checkDevice: 'ls -la /dev/ttyUSB* /dev/ttyACM*',
+			checkSatellites: 'cgps -s',
+			restartGPSD: 'sudo systemctl restart gpsd'
+		}
 	});
 
 	// Return error state instead of null
 	return {
-		error: "GPS unavailable",
+		error: 'GPS unavailable',
 		position: { lat: 0, lon: 0, alt: 0 },
-		status: "offline",
+		status: 'offline'
 	};
 }
 ```
@@ -851,7 +838,7 @@ git tag fix-3.2-3.3-complete
 **Current Code:**
 
 ```typescript
-for (const line of gpsOutput.split("\n")) {
+for (const line of gpsOutput.split('\n')) {
 	try {
 		const data = JSON.parse(line);
 		processGPSData(data);
@@ -867,7 +854,7 @@ for (const line of gpsOutput.split("\n")) {
 let parseErrors = 0;
 const maxLoggedErrors = 5;
 
-for (const line of gpsOutput.split("\n")) {
+for (const line of gpsOutput.split('\n')) {
 	if (!line.trim()) continue; // Skip empty lines
 
 	try {
@@ -878,38 +865,37 @@ for (const line of gpsOutput.split("\n")) {
 
 		// Log first few errors to avoid spam
 		if (parseErrors <= maxLoggedErrors) {
-			const errorMsg =
-				error instanceof Error ? error.message : String(error);
-			logWarn("GPS JSON parse error (non-fatal)", {
+			const errorMsg = error instanceof Error ? error.message : String(error);
+			logWarn('GPS JSON parse error (non-fatal)', {
 				error: errorMsg,
 				timestamp: Date.now(),
-				operation: "gps.parse",
+				operation: 'gps.parse',
 				line: line.substring(0, 100), // First 100 chars
 				lineLength: line.length,
 				parseErrorCount: parseErrors,
-				impact: "Single GPS update skipped",
-				fallback: "Continue with next line",
+				impact: 'Single GPS update skipped',
+				fallback: 'Continue with next line'
 			});
 		}
 
 		// After max logged, just count silently
 		if (parseErrors === maxLoggedErrors + 1) {
-			logInfo("Suppressing additional GPS parse errors", {
+			logInfo('Suppressing additional GPS parse errors', {
 				timestamp: Date.now(),
-				operation: "gps.parse",
-				message: "Further parse errors will be counted but not logged",
-				errorsSoFar: parseErrors,
+				operation: 'gps.parse',
+				message: 'Further parse errors will be counted but not logged',
+				errorsSoFar: parseErrors
 			});
 		}
 	}
 }
 
 if (parseErrors > 0) {
-	logInfo("GPS parsing completed with errors", {
+	logInfo('GPS parsing completed with errors', {
 		timestamp: Date.now(),
-		operation: "gps.parse",
+		operation: 'gps.parse',
 		totalParseErrors: parseErrors,
-		successfulLines: gpsOutput.split("\n").length - parseErrors,
+		successfulLines: gpsOutput.split('\n').length - parseErrors
 	});
 }
 ```
@@ -988,7 +974,7 @@ npm run dev        # Should start without errors
 **Current Code:**
 
 ```typescript
-const devices = await fetch("http://localhost:2501/devices.json")
+const devices = await fetch('http://localhost:2501/devices.json')
 	.then((r) => r.json())
 	.catch(() => null);
 ```
@@ -996,23 +982,23 @@ const devices = await fetch("http://localhost:2501/devices.json")
 **Fixed Code:**
 
 ```typescript
-const devices = await fetch("http://localhost:2501/devices.json")
+const devices = await fetch('http://localhost:2501/devices.json')
 	.then((r) => r.json())
 	.catch((error: unknown) => {
 		const errorMsg = error instanceof Error ? error.message : String(error);
-		logWarn("Kismet device fetch failed for Wifite targets", {
+		logWarn('Kismet device fetch failed for Wifite targets', {
 			error: errorMsg,
 			timestamp: Date.now(),
-			operation: "wifite.getTargets",
-			endpoint: "http://localhost:2501/devices.json",
-			impact: "Wifite target list will be empty",
-			fallback: "null (no devices)",
-			recovery: "Check Kismet service: systemctl status kismet",
+			operation: 'wifite.getTargets',
+			endpoint: 'http://localhost:2501/devices.json',
+			impact: 'Wifite target list will be empty',
+			fallback: 'null (no devices)',
+			recovery: 'Check Kismet service: systemctl status kismet',
 			diagnostics: {
-				checkKismet: "curl http://localhost:2501/system/status.json",
-				checkProcess: "ps aux | grep kismet",
-				checkPort: "netstat -an | grep 2501",
-			},
+				checkKismet: 'curl http://localhost:2501/system/status.json',
+				checkProcess: 'ps aux | grep kismet',
+				checkPort: 'netstat -an | grep 2501'
+			}
 		});
 		return null;
 	});
@@ -1064,7 +1050,7 @@ git tag fix-4.1-complete
 **Current Code:**
 
 ```typescript
-fetch("/api/system/stats")
+fetch('/api/system/stats')
 	.then((r) => r.json())
 	.then((data) => (stats = data))
 	.catch(() => null);
@@ -1073,27 +1059,27 @@ fetch("/api/system/stats")
 **Fixed Code:**
 
 ```typescript
-fetch("/api/system/stats")
+fetch('/api/system/stats')
 	.then((r) => r.json())
 	.then((data) => {
 		stats = data;
-		logInfo("System stats updated", {
+		logInfo('System stats updated', {
 			timestamp: Date.now(),
-			operation: "system.stats",
+			operation: 'system.stats',
 			cpu: data.cpu,
-			memory: data.memory,
+			memory: data.memory
 		});
 	})
 	.catch((error: unknown) => {
 		const errorMsg = error instanceof Error ? error.message : String(error);
-		logWarn("System stats fetch failed, dashboard may show stale data", {
+		logWarn('System stats fetch failed, dashboard may show stale data', {
 			error: errorMsg,
 			timestamp: Date.now(),
-			operation: "system.stats",
-			endpoint: "/api/system/stats",
-			impact: "Dashboard stats outdated",
-			fallback: "Using previous stats or defaults",
-			recovery: "Will retry on next poll interval",
+			operation: 'system.stats',
+			endpoint: '/api/system/stats',
+			impact: 'Dashboard stats outdated',
+			fallback: 'Using previous stats or defaults',
+			recovery: 'Will retry on next poll interval'
 		});
 
 		// Use mock data to prevent blank dashboard
@@ -1101,7 +1087,7 @@ fetch("/api/system/stats")
 			cpu: { usage: 0, cores: 0 },
 			memory: { used: 0, total: 0 },
 			disk: { used: 0, total: 0 },
-			error: true,
+			error: true
 		};
 	});
 ```
@@ -1145,85 +1131,85 @@ try {
 ```typescript
 // Line 47: Runtime check
 try {
-	const runtimeExists = await fs.access("/usr/src/gsmevil2/runtime");
-	logInfo("GSM Evil runtime found", {
+	const runtimeExists = await fs.access('/usr/src/gsmevil2/runtime');
+	logInfo('GSM Evil runtime found', {
 		timestamp: Date.now(),
-		operation: "gsm.checkRuntime",
-		path: "/usr/src/gsmevil2/runtime",
+		operation: 'gsm.checkRuntime',
+		path: '/usr/src/gsmevil2/runtime'
 	});
 } catch (error: unknown) {
 	const errorMsg = error instanceof Error ? error.message : String(error);
-	logWarn("GSM Evil runtime not found", {
+	logWarn('GSM Evil runtime not found', {
 		error: errorMsg,
 		timestamp: Date.now(),
-		operation: "gsm.checkRuntime",
-		path: "/usr/src/gsmevil2/runtime",
-		impact: "GSM Evil service unavailable",
-		consequence: "IMSI detection features disabled",
-		recovery: "Install GSM Evil: cd /usr/src && git clone ...",
+		operation: 'gsm.checkRuntime',
+		path: '/usr/src/gsmevil2/runtime',
+		impact: 'GSM Evil service unavailable',
+		consequence: 'IMSI detection features disabled',
+		recovery: 'Install GSM Evil: cd /usr/src && git clone ...',
 		diagnostics: {
-			checkInstall: "ls -la /usr/src/gsmevil2",
-			checkPython: "python3 --version",
-			checkGrGsm: "grgsm_scanner --help",
-		},
+			checkInstall: 'ls -la /usr/src/gsmevil2',
+			checkPython: 'python3 --version',
+			checkGrGsm: 'grgsm_scanner --help'
+		}
 	});
 }
 
 // Line 52: Process check method 1
 try {
-	const { stdout } = await execAsync("pgrep -f gsmevil");
+	const { stdout } = await execAsync('pgrep -f gsmevil');
 	const pid = parseInt(stdout.trim());
-	logInfo("GSM Evil process detected", {
+	logInfo('GSM Evil process detected', {
 		timestamp: Date.now(),
-		operation: "gsm.checkProcess",
+		operation: 'gsm.checkProcess',
 		pid,
-		method: "pgrep",
+		method: 'pgrep'
 	});
 	return { running: true, pid };
 } catch (error: unknown) {
 	const errorMsg = error instanceof Error ? error.message : String(error);
-	logInfo("GSM Evil process not found via pgrep (may not be running)", {
+	logInfo('GSM Evil process not found via pgrep (may not be running)', {
 		error: errorMsg,
 		timestamp: Date.now(),
-		operation: "gsm.checkProcess",
-		method: "pgrep -f gsmevil",
-		result: "not-found",
-		nextStep: "Will try alternative detection method",
+		operation: 'gsm.checkProcess',
+		method: 'pgrep -f gsmevil',
+		result: 'not-found',
+		nextStep: 'Will try alternative detection method'
 	});
 	// Try alternative method below
 }
 
 // Line 74: Process check method 2
 try {
-	const { stdout } = await execAsync("ps aux | grep gsmevil | grep -v grep");
+	const { stdout } = await execAsync('ps aux | grep gsmevil | grep -v grep');
 	if (stdout.trim()) {
 		const pid = parseInt(stdout.split(/\s+/)[1]);
-		logInfo("GSM Evil process detected via ps", {
+		logInfo('GSM Evil process detected via ps', {
 			timestamp: Date.now(),
-			operation: "gsm.checkProcess",
+			operation: 'gsm.checkProcess',
 			pid,
-			method: "ps-aux",
+			method: 'ps-aux'
 		});
 		return { running: true, pid };
 	}
 } catch (error: unknown) {
 	const errorMsg = error instanceof Error ? error.message : String(error);
-	logInfo("GSM Evil process not found via ps (service not running)", {
+	logInfo('GSM Evil process not found via ps (service not running)', {
 		error: errorMsg,
 		timestamp: Date.now(),
-		operation: "gsm.checkProcess",
-		method: "ps aux",
-		result: "not-found",
-		impact: "GSM Evil service is stopped",
+		operation: 'gsm.checkProcess',
+		method: 'ps aux',
+		result: 'not-found',
+		impact: 'GSM Evil service is stopped'
 	});
 }
 
 // Line 79: Final status
-logInfo("GSM Evil service status: not running", {
+logInfo('GSM Evil service status: not running', {
 	timestamp: Date.now(),
-	operation: "gsm.status",
+	operation: 'gsm.status',
 	running: false,
-	reason: "No process found by any detection method",
+	reason: 'No process found by any detection method'
 });
 return { running: false, pid: null };
 ```
@@ -1273,7 +1259,7 @@ git tag fix-5.1-5.4-complete
 
 Due to space constraints, I'm providing the template for the remaining 32 fixes. Each follows the same pattern:
 
-### Remaining Categories:
+### Remaining Categories
 
 **Category 6: Kismet Integration** (12 fixes)
 

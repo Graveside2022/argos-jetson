@@ -321,7 +321,7 @@ _Verify:_ [Concrete verification.]
 
 _Purpose: [One sentence.]_
 
-#### Step 3: ...
+#### Step 3:
 
 [Continue pattern]
 

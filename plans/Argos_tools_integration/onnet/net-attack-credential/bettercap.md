@@ -9,10 +9,10 @@
 
 > **RUNS ON ARGOS RPi 5: YES** — Official ARM64 Go binary; pre-built package in Kali ARM64 repos
 
-| Method               | Supported | Notes                                                                                               |
-| -------------------- | --------- | --------------------------------------------------------------------------------------------------- |
-| **Docker Container** | YES       | **ACTIVE** — already in `docker-compose.portainer-dev.yml` with REST API on port 8081              |
-| **Native Install**   | YES       | `apt install bettercap`; alternative to Docker but **do not run both simultaneously**               |
+| Method               | Supported | Notes                                                                                 |
+| -------------------- | --------- | ------------------------------------------------------------------------------------- |
+| **Docker Container** | YES       | **ACTIVE** — already in `docker-compose.portainer-dev.yml` with REST API on port 8081 |
+| **Native Install**   | YES       | `apt install bettercap`; alternative to Docker but **do not run both simultaneously** |
 
 ---
 
@@ -26,7 +26,7 @@ Multi-Protocol MITM / Network Attack Framework / Credential Harvesting
 
 ## Repository
 
-https://github.com/bettercap/bettercap
+<https://github.com/bettercap/bettercap>
 
 ---
 

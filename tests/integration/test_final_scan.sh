@@ -27,7 +27,7 @@ echo "Process PID: $WEB_PID"
 sleep 4
 
 echo "4. Check process status:"
-if ps -p $WEB_PID > /dev/null 2>&1; then
+if ps -p "$WEB_PID" > /dev/null 2>&1; then
     echo "✓ Process running"
 else
     echo "✗ Process died, checking log:"
@@ -42,15 +42,15 @@ echo "Frame count: $FRAME_COUNT"
 
 echo ""
 echo "6. Kill process:"
-sudo kill $WEB_PID 2>/dev/null
+sudo kill "$WEB_PID" 2>/dev/null
 
 echo ""
 echo "7. Analysis:"
-if [ "$FRAME_COUNT" -gt 20 ]; then
+if [[ "$FRAME_COUNT" -gt 20 ]]; then
     echo "✓ EXCELLENT: $FRAME_COUNT frames detected - web scanner should work!"
-elif [ "$FRAME_COUNT" -gt 5 ]; then
+elif [[ "$FRAME_COUNT" -gt 5 ]]; then
     echo "✓ GOOD: $FRAME_COUNT frames detected - reasonable signal"
-elif [ "$FRAME_COUNT" -gt 0 ]; then
+elif [[ "$FRAME_COUNT" -gt 0 ]]; then
     echo "⚠ WEAK: $FRAME_COUNT frames detected - signal intermittent"
 else
     echo "✗ NO SIGNAL: Check antenna connection or try different time"

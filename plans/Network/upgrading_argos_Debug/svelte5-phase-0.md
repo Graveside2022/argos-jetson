@@ -74,21 +74,21 @@ const unsubGps = gpsStore.subscribe((gps) => {
 	// Accuracy circle GeoJSON
 	const acc = gps.status.accuracy;
 	if ((lat === 0 && lon === 0) || acc <= 0) {
-		accuracyGeoJSON = { type: "FeatureCollection", features: [] };
+		accuracyGeoJSON = { type: 'FeatureCollection', features: [] };
 	} else {
 		accuracyGeoJSON = {
-			type: "FeatureCollection",
-			features: [createCirclePolygon(lon, lat, acc)],
+			type: 'FeatureCollection',
+			features: [createCirclePolygon(lon, lat, acc)]
 		};
 	}
 
 	// Detection range bands
 	detectionRangeGeoJSON = {
-		type: "FeatureCollection",
+		type: 'FeatureCollection',
 		features: RANGE_BANDS.map((b) => ({
 			...createRingPolygon(lon, lat, b.outerR, b.innerR),
-			properties: { band: b.band, color: b.color },
-		})),
+			properties: { band: b.band, color: b.color }
+		}))
 	};
 
 	// Initial view setting
@@ -100,9 +100,7 @@ const unsubGps = gpsStore.subscribe((gps) => {
 	// Cell tower fetching
 	if (lastTowerFetchLat === 0 && lastTowerFetchLon === 0) {
 		fetchCellTowers(lat, lon);
-	} else if (
-		haversineKm(lat, lon, lastTowerFetchLat, lastTowerFetchLon) > 1
-	) {
+	} else if (haversineKm(lat, lon, lastTowerFetchLat, lastTowerFetchLon) > 1) {
 		fetchCellTowers(lat, lon);
 	}
 });
@@ -138,25 +136,25 @@ let accuracyGeoJSON = $derived.by(() => {
 	const { lat, lon } = gpsData.position;
 	const acc = gpsData.status.accuracy;
 	if ((lat === 0 && lon === 0) || acc <= 0) {
-		return { type: "FeatureCollection", features: [] };
+		return { type: 'FeatureCollection', features: [] };
 	}
 	return {
-		type: "FeatureCollection",
-		features: [createCirclePolygon(lon, lat, acc)],
+		type: 'FeatureCollection',
+		features: [createCirclePolygon(lon, lat, acc)]
 	};
 });
 
 let detectionRangeGeoJSON = $derived.by(() => {
 	const { lat, lon } = gpsData.position;
 	if (lat === 0 && lon === 0) {
-		return { type: "FeatureCollection", features: [] };
+		return { type: 'FeatureCollection', features: [] };
 	}
 	return {
-		type: "FeatureCollection",
+		type: 'FeatureCollection',
 		features: RANGE_BANDS.map((b) => ({
 			...createRingPolygon(lon, lat, b.outerR, b.innerR),
-			properties: { band: b.band, color: b.color },
-		})),
+			properties: { band: b.band, color: b.color }
+		}))
 	};
 });
 
@@ -177,9 +175,7 @@ $effect(() => {
 		fetchCellTowers(lat, lon);
 		lastTowerFetchLat = lat;
 		lastTowerFetchLon = lon;
-	} else if (
-		haversineKm(lat, lon, lastTowerFetchLat, lastTowerFetchLon) > 1
-	) {
+	} else if (haversineKm(lat, lon, lastTowerFetchLat, lastTowerFetchLon) > 1) {
 		fetchCellTowers(lat, lon);
 		lastTowerFetchLat = lat;
 		lastTowerFetchLon = lon;
@@ -203,24 +199,24 @@ const unsubKismet = kismetStore.subscribe((state) => {
 
 		const rssi = device.signal?.last_signal ?? -80;
 		features.push({
-			type: "Feature",
-			geometry: { type: "Point", coordinates: [lon, lat] },
+			type: 'Feature',
+			geometry: { type: 'Point', coordinates: [lon, lat] },
 			properties: {
 				mac,
-				ssid: device.ssid || "Unknown",
+				ssid: device.ssid || 'Unknown',
 				rssi,
 				band: getSignalBandKey(rssi),
-				type: device.type || "unknown",
+				type: device.type || 'unknown',
 				color: getSignalHex(rssi),
-				manufacturer: device.manufacturer || device.manuf || "Unknown",
+				manufacturer: device.manufacturer || device.manuf || 'Unknown',
 				channel: device.channel || 0,
 				frequency: device.frequency || 0,
 				packets: device.packets || 0,
-				last_seen: device.last_seen || 0,
-			},
+				last_seen: device.last_seen || 0
+			}
 		});
 	});
-	deviceGeoJSON = { type: "FeatureCollection", features };
+	deviceGeoJSON = { type: 'FeatureCollection', features };
 });
 ```
 
@@ -238,24 +234,24 @@ let deviceGeoJSON = $derived.by(() => {
 
 		const rssi = device.signal?.last_signal ?? -80;
 		features.push({
-			type: "Feature",
-			geometry: { type: "Point", coordinates: [lon, lat] },
+			type: 'Feature',
+			geometry: { type: 'Point', coordinates: [lon, lat] },
 			properties: {
 				mac,
-				ssid: device.ssid || "Unknown",
+				ssid: device.ssid || 'Unknown',
 				rssi,
 				band: getSignalBandKey(rssi),
-				type: device.type || "unknown",
+				type: device.type || 'unknown',
 				color: getSignalHex(rssi),
-				manufacturer: device.manufacturer || device.manuf || "Unknown",
+				manufacturer: device.manufacturer || device.manuf || 'Unknown',
 				channel: device.channel || 0,
 				frequency: device.frequency || 0,
 				packets: device.packets || 0,
-				last_seen: device.last_seen || 0,
-			},
+				last_seen: device.last_seen || 0
+			}
 		});
 	});
-	return { type: "FeatureCollection", features };
+	return { type: 'FeatureCollection', features };
 });
 ```
 
@@ -272,11 +268,7 @@ const unsubLayers = layerVisibility.subscribe((vis) => {
 		const visible = vis[key] !== false;
 		for (const id of layerIds) {
 			if (map.getLayer(id)) {
-				map.setLayoutProperty(
-					id,
-					"visibility",
-					visible ? "visible" : "none",
-				);
+				map.setLayoutProperty(id, 'visibility', visible ? 'visible' : 'none');
 			}
 		}
 	}
@@ -294,11 +286,7 @@ $effect(() => {
 		const visible = vis[key] !== false;
 		for (const id of layerIds) {
 			if (map.getLayer(id)) {
-				map.setLayoutProperty(
-					id,
-					"visibility",
-					visible ? "visible" : "none",
-				);
+				map.setLayoutProperty(id, 'visibility', visible ? 'visible' : 'none');
 			}
 		}
 	}
@@ -313,12 +301,12 @@ $effect(() => {
 
 ```typescript
 const unsubBands = activeBands.subscribe((bands) => {
-	if (!map || !map.getLayer("device-circles")) return;
+	if (!map || !map.getLayer('device-circles')) return;
 	const bandList = Array.from(bands);
-	map.setFilter("device-circles", [
-		"all",
-		["!", ["has", "point_count"]],
-		["in", ["get", "band"], ["literal", bandList]],
+	map.setFilter('device-circles', [
+		'all',
+		['!', ['has', 'point_count']],
+		['in', ['get', 'band'], ['literal', bandList]]
 	]);
 });
 ```
@@ -327,14 +315,14 @@ const unsubBands = activeBands.subscribe((bands) => {
 
 ```typescript
 $effect(() => {
-	if (!map || !map.getLayer("device-circles")) return;
+	if (!map || !map.getLayer('device-circles')) return;
 	const bands = $activeBands;
 	const bandList = Array.from(bands);
 
-	map.setFilter("device-circles", [
-		"all",
-		["!", ["has", "point_count"]],
-		["in", ["get", "band"], ["literal", bandList]],
+	map.setFilter('device-circles', [
+		'all',
+		['!', ['has', 'point_count']],
+		['in', ['get', 'band'], ['literal', bandList]]
 	]);
 });
 ```
@@ -368,13 +356,13 @@ onDestroy(() => {
 **Current Code (Line 2):**
 
 ```typescript
-import { onDestroy, setContext } from "svelte";
+import { onDestroy, setContext } from 'svelte';
 ```
 
 **Migrated Code:**
 
 ```typescript
-import { setContext } from "svelte";
+import { setContext } from 'svelte';
 // onDestroy no longer needed (unless used elsewhere in file)
 ```
 
@@ -496,13 +484,13 @@ git tag dashboardmap-svelte5-complete
 **Create:** `tests/unit/components/dashboard/DashboardMap.test.ts`
 
 ```typescript
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render } from "@testing-library/svelte";
-import DashboardMap from "$lib/components/dashboard/DashboardMap.svelte";
-import { gpsStore } from "$lib/stores/tactical-map/gpsStore";
-import { kismetStore } from "$lib/stores/tactical-map/kismetStore";
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render } from '@testing-library/svelte';
+import DashboardMap from '$lib/components/dashboard/DashboardMap.svelte';
+import { gpsStore } from '$lib/stores/tactical-map/gpsStore';
+import { kismetStore } from '$lib/stores/tactical-map/kismetStore';
 
-describe("DashboardMap - Svelte 5 Migration", () => {
+describe('DashboardMap - Svelte 5 Migration', () => {
 	beforeEach(() => {
 		// Reset stores to known state
 		gpsStore.set({
@@ -511,14 +499,14 @@ describe("DashboardMap - Svelte 5 Migration", () => {
 				hasGPSFix: false,
 				accuracy: 0,
 				speed: 0,
-				heading: 0,
-			},
+				heading: 0
+			}
 		});
 
 		kismetStore.set({
-			status: "stopped",
+			status: 'stopped',
 			devices: new Map(),
-			stats: { total: 0, active: 0 },
+			stats: { total: 0, active: 0 }
 		});
 	});
 
@@ -526,13 +514,13 @@ describe("DashboardMap - Svelte 5 Migration", () => {
 		vi.clearAllMocks();
 	});
 
-	it("renders map container", () => {
+	it('renders map container', () => {
 		const { container } = render(DashboardMap);
-		const mapArea = container.querySelector(".map-area");
+		const mapArea = container.querySelector('.map-area');
 		expect(mapArea).toBeTruthy();
 	});
 
-	it("updates GPS position reactively", async () => {
+	it('updates GPS position reactively', async () => {
 		const { component } = render(DashboardMap);
 
 		// Update GPS store
@@ -542,8 +530,8 @@ describe("DashboardMap - Svelte 5 Migration", () => {
 				hasGPSFix: true,
 				accuracy: 10,
 				speed: 0,
-				heading: 0,
-			},
+				heading: 0
+			}
 		});
 
 		// Wait for reactive updates
@@ -554,25 +542,25 @@ describe("DashboardMap - Svelte 5 Migration", () => {
 		});
 	});
 
-	it("updates device markers when Kismet data changes", async () => {
+	it('updates device markers when Kismet data changes', async () => {
 		render(DashboardMap);
 
 		// Add device to Kismet store
 		kismetStore.update((s) => ({
 			...s,
-			status: "running",
+			status: 'running',
 			devices: new Map([
 				[
-					"AA:BB:CC:DD:EE:FF",
+					'AA:BB:CC:DD:EE:FF',
 					{
-						mac: "AA:BB:CC:DD:EE:FF",
-						ssid: "TestNetwork",
+						mac: 'AA:BB:CC:DD:EE:FF',
+						ssid: 'TestNetwork',
 						location: { lat: 37.7749, lon: -122.4194 },
-						signal: { last_signal: -50 },
-					},
-				],
+						signal: { last_signal: -50 }
+					}
+				]
 			]),
-			stats: { total: 1, active: 1 },
+			stats: { total: 1, active: 1 }
 		}));
 
 		await vi.waitFor(() => {
@@ -581,17 +569,17 @@ describe("DashboardMap - Svelte 5 Migration", () => {
 		});
 	});
 
-	it("filters devices by signal band", async () => {
+	it('filters devices by signal band', async () => {
 		// Test band filtering logic
 		// Requires activeBands store manipulation
 	});
 
-	it("toggles layer visibility", async () => {
+	it('toggles layer visibility', async () => {
 		// Test layer show/hide
 		// Requires layerVisibility store manipulation
 	});
 
-	it("handles GPS unavailable gracefully", () => {
+	it('handles GPS unavailable gracefully', () => {
 		const { container } = render(DashboardMap);
 
 		// GPS remains at 0,0
@@ -601,15 +589,15 @@ describe("DashboardMap - Svelte 5 Migration", () => {
 				hasGPSFix: false,
 				accuracy: 0,
 				speed: 0,
-				heading: 0,
-			},
+				heading: 0
+			}
 		});
 
 		// Should not crash, map should still render
-		expect(container.querySelector(".map-area")).toBeTruthy();
+		expect(container.querySelector('.map-area')).toBeTruthy();
 	});
 
-	it("cleans up properly on unmount", async () => {
+	it('cleans up properly on unmount', async () => {
 		const { unmount } = render(DashboardMap);
 
 		// Subscribe to store changes

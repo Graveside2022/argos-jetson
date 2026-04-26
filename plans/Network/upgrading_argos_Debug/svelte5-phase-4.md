@@ -108,7 +108,7 @@ git tag phase-4-start
 let centerFreq = 915000000;
 let bandwidth = 20000000;
 let gain = 20;
-let sweepMode: "manual" | "auto" = "manual";
+let sweepMode: 'manual' | 'auto' = 'manual';
 let isRunning = false;
 ```
 
@@ -118,7 +118,7 @@ let isRunning = false;
 let centerFreq = $state(915000000);
 let bandwidth = $state(20000000);
 let gain = $state(20);
-let sweepMode = $state<"manual" | "auto">("manual");
+let sweepMode = $state<'manual' | 'auto'>('manual');
 let isRunning = $state(false);
 ```
 
@@ -129,7 +129,7 @@ let isRunning = $state(false);
 **Before:**
 
 ```typescript
-import { hackrfStore } from "$lib/stores/hackrfStore";
+import { hackrfStore } from '$lib/stores/hackrfStore';
 $: status = $hackrfStore.status;
 $: sweepData = $hackrfStore.sweepData;
 ```
@@ -137,7 +137,7 @@ $: sweepData = $hackrfStore.sweepData;
 **After:**
 
 ```typescript
-import { hackrfStore } from "$lib/stores/hackrfStore";
+import { hackrfStore } from '$lib/stores/hackrfStore';
 let hackrfData = $derived($hackrfStore);
 let status = $derived(hackrfData.status);
 let sweepData = $derived(hackrfData.sweepData);
@@ -158,9 +158,7 @@ $: isValidConfig = centerFreq > 0 && bandwidth > 0 && gain >= 0 && gain <= 47;
 
 ```typescript
 let frequencyMHz = $derived(centerFreq / 1000000);
-let isValidConfig = $derived(
-	centerFreq > 0 && bandwidth > 0 && gain >= 0 && gain <= 47,
-);
+let isValidConfig = $derived(centerFreq > 0 && bandwidth > 0 && gain >= 0 && gain <= 47);
 ```
 
 ---
@@ -233,7 +231,7 @@ git tag post-migrate-hackrfsweep-page
 
 ---
 
-### Remaining Complex Pages (8):
+### Remaining Complex Pages (8)
 
 - gsm-evil/LocalIMSIDisplay.svelte (2 hours)
 - gsm-evil/IMSIDisplay.svelte (2 hours)
@@ -261,16 +259,14 @@ git tag post-migrate-hackrfsweep-page
 
 ```typescript
 // Form state (all $state)
-let takServer = $state("");
+let takServer = $state('');
 let takPort = $state(8087);
 let takEnabled = $state(false);
-let takUsername = $state("");
-let takPassword = $state("");
+let takUsername = $state('');
+let takPassword = $state('');
 
 // Validation (computed)
-let isValidServer = $derived(
-	takServer.trim().length > 0 && takPort > 0 && takPort < 65536,
-);
+let isValidServer = $derived(takServer.trim().length > 0 && takPort > 0 && takPort < 65536);
 
 let canConnect = $derived(isValidServer && takUsername.trim().length > 0);
 
@@ -280,7 +276,7 @@ let settings = $derived({
 	port: takPort,
 	enabled: takEnabled,
 	username: takUsername,
-	password: takPassword,
+	password: takPassword
 });
 
 // Form handlers (unchanged)
@@ -293,7 +289,7 @@ function handleSubmit() {
 
 ---
 
-### Remaining WigleToTAK Components (5):
+### Remaining WigleToTAK Components (5)
 
 - AntennaSettingsCard.svelte (2 hours)
 - AnalysisModeCard.svelte (2 hours)
@@ -356,15 +352,15 @@ let mode = $state<'auto' | 'manual'>('auto');
 
 ```typescript
 // Individual fields
-let server = $state("");
+let server = $state('');
 let port = $state(8087);
-let username = $state("");
+let username = $state('');
 
 // Computed object
 let config = $derived({
 	server,
 	port,
-	username,
+	username
 });
 
 // Submit
@@ -376,15 +372,13 @@ function handleSubmit() {
 ### Pattern 5: Form with Validation Chain
 
 ```typescript
-let email = $state("");
-let password = $state("");
-let confirmPassword = $state("");
+let email = $state('');
+let password = $state('');
+let confirmPassword = $state('');
 
 let isValidEmail = $derived(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
 let passwordsMatch = $derived(password === confirmPassword);
-let canSubmit = $derived(
-	isValidEmail && password.length >= 8 && passwordsMatch,
-);
+let canSubmit = $derived(isValidEmail && password.length >= 8 && passwordsMatch);
 ```
 
 ---

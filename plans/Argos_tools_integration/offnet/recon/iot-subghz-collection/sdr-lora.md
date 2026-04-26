@@ -26,7 +26,7 @@ LoRa PHY-Layer SDR Implementation / RF Signal Manipulation
 
 ## Repository
 
-https://github.com/myriadrf/LoRa-SDR
+<https://github.com/myriadrf/LoRa-SDR>
 
 ---
 

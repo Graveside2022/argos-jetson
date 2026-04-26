@@ -1,9 +1,20 @@
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
 
+import type { ChildProcess } from 'child_process';
+
 import type { SweepManager } from '$lib/server/hackrf/sweep-manager';
 import type { WebSocketManager } from '$lib/server/kismet/web-socket-manager';
 import type { RateLimiter } from '$lib/server/security/rate-limiter';
+
+interface WiresharkVncState {
+	xvncProcess: ChildProcess | null;
+	wiresharkProcess: ChildProcess | null;
+	websockifyProcess: ChildProcess | null;
+	currentIface: string | null;
+	currentFilter: string | null;
+	spawnError: Error | null;
+}
 
 declare global {
 	// Argos globalThis singletons — persisted via globalThis to survive Vite HMR reloads.
@@ -17,6 +28,8 @@ declare global {
 	var __argos_eld_monitor_started: boolean | undefined;
 	var __argos_session_tracker: { currentId: string | null } | undefined;
 	var __argos_rfdatabase: import('$lib/server/db/database').RFDatabase | undefined;
+	var __argos_wiresharkVnc_state: WiresharkVncState | undefined;
+	var __argos_wiresharkVnc_shutdown_registered: boolean | undefined;
 
 	namespace App {
 		// interface Error {}

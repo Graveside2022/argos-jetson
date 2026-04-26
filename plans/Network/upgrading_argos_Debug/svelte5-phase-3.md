@@ -102,7 +102,7 @@ let fadeStartPercent = 60;
 let maxSignalAge = 45;
 let autoRemoveOld = true;
 let showAdvanced = false;
-let selectedPreset: string = "drone";
+let selectedPreset: string = 'drone';
 ```
 
 **After:**
@@ -113,7 +113,7 @@ let fadeStartPercent = $state(60);
 let maxSignalAge = $state(45);
 let autoRemoveOld = $state(true);
 let showAdvanced = $state(false);
-let selectedPreset = $state<string>("drone");
+let selectedPreset = $state<string>('drone');
 ```
 
 ---
@@ -137,7 +137,7 @@ $: selectedPresetData =
 let selectedPresetData = $derived(
 	selectedPreset && presets[selectedPreset as keyof typeof presets]
 		? presets[selectedPreset as keyof typeof presets]
-		: null,
+		: null
 );
 ```
 
@@ -194,7 +194,7 @@ $effect(() => {
 
 ```typescript
 onMount(() => {
-	applyPreset("drone");
+	applyPreset('drone');
 });
 
 onDestroy(() => {
@@ -207,10 +207,10 @@ onDestroy(() => {
 **After:**
 
 ```typescript
-import { onMount } from "svelte"; // Keep onMount
+import { onMount } from 'svelte'; // Keep onMount
 
 onMount(() => {
-	applyPreset("drone");
+	applyPreset('drone');
 });
 
 // onDestroy NO LONGER NEEDED - $effect cleanup handles it
@@ -279,12 +279,12 @@ AFTER MIGRATION (Svelte 5):
 **File:** `tests/unit/components/hackrf/TimeWindowControl.test.ts`
 
 ```typescript
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render } from "@testing-library/svelte";
-import { fireEvent } from "@testing-library/dom";
-import TimeWindowControl from "$lib/components/hackrf/TimeWindowControl.svelte";
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render } from '@testing-library/svelte';
+import { fireEvent } from '@testing-library/dom';
+import TimeWindowControl from '$lib/components/hackrf/TimeWindowControl.svelte';
 
-describe("TimeWindowControl - Svelte 5", () => {
+describe('TimeWindowControl - Svelte 5', () => {
 	beforeEach(() => {
 		vi.useFakeTimers();
 	});
@@ -293,14 +293,14 @@ describe("TimeWindowControl - Svelte 5", () => {
 		vi.restoreAllMocks();
 	});
 
-	it("renders with default values", () => {
+	it('renders with default values', () => {
 		const { getByText } = render(TimeWindowControl);
 		expect(getByText(/Time Window/i)).toBeTruthy();
 	});
 
-	it("starts auto-remove interval when enabled", async () => {
+	it('starts auto-remove interval when enabled', async () => {
 		const { getByLabelText } = render(TimeWindowControl);
-		const clearSpy = vi.spyOn(global, "setInterval");
+		const clearSpy = vi.spyOn(global, 'setInterval');
 
 		const checkbox = getByLabelText(/Auto-remove old/i);
 		await fireEvent.click(checkbox);
@@ -308,14 +308,14 @@ describe("TimeWindowControl - Svelte 5", () => {
 		expect(clearSpy).toHaveBeenCalledWith(expect.any(Function), 5000);
 	});
 
-	it("clears interval when auto-remove disabled", async () => {
+	it('clears interval when auto-remove disabled', async () => {
 		const { getByLabelText } = render(TimeWindowControl);
 
 		// Enable
 		const checkbox = getByLabelText(/Auto-remove old/i);
 		await fireEvent.click(checkbox);
 
-		const clearSpy = vi.spyOn(global, "clearInterval");
+		const clearSpy = vi.spyOn(global, 'clearInterval');
 
 		// Disable
 		await fireEvent.click(checkbox);
@@ -323,14 +323,14 @@ describe("TimeWindowControl - Svelte 5", () => {
 		expect(clearSpy).toHaveBeenCalled();
 	});
 
-	it("cleans up interval on unmount", async () => {
+	it('cleans up interval on unmount', async () => {
 		const { getByLabelText, unmount } = render(TimeWindowControl);
 
 		// Enable auto-remove
 		const checkbox = getByLabelText(/Auto-remove old/i);
 		await fireEvent.click(checkbox);
 
-		const clearSpy = vi.spyOn(global, "clearInterval");
+		const clearSpy = vi.spyOn(global, 'clearInterval');
 
 		// Unmount component
 		unmount();
@@ -338,7 +338,7 @@ describe("TimeWindowControl - Svelte 5", () => {
 		expect(clearSpy).toHaveBeenCalled();
 	});
 
-	it("applies preset configuration", async () => {
+	it('applies preset configuration', async () => {
 		const { getByText } = render(TimeWindowControl);
 
 		const dronePreset = getByText(/Drone/i);
@@ -435,7 +435,7 @@ let {
 	spectrumData,
 	fftSize,
 	centerFreq,
-	sampleRate,
+	sampleRate
 }: {
 	spectrumData: Float32Array;
 	fftSize: number;
@@ -480,7 +480,7 @@ let ctx = $state<CanvasRenderingContext2D | null>(null);
 $effect(() => {
 	if (!canvas) return;
 
-	ctx = canvas.getContext("2d");
+	ctx = canvas.getContext('2d');
 	if (!ctx) return;
 
 	// Configure canvas properties
@@ -502,7 +502,7 @@ $effect(() => {
 		const binWidth = width / fftSize;
 
 		ctx.beginPath();
-		ctx.strokeStyle = "#00ff00";
+		ctx.strokeStyle = '#00ff00';
 
 		for (let i = 0; i < fftSize; i++) {
 			const x = i * binWidth;
@@ -637,7 +637,7 @@ let gpsData = $derived($gpsStore);
 let currentPosition = $derived.by(() => ({
 	lat: gpsData.position.lat,
 	lon: gpsData.position.lon,
-	accuracy: gpsData.status.accuracy,
+	accuracy: gpsData.status.accuracy
 }));
 
 // Map update effect
@@ -648,7 +648,7 @@ $effect(() => {
 });
 ```
 
-### Remaining Tactical Map Components:
+### Remaining Tactical Map Components
 
 - GPSStatusBar.svelte
 - MapContainer.svelte

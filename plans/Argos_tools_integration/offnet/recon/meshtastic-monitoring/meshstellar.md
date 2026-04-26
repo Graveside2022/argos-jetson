@@ -6,9 +6,9 @@ Monitors Meshtastic LoRa mesh networks via MQTT. Compiled Rust binary with SQLit
 
 ## Links
 
-- **GitHub:** https://github.com/jurriaan/meshstellar
+- **GitHub:** <https://github.com/jurriaan/meshstellar>
 - **Docker:** ghcr.io/jurriaan/meshstellar:latest
-- **Docker Compose Example:** https://github.com/jurriaan/meshstellar/blob/main/docker-compose.yml.example
+- **Docker Compose Example:** <https://github.com/jurriaan/meshstellar/blob/main/docker-compose.yml.example>
 
 ## What It Does
 

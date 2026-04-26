@@ -47,7 +47,7 @@ Multi-Protocol Decoder / Pager Interception / Emergency Alert Monitoring / Sub-G
 
 ## Repository
 
-- **GitHub**: https://github.com/EliasOenal/multimon-ng
+- **GitHub**: <https://github.com/EliasOenal/multimon-ng>
 - **Language**: C
 - **License**: GPL-2.0
 - **Stars**: ~1,077

@@ -6,10 +6,11 @@
 set -euo pipefail
 INPUT=$(cat) || exit 0
 TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name' 2>/dev/null) || exit 0
-if [ "$TOOL_NAME" != "Bash" ]; then exit 0; fi
+if [[ "$TOOL_NAME" != "Bash" ]]; then exit 0; fi
 COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // ""' 2>/dev/null) || exit 0
 if ! echo "$COMMAND" | grep -q 'git commit'; then exit 0; fi
 if echo "$COMMAND" | grep -q '\-\-no-verify'; then exit 0; fi
+
 cd "${CLAUDE_PROJECT_DIR:-$PWD}" || exit 0
 
 # Heartbeat helper: run a command with a "still running (Ns elapsed)" line

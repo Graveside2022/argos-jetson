@@ -25,6 +25,11 @@ for arg in "$@"; do
     --yes|-y) NON_INTERACTIVE=true ;;
     --verbose|-v) VERBOSE=true ;;
     --dry-run) DRY_RUN=true ;;
+    *)
+      echo "Unknown option: $arg" >&2
+      echo "Usage: bash scripts/ops/setup-host-ui.sh [--yes|-y] [--verbose|-v] [--dry-run]" >&2
+      exit 2
+      ;;
   esac
 done
 export DRY_RUN
@@ -180,7 +185,6 @@ else
     for group in "${GROUPS[@]}"; do
       # Get optional components in this group
       mapfile -t GROUP_ITEMS < <(parse_components optional | awk -F'|' -v g="$group" '$5 == g {print $2 " [" $1 "]"}')
-      mapfile -t GROUP_IDS < <(parse_components optional | awk -F'|' -v g="$group" '$5 == g {print $1}')
 
       if [[ ${#GROUP_ITEMS[@]} -eq 0 ]]; then
         continue
@@ -331,7 +335,6 @@ echo ""
 INSTALLED=0
 ALREADY_COUNT=0
 FAILED=0
-SKIPPED=0
 declare -a FAILED_NAMES=()
 SELECTED_TOTAL=${#SELECTED_IDS[@]}
 SELECTED_CSV=$(IFS=,; echo "${SELECTED_IDS[*]}")

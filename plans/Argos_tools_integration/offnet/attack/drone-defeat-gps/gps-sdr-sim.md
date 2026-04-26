@@ -24,7 +24,7 @@ GPS Signal Simulation / GNSS Spoofing / SDR Signal Generation
 
 ## Source
 
-- **Repository**: https://github.com/osqzss/gps-sdr-sim
+- **Repository**: <https://github.com/osqzss/gps-sdr-sim>
 - **Status**: MATURE (680+ forks, actively maintained)
 - **Language**: C
 - **Dependencies**: gcc, libm (standard math library). Zero external dependencies.

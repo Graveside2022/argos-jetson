@@ -12,7 +12,6 @@ XMLRPC API (heavyweight dependency) for simplicity and auditability.
 
 import argparse
 import re
-import shutil
 import tempfile
 from pathlib import Path
 from typing import Any

@@ -21,9 +21,9 @@ FRAME_COUNT=$(sudo timeout 3 tcpdump -i lo -nn port 4729 2>/dev/null | wc -l)
 echo "Frame count: $FRAME_COUNT"
 
 echo "Checking if process is still running:"
-if ps -p $GSM_PID > /dev/null 2>&1; then
+if ps -p "$GSM_PID" > /dev/null 2>&1; then
     echo "✓ Process still running"
-    sudo kill $GSM_PID
+    sudo kill "$GSM_PID"
 else
     echo "✗ Process died, checking why..."
     echo "Last lines of output:"

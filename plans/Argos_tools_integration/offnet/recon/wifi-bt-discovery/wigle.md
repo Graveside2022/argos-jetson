@@ -24,9 +24,9 @@ Wardriving / Network Geolocation Database / Wireless Intelligence / OSINT
 
 ## Repository
 
-- **Website**: https://wigle.net
-- **API Documentation**: https://api.wigle.net/swagger
-- **GitHub**: https://github.com/wiglenet (WiGLE organization -- API clients and tools)
+- **Website**: <https://wigle.net>
+- **API Documentation**: <https://api.wigle.net/swagger>
+- **GitHub**: <https://github.com/wiglenet> (WiGLE organization -- API clients and tools)
 - **Language**: REST API (JSON), Python/Java/JavaScript client libraries available
 - **License**: API access is free with registration; data contributed under WiGLE terms of service
 
@@ -214,7 +214,7 @@ curl -s -H "Authorization: Basic $(echo -n "$WIGLE_API_NAME:$WIGLE_API_TOKEN" | 
 
 - **Web Service**: WiGLE is a cloud service with a REST API, not a standalone tool to install. Integration involves making HTTP API calls from Argos
 - **API Rate Limits**: Free accounts have daily query limits; commercial API access available for higher throughput
-- **Registration Required**: A free WiGLE account is required for API access. Register at https://wigle.net
+- **Registration Required**: A free WiGLE account is required for API access. Register at <https://wigle.net>
 - **Data Enrichment**: Primary use case for Argos is enriching locally-scanned networks (from Kismet) with historical WiGLE data -- when was a network first seen globally, where else has it been observed, movement patterns
 - **OPSEC Warning**: Do NOT upload wardriving data from classified or sensitive environments to WiGLE; the data becomes publicly accessible
 - **API Endpoints**: Key endpoints include network/search (geographic search), network/detail (BSSID lookup), network/comment (community notes), stats (global statistics), bluetooth/search (BT device lookup), cell/search (cell tower lookup)

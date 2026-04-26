@@ -1,33 +1,66 @@
 #!/usr/bin/env sh
-# Heavy-gate tier: runs once per `git push`, not once per commit.
+# Pre-push chain (heavy-gate tier — runs once per `git push`):
+#   1. Block direct pushes to protected branches (main, master).
+#   2. Full-repo typecheck (svelte-check via mem-guard wrapper).
+#   3. Full-repo ESLint scan (cached).
+#   4. test:unit:related:upstream — scoped to files changed vs upstream.
 #
-# Rationale: pre-commit is now lean (lint-staged + scoped vitest) so
-# operators can commit in seconds. The full-repo typecheck + ESLint
-# scan + 516-test suite run here, before anything leaves the local
-# machine. CI (.github/workflows/ci.yml + lint.yml) is the third
-# layer that catches anything this misses.
+# All checks run before anything leaves the local machine. CI is the third
+# layer (.github/workflows/ci.yml + lint.yml).
 #
-# Skip with: git push --no-verify   (use sparingly — defeats the gate)
+# All three checks share scripts/ops/mem-guard.sh's flock so two concurrent
+# pre-push runs (e.g. double-click `git push` in a UI) can't race on RAM/CPU.
 #
-# All three checks share scripts/ops/mem-guard.sh's flock so two
-# concurrent pre-push runs (e.g. double-click `git push` in a UI)
-# can't race on RAM/CPU.
+# Bypass protected-branch guard: ALLOW_MAIN_PUSH=1 git push ...
+# Bypass full-repo lint:         SKIP_FULL_LINT=1 git push ...
+# Skip everything:               git push --no-verify ...
 
 set -e
 
-echo "[pre-push] typecheck (svelte-check)..."
+# 1) Protected-branch push guard (must consume git's ref-list from stdin first)
+if [ "${ALLOW_MAIN_PUSH:-0}" = "1" ]; then
+	echo "[pre-push] ALLOW_MAIN_PUSH=1 — bypass engaged, pushing to protected branch"
+else
+	PROTECTED='main master'
+	while read -r local_ref local_sha remote_ref remote_sha; do
+		[ -z "$remote_ref" ] && continue
+		case "$local_sha" in
+			0000000*) continue ;;
+		esac
+		remote_branch=${remote_ref#refs/heads/}
+		for pb in $PROTECTED; do
+			if [ "$remote_branch" = "$pb" ]; then
+				echo "[pre-push] ❌ direct push to '$pb' is blocked" >&2
+				echo "[pre-push]    Open a PR from a feature branch instead" >&2
+				echo "[pre-push]    Emergency bypass: ALLOW_MAIN_PUSH=1 git push ..." >&2
+				exit 1
+			fi
+		done
+	done
+fi
+
+# 2) Typecheck (svelte-check via mem-guard wrapper in package.json)
 # npm run typecheck is already wrapped in mem-guard via its package.json
-# script definition — wrapping it again here would cause a nested-lock
-# failure (outer mem-guard holds flock, inner waits forever).
+# script definition — wrapping it again here would cause a nested-lock failure.
+echo "[pre-push] typecheck (svelte-check)..."
 npm run typecheck
 
-echo "[pre-push] full-repo ESLint (cached)..."
-npx eslint . --config config/eslint.config.js --cache --cache-location .eslintcache --cache-strategy content
+# 3) Full-repo ESLint scan (cached, blocking on any error)
+if [ "${SKIP_FULL_LINT:-0}" = "1" ]; then
+	echo "[pre-push] SKIP_FULL_LINT=1 — skipping full-repo eslint scan"
+else
+	echo "[pre-push] full-repo eslint scan (cached, cognitive complexity ≤5)..."
+	if ! npx eslint . --config config/eslint.config.js --cache --cache-location .eslintcache --cache-strategy content; then
+		echo "[pre-push] ❌ eslint errors present — fix or bypass with SKIP_FULL_LINT=1 git push ..." >&2
+		exit 1
+	fi
+fi
 
+# 4) test:unit:related:upstream — scoped to the diff being pushed
+# Full 523-test suite runs in CI only — pre-push scopes to files changed vs the
+# upstream tracking branch. Catches breakage in the actual diff without paying
+# ~120 s on pushes that touch a handful of files. CI is the safety net.
 echo "[pre-push] test:unit:related:upstream (scoped to the diff being pushed)..."
-# Full 523-test suite now runs in CI only — pre-push scopes to files changed
-# vs the upstream tracking branch. Catches breakage in the actual diff without
-# paying ~120 s on pushes that touch a handful of files. CI is the safety net.
 npm run test:unit:related:upstream
 
 echo "[pre-push] ✓ all checks passed"

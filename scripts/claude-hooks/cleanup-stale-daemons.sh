@@ -24,12 +24,12 @@ NOW=$(date +%s)
 while read -r pid ppid rss; do
     # Kill orphaned daemons (reparented to init or systemd --user)
     parent_comm=$(ps -o comm= -p "$ppid" 2>/dev/null | tr -d ' ')
-    if [ "$ppid" = "1" ] || [ "$parent_comm" = "systemd" ]; then
+    if [[ "$ppid" = "1" ]] || [[ "$parent_comm" = "systemd" ]]; then
         # Skip workers started less than MIN_AGE_SECS ago (likely just spawned
         # by the plugin's own SessionStart hook running concurrently)
         start_time=$(stat -c %Y "/proc/$pid" 2>/dev/null || echo "$NOW")
         age=$((NOW - start_time))
-        if [ "$age" -lt "$MIN_AGE_SECS" ]; then
+        if [[ "$age" -lt "$MIN_AGE_SECS" ]]; then
             continue
         fi
         FREED_KB=$((FREED_KB + rss))
@@ -51,7 +51,7 @@ done) || true)
 # === Stale tshark/dumpcap (>1 hour) ===
 for pid in $(pgrep -f 'tshark|dumpcap' 2>/dev/null || true); do
     elapsed=$(ps -o etimes= -p "$pid" 2>/dev/null | tr -d ' ')
-    if [ "${elapsed:-0}" -gt 3600 ]; then
+    if [[ "${elapsed:-0}" -gt 3600 ]]; then
         rss=$(awk '/VmRSS/{print $2}' /proc/"$pid"/status 2>/dev/null || echo 0)
         FREED_KB=$((FREED_KB + rss))
         kill "$pid" 2>/dev/null && KILLED=$((KILLED + 1))
@@ -61,7 +61,7 @@ done
 # === Stale puppeteer chromium (>2 hours) ===
 for pid in $(pgrep -f 'chromium.*user-data-dir=/tmp' 2>/dev/null || true); do
     elapsed=$(ps -o etimes= -p "$pid" 2>/dev/null | tr -d ' ')
-    if [ "${elapsed:-0}" -gt 7200 ]; then
+    if [[ "${elapsed:-0}" -gt 7200 ]]; then
         rss=$(awk '/VmRSS/{print $2}' /proc/"$pid"/status 2>/dev/null || echo 0)
         FREED_KB=$((FREED_KB + rss))
         kill "$pid" 2>/dev/null && KILLED=$((KILLED + 1))
@@ -70,18 +70,19 @@ done
 
 # === Uncontrolled Jaeger (not in cgroup, >300 MB RSS) ===
 for pid in $(pgrep -f 'jaeger-all-in-one' 2>/dev/null || true); do
-    in_cgroup=$(grep -c 'jaeger' /proc/$pid/cgroup 2>/dev/null || echo 0)
+    in_cgroup=$(grep -c 'jaeger' /proc/"$pid"/cgroup 2>/dev/null || echo 0)
     rss_kb=$(awk '/VmRSS/{print $2}' /proc/"$pid"/status 2>/dev/null || echo 0)
     rss_mb=$((rss_kb / 1024))
-    if [ "$in_cgroup" -eq 0 ] && [ "$rss_mb" -gt 300 ]; then
+    if [[ "$in_cgroup" -eq 0 ]] && [[ "$rss_mb" -gt 300 ]]; then
         FREED_KB=$((FREED_KB + rss_kb))
         kill "$pid" 2>/dev/null && KILLED=$((KILLED + 1))
     fi
 done
 
-if [ "$KILLED" -gt 0 ]; then
+if [[ "$KILLED" -gt 0 ]]; then
     FREED_MIB=$((FREED_KB / 1024))
-    echo '{"additional_context": "Cleaned up '"$KILLED"' stale daemon(s), freed ~'"$FREED_MIB"' MiB"}'
+    # SessionStart accepts plain stdout as additionalContext — simpler than JSON envelope
+    echo "[cleanup-stale-daemons] killed $KILLED stale daemon(s), freed ~${FREED_MIB} MiB"
 fi
 
 exit 0

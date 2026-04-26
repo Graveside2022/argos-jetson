@@ -1,0 +1,8 @@
+# Gemini Code Assist on GitHub — per-repo configuration.
+#
+# Schema: https://developers.google.com/gemini-code-assist/docs/customize-gemini-behavior-github
+#
+# CodeRabbit is the chosen AI reviewer for this repo; Gemini Code Assist is
+# disabled to avoid duplicate / conflicting reviews on the same PR.
+code_review:
+  disable: true

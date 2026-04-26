@@ -24,7 +24,7 @@ Maritime AIS / CoT Gateway / Tactical Display Bridge
 
 ## Repository
 
-https://github.com/snstac/aiscot
+<https://github.com/snstac/aiscot>
 
 ---
 

@@ -24,7 +24,7 @@ Satellite Tracking / CoT Gateway / Off-Grid Position Reporting
 
 ## Repository
 
-https://github.com/snstac/spotcot
+<https://github.com/snstac/spotcot>
 
 ---
 

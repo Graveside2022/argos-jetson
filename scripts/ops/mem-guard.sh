@@ -59,7 +59,7 @@ mem_available_mb() {
 cleanup_if_tight() {
     local pct
     pct=$(mem_pct)
-    if [ "$pct" -lt 75 ]; then
+    if [[ "$pct" -lt 75 ]]; then
         return  # Plenty of memory, skip cleanup
     fi
 
@@ -71,17 +71,17 @@ cleanup_if_tight() {
         local ppid parent_comm
         ppid=$(awk '{print $4}' "/proc/$pid/stat" 2>/dev/null) || continue
         parent_comm=$(cat "/proc/$ppid/comm" 2>/dev/null) || parent_comm="unknown"
-        if [ "$ppid" = "1" ] || [ "$parent_comm" = "systemd" ]; then
+        if [[ "$ppid" = "1" ]] || [[ "$parent_comm" = "systemd" ]]; then
             local rss_mb
             rss_mb=$(awk '{printf "%d", $2*4/1024}' "/proc/$pid/statm" 2>/dev/null) || continue
-            if [ "$rss_mb" -gt 30 ]; then
+            if [[ "$rss_mb" -gt 30 ]]; then
                 kill "$pid" 2>/dev/null && killed=$((killed + 1)) && freed_mb=$((freed_mb + rss_mb))
                 echo -e "  ${DIM}Killed orphan bun worker PID $pid (${rss_mb}MB)${RESET}"
             fi
         fi
     done < <(pgrep -f "bun.*worker-service" 2>/dev/null || true)
 
-    if [ "$killed" -gt 0 ]; then
+    if [[ "$killed" -gt 0 ]]; then
         sleep 1  # Let memory reclaim
         echo -e "  ${GREEN}Freed ~${freed_mb}MB (killed $killed orphan workers)${RESET}"
     fi
@@ -100,7 +100,7 @@ acquire_lock() {
         # Another process holds the lock — read its PID from the sidecar file
         local lock_pid lock_cmd
         lock_pid=$(cat "${LOCKFILE}.pid" 2>/dev/null | tr -cd '0-9')
-        if [ -n "$lock_pid" ]; then
+        if [[ -n "$lock_pid" ]]; then
             lock_cmd=$(ps -p "$lock_pid" -o args= 2>/dev/null | head -c 60) || lock_cmd="unknown"
             echo -e "${RED}Another heavy command is running:${RESET}"
             echo -e "  ${DIM}PID $lock_pid: $lock_cmd${RESET}"
@@ -119,11 +119,11 @@ acquire_lock() {
 
 # --- Main ---
 
-if [ "${MEM_GUARD_SKIP:-0}" = "1" ]; then
+if [[ "${MEM_GUARD_SKIP:-0}" = "1" ]]; then
     exec "$@"
 fi
 
-if [ $# -eq 0 ]; then
+if [[ $# -eq 0 ]]; then
     echo "Usage: $0 <command> [args...]"
     echo "Example: $0 npx vite build"
     exit 1
@@ -141,7 +141,7 @@ cleanup_if_tight
 MEM_PCT=$(mem_pct)
 MEM_AVAIL=$(mem_available_mb)
 
-if [ "$MEM_PCT" -ge "$THRESHOLD" ]; then
+if [[ "$MEM_PCT" -ge "$THRESHOLD" ]]; then
     echo -e "${RED}Memory at ${MEM_PCT}% (${MEM_AVAIL}MB available).${RESET}"
     echo -e "${RED}Threshold: ${THRESHOLD}%. Command blocked to prevent OOM.${RESET}"
     echo ""
@@ -166,4 +166,4 @@ MEM_AVAIL_AFTER=$(mem_available_mb)
 echo ""
 echo -e "${DIM}Memory after: ${MEM_AFTER}% (${MEM_AVAIL_AFTER}MB available)${RESET}"
 
-exit $EXIT_CODE
+exit "$EXIT_CODE"

@@ -6,9 +6,9 @@ Lightweight gateway that ingests drone Remote ID detections from multiple source
 
 ## Links
 
-- **GitHub:** https://github.com/alphafox02/DragonSync
-- **Coverage:** https://www.rtl-sdr.com/wardragon-real-time-drone-remote-id-tracking-with-snifflee-tar1090-and-atak/
-- **iOS Companion:** https://github.com/Root-Down-Digital/DragonSync-iOS
+- **GitHub:** <https://github.com/alphafox02/DragonSync>
+- **Coverage:** <https://www.rtl-sdr.com/wardragon-real-time-drone-remote-id-tracking-with-snifflee-tar1090-and-atak/>
+- **iOS Companion:** <https://github.com/Root-Down-Digital/DragonSync-iOS>
 
 ## What It Does
 

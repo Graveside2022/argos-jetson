@@ -7,19 +7,37 @@ on:
     tags:
       - 'v*.*.*'
 
+# Workflow default: read-only. Job-scoped write granted below.
+permissions:
+  contents: read
+
+# DO NOT cancel release runs — aborting mid-upload leaves malformed releases.
+# https://docs.github.com/en/actions/using-jobs/using-concurrency
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   build-and-release:
     name: 'Build and Package Application'
     runs-on: ubuntu-latest
+    timeout-minutes: 25
+    # Least-privilege — only this job needs write
+    permissions:
+      contents: write
 
     steps:
       - name: 'Checkout Code'
-        uses: actions/checkout@v4
-
-      - name: 'Setup Node.js v20'
-        uses: actions/setup-node@v4
+        # actions/checkout v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          node-version: '20.x'
+          persist-credentials: false
+
+      - name: 'Setup Node.js'
+        # actions/setup-node v4.4.0
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: '.nvmrc'
           cache: 'npm'
 
       - name: 'Install All Dependencies for Build'
@@ -33,24 +51,22 @@ jobs:
           mkdir release
           cp -r build/ release/
           cp package.json release/
-          # This next step is critical for a lean production environment.
-          # It removes all development-only packages (like vitest, eslint),
-          # resulting in a smaller, more secure, and faster installation on the Pi.
           cd release
           npm ci --omit=dev
           cd ..
 
       - name: 'Create Compressed Release Tarball'
-        run: tar -czvf argos-final-${{ github.ref_name }}.tar.gz release
+        # Move github.ref_name through env: to avoid actionlint-flagged
+        # interpolation-into-run pattern (injection class).
+        env:
+          TAG: ${{ github.ref_name }}
+        run: tar -czvf "argos-final-${TAG}.tar.gz" release
 
       - name: 'Create GitHub Release and Upload Artifact'
-        # This action automates creating a release page on GitHub.
-        uses: softprops/action-gh-release@v1
-        with:
-          # This tells the action to upload the .tar.gz file we just created.
-          files: argos-final-${{ github.ref_name }}.tar.gz
+        # softprops/action-gh-release v3.0.0 — SHA-pinned. v1 deprecated (Node 16
+        # EOL). Requires contents:write which is granted at job scope above.
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda
         env:
-          # This token is a secure, temporary key provided by GitHub Actions.
-          # It requires no setup on your part and allows the workflow to
-          # create a release on your behalf.
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        with:
+          files: argos-final-${{ env.TAG }}.tar.gz

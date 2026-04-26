@@ -15,7 +15,7 @@
  */
 
 import fc from 'fast-check';
-import { describe, expect,test } from 'vitest';
+import { describe, expect, test } from 'vitest';
 
 import {
 	InputValidationError,
@@ -23,7 +23,8 @@ import {
 	validateInterfaceName,
 	validateMacAddress,
 	validateNumericParam,
-	validatePathWithinDir} from '$lib/server/security/input-sanitizer';
+	validatePathWithinDir
+} from '$lib/server/security/input-sanitizer';
 
 describe('Input Validators (Property-Based)', () => {
 	describe('validateNumericParam', () => {

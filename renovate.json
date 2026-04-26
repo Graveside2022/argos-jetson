@@ -1,0 +1,61 @@
+{
+	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
+	"extends": [
+		"config:recommended",
+		":semanticCommits",
+		":semanticCommitTypeAll(chore)",
+		":enableVulnerabilityAlertsWithLabel(security)",
+		":maintainLockFilesWeekly"
+	],
+	"timezone": "America/Denver",
+	"schedule": ["after 10pm and before 5am every weekday", "every weekend"],
+	"prConcurrentLimit": 3,
+	"prHourlyLimit": 2,
+	"rangeStrategy": "pin",
+	"packageRules": [
+		{
+			"description": "Auto-merge patch bumps after CI green. Minor and major always require human review.",
+			"matchUpdateTypes": ["patch"],
+			"automerge": true,
+			"automergeType": "pr",
+			"platformAutomerge": true
+		},
+		{
+			"description": "Minor updates: PR + review, no automerge.",
+			"matchUpdateTypes": ["minor"],
+			"automerge": false
+		},
+		{
+			"description": "Major updates: PR + review, changelog link required, flagged for breaking-change review.",
+			"matchUpdateTypes": ["major"],
+			"automerge": false,
+			"labels": ["breaking-change-review-required"]
+		},
+		{
+			"description": "Group framework majors together so Svelte + SvelteKit bump in one PR.",
+			"matchPackageNames": [
+				"svelte",
+				"@sveltejs/kit",
+				"@sveltejs/adapter-node",
+				"@sveltejs/vite-plugin-svelte"
+			],
+			"groupName": "svelte ecosystem",
+			"schedule": ["every weekend"]
+		},
+		{
+			"description": "Native addons — never automerge. Build-time compilation risks mean each bump needs manual verification on the Jetson target.",
+			"matchPackageNames": ["better-sqlite3", "node-pty"],
+			"automerge": false,
+			"labels": ["native-addon-review-required"]
+		}
+	],
+	"vulnerabilityAlerts": {
+		"labels": ["security"],
+		"automerge": false,
+		"prPriority": 10,
+		"rangeStrategy": "update-lockfile"
+	},
+	"dependencyDashboard": true,
+	"dependencyDashboardTitle": "Renovate — dependency dashboard",
+	"labels": ["dependencies"]
+}

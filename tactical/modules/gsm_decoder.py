@@ -7,7 +7,6 @@ GSM layer-2/layer-3 frames from the specified timeslot and channel mode.
 """
 
 import argparse
-import json
 import re
 from pathlib import Path
 from typing import Any

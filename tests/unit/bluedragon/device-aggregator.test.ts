@@ -61,11 +61,16 @@ describe('DeviceAggregator', () => {
 	});
 
 	it('debounces broadcasts inside 500 ms window', () => {
-		// Throttle compares against Date.now() — fake timers drive the clock.
+		// Debounce is gated by wall-clock `Date.now()` in DeviceAggregator
+		// (MIN_BROADCAST_INTERVAL_MS = 500). The frame's `timestamp` field
+		// does not drive throttling — it's just metadata on the device.
+		// Fake timers are required so the test can advance the clock without
+		// waiting in real time.
 		vi.useFakeTimers();
 		try {
-			const t0 = Date.now();
+			const t0 = new Date('2026-01-01T00:00:00Z').getTime();
 			vi.setSystemTime(t0);
+
 			agg.ingest(makeFrame({ timestamp: t0, rssi: -60 }));
 			broadcast.mockClear();
 

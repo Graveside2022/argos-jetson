@@ -1,41 +1,56 @@
 #!/bin/bash
 set -euo pipefail
 # auto-lint.sh — PostToolUse hook for Edit|Write
-# Runs ESLint in reporting mode (no --fix) to surface complexity violations
-# that auto-format.sh can't fix (cyclomatic ≤5, cognitive ≤5).
-# Uses lock file to prevent concurrent runs (same pattern as auto-typecheck.sh).
+# Runs ESLint in report mode (no --fix) to surface complexity violations
+# that auto-format.sh can't auto-fix. On complexity violations emits
+# decision:"block" JSON so the model gets structured in-loop feedback.
 
 LOCKFILE="/tmp/argos-autolint.lock"
 
 INPUT=$(cat) || exit 0
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // ""' 2>/dev/null)
-if [ -z "$FILE_PATH" ]; then exit 0; fi
+if [[ -z "$FILE_PATH" ]]; then exit 0; fi
 if ! echo "$FILE_PATH" | grep -qE '\.(ts|tsx|svelte|js)$'; then exit 0; fi
-if [ ! -f "$FILE_PATH" ]; then exit 0; fi
+if [[ ! -f "$FILE_PATH" ]] || [[ -L "$FILE_PATH" ]]; then exit 0; fi
 
-# Mutual exclusion: skip if another lint is already running
-if [ -f "$LOCKFILE" ]; then
+command -v npx >/dev/null 2>&1 || exit 0
+
+PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$PWD}"
+case "$FILE_PATH" in
+    "$PROJECT_DIR"/*) ;;
+    *) exit 0 ;;
+esac
+
+if [[ -f "$LOCKFILE" ]]; then
     LOCK_PID=$(cat "$LOCKFILE" 2>/dev/null)
-    if [ -n "$LOCK_PID" ] && kill -0 "$LOCK_PID" 2>/dev/null; then
+    if [[ -n "$LOCK_PID" ]] && kill -0 "$LOCK_PID" 2>/dev/null; then
         exit 0
     fi
     rm -f "$LOCKFILE"
 fi
-
-cd "${CLAUDE_PROJECT_DIR:-$PWD}" || exit 0
-
-# Acquire lock
 echo $$ > "$LOCKFILE"
 trap 'rm -f "$LOCKFILE"' EXIT
 
-# Run ESLint in report mode (no --fix) — only errors, skip warnings
+cd "$PROJECT_DIR" || exit 0
+
+# set -e would exit on eslint non-zero before EXIT_CODE=$? captures it,
+# killing the error-handling branch below. Temporarily disable errexit.
+set +e
 OUTPUT=$(npx eslint "$FILE_PATH" --config config/eslint.config.js --no-warn-ignored 2>&1)
 EXIT_CODE=$?
+set -e
 
-if [ "$EXIT_CODE" -ne 0 ]; then
-    # Filter to show only error lines (complexity violations, etc.)
+if [[ "$EXIT_CODE" -ne 0 ]]; then
     ERRORS=$(echo "$OUTPUT" | grep -E '(error|complexity)' | head -10)
-    if [ -n "$ERRORS" ]; then
+    if [[ -n "$ERRORS" ]]; then
+        if echo "$ERRORS" | grep -qiE 'complexity|cognitive|sonarjs/cognitive'; then
+            REASON="Complexity violation in $(basename "$FILE_PATH") — fix before next action:
+
+$ERRORS"
+            jq -n --arg reason "$REASON" \
+                '{decision:"block",reason:$reason}'
+            exit 0
+        fi
         echo "Lint errors in $(basename "$FILE_PATH"):" >&2
         echo "$ERRORS" >&2
     fi

@@ -24,7 +24,7 @@ WiFi Positioning / Distributed Sensing / Passive Device Triangulation
 
 ## Repository
 
-https://github.com/schollz/find-lf
+<https://github.com/schollz/find-lf>
 
 ---
 

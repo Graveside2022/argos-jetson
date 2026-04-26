@@ -24,7 +24,7 @@ TAK Protocol / Passive Analysis / Packet Inspection / Network Forensics
 
 ## Repository
 
-- **Source**: https://github.com/jmkeyes/wireshark-tak-plugin
+- **Source**: <https://github.com/jmkeyes/wireshark-tak-plugin>
 - **Language**: Lua
 - **License**: MIT
 

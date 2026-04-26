@@ -147,7 +147,7 @@ Apply rate limiting to prevent log flooding:
 
 ## Example Fix (HackRF Service Line 367)
 
-### BEFORE:
+### BEFORE
 
 ```typescript
 try {
@@ -158,7 +158,7 @@ try {
 }
 ```
 
-### AFTER:
+### AFTER
 
 ```typescript
 try {
@@ -166,27 +166,24 @@ try {
 	this.setupWebSocketHandlers();
 } catch (error: unknown) {
 	const errorMsg = error instanceof Error ? error.message : String(error);
-	logWarn(
-		"HackRF WebSocket setup failed, service will continue without real-time updates",
-		{
-			error: errorMsg,
-			timestamp: Date.now(),
-			device: "HackRF",
-			operation: "WebSocket.setup",
-			impact: "Real-time updates unavailable (using polling)",
-			fallback: "polling-only-mode",
-		},
-	);
+	logWarn('HackRF WebSocket setup failed, service will continue without real-time updates', {
+		error: errorMsg,
+		timestamp: Date.now(),
+		device: 'HackRF',
+		operation: 'WebSocket.setup',
+		impact: 'Real-time updates unavailable (using polling)',
+		fallback: 'polling-only-mode'
+	});
 
 	// Update UI state to show degraded mode
 	this.updateState({
-		error: "Real-time updates unavailable (using polling)",
-		isConnecting: false,
+		error: 'Real-time updates unavailable (using polling)',
+		isConnecting: false
 	});
 }
 ```
 
-### Verification:
+### Verification
 
 1. Block WebSocket port 5173 in firewall
 2. Start HackRF service
@@ -194,7 +191,7 @@ try {
 4. Verify UI shows "using polling" message
 5. Verify service continues to function (polling mode)
 
-### Rollback:
+### Rollback
 
 ```bash
 # If UI state update breaks something
