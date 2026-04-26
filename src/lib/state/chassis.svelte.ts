@@ -12,7 +12,6 @@
 import { onDestroy } from 'svelte';
 
 import { browser } from '$app/environment';
-
 import type { WeatherReport } from '$lib/types/weather';
 import { type Airport, findNearest, loadAirports } from '$lib/utils/airports';
 
@@ -58,6 +57,22 @@ const BYTES_PER_GB = 1024 ** 3;
 
 function gb(bytes: number | undefined): number | undefined {
 	return bytes == null ? undefined : bytes / BYTES_PER_GB;
+}
+
+function mapMetrics(data: SystemMetrics): ChassisState['system'] {
+	const out: ChassisState['system'] = {};
+	if (data.cpu) {
+		out.cpuPct = data.cpu.usage;
+		out.tempC = data.cpu.temperature;
+	}
+	if (data.memory) {
+		out.memUsedGb = gb(data.memory.used);
+		out.memTotalGb = gb(data.memory.total);
+	}
+	if (data.disk) {
+		out.nvmeFreeGb = gb(data.disk.available);
+	}
+	return out;
 }
 
 async function fetchJson<T>(path: string): Promise<T | null> {
@@ -106,13 +121,7 @@ export function createChassisState(): ChassisState {
 	async function pollMetrics(): Promise<void> {
 		const data = await fetchJson<SystemMetrics>('/api/system/metrics');
 		if (!data) return;
-		state.system = {
-			cpuPct: data.cpu?.usage,
-			memUsedGb: gb(data.memory?.used),
-			memTotalGb: gb(data.memory?.total),
-			tempC: data.cpu?.temperature,
-			nvmeFreeGb: gb(data.disk?.available)
-		};
+		state.system = mapMetrics(data);
 	}
 
 	async function pollGps(): Promise<void> {
