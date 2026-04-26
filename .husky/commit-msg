@@ -1,3 +1,4 @@
+#!/usr/bin/env sh
 # Conventional Commits enforcement.
 # Subject must be: type(scope)?!?: description
 #

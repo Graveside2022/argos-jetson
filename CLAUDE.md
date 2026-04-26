@@ -281,7 +281,7 @@ The UI follows the **Lunaris design language** — a military-grade enterprise d
 
 ### Color Architecture
 
-Three layers in `src/app.css`, bridged via `src/lib/styles/palantir-design-system.css`:
+Three layers in `src/app.css` (`:root` block), with shared utilities in `src/lib/styles/dashboard-utilities.css`:
 
 - **Surface tokens**: `--background` (#111111), `--card` (#1A1A1A), `--border` (#2E2E2E) — deep black base with subtle layered depth
 - **Accent**: Steel blue (#A8B8E0 default, Blue ★) — swappable via `--primary` across 13 MIL-STD palette themes. Used for brand text, progress bars, active indicators, AP markers

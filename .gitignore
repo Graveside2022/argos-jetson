@@ -193,6 +193,10 @@ service/
 tools/
 completed/
 
+# ── Stray release / ops artifacts (keep on disk; hide from git) ──
+docs/cell_towers.csv*
+scripts/ops/*.bak.*
+
 # ── AI Development Tools ────────────────────────────────────
 # .gemini/ workspace cruft is ignored; the GitHub App's repo-level config
 # (.gemini/config.yaml) and optional styleguide.md are tracked so review
@@ -311,3 +315,12 @@ claude-code-lsp-enforcement-kit/
 
 # Binary artifacts (distribute via releases)
 *.apk
+
+# Trunk Code Quality local state (all entries symlink into ~/.cache/trunk)
+.trunk/
+
+# Timestamped backup files (e.g., foo.sh.bak.20260423-215327). `*.bak` above only matches the exact `.bak` suffix.
+*.bak.*
+
+# Cell tower CSV dump — reconstitute from data/celltowers/towers.db or release asset
+docs/cell_towers.csv.gz

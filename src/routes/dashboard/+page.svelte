@@ -59,6 +59,9 @@
 
 	import BottomPanelTabs from './BottomPanelTabs.svelte';
 
+	// spec-024 PR6 — Mk II is now its own URL space at /dashboard/mk2/*.
+	// `?ui=mk2` redirects in +page.ts so this file is the legacy shell only.
+
 	const FULL_WIDTH_VIEWS = new Set(['tak-config', 'globalprotect', 'gsm-evil']);
 	let shellMode = $derived(
 		$activePanel === 'reports' || FULL_WIDTH_VIEWS.has($activeView)

@@ -1,4 +1,3 @@
-import '$lib/server/instrumentation';
 import '$lib/server/env';
 
 import type { Handle, HandleServerError } from '@sveltejs/kit';
@@ -6,17 +5,14 @@ import { monitorEventLoopDelay } from 'perf_hooks';
 import type { WebSocket } from 'ws';
 import { WebSocketServer } from 'ws';
 
-import { dev } from '$app/environment';
+import { building, dev } from '$app/environment';
 import {
 	getSessionCookieHeader,
 	validateApiKey,
 	validateSecurityConfig,
 	validateSessionToken
 } from '$lib/server/auth/auth-middleware';
-import {
-	globalHardwareMonitor,
-	scanAllHardware
-} from '$lib/server/hardware/detection/hardware-detector';
+import { initServerProcesses } from '$lib/server/initialization/bootstrap';
 import { WebSocketManager } from '$lib/server/kismet/web-socket-manager';
 import { checkRateLimit, getSafeClientAddress } from '$lib/server/middleware/rate-limit-middleware';
 import { withSecurityHeaders } from '$lib/server/middleware/response-pipeline';
@@ -59,38 +55,10 @@ const wss = new WebSocketServer({ noServer: true, maxPayload: 262144 }); // 256K
 // Initialize WebSocket manager
 const wsManager = WebSocketManager.getInstance();
 
-// Initialize hardware detection system (auto-detect connected hardware)
-scanAllHardware()
-	.then((result) => {
-		logger.info('Hardware detection complete', {
-			total: result.stats.total,
-			connected: result.stats.connected,
-			sdrs: result.stats.byCategory.sdr || 0,
-			wifi: result.stats.byCategory.wifi || 0,
-			bluetooth: result.stats.byCategory.bluetooth || 0
-		});
-		globalHardwareMonitor.start(30000);
-		logger.info('Hardware monitoring started');
-	})
-	.catch((error) => {
-		logger.error('Failed to scan hardware', { error });
-	});
-
-// Initialize TakService (Phase 5)
-import { TakService } from '$lib/server/tak/tak-service';
-TakService.getInstance()
-	.initialize()
-	.catch((err) => {
-		logger.error('Failed to initialize TakService', { error: err });
-	});
-
-// Initialize GlobalProtect VPN service
-import { GlobalProtectService } from '$lib/server/services/globalprotect/globalprotect-service';
-GlobalProtectService.getInstance()
-	.initialize()
-	.catch((err) => {
-		logger.error('Failed to initialize GlobalProtectService', { error: err });
-	});
+// Skipped during `vite build` SSR-trace pass (issue #15). See bootstrap.ts.
+// Fire-and-forget: each external call inside is wrapped in `safe()`, so the
+// returned promise resolves; the void prevents floating-promise lint hits.
+void initServerProcesses(building);
 
 // Handle WebSocket connections -- delegates to ws-connection-handler module
 wss.on('connection', (ws: WebSocket, request) => {

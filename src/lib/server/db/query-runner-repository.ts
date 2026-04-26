@@ -1,21 +1,17 @@
 /**
  * Ad-hoc read-only query runner for the `/api/database/query` dev-tools route.
  *
- * Opens a process-lifetime readonly handle to the same SQLite file the
- * read/write `RFDatabase` instance uses, so even if the route-level sanitizer
- * is bypassed the DB driver itself will reject any INSERT/UPDATE/DELETE/DDL.
- *
- * The handle is lazily initialized and cached module-scoped (same file per
- * process). This mirrors the WeakMap prepared-statement pattern used by the
- * other repositories under `src/lib/server/db/` — here we cache a handle
- * instead of per-statement compilations because the SQL text is dynamic.
- *
- * NOTE: this module is the ONLY caller allowed to open a readonly handle to
- * the main RF database. All other reads go through `getRFDatabase()`'s shared
- * read/write handle plus prepared statements in their dedicated repositories.
+ * Opens a fresh readonly connection per query and closes it when done.
+ * A process-lifetime handle was removed because the lingering connection
+ * could hold SQLite read snapshots that blocked WAL auto-checkpointing,
+ * causing rf_signals.db-wal to grow to multi-GB scale. The route is
+ * dev-only and rate-limited (~30 req/min), so open/close overhead is
+ * negligible.
  */
 
 import Database from 'better-sqlite3';
+
+import { logger } from '$lib/utils/logger';
 
 import { getRFDatabase } from './database';
 
@@ -24,16 +20,6 @@ export type QueryParam = string | number | null;
 export interface QueryResult {
 	rows: unknown[];
 	durationMs: number;
-}
-
-let roHandle: Database.Database | null = null;
-
-/** Lazily open (and memoize) a readonly handle to the RF database file. */
-function getReadOnlyHandle(): Database.Database {
-	if (roHandle) return roHandle;
-	const dbPath = getRFDatabase().rawDb.name;
-	roHandle = new Database(dbPath, { readonly: true, fileMustExist: true });
-	return roHandle;
 }
 
 /**
@@ -45,21 +31,27 @@ function getReadOnlyHandle(): Database.Database {
  * past the route-level sanitizer still fails at the DB driver.
  */
 export function runReadOnlyQuery(sql: string, params: readonly QueryParam[]): QueryResult {
-	const db = getReadOnlyHandle();
-	const stmt = db.prepare(sql);
-	const started = Date.now();
-	const rows = (params.length > 0 ? stmt.all(...params) : stmt.all()) as unknown[];
-	return { rows, durationMs: Date.now() - started };
-}
-
-/** Test-only hook: drop the cached handle so a test can force re-init. */
-export function _resetReadOnlyHandleForTests(): void {
-	if (roHandle) {
+	const dbPath = getRFDatabase().rawDb.name;
+	const db = new Database(dbPath, { readonly: true, fileMustExist: true });
+	try {
+		const stmt = db.prepare(sql);
+		const started = Date.now();
+		const rows = (params.length > 0 ? stmt.all(...params) : stmt.all()) as unknown[];
+		return { rows, durationMs: Date.now() - started };
+	} finally {
 		try {
-			roHandle.close();
-		} catch {
-			/* already closed */
+			db.close();
+		} catch (closeErr) {
+			// Don't let a finally-thrown close error mask a query error that's
+			// already in flight. Log and continue so the outer error propagates.
+			logger.warn('readonly db.close() failed', {
+				err: closeErr instanceof Error ? closeErr.message : String(closeErr)
+			});
 		}
 	}
-	roHandle = null;
+}
+
+/** Test-only hook: retained as a no-op so any existing test imports don't break. */
+export function _resetReadOnlyHandleForTests(): void {
+	/* no-op: handle is no longer memoized */
 }

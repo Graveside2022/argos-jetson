@@ -29,6 +29,7 @@ export default [
 			'hackrfbackup.svelte',
 			'tests/reports/**',
 			'tests/reports/**/*.js',
+			'data/reports/**',
 			'playwright-report/**',
 			'static/webtak/**',
 			// Quarto-generated report artifacts (revealjs, katex, highlight,

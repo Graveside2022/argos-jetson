@@ -18,6 +18,26 @@ CREATE TABLE IF NOT EXISTS devices (
     metadata TEXT -- JSON field for additional data
 );
 
+-- Sessions table (Flying-Squirrel RF visualization, migrations 006 + 007).
+-- Kismet start (and operator "New Session") roll a new session_id;
+-- /api/rf/aggregate filters heatmap/centroids/drive-path per session.
+CREATE TABLE IF NOT EXISTS sessions (
+    id TEXT PRIMARY KEY,
+    started_at INTEGER NOT NULL,
+    ended_at INTEGER,
+    label TEXT,
+    source TEXT NOT NULL,       -- 'kismet-start' | 'manual' | 'legacy'
+    metadata TEXT,              -- JSON
+    operator_id TEXT,           -- migration 007: mission metadata
+    asset_id TEXT,              -- migration 007: mission metadata
+    area_name TEXT,             -- migration 007: mission metadata
+    notes TEXT                  -- migration 007: mission metadata
+);
+
+-- Legacy bucket for all pre-session signals (migration 006).
+INSERT OR IGNORE INTO sessions (id, started_at, source, label)
+VALUES ('legacy', 0, 'legacy', 'Pre-session data');
+
 -- Signals table (individual RF measurements)
 CREATE TABLE IF NOT EXISTS signals (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -32,6 +52,7 @@ CREATE TABLE IF NOT EXISTS signals (
     bandwidth REAL,
     modulation TEXT,
     source TEXT NOT NULL, -- 'hackrf', 'kismet', etc
+    session_id TEXT REFERENCES sessions(id), -- migration 006: per-session bucket
     metadata TEXT, -- JSON field
     FOREIGN KEY (device_id) REFERENCES devices(device_id)
 );
@@ -96,6 +117,9 @@ CREATE INDEX IF NOT EXISTS idx_signals_frequency ON signals(frequency);
 CREATE INDEX IF NOT EXISTS idx_signals_power ON signals(power);
 CREATE INDEX IF NOT EXISTS idx_signals_altitude ON signals(altitude);
 CREATE INDEX IF NOT EXISTS idx_signals_device ON signals(device_id);
+CREATE INDEX IF NOT EXISTS idx_signals_session ON signals(session_id);                      -- migration 006
+CREATE INDEX IF NOT EXISTS idx_signals_device_time ON signals(device_id, timestamp);       -- migration 006
+CREATE INDEX IF NOT EXISTS idx_sessions_started_at ON sessions(started_at);                -- migration 006
 CREATE INDEX IF NOT EXISTS idx_devices_last_seen ON devices(last_seen);
 CREATE INDEX IF NOT EXISTS idx_relationships_devices ON relationships(source_device_id, target_device_id);
 CREATE INDEX IF NOT EXISTS idx_patterns_timestamp ON patterns(timestamp);

@@ -34,6 +34,7 @@ interface CleanupConfig {
 	// Schedule
 	cleanupInterval: number;
 	aggregateInterval: number;
+	walCheckpointInterval: number;
 }
 
 export class DatabaseCleanupService {
@@ -41,6 +42,7 @@ export class DatabaseCleanupService {
 	private config: CleanupConfig;
 	private cleanupTimer?: ReturnType<typeof setTimeout>;
 	private aggregateTimer?: ReturnType<typeof setTimeout>;
+	private walCheckpointTimer?: ReturnType<typeof setTimeout>;
 	private isRunning = false;
 	private statements: Map<string, Database.Statement> = new Map();
 
@@ -58,6 +60,7 @@ export class DatabaseCleanupService {
 			maxRuntime: 30000,
 			cleanupInterval: 60 * 60 * 1000,
 			aggregateInterval: 10 * 60 * 1000,
+			walCheckpointInterval: 15 * 60 * 1000,
 			...config
 		};
 	}
@@ -102,6 +105,10 @@ export class DatabaseCleanupService {
 				void this.runAggregation();
 			}, this.config.aggregateInterval);
 
+			this.walCheckpointTimer = setInterval(() => {
+				this.runWalCheckpoint();
+			}, this.config.walCheckpointInterval);
+
 			logger.info('Database cleanup service started', {}, 'cleanup-service-started');
 		} catch (error) {
 			logger.error(
@@ -124,6 +131,10 @@ export class DatabaseCleanupService {
 		if (this.aggregateTimer) {
 			clearInterval(this.aggregateTimer);
 			this.aggregateTimer = undefined;
+		}
+		if (this.walCheckpointTimer) {
+			clearInterval(this.walCheckpointTimer);
+			this.walCheckpointTimer = undefined;
 		}
 		logger.info('Database cleanup service stopped', {}, 'cleanup-service-stopped');
 	}
@@ -183,6 +194,40 @@ export class DatabaseCleanupService {
 			shouldAggregateHourly: this.config.shouldAggregateHourly,
 			shouldAggregateDaily: this.config.shouldAggregateDaily
 		});
+	}
+
+	/**
+	 * Force-shrink the SQLite WAL file. Safe to run live — WAL mode allows a
+	 * checkpoint on a separate connection without stopping writers.
+	 * If a writer is active the pragma returns busy=1; we log WARN and rely
+	 * on the next interval rather than throwing.
+	 */
+	private runWalCheckpoint() {
+		const started = Date.now();
+		try {
+			const result = this.db.pragma('wal_checkpoint(TRUNCATE)') as
+				| ReadonlyArray<{ busy: number; log: number; checkpointed: number }>
+				| undefined;
+			this.logWalCheckpointResult(result?.[0], Date.now() - started);
+		} catch (error) {
+			const msg = error instanceof Error ? error.message : String(error);
+			logger.warn('WAL checkpoint threw', { error: msg }, 'wal-checkpoint-failed');
+		}
+	}
+
+	private logWalCheckpointResult(
+		row: { busy: number; log: number; checkpointed: number } | undefined,
+		elapsed: number
+	) {
+		if (row?.busy === 1) {
+			logger.warn(
+				'WAL checkpoint skipped: writer active',
+				{ elapsed, row },
+				'wal-checkpoint-busy'
+			);
+			return;
+		}
+		logger.info('WAL checkpoint completed', { elapsed, row }, 'wal-checkpoint-completed');
 	}
 
 	/** Get cleanup statistics */

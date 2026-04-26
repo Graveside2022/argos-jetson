@@ -26,30 +26,81 @@ import type {
 	CaptureRole,
 	CaptureRow,
 	Mission,
+	MissionPatch,
 	MissionType,
 	ReportInput,
 	ReportRow,
 	ReportType
 } from './types';
 
-export function createMission(
-	db: Database.Database,
-	input: { name: string; type: MissionType; unit?: string | null; ao_mgrs?: string | null }
-): Mission {
-	const created_at = Date.now();
-	const id = `m_${created_at}_${slugify(input.name) || 'mission'}`;
-	stmts(db).insertMission.run({
+type MissionInput = {
+	name: string;
+	type: MissionType;
+	unit?: string | null;
+	ao_mgrs?: string | null;
+	operator?: string | null;
+	target?: string | null;
+	link_budget?: number | null;
+};
+
+function missionInsertParams(id: string, created_at: number, input: MissionInput) {
+	return {
 		id,
 		name: input.name,
 		type: input.type,
-		unit: input.unit ?? null,
-		ao_mgrs: input.ao_mgrs ?? null,
+		unit: nn(input.unit),
+		ao_mgrs: nn(input.ao_mgrs),
+		operator: nn(input.operator),
+		target: nn(input.target),
+		link_budget: nn(input.link_budget),
 		created_at,
 		active: 0
-	});
+	};
+}
+
+export function createMission(db: Database.Database, input: MissionInput): Mission {
+	const created_at = Date.now();
+	const id = `m_${created_at}_${slugify(input.name) || 'mission'}`;
+	stmts(db).insertMission.run(missionInsertParams(id, created_at, input));
 	const mission = getMission(db, id);
 	if (!mission) throw new Error(`mission ${id} missing after insert`);
 	return mission;
+}
+
+/** Pick `patch[key]` when explicitly provided (including null), else fall back. */
+function pickField<T>(patch: T | undefined, fallback: T): T {
+	return patch !== undefined ? patch : fallback;
+}
+
+function missionUpdateParams(existing: Mission, patch: MissionPatch) {
+	return {
+		id: existing.id,
+		name: pickField(patch.name, existing.name),
+		unit: pickField(patch.unit, existing.unit),
+		ao_mgrs: pickField(patch.ao_mgrs, existing.ao_mgrs),
+		operator: pickField(patch.operator, existing.operator),
+		target: pickField(patch.target, existing.target),
+		link_budget: pickField(patch.link_budget, existing.link_budget)
+	};
+}
+
+/**
+ * Apply a partial update to an existing mission. Only fields present in
+ * `patch` are overwritten; absent fields keep their stored values. Returns
+ * the merged mission, or null if the id does not exist.
+ *
+ * Read-merge-write so a single prepared UPDATE statement can be reused
+ * regardless of which subset of fields the patch touches.
+ */
+export function updateMission(
+	db: Database.Database,
+	id: string,
+	patch: MissionPatch
+): Mission | null {
+	const existing = getMission(db, id);
+	if (!existing) return null;
+	stmts(db).updateMission.run(missionUpdateParams(existing, patch));
+	return getMission(db, id);
 }
 
 export function getMission(db: Database.Database, id: string): Mission | null {

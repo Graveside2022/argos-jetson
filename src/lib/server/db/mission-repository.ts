@@ -28,6 +28,7 @@ export type Stmts = {
 	insertMission: Database.Statement;
 	getMission: Database.Statement;
 	listMissions: Database.Statement;
+	updateMission: Database.Statement;
 	deleteMission: Database.Statement;
 	clearActive: Database.Statement;
 	setActive: Database.Statement;
@@ -52,11 +53,21 @@ const stmtsCache = new WeakMap<Database.Database, Stmts>();
 function prepareStatements(db: Database.Database): Stmts {
 	return {
 		insertMission: db.prepare(
-			`INSERT INTO missions (id, name, type, unit, ao_mgrs, created_at, active)
-			 VALUES (@id, @name, @type, @unit, @ao_mgrs, @created_at, @active)`
+			`INSERT INTO missions (id, name, type, unit, ao_mgrs, operator, target, link_budget, created_at, active)
+			 VALUES (@id, @name, @type, @unit, @ao_mgrs, @operator, @target, @link_budget, @created_at, @active)`
 		),
 		getMission: db.prepare(`SELECT * FROM missions WHERE id = ?`),
 		listMissions: db.prepare(`SELECT * FROM missions ORDER BY created_at DESC`),
+		updateMission: db.prepare(
+			`UPDATE missions
+			 SET name = @name,
+			     unit = @unit,
+			     ao_mgrs = @ao_mgrs,
+			     operator = @operator,
+			     target = @target,
+			     link_budget = @link_budget
+			 WHERE id = @id`
+		),
 		deleteMission: db.prepare(`DELETE FROM missions WHERE id = ?`),
 		clearActive: db.prepare(`UPDATE missions SET active = 0 WHERE active = 1`),
 		setActive: db.prepare(`UPDATE missions SET active = 1 WHERE id = ?`),
@@ -127,13 +138,26 @@ export function slugify(input: string): string {
 		.slice(0, 32);
 }
 
+function nullableString(v: unknown): string | null {
+	return (v as string | null) ?? null;
+}
+
+function nullableNumber(v: unknown): number | null {
+	if (v == null) return null;
+	const n = Number(v);
+	return Number.isFinite(n) ? n : null;
+}
+
 export function missionRowToMission(row: Record<string, unknown>): Mission {
 	return {
 		id: String(row.id),
 		name: String(row.name),
 		type: row.type as MissionType,
-		unit: (row.unit as string | null) ?? null,
-		ao_mgrs: (row.ao_mgrs as string | null) ?? null,
+		unit: nullableString(row.unit),
+		ao_mgrs: nullableString(row.ao_mgrs),
+		operator: nullableString(row.operator),
+		target: nullableString(row.target),
+		link_budget: nullableNumber(row.link_budget),
 		created_at: Number(row.created_at),
 		active: Number(row.active) === 1
 	};
@@ -185,14 +209,6 @@ export function reportRowToReport(row: Record<string, unknown>): ReportRow {
 		slides_html_path: (row.slides_html_path as string | null) ?? null,
 		slides_pdf_path: (row.slides_pdf_path as string | null) ?? null
 	};
-}
-
-function nullableString(v: unknown): string | null {
-	return (v as string | null) ?? null;
-}
-
-function nullableNumber(v: unknown): number | null {
-	return v == null ? null : Number(v);
 }
 
 export function captureEmitterRowFromDb(row: Record<string, unknown>): CaptureEmitterRow {
