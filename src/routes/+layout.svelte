@@ -14,11 +14,17 @@
 	}
 	let { children }: Props = $props();
 
-	// spec-024 PR1 T006 — Mk II flag: ?ui=mk2 mirrors to <body data-ui="mk2">.
-	// `<svelte:body>` rejects custom attrs, and hooks.server.ts is anti-scope through PR 11
-	// (per spec-024 plan.md), so we toggle the attribute via $effect on the client.
+	// spec-024 PR1 T006 / PR6 — Mk II flag: any /dashboard/mk2/* path or
+	// the legacy ?ui=mk2 query mirrors to <body data-ui="mk2"> so the
+	// PR1 token block in app.css activates. PR6 made the route the
+	// canonical source-of-truth (URL = state); the query is still
+	// recognized so old bookmarks work during the transition. PR11
+	// will sunset both the legacy DashboardShell and this conditional.
 	$effect(() => {
-		if (page.url.searchParams.get('ui') === 'mk2') {
+		const isMk2 =
+			page.url.pathname.startsWith('/dashboard/mk2') ||
+			page.url.searchParams.get('ui') === 'mk2';
+		if (isMk2) {
 			document.body.setAttribute('data-ui', 'mk2');
 		} else {
 			document.body.removeAttribute('data-ui');
