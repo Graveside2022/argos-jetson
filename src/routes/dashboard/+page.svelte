@@ -5,6 +5,12 @@
 	import { onDestroy, onMount } from 'svelte';
 
 	import { browser } from '$app/environment';
+	import { page } from '$app/state';
+	import Chassis from '$lib/components/chassis/Chassis.svelte';
+	import Drawer from '$lib/components/chassis/Drawer.svelte';
+	import LeftRail from '$lib/components/chassis/LeftRail.svelte';
+	import Statusbar from '$lib/components/chassis/Statusbar.svelte';
+	import Topbar from '$lib/components/chassis/Topbar.svelte';
 	import AgentChatPanel from '$lib/components/dashboard/AgentChatPanel.svelte';
 	import DashboardMap from '$lib/components/dashboard/DashboardMap.svelte';
 	import DashboardShell from '$lib/components/dashboard/DashboardShell.svelte';
@@ -33,6 +39,7 @@
 	import UASScanView from '$lib/components/dashboard/views/UASScanView.svelte';
 	import WebTAKView from '$lib/components/dashboard/views/WebTAKView.svelte';
 	import WigleToTAKView from '$lib/components/dashboard/views/WigleToTAKView.svelte';
+	import OverviewScreen from '$lib/components/screens/OverviewScreen.svelte';
 	import {
 		activeBottomTab,
 		activePanel,
@@ -57,6 +64,10 @@
 	import { TakService } from '$lib/tactical-map/tak-service';
 
 	import BottomPanelTabs from './BottomPanelTabs.svelte';
+
+	// spec-024 PR5b T034 — gate Mk II OVERVIEW chassis on `?ui=mk2`.
+	// Off-flag falls through to the legacy DashboardShell unchanged.
+	const isMk2 = $derived(page.url.searchParams.get('ui') === 'mk2');
 
 	const FULL_WIDTH_VIEWS = new Set(['tak-config', 'globalprotect', 'gsm-evil']);
 	let shellMode = $derived(
@@ -171,6 +182,25 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
+{#if isMk2}
+	<Chassis>
+		{#snippet topbar()}
+			<Topbar />
+		{/snippet}
+		{#snippet rail()}
+			<LeftRail />
+		{/snippet}
+		{#snippet main()}
+			<OverviewScreen />
+		{/snippet}
+		{#snippet drawer()}
+			<Drawer />
+		{/snippet}
+		{#snippet statusbar()}
+			<Statusbar />
+		{/snippet}
+	</Chassis>
+{:else}
 <DashboardShell mode={shellMode}>
 	{#snippet sidebar()}
 		{#if $activeView === 'map' && $activePanel !== 'reports'}
@@ -302,6 +332,7 @@
 		</ResizableBottomPanel>
 	{/snippet}
 </DashboardShell>
+{/if}
 
 <style>
 	@import './dashboard-page.css';
