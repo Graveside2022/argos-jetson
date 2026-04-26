@@ -22,6 +22,7 @@ import { describe, expect, it } from 'vitest';
 
 import { _CleanupPostSchema as CleanupPostSchema } from '../../../src/routes/api/db/cleanup/+server';
 import { _CreateMissionSchema as CreateMissionSchema } from '../../../src/routes/api/missions/+server';
+import { _MissionPatchSchema as MissionPatchSchema } from '../../../src/routes/api/missions/[id]/+server';
 import { _DockerContainerBodySchema as DockerContainerBodySchema } from '../../../src/routes/api/system/docker/[action]/+server';
 
 describe('CreateMissionSchema (missions POST)', () => {
@@ -40,6 +41,51 @@ describe('CreateMissionSchema (missions POST)', () => {
 			name: 'X',
 			type: 'free-form'
 		});
+		expect(parsed.success).toBe(false);
+	});
+	it('accepts new strip metadata fields (operator/target/link_budget)', () => {
+		const parsed = CreateMissionSchema.safeParse({
+			name: 'Op North Star',
+			type: 'emcon-survey',
+			operator: 'SSG Doe',
+			target: 'AO 12 — east ridge',
+			link_budget: -84.5
+		});
+		expect(parsed.success).toBe(true);
+	});
+	it('rejects link_budget when not finite', () => {
+		const parsed = CreateMissionSchema.safeParse({
+			name: 'X',
+			type: 'sitrep-loop',
+			link_budget: Number.NaN
+		});
+		expect(parsed.success).toBe(false);
+	});
+});
+
+describe('MissionPatchSchema (missions PATCH)', () => {
+	it('accepts a single-field patch', () => {
+		const parsed = MissionPatchSchema.safeParse({ operator: 'CPT Smith' });
+		expect(parsed.success).toBe(true);
+	});
+	it('accepts an explicit-null clear of an editable field', () => {
+		const parsed = MissionPatchSchema.safeParse({ target: null });
+		expect(parsed.success).toBe(true);
+	});
+	it('rejects an empty patch (must include at least one field)', () => {
+		const parsed = MissionPatchSchema.safeParse({});
+		expect(parsed.success).toBe(false);
+	});
+	it('rejects unknown keys (strict)', () => {
+		const parsed = MissionPatchSchema.safeParse({ active: true });
+		expect(parsed.success).toBe(false);
+	});
+	it('rejects link_budget as string', () => {
+		const parsed = MissionPatchSchema.safeParse({ link_budget: '-42' });
+		expect(parsed.success).toBe(false);
+	});
+	it('rejects empty mission name', () => {
+		const parsed = MissionPatchSchema.safeParse({ name: '' });
 		expect(parsed.success).toBe(false);
 	});
 });

@@ -16,6 +16,9 @@ export const _CreateMissionSchema = z.object({
 	type: z.enum(['sitrep-loop', 'emcon-survey']),
 	unit: z.string().max(100).nullable().optional(),
 	ao_mgrs: z.string().max(100).nullable().optional(),
+	operator: z.string().max(100).nullable().optional(),
+	target: z.string().max(200).nullable().optional(),
+	link_budget: z.number().finite().nullable().optional(),
 	set_active: z.boolean().optional()
 });
 
@@ -35,7 +38,10 @@ export const POST = createHandler(
 			name: parsed.data.name,
 			type: parsed.data.type,
 			unit: parsed.data.unit ?? null,
-			ao_mgrs: parsed.data.ao_mgrs ?? null
+			ao_mgrs: parsed.data.ao_mgrs ?? null,
+			operator: parsed.data.operator ?? null,
+			target: parsed.data.target ?? null,
+			link_budget: parsed.data.link_budget ?? null
 		});
 
 		if (parsed.data.set_active) {

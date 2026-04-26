@@ -28,6 +28,7 @@ export type Stmts = {
 	insertMission: Database.Statement;
 	getMission: Database.Statement;
 	listMissions: Database.Statement;
+	updateMission: Database.Statement;
 	deleteMission: Database.Statement;
 	clearActive: Database.Statement;
 	setActive: Database.Statement;
@@ -52,11 +53,21 @@ const stmtsCache = new WeakMap<Database.Database, Stmts>();
 function prepareStatements(db: Database.Database): Stmts {
 	return {
 		insertMission: db.prepare(
-			`INSERT INTO missions (id, name, type, unit, ao_mgrs, created_at, active)
-			 VALUES (@id, @name, @type, @unit, @ao_mgrs, @created_at, @active)`
+			`INSERT INTO missions (id, name, type, unit, ao_mgrs, operator, target, link_budget, created_at, active)
+			 VALUES (@id, @name, @type, @unit, @ao_mgrs, @operator, @target, @link_budget, @created_at, @active)`
 		),
 		getMission: db.prepare(`SELECT * FROM missions WHERE id = ?`),
 		listMissions: db.prepare(`SELECT * FROM missions ORDER BY created_at DESC`),
+		updateMission: db.prepare(
+			`UPDATE missions
+			 SET name = @name,
+			     unit = @unit,
+			     ao_mgrs = @ao_mgrs,
+			     operator = @operator,
+			     target = @target,
+			     link_budget = @link_budget
+			 WHERE id = @id`
+		),
 		deleteMission: db.prepare(`DELETE FROM missions WHERE id = ?`),
 		clearActive: db.prepare(`UPDATE missions SET active = 0 WHERE active = 1`),
 		setActive: db.prepare(`UPDATE missions SET active = 1 WHERE id = ?`),
@@ -134,6 +145,9 @@ export function missionRowToMission(row: Record<string, unknown>): Mission {
 		type: row.type as MissionType,
 		unit: (row.unit as string | null) ?? null,
 		ao_mgrs: (row.ao_mgrs as string | null) ?? null,
+		operator: (row.operator as string | null) ?? null,
+		target: (row.target as string | null) ?? null,
+		link_budget: row.link_budget == null ? null : Number(row.link_budget),
 		created_at: Number(row.created_at),
 		active: Number(row.active) === 1
 	};

@@ -26,6 +26,7 @@ import type {
 	CaptureRole,
 	CaptureRow,
 	Mission,
+	MissionPatch,
 	MissionType,
 	ReportInput,
 	ReportRow,
@@ -34,7 +35,15 @@ import type {
 
 export function createMission(
 	db: Database.Database,
-	input: { name: string; type: MissionType; unit?: string | null; ao_mgrs?: string | null }
+	input: {
+		name: string;
+		type: MissionType;
+		unit?: string | null;
+		ao_mgrs?: string | null;
+		operator?: string | null;
+		target?: string | null;
+		link_budget?: number | null;
+	}
 ): Mission {
 	const created_at = Date.now();
 	const id = `m_${created_at}_${slugify(input.name) || 'mission'}`;
@@ -44,12 +53,43 @@ export function createMission(
 		type: input.type,
 		unit: input.unit ?? null,
 		ao_mgrs: input.ao_mgrs ?? null,
+		operator: input.operator ?? null,
+		target: input.target ?? null,
+		link_budget: input.link_budget ?? null,
 		created_at,
 		active: 0
 	});
 	const mission = getMission(db, id);
 	if (!mission) throw new Error(`mission ${id} missing after insert`);
 	return mission;
+}
+
+/**
+ * Apply a partial update to an existing mission. Only fields present in
+ * `patch` are overwritten; absent fields keep their stored values. Returns
+ * the merged mission, or null if the id does not exist.
+ *
+ * Read-merge-write so a single prepared UPDATE statement can be reused
+ * regardless of which subset of fields the patch touches.
+ */
+export function updateMission(
+	db: Database.Database,
+	id: string,
+	patch: MissionPatch
+): Mission | null {
+	const existing = getMission(db, id);
+	if (!existing) return null;
+	const merged = {
+		id: existing.id,
+		name: patch.name ?? existing.name,
+		unit: patch.unit !== undefined ? patch.unit : existing.unit,
+		ao_mgrs: patch.ao_mgrs !== undefined ? patch.ao_mgrs : existing.ao_mgrs,
+		operator: patch.operator !== undefined ? patch.operator : existing.operator,
+		target: patch.target !== undefined ? patch.target : existing.target,
+		link_budget: patch.link_budget !== undefined ? patch.link_budget : existing.link_budget
+	};
+	stmts(db).updateMission.run(merged);
+	return getMission(db, id);
 }
 
 export function getMission(db: Database.Database, id: string): Mission | null {
