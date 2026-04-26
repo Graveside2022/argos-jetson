@@ -139,7 +139,7 @@
 					<option value={m.id}>{m.name}</option>
 				{/each}
 			</select>
-			<IconBtn onclick={onNewMission} aria-label="new mission">+</IconBtn>
+			<IconBtn onclick={onNewMission} ariaLabel="new mission">+</IconBtn>
 		{/if}
 		{#if missionStore.lastError}
 			<span class="err" role="alert">ERR: {missionStore.lastError}</span>
@@ -177,7 +177,7 @@
 						type="button"
 						onclick={() => cell.field && startEdit(cell.field)}
 					>{fmtLinkBudget(active.link_budget)}</button>
-				{:else}
+				{:else if cell.field !== null}
 					<button
 						class="cell-value mono editable"
 						type="button"

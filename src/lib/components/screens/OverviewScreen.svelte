@@ -1,13 +1,16 @@
 <script lang="ts">
-	// spec-024 PR5b T034 — Mk II OVERVIEW screen.
+	// spec-024 PR5b T034 / PR5c T031-T033 — Mk II OVERVIEW screen.
 	//
-	// Top: editable MissionStrip (T030, this PR).
-	// Below: placeholder regions for SensorTile×4 (T031), DetectionsList
-	// (T032), and EventStream (T033) — all wired in PR5c. Empty-state
-	// shells render here so reviewers can confirm the screen layout
-	// without waiting on PR5c content.
+	// Top: editable MissionStrip (T030, PR5b).
+	// Below: SENSORS region (4× SensorTile via OverviewSensors, T031),
+	// DETECTIONS region (DetectionsList, T032), EVENTS region
+	// (EventStream, T033). All three components consume real backend
+	// data — see component headers for source endpoints.
 
 	import MissionStrip from '$lib/components/chassis/MissionStrip.svelte';
+	import DetectionsList from '$lib/components/screens/parts/DetectionsList.svelte';
+	import EventStream from '$lib/components/screens/parts/EventStream.svelte';
+	import OverviewSensors from '$lib/components/screens/parts/OverviewSensors.svelte';
 	import { missionStore } from '$lib/state/missions.svelte';
 	import type { Mission } from '$lib/types/mission';
 
@@ -29,15 +32,15 @@
 	<div class="overview-grid">
 		<section class="region region-sensors" aria-labelledby="sec-sensors">
 			<header id="sec-sensors" class="region-label">SENSORS</header>
-			<div class="region-empty">SensorTile ×4 — pending PR5c (T031)</div>
+			<OverviewSensors />
 		</section>
 		<section class="region region-detections" aria-labelledby="sec-detections">
 			<header id="sec-detections" class="region-label">DETECTIONS</header>
-			<div class="region-empty">DetectionsList — pending PR5c (T032)</div>
+			<DetectionsList />
 		</section>
 		<section class="region region-events" aria-labelledby="sec-events">
 			<header id="sec-events" class="region-label">EVENTS</header>
-			<div class="region-empty">EventStream — pending PR5c (T033)</div>
+			<EventStream />
 		</section>
 	</div>
 </div>
@@ -74,6 +77,7 @@
 	}
 	.region-sensors {
 		grid-area: sensors;
+		gap: 8px;
 	}
 	.region-detections {
 		grid-area: detections;

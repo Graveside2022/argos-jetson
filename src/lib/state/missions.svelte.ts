@@ -9,6 +9,7 @@
 // Module-scope $state is fine: Svelte 5 schedules updates lazily and
 // every reader through the exposed getter opts in automatically.
 
+import { recordEvent } from '$lib/state/events.svelte';
 import type { Mission, MissionCreateInput, MissionPatch } from '$lib/types/mission';
 
 interface MissionsResponse {
@@ -86,10 +87,17 @@ async function fetchLoad(ops: StoreOps): Promise<void> {
 async function fetchSetActive(ops: StoreOps, id: string): Promise<void> {
 	try {
 		const res = await fetch(`/api/missions/${encodeURIComponent(id)}/activate`, { method: 'POST' });
-		ops.replaceMission(unwrapMission(await readJson<MissionResponse>(res)));
+		const m = unwrapMission(await readJson<MissionResponse>(res));
+		ops.replaceMission(m);
 		ops.clearError();
+		recordEvent('info', 'missions', { action: 'activate', id: m.id, name: m.name });
 	} catch (err) {
 		ops.setError(err);
+		recordEvent('error', 'missions', {
+			action: 'activate',
+			id,
+			error: err instanceof Error ? err.message : String(err)
+		});
 	}
 }
 
@@ -108,6 +116,7 @@ async function fetchPatch(
 		const m = unwrapMission(await readJson<MissionResponse>(res));
 		ops.replaceMission(m);
 		ops.clearError();
+		recordEvent('info', 'missions', { action: 'patch', id: m.id, fields: Object.keys(body) });
 		return m;
 	} catch (err) {
 		return ops.setError(err);
@@ -125,6 +134,7 @@ async function fetchCreate(ops: StoreOps, input: MissionCreateInput): Promise<Mi
 		ops.prependMission(m);
 		if (m.active) ops.replaceMission(m);
 		ops.clearError();
+		recordEvent('info', 'missions', { action: 'create', id: m.id, name: m.name });
 		return m;
 	} catch (err) {
 		return ops.setError(err);
