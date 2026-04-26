@@ -33,35 +33,55 @@ import type {
 	ReportType
 } from './types';
 
-export function createMission(
-	db: Database.Database,
-	input: {
-		name: string;
-		type: MissionType;
-		unit?: string | null;
-		ao_mgrs?: string | null;
-		operator?: string | null;
-		target?: string | null;
-		link_budget?: number | null;
-	}
-): Mission {
-	const created_at = Date.now();
-	const id = `m_${created_at}_${slugify(input.name) || 'mission'}`;
-	stmts(db).insertMission.run({
+type MissionInput = {
+	name: string;
+	type: MissionType;
+	unit?: string | null;
+	ao_mgrs?: string | null;
+	operator?: string | null;
+	target?: string | null;
+	link_budget?: number | null;
+};
+
+function missionInsertParams(id: string, created_at: number, input: MissionInput) {
+	return {
 		id,
 		name: input.name,
 		type: input.type,
-		unit: input.unit ?? null,
-		ao_mgrs: input.ao_mgrs ?? null,
-		operator: input.operator ?? null,
-		target: input.target ?? null,
-		link_budget: input.link_budget ?? null,
+		unit: nn(input.unit),
+		ao_mgrs: nn(input.ao_mgrs),
+		operator: nn(input.operator),
+		target: nn(input.target),
+		link_budget: nn(input.link_budget),
 		created_at,
 		active: 0
-	});
+	};
+}
+
+export function createMission(db: Database.Database, input: MissionInput): Mission {
+	const created_at = Date.now();
+	const id = `m_${created_at}_${slugify(input.name) || 'mission'}`;
+	stmts(db).insertMission.run(missionInsertParams(id, created_at, input));
 	const mission = getMission(db, id);
 	if (!mission) throw new Error(`mission ${id} missing after insert`);
 	return mission;
+}
+
+/** Pick `patch[key]` when explicitly provided (including null), else fall back. */
+function pickField<T>(patch: T | undefined, fallback: T): T {
+	return patch !== undefined ? patch : fallback;
+}
+
+function missionUpdateParams(existing: Mission, patch: MissionPatch) {
+	return {
+		id: existing.id,
+		name: pickField(patch.name, existing.name),
+		unit: pickField(patch.unit, existing.unit),
+		ao_mgrs: pickField(patch.ao_mgrs, existing.ao_mgrs),
+		operator: pickField(patch.operator, existing.operator),
+		target: pickField(patch.target, existing.target),
+		link_budget: pickField(patch.link_budget, existing.link_budget)
+	};
 }
 
 /**
@@ -79,16 +99,7 @@ export function updateMission(
 ): Mission | null {
 	const existing = getMission(db, id);
 	if (!existing) return null;
-	const merged = {
-		id: existing.id,
-		name: patch.name ?? existing.name,
-		unit: patch.unit !== undefined ? patch.unit : existing.unit,
-		ao_mgrs: patch.ao_mgrs !== undefined ? patch.ao_mgrs : existing.ao_mgrs,
-		operator: patch.operator !== undefined ? patch.operator : existing.operator,
-		target: patch.target !== undefined ? patch.target : existing.target,
-		link_budget: patch.link_budget !== undefined ? patch.link_budget : existing.link_budget
-	};
-	stmts(db).updateMission.run(merged);
+	stmts(db).updateMission.run(missionUpdateParams(existing, patch));
 	return getMission(db, id);
 }
 

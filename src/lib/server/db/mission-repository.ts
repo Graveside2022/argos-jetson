@@ -138,16 +138,24 @@ export function slugify(input: string): string {
 		.slice(0, 32);
 }
 
+function nullableString(v: unknown): string | null {
+	return (v as string | null) ?? null;
+}
+
+function nullableNumber(v: unknown): number | null {
+	return v == null ? null : Number(v);
+}
+
 export function missionRowToMission(row: Record<string, unknown>): Mission {
 	return {
 		id: String(row.id),
 		name: String(row.name),
 		type: row.type as MissionType,
-		unit: (row.unit as string | null) ?? null,
-		ao_mgrs: (row.ao_mgrs as string | null) ?? null,
-		operator: (row.operator as string | null) ?? null,
-		target: (row.target as string | null) ?? null,
-		link_budget: row.link_budget == null ? null : Number(row.link_budget),
+		unit: nullableString(row.unit),
+		ao_mgrs: nullableString(row.ao_mgrs),
+		operator: nullableString(row.operator),
+		target: nullableString(row.target),
+		link_budget: nullableNumber(row.link_budget),
 		created_at: Number(row.created_at),
 		active: Number(row.active) === 1
 	};
@@ -199,14 +207,6 @@ export function reportRowToReport(row: Record<string, unknown>): ReportRow {
 		slides_html_path: (row.slides_html_path as string | null) ?? null,
 		slides_pdf_path: (row.slides_pdf_path as string | null) ?? null
 	};
-}
-
-function nullableString(v: unknown): string | null {
-	return (v as string | null) ?? null;
-}
-
-function nullableNumber(v: unknown): number | null {
-	return v == null ? null : Number(v);
 }
 
 export function captureEmitterRowFromDb(row: Record<string, unknown>): CaptureEmitterRow {

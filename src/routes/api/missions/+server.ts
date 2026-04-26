@@ -34,15 +34,7 @@ export const POST = createHandler(
 		}
 
 		const db = getRFDatabase().rawDb;
-		const mission = createMission(db, {
-			name: parsed.data.name,
-			type: parsed.data.type,
-			unit: parsed.data.unit ?? null,
-			ao_mgrs: parsed.data.ao_mgrs ?? null,
-			operator: parsed.data.operator ?? null,
-			target: parsed.data.target ?? null,
-			link_budget: parsed.data.link_budget ?? null
-		});
+		const mission = createMission(db, parsed.data);
 
 		if (parsed.data.set_active) {
 			setActiveMission(db, mission.id);
