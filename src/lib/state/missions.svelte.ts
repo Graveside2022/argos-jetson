@@ -33,11 +33,16 @@ async function readJson<T>(res: Response): Promise<T> {
 function createMissionStore() {
 	let missions = $state<Mission[]>([]);
 	let lastError = $state<string | null>(null);
+	let loaded = $state<boolean>(false);
 	const active = $derived<Mission | null>(missions.find((m) => m.active) ?? null);
 
 	function setError(err: unknown): null {
 		lastError = err instanceof Error ? err.message : String(err);
 		return null;
+	}
+
+	function clearError(): void {
+		lastError = null;
 	}
 
 	function replaceMission(updated: Mission): void {
@@ -63,9 +68,11 @@ function createMissionStore() {
 		try {
 			const res = await fetch('/api/missions/list');
 			missions = unwrapMissions(await readJson<MissionsResponse>(res));
-			lastError = null;
+			clearError();
 		} catch (err) {
 			setError(err);
+		} finally {
+			loaded = true;
 		}
 	}
 
@@ -75,6 +82,7 @@ function createMissionStore() {
 				method: 'POST'
 			});
 			replaceMission(unwrapMission(await readJson<MissionResponse>(res)));
+			clearError();
 		} catch (err) {
 			setError(err);
 		}
@@ -90,6 +98,7 @@ function createMissionStore() {
 			});
 			const m = unwrapMission(await readJson<MissionResponse>(res));
 			replaceMission(m);
+			clearError();
 			return m;
 		} catch (err) {
 			return setError(err);
@@ -106,6 +115,7 @@ function createMissionStore() {
 			const m = unwrapMission(await readJson<MissionResponse>(res));
 			missions = [m, ...missions];
 			if (m.active) replaceMission(m);
+			clearError();
 			return m;
 		} catch (err) {
 			return setError(err);
@@ -121,6 +131,9 @@ function createMissionStore() {
 		},
 		get lastError() {
 			return lastError;
+		},
+		get loaded() {
+			return loaded;
 		},
 		load,
 		setActive,

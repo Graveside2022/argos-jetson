@@ -23,5 +23,10 @@ export const POST = createHandler(({ params }) => {
 	}
 
 	setActiveMission(db, id);
-	return { success: true, active_mission_id: id };
+	const mission = getMission(db, id);
+	// Return the full mission row (with active=true) so clients can update
+	// their local mirror without an extra round-trip. Falls back to the
+	// id-only payload if the row vanished between activate + read.
+	if (!mission) return { success: true, active_mission_id: id };
+	return { success: true, mission, active_mission_id: id };
 });

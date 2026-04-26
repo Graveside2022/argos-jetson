@@ -32,6 +32,16 @@
 	const all = $derived<Mission[]>(missionStore.missions);
 	const elapsed = $derived(active ? Math.max(0, nowMs - active.created_at) : 0);
 
+	type StripState = 'loading' | 'error' | 'empty' | 'inactive' | 'default';
+	const stripState = $derived<StripState>(deriveStripState());
+
+	function deriveStripState(): StripState {
+		if (!missionStore.loaded) return 'loading';
+		if (missionStore.lastError) return 'error';
+		if (all.length === 0) return 'empty';
+		return active ? 'default' : 'inactive';
+	}
+
 	function fmtTimer(ms: number): string {
 		const total = Math.floor(ms / 1000);
 		const h = Math.floor(total / 3600);
@@ -108,9 +118,11 @@
 	}
 </script>
 
-<div class="mission-strip" data-state={active ? 'default' : all.length === 0 ? 'empty' : 'inactive'}>
+<div class="mission-strip" data-state={stripState}>
 	<div class="strip-header">
-		{#if all.length === 0}
+		{#if !missionStore.loaded}
+			<span class="empty-label">LOADING…</span>
+		{:else if all.length === 0}
 			<span class="empty-label">NO MISSIONS — </span>
 			<button class="new-btn" type="button" onclick={onNewMission}>+ CREATE FIRST</button>
 		{:else}
@@ -219,7 +231,7 @@
 		cursor: pointer;
 	}
 	.err {
-		color: var(--destructive, #c45b4a);
+		color: var(--destructive);
 		margin-left: auto;
 		font-size: 10px;
 	}

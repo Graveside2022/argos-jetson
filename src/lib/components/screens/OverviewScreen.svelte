@@ -8,9 +8,22 @@
 	// without waiting on PR5c content.
 
 	import MissionStrip from '$lib/components/chassis/MissionStrip.svelte';
+	import { missionStore } from '$lib/state/missions.svelte';
+	import type { Mission } from '$lib/types/mission';
+
+	type ScreenState = 'loading' | 'error' | 'empty' | 'inactive' | 'default';
+	const screenState = $derived<ScreenState>(deriveScreenState());
+
+	function deriveScreenState(): ScreenState {
+		if (!missionStore.loaded) return 'loading';
+		if (missionStore.lastError !== null) return 'error';
+		if (missionStore.missions.length === 0) return 'empty';
+		const active: Mission | null = missionStore.active;
+		return active ? 'default' : 'inactive';
+	}
 </script>
 
-<div class="overview-screen">
+<div class="overview-screen" data-state={screenState}>
 	<MissionStrip />
 
 	<div class="overview-grid">
