@@ -1,26 +1,10 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-
 	import type { SystemInfo } from '$lib/types/system';
 
 	import DiskRow from './DiskRow.svelte';
 	import MetricCard from './MetricCard.svelte';
 	import { bytesPerSecond, METRIC_WINDOW, pushSample } from './system-metrics-buffer';
-
-	// spec-024 PR4 T024 + T025 — Mk II SYSTEMS host metrics tab.
-	//
-	// Polls /api/system/metrics on a 1.2 s cadence (matches prototype
-	// `useRollingSeries` interval) for CPU%, MEMORY%, NETWORK MB/s, CORE TEMP°C
-	// gauges, and /api/system/info on a 5 s cadence for the disk row (storage
-	// + battery shape changes slowly so a fast poll is wasted bandwidth).
-	//
-	// Network throughput is derived client-side from cumulative byte counters
-	// (the endpoint surfaces /proc/net/dev raw counts) — see
-	// `bytesPerSecond()` in `system-metrics-buffer.ts`.
-	//
-	// PR4 ships single-root-mount disk display; multi-mount expansion lives in
-	// PR5+ when /api/system/info gains a mounts[] field. The endpoint cap is
-	// the constraint — not a UI shortcut.
+	import TabStatusBanner from './TabStatusBanner.svelte';
 
 	const POLL_METRICS_MS = 1200;
 	const POLL_INFO_MS = 5000;
@@ -50,20 +34,14 @@
 	let lastNet = $state<NetSample | null>(null);
 	let info = $state<SystemInfo | null>(null);
 	let lastError = $state<string | null>(null);
+	let metricsSeq = 0;
+	let infoSeq = 0;
 
 	const cpuLast = $derived(cpuSeries.at(-1) ?? 0);
 	const memLast = $derived(memSeries.at(-1) ?? 0);
 	const netLast = $derived(netSeries.at(-1) ?? 0);
 	const tempLast = $derived(tempSeries.at(-1) ?? 0);
 
-	// CR fix #1 (state envelope) — single source-of-truth state for the tab so
-	// the template's three branches (Loading / Default / Error) are explicit
-	// and reviewers can see the contract instead of inferring it from
-	// individual flags. Active = Default once samples flow; Disabled +
-	// Disconnected are surfaced via lastError text rather than separate
-	// branches because nothing in this tab can be programmatically toggled
-	// off — both reduce to "endpoint unreachable / unauthorized" which is the
-	// Error path.
 	type TabState = 'loading' | 'default' | 'error';
 	const tabState = $derived<TabState>(
 		cpuSeries.length === 0 && info === null && lastError === null
@@ -73,53 +51,65 @@
 				: 'default'
 	);
 
-	function deriveMbps(prev: typeof lastNet, curr: NetSample): number {
+	function deriveMbps(prev: NetSample | null, curr: NetSample): number {
 		const prevSample = prev ? { bytes: prev.rx + prev.tx, t: prev.t } : null;
 		return bytesPerSecond(prevSample, { bytes: curr.rx + curr.tx, t: curr.t });
 	}
 
-	async function fetchMetrics(): Promise<void> {
+	function recordError(err: unknown): void {
+		if (err instanceof Error && err.name === 'AbortError') return;
+		lastError = err instanceof Error ? err.message : String(err);
+	}
+
+	function applyMetrics(m: MetricsResponse): void {
+		cpuSeries = pushSample(cpuSeries, m.cpu.usage, METRIC_WINDOW);
+		memSeries = pushSample(memSeries, m.memory.percentage, METRIC_WINDOW);
+		tempSeries = pushSample(tempSeries, m.cpu.temperature ?? 0, METRIC_WINDOW);
+		const sample: NetSample = {
+			rx: m.network.rx,
+			tx: m.network.tx,
+			errors: m.network.errors,
+			t: m.timestamp
+		};
+		netSeries = pushSample(netSeries, deriveMbps(lastNet, sample), METRIC_WINDOW);
+		lastNet = sample;
+		lastError = null;
+	}
+
+	async function fetchMetrics(signal: AbortSignal): Promise<void> {
+		const seq = ++metricsSeq;
 		try {
-			const res = await fetch('/api/system/metrics');
+			const res = await fetch('/api/system/metrics', { signal });
 			if (!res.ok) throw new Error(`metrics ${res.status}`);
 			const m: MetricsResponse = await res.json();
-
-			cpuSeries = pushSample(cpuSeries, m.cpu.usage, METRIC_WINDOW);
-			memSeries = pushSample(memSeries, m.memory.percentage, METRIC_WINDOW);
-			tempSeries = pushSample(tempSeries, m.cpu.temperature ?? 0, METRIC_WINDOW);
-
-			const sample: NetSample = {
-				rx: m.network.rx,
-				tx: m.network.tx,
-				errors: m.network.errors,
-				t: m.timestamp
-			};
-			netSeries = pushSample(netSeries, deriveMbps(lastNet, sample), METRIC_WINDOW);
-			lastNet = sample;
-			lastError = null;
+			if (seq === metricsSeq) applyMetrics(m);
 		} catch (err) {
-			lastError = err instanceof Error ? err.message : String(err);
+			recordError(err);
 		}
 	}
 
-	async function fetchInfo(): Promise<void> {
+	async function fetchInfo(signal: AbortSignal): Promise<void> {
+		const seq = ++infoSeq;
 		try {
-			const res = await fetch('/api/system/info');
+			const res = await fetch('/api/system/info', { signal });
 			if (!res.ok) throw new Error(`info ${res.status}`);
-			info = (await res.json()) as SystemInfo;
+			const next = (await res.json()) as SystemInfo;
+			if (seq === infoSeq) info = next;
 		} catch (err) {
-			lastError = err instanceof Error ? err.message : String(err);
+			recordError(err);
 		}
 	}
 
-	onMount(() => {
-		void fetchMetrics();
-		void fetchInfo();
-		const a = window.setInterval(fetchMetrics, POLL_METRICS_MS);
-		const b = window.setInterval(fetchInfo, POLL_INFO_MS);
+	$effect(() => {
+		const ctrl = new AbortController();
+		void fetchMetrics(ctrl.signal);
+		void fetchInfo(ctrl.signal);
+		const a = window.setInterval(() => void fetchMetrics(ctrl.signal), POLL_METRICS_MS);
+		const b = window.setInterval(() => void fetchInfo(ctrl.signal), POLL_INFO_MS);
 		return () => {
 			window.clearInterval(a);
 			window.clearInterval(b);
+			ctrl.abort();
 		};
 	});
 
@@ -145,12 +135,14 @@
 
 <div class="host-tab" data-state={tabState}>
 	{#if tabState === 'loading'}
-		<p class="loading mono" aria-live="polite">connecting to /api/system/metrics…</p>
+		<TabStatusBanner kind="loading" endpoint="/api/system/metrics" />
 	{:else if tabState === 'error'}
-		<p class="err mono" role="alert">
-			cannot reach /api/system/metrics — {lastError}. Check ARGOS_API_KEY +
-			service status; retrying every {POLL_METRICS_MS / 1000}s.
-		</p>
+		<TabStatusBanner
+			kind="error"
+			endpoint="/api/system/metrics"
+			message={lastError ?? 'unknown'}
+			retrySeconds={POLL_METRICS_MS / 1000}
+		/>
 	{:else}
 		<div class="metric-grid">
 			<MetricCard
@@ -192,13 +184,7 @@
 		<section class="disk-section">
 			<header class="section-h">DISK USAGE</header>
 			{#if info}
-				<DiskRow
-					name="/"
-					mount="root mount"
-					fs="ext4"
-					usedBytes={info.storage.used}
-					totalBytes={info.storage.total}
-				/>
+				<DiskRow name="/" usedBytes={info.storage.used} totalBytes={info.storage.total} />
 			{:else}
 				<p class="empty mono">awaiting first /api/system/info sample…</p>
 			{/if}
@@ -252,11 +238,6 @@
 	.empty {
 		font-size: var(--mk2-fs-2);
 		color: var(--mk2-ink-4);
-	}
-
-	.loading {
-		font-size: var(--mk2-fs-3);
-		color: var(--mk2-ink-3);
 	}
 
 	.err {

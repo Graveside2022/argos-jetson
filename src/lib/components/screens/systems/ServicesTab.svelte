@@ -1,11 +1,7 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-
 	import Dot from '$lib/components/mk2/Dot.svelte';
 
-	// spec-024 PR4 T026 — SERVICES sub-tab. Wired to /api/system/services
-	// because that endpoint already exists and the schema is stable. Other
-	// sub-tabs (HW/PROC/NET) wait on their endpoints to be authored in PR5+.
+	import TabStatusBanner from './TabStatusBanner.svelte';
 
 	const POLL_MS = 4000;
 
@@ -33,13 +29,8 @@
 	let totalCount = $state(0);
 	let lastError = $state<string | null>(null);
 	let firstSampleArrived = $state(false);
+	let seq = 0;
 
-	// CR fix #3 — explicit state envelope. Per CLAUDE.md component-state
-	// contract, the template branches on a single derived value rather than
-	// on a chain of falsy checks. Active = Default once rows flow; Disabled +
-	// Disconnected collapse to Error because nothing in this tab can be
-	// programmatically toggled — both reduce to "/api/system/services
-	// unreachable" with the same recovery hint.
 	type TabState = 'loading' | 'empty' | 'default' | 'error';
 	const tabState = $derived<TabState>(
 		!firstSampleArrived && lastError === null
@@ -57,26 +48,40 @@
 		return 'inactive';
 	}
 
-	async function fetchServices(): Promise<void> {
+	function applyJson(json: ServicesResponse): void {
+		services = json.services;
+		healthyCount = json.healthy_count;
+		totalCount = json.total_count;
+		lastError = null;
+	}
+
+	function recordError(err: unknown): void {
+		if (err instanceof Error && err.name === 'AbortError') return;
+		lastError = err instanceof Error ? err.message : String(err);
+	}
+
+	async function fetchServices(signal: AbortSignal): Promise<void> {
+		const mySeq = ++seq;
 		try {
-			const res = await fetch('/api/system/services');
+			const res = await fetch('/api/system/services', { signal });
 			if (!res.ok) throw new Error(`services ${res.status}`);
 			const json: ServicesResponse = await res.json();
-			services = json.services;
-			healthyCount = json.healthy_count;
-			totalCount = json.total_count;
-			lastError = null;
-			firstSampleArrived = true;
+			if (mySeq === seq) applyJson(json);
 		} catch (err) {
-			lastError = err instanceof Error ? err.message : String(err);
+			recordError(err);
+		} finally {
 			firstSampleArrived = true;
 		}
 	}
 
-	onMount(() => {
-		void fetchServices();
-		const id = window.setInterval(fetchServices, POLL_MS);
-		return () => window.clearInterval(id);
+	$effect(() => {
+		const ctrl = new AbortController();
+		void fetchServices(ctrl.signal);
+		const id = window.setInterval(() => void fetchServices(ctrl.signal), POLL_MS);
+		return () => {
+			window.clearInterval(id);
+			ctrl.abort();
+		};
 	});
 </script>
 
@@ -88,12 +93,14 @@
 	</div>
 
 	{#if tabState === 'loading'}
-		<p class="loading mono" aria-live="polite">connecting to /api/system/services…</p>
+		<TabStatusBanner kind="loading" endpoint="/api/system/services" />
 	{:else if tabState === 'error'}
-		<p class="err mono" role="alert">
-			cannot reach /api/system/services — {lastError}. Check ARGOS_API_KEY +
-			service status; retrying every {POLL_MS / 1000}s.
-		</p>
+		<TabStatusBanner
+			kind="error"
+			endpoint="/api/system/services"
+			message={lastError ?? 'unknown'}
+			retrySeconds={POLL_MS / 1000}
+		/>
 	{:else if tabState === 'empty'}
 		<p class="empty mono">no services configured server-side.</p>
 	{:else}
@@ -198,11 +205,6 @@
 	.empty {
 		font-size: var(--mk2-fs-2);
 		color: var(--mk2-ink-4);
-	}
-
-	.loading {
-		font-size: var(--mk2-fs-3);
-		color: var(--mk2-ink-3);
 	}
 
 	.err {

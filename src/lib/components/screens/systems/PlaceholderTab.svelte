@@ -1,20 +1,14 @@
 <script lang="ts">
-	// spec-024 PR4 T026 (CR follow-up) — single state envelope for the
-	// placeholder sub-tabs (HARDWARE / PROCESSES / NETWORK) so each one
-	// honors the CLAUDE.md component-state contract (Empty / Loading /
-	// Default / Active / Error / Success / Disabled / Disconnected) without
-	// duplicating the same branching boilerplate three times.
-	//
-	// PR4 only ever exercises the `disabled` branch — the underlying
-	// /api/{hardware/inventory,system/processes,system/interfaces} endpoints
-	// don't exist yet — but the other branches are wired so PR5+ can drive
-	// the same shell with real data by switching `state`.
+	// Single state envelope for HW / PROC / NET sub-tabs — full
+	// component-state contract per CLAUDE.md without per-tab duplication.
 
 	export type PlaceholderState =
 		| 'loading'
 		| 'empty'
 		| 'default'
+		| 'active'
 		| 'error'
+		| 'success'
 		| 'disabled'
 		| 'disconnected';
 
@@ -27,13 +21,13 @@
 
 	let { title, endpoint, state = 'disabled', errorMessage }: Props = $props();
 
-	// Lookup table beats switch — keeps the derived expression branch-free
-	// (the eslint complexity gate caps arrow bodies at 5 branches).
 	const COPY_BY_STATE: Record<PlaceholderState, (e: string, m?: string) => string> = {
 		loading: (e) => `connecting to ${e}…`,
 		empty: (e) => `${e} returned no rows.`,
 		default: (e) => `${e} ready.`,
+		active: (e) => `${e} active — receiving live data.`,
 		error: (e, m) => `${e} failed: ${m ?? 'unknown error'}`,
+		success: (e) => `${e} healthy.`,
 		disconnected: (e) => `${e} unreachable — check ARGOS_API_KEY + service status.`,
 		disabled: (e) => `endpoint ${e} is not yet implemented — wiring lands in PR5+.`
 	};

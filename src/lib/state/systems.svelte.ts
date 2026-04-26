@@ -1,8 +1,3 @@
-// spec-024 PR4 T026 — Mk II SYSTEMS screen state.
-// Single lsState container for the active sub-tab so HOST → HW → PROC → SVC →
-// NET selection survives reloads. Validator collapses any unknown persisted
-// value back to 'host'.
-
 import { lsState } from './ui.svelte';
 
 export type SystemsTab = 'host' | 'hw' | 'proc' | 'svc' | 'net';

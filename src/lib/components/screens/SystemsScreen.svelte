@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-
 	import Dot from '$lib/components/mk2/Dot.svelte';
 	import { type SystemsTab,systemsTabStore } from '$lib/state/systems.svelte';
 	import type { SystemInfo } from '$lib/types/system';
@@ -10,19 +8,6 @@
 	import NetworkTab from './systems/NetworkTab.svelte';
 	import ProcessesTab from './systems/ProcessesTab.svelte';
 	import ServicesTab from './systems/ServicesTab.svelte';
-
-	// spec-024 PR4 T023 + T026 — Mk II SYSTEMS screen.
-	//
-	// Owns the host-overview header (hostname / kernel / uptime / load avg /
-	// service health counts) and the 5-tab strip. The active tab persists via
-	// `systemsTabStore` (lsState — see PR1 ui.svelte.ts) so reload restores
-	// the operator's prior selection.
-	//
-	// Mounting strategy: this component is consumed by the chassis main slot
-	// when `view === 'systems'`. The chassis itself is wired in PR5 (T034) —
-	// PR4 ships the dormant component so the rail's bottom button has a real
-	// destination once chassis mounts. Verified by file-scoped tooling +
-	// mounted-into-test-render checks; live mount is PR5 surface.
 
 	const POLL_HEADER_MS = 5000;
 
@@ -36,13 +21,8 @@
 	let totalCount = $state(0);
 	let headerError = $state<string | null>(null);
 	let firstHeaderSampleArrived = $state(false);
+	let seq = 0;
 
-	// CR fix #5 — explicit screen-level state envelope. Loading covers the
-	// initial wait for /api/system/info; Error covers a header poll failure
-	// that has not yet recovered (the chassis stays usable — tabs render —
-	// but the header surfaces a Dot+message). Active = Default once info
-	// flows; Disabled + Disconnected reduce to Error semantically (auth
-	// failure / endpoint down both look the same to the operator).
 	type ScreenState = 'loading' | 'default' | 'error';
 	const screenState = $derived<ScreenState>(
 		!firstHeaderSampleArrived ? 'loading' : headerError !== null ? 'error' : 'default'
@@ -69,36 +49,45 @@
 
 	const warnCount = $derived(Math.max(0, totalCount - healthyCount));
 
-	async function fetchHeader(): Promise<void> {
+	async function applyHeader(infoRes: Response, svcRes: Response): Promise<void> {
+		info = (await infoRes.json()) as SystemInfo;
+		const json: ServicesResponse = await svcRes.json();
+		healthyCount = json.healthy_count;
+		totalCount = json.total_count;
+		headerError = null;
+	}
+
+	function recordHeaderError(err: unknown): void {
+		if (err instanceof Error && err.name === 'AbortError') return;
+		headerError = err instanceof Error ? err.message : String(err);
+		console.warn('[SystemsScreen] header poll failed:', headerError);
+	}
+
+	async function fetchHeader(signal: AbortSignal): Promise<void> {
+		const mySeq = ++seq;
 		try {
 			const [infoRes, svcRes] = await Promise.all([
-				fetch('/api/system/info'),
-				fetch('/api/system/services')
+				fetch('/api/system/info', { signal }),
+				fetch('/api/system/services', { signal })
 			]);
 			if (!infoRes.ok) throw new Error(`info ${infoRes.status}`);
 			if (!svcRes.ok) throw new Error(`services ${svcRes.status}`);
-			info = (await infoRes.json()) as SystemInfo;
-			const json: ServicesResponse = await svcRes.json();
-			healthyCount = json.healthy_count;
-			totalCount = json.total_count;
-			headerError = null;
+			if (mySeq === seq) await applyHeader(infoRes, svcRes);
 		} catch (err) {
-			// CR fix #4 — surface header poll failures via headerError + visible
-			// signal in the header strip rather than swallowing. Tabs still
-			// render their own data with their own error paths; the screen
-			// header just gains a stale-data dot + message so operators see why
-			// uptime / load / OK counts may be frozen.
-			headerError = err instanceof Error ? err.message : String(err);
-			console.warn('[SystemsScreen] header poll failed:', headerError);
+			recordHeaderError(err);
 		} finally {
 			firstHeaderSampleArrived = true;
 		}
 	}
 
-	onMount(() => {
-		void fetchHeader();
-		const id = window.setInterval(fetchHeader, POLL_HEADER_MS);
-		return () => window.clearInterval(id);
+	$effect(() => {
+		const ctrl = new AbortController();
+		void fetchHeader(ctrl.signal);
+		const id = window.setInterval(() => void fetchHeader(ctrl.signal), POLL_HEADER_MS);
+		return () => {
+			window.clearInterval(id);
+			ctrl.abort();
+		};
 	});
 
 	function selectTab(id: SystemsTab): void {

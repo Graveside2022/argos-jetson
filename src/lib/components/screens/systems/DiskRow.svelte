@@ -1,24 +1,24 @@
 <script lang="ts">
-	// spec-024 PR4 T025 — single mount-row primitive used by HostMetricsTab
-	// disk section. Extracted so HostMetricsTab stays under the 300-LOC file
-	// budget. PR5+ multi-mount support iterates this with a different `name` /
-	// `mount` / `fs` per row.
-
 	const BYTES_PER_GB = 1024 * 1024 * 1024;
 	const HOT_PCT = 75;
 
 	interface Props {
 		name: string;
-		mount: string;
-		fs: string;
+		mount?: string;
+		fs?: string;
 		usedBytes: number;
 		totalBytes: number;
 	}
 
 	let { name, mount, fs, usedBytes, totalBytes }: Props = $props();
 
-	const pct = $derived(totalBytes > 0 ? (usedBytes / totalBytes) * 100 : 0);
+	// Clamp [0, 100] guards against usedBytes > totalBytes counter-skew.
+	const pct = $derived(
+		totalBytes > 0 ? Math.min(100, Math.max(0, (usedBytes / totalBytes) * 100)) : 0
+	);
 	const hot = $derived(pct > HOT_PCT);
+
+	const metaText = $derived([mount, fs].filter(Boolean).join(' · '));
 
 	function fmtGb(bytes: number): string {
 		return (bytes / BYTES_PER_GB).toFixed(1);
@@ -28,7 +28,7 @@
 <div class="disk-row">
 	<div class="disk-label">
 		<span class="mono name">{name}</span>
-		<span class="mono meta">{mount} · {fs}</span>
+		{#if metaText}<span class="mono meta">{metaText}</span>{/if}
 	</div>
 	<div class="disk-bar"><div class="disk-fill" class:hot style:width={`${pct}%`}></div></div>
 	<div class="disk-vals mono">
