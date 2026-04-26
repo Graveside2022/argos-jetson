@@ -30,21 +30,15 @@
 
 	let toolsOpen = $state(false);
 
-	// ⌘K / Ctrl+K toggles the Tools Flyout. Skipped when the user is typing
-	// in any form control so the binding doesn't steal in-flight input.
-	function isFormField(t: EventTarget | null): boolean {
-		if (!(t instanceof HTMLElement)) return false;
-		const tag = t.tagName;
-		return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || t.isContentEditable;
-	}
-
+	// ⌘K / Ctrl+K toggles the Tools Flyout. The hotkey fires regardless of
+	// focus target — including inside the flyout's own search input — so
+	// users can always close the launcher without first un-focusing.
 	function isCommandK(e: KeyboardEvent): boolean {
 		return e.key === 'k' && (e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey;
 	}
 
 	function onKeydown(e: KeyboardEvent): void {
 		if (!isCommandK(e)) return;
-		if (isFormField(e.target)) return;
 		e.preventDefault();
 		toolsOpen = !toolsOpen;
 	}

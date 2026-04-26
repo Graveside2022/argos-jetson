@@ -2,14 +2,9 @@
 	import { Search, X } from '@lucide/svelte';
 	import { tick } from 'svelte';
 
-	import { goto } from '$app/navigation';
-	import {
-		drawerActiveStore,
-		drawerOpenStore,
-		type DrawerTab
-	} from '$lib/state/ui.svelte';
 	import type { Mk2Tool, Mk2ToolPillar } from '$lib/types/mk2-tool';
 
+	import { activateTool, getFocusables, pickTabTarget } from './tools-flyout-focus';
 	import ToolsFlyoutTile from './ToolsFlyoutTile.svelte';
 
 	// spec-024 PR8 T046 — Tools Flyout (⌘K launcher). 3-pillar grid,
@@ -28,6 +23,7 @@
 
 	let query = $state('');
 	let searchInput = $state<HTMLInputElement | null>(null);
+	let flyoutEl = $state<HTMLDivElement | null>(null);
 
 	const filtered = $derived.by(() => {
 		const q = query.trim().toLowerCase();
@@ -51,29 +47,25 @@
 		void tick().then(() => searchInput?.focus());
 	});
 
+	function trapTab(e: KeyboardEvent): void {
+		const target = pickTabTarget(getFocusables(flyoutEl), document.activeElement, e.shiftKey);
+		if (!target) return;
+		target.focus();
+		e.preventDefault();
+	}
+
 	function onKeydown(e: KeyboardEvent): void {
 		if (!open) return;
 		if (e.key === 'Escape') {
 			e.preventDefault();
 			onClose();
+			return;
 		}
-	}
-
-	function openDrawerAt(tab: DrawerTab): void {
-		drawerOpenStore.value = true;
-		drawerActiveStore.value = tab;
+		if (e.key === 'Tab') trapTab(e);
 	}
 
 	function activate(tool: Mk2Tool): void {
-		const action = tool.action;
-		if (action.kind === 'route') {
-			void goto(action.href);
-		} else if (action.kind === 'drawer') {
-			openDrawerAt(action.tab);
-		} else if (action.kind === 'external') {
-			window.open(action.url, '_blank', 'noopener');
-		}
-		// `unwired` falls through with no side effect.
+		activateTool(tool);
 		onClose();
 	}
 </script>
@@ -88,7 +80,7 @@
 			aria-label="Close tools"
 			onclick={onClose}
 		></button>
-		<div class="flyout" role="dialog" aria-modal="true" aria-label="Tools library">
+		<div bind:this={flyoutEl} class="flyout" role="dialog" aria-modal="true" aria-label="Tools library">
 			<header class="head">
 				<div class="brand">TOOLS · LIBRARY</div>
 				<div class="search">
@@ -154,7 +146,7 @@
 	.backdrop {
 		position: fixed;
 		inset: 0;
-		background: rgb(0 0 0 / 60%);
+		background: var(--overlay-backdrop);
 		backdrop-filter: blur(2px);
 		border: 0;
 		padding: 0;
