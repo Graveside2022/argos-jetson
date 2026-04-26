@@ -88,8 +88,10 @@ Tracking per-PR tasks against the migration plan in `plan.md`. Commit SHAs fille
 
 ## PR 8 — Tools Flyout (~2 days)
 
-- [ ] **T046** `ToolsFlyout.svelte` — full-screen modal, 3-pillar OFFNET / ONNET / OSINT, search, ⌘K + `+` rail button + Esc.
-- [ ] **T047** `src/lib/data/tools-catalog.ts` — hand-curated 12-15 tools mapped to existing routes (HackRF, Kismet, GSM Evil, Bluetooth, DragonSync, TAK, agents, RF viz, etc.). No install detection in v1.
+- [x] **T046** `ToolsFlyout.svelte` — full-screen modal, 3-pillar OFFNET / ONNET / OSINT, search, ⌘K + `+` rail button + Esc.
+- [x] **T047** `src/lib/data/mk2-tools-catalog.ts` — 14 hand-curated tools mapped to wired Mk II surfaces (route / drawer / external / unwired action kinds). No install detection in v1.
+
+**Merged**: PR #40 — `aab18d86` (T046 + T047 tools flyout, with CR fix iteration f2dbf414 covering focus trap, overlay design token, ⌘K-from-search hotkey).
 
 ## PR 9 — Spectrum + SVG Waterfall (~4 days, **spike-first**)
 
