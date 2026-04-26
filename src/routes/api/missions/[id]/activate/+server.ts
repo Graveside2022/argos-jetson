@@ -24,9 +24,14 @@ export const POST = createHandler(({ params }) => {
 
 	setActiveMission(db, id);
 	const mission = getMission(db, id);
-	// Return the full mission row (with active=true) so clients can update
-	// their local mirror without an extra round-trip. Falls back to the
-	// id-only payload if the row vanished between activate + read.
-	if (!mission) return { success: true, active_mission_id: id };
+	// Race-window guard: a concurrent DELETE between activate + read would
+	// leave the row missing. Surface a 500 rather than an inconsistent
+	// success payload so the client doesn't silently no-op.
+	if (!mission) {
+		return json(
+			{ success: false, error: 'Mission disappeared between activate + read' },
+			{ status: 500 }
+		);
+	}
 	return { success: true, mission, active_mission_id: id };
 });
