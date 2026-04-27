@@ -20,6 +20,49 @@ import {
 
 // $lib/server/env loads dotenv + Zod-validates on import.
 
+/** Parse SSE frame payload; on failure record an error and return null.
+ *  Exported for unit-test access — the StreamingInspector class itself is
+ *  private (instantiated + started inline at module load) so the `tools[]`
+ *  array can't be inspected directly. Testing the two pure helpers covers
+ *  the only new behavior worth asserting; the tool entries themselves are
+ *  schema declarations + thin apiFetch / EventSource wrappers. */
+export function parseFrameOrRecord(
+	rawData: string,
+	errors: Array<{ message: string; timestamp: number }>,
+	timestamp: number
+): unknown | null {
+	try {
+		return JSON.parse(rawData);
+	} catch (err) {
+		errors.push({
+			message: `frame parse error: ${err instanceof Error ? err.message : String(err)}`,
+			timestamp
+		});
+		return null;
+	}
+}
+
+/** Record an error if a parsed SpectrumFrame is missing required fields.
+ *  Exported for unit-test access — see parseFrameOrRecord JSDoc above. */
+export function recordIfShapeInvalid(
+	parsed: unknown,
+	errors: Array<{ message: string; timestamp: number }>,
+	timestamp: number
+): void {
+	const frame = parsed as Record<string, unknown>;
+	const shapeOk =
+		typeof frame.startFreq === 'number' &&
+		typeof frame.endFreq === 'number' &&
+		Array.isArray(frame.power) &&
+		typeof frame.timestamp === 'number';
+	if (!shapeOk) {
+		errors.push({
+			message: 'SpectrumFrame missing required fields (startFreq/endFreq/power/timestamp)',
+			timestamp
+		});
+	}
+}
+
 class StreamingInspector extends BaseMCPServer {
 	protected tools: ToolDefinition[] = [
 		{
@@ -281,6 +324,145 @@ class StreamingInspector extends BaseMCPServer {
 						'Use test_sse_connection for quick connectivity checks',
 						'Use inspect_sse_stream for detailed performance analysis',
 						'HackRF stream should maintain ~20 events/sec when sweep is active'
+					]
+				};
+			}
+		},
+		// ── spec-024 PR9c (T053) — multi-SDR spectrum diagnostics ─────────────
+		// Three tools surface the new /api/spectrum/* multi-SDR-aware routes
+		// (PR 9a-1) so MCP clients can debug spectrum streams without poking
+		// at the legacy /api/hackrf/data-stream surface. All three follow the
+		// existing snake_case ToolDefinition pattern (lines 25-287 above);
+		// schema per https://modelcontextprotocol.io/docs/concepts/tools.
+		{
+			name: 'inspect_spectrum_stream',
+			description:
+				'Monitor the multi-SDR /api/spectrum/stream SSE for the specified duration. Captures frame events, validates SpectrumFrame shape, measures throughput. Use when debugging the new HackRF/B205-aware spectrum pipeline (PR 9a-1) — distinct from inspect_sse_stream which targets the legacy /api/hackrf/data-stream + /api/rf/data-stream routes.',
+			inputSchema: {
+				type: 'object' as const,
+				properties: {
+					duration_seconds: {
+						type: 'number',
+						description: 'How long to monitor (default: 10, max: 60)'
+					},
+					validate_data: {
+						type: 'boolean',
+						description: 'Validate SpectrumFrame structure on every event (default: true)'
+					}
+				},
+				required: []
+			},
+			execute: async (args: Record<string, unknown>) => {
+				const duration = Math.min((args.duration_seconds as number) || 10, 60);
+				const validateData = args.validate_data !== false;
+				const apiUrl = env.ARGOS_API_URL;
+				const apiKey = env.ARGOS_API_KEY;
+				if (!apiKey) {
+					return { status: 'ERROR', error: 'ARGOS_API_KEY not set in environment' };
+				}
+				const fullUrl = `${apiUrl}/api/spectrum/stream`;
+				const { EventSource } = await import('eventsource');
+
+				return new Promise((resolve) => {
+					const events: Array<{ type: string; data: unknown; timestamp: number }> = [];
+					const errors: Array<{ message: string; timestamp: number }> = [];
+					const startTime = Date.now();
+					let eventCount = 0;
+					let byteCount = 0;
+
+					const eventSource = new EventSource(fullUrl, {
+						fetch: (input, init) =>
+							fetch(input, {
+								...init,
+								headers: { ...init?.headers, 'X-API-Key': apiKey }
+							})
+					});
+
+					eventSource.addEventListener('frame', (event: { data: string }) => {
+						eventCount++;
+						byteCount += event.data.length;
+						const parsed = parseFrameOrRecord(event.data, errors, Date.now() - startTime);
+						if (parsed === null) return;
+						if (validateData) {
+							recordIfShapeInvalid(parsed, errors, Date.now() - startTime);
+						}
+						events.push({ type: 'frame', data: parsed, timestamp: Date.now() - startTime });
+					});
+
+					eventSource.addEventListener('error', (event: { data?: string }) => {
+						errors.push({
+							message: event.data ?? 'EventSource error (no detail)',
+							timestamp: Date.now() - startTime
+						});
+					});
+
+					setTimeout(() => {
+						eventSource.close();
+						const elapsed = (Date.now() - startTime) / 1000;
+						resolve({
+							status: errors.length === 0 ? 'SUCCESS' : 'PARTIAL',
+							stream_url: '/api/spectrum/stream',
+							duration_seconds: elapsed,
+							frame_count: eventCount,
+							frames_per_sec: eventCount / Math.max(elapsed, 0.001),
+							bytes_received: byteCount,
+							error_count: errors.length,
+							errors: errors.slice(0, 5),
+							sample_frame: events[0]?.data ?? null
+						});
+					}, duration * 1000);
+				});
+			}
+		},
+		{
+			name: 'get_spectrum_status',
+			description:
+				'Fetch the active SpectrumSource SourceStatus from /api/spectrum/status (device, state, current config, last frame timestamp). Returns { state: "idle" } when no source is active. Use to verify a spectrum sweep is actually running before launching inspect_spectrum_stream.',
+			inputSchema: { type: 'object' as const, properties: {} },
+			execute: async () => {
+				try {
+					const resp = await apiFetch('/api/spectrum/status');
+					const data = await resp.json();
+					return { status: 'SUCCESS', source_status: data };
+				} catch (error) {
+					return {
+						status: 'ERROR',
+						error: error instanceof Error ? error.message : String(error)
+					};
+				}
+			}
+		},
+		{
+			name: 'list_available_sdrs',
+			description:
+				'List the SDR device types the spectrum factory can instantiate. Reflects the current Zod DeviceTypeSchema enum (src/lib/schemas/rf.ts:16); state is "available" when the factory has a registered SpectrumSource implementation, "pending" when the schema declares the device but the source is not yet wired (e.g. B205 lands in PR 9b T050).',
+			inputSchema: { type: 'object' as const, properties: {} },
+			execute: async () => {
+				return {
+					status: 'SUCCESS',
+					devices: [
+						{
+							name: 'hackrf',
+							state: 'available',
+							source_class: 'HackRFSpectrumSource',
+							notes: 'Shipped in PR 9a-1 (#41). Subscribes to sweepManager spectrum_data events.'
+						},
+						{
+							name: 'b205',
+							state: 'pending',
+							source_class: 'B205SpectrumSource',
+							notes: 'Lands in spec-024 PR 9b (T050). UHD MultiUSRP via spawn b205_spectrum.py.'
+						},
+						{
+							name: 'auto',
+							state: 'meta',
+							source_class: null,
+							notes: 'Schema-level meta value — factory resolves to the first available device.'
+						}
+					],
+					recommendations: [
+						'Use get_spectrum_status to see which device is currently active',
+						'Use inspect_spectrum_stream to monitor the active source live'
 					]
 				};
 			}
