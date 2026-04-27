@@ -435,7 +435,7 @@ class StreamingInspector extends BaseMCPServer {
 		{
 			name: 'list_available_sdrs',
 			description:
-				'List the SDR device types the spectrum factory can instantiate. Reflects the current Zod DeviceTypeSchema enum (src/lib/schemas/rf.ts:16); state is "available" when the factory has a registered SpectrumSource implementation, "pending" when the schema declares the device but the source is not yet wired (e.g. B205 lands in PR 9b T050).',
+				'List the SDR device types the spectrum factory can instantiate. Reflects the current Zod DeviceTypeSchema enum (src/lib/schemas/rf.ts:16); state is "available" when the factory has a registered SpectrumSource implementation, "pending" when the schema declares the device but the source is not yet wired.',
 			inputSchema: { type: 'object' as const, properties: {} },
 			execute: async () => {
 				return {
@@ -449,9 +449,10 @@ class StreamingInspector extends BaseMCPServer {
 						},
 						{
 							name: 'b205',
-							state: 'pending',
+							state: 'available',
 							source_class: 'B205SpectrumSource',
-							notes: 'Lands in spec-024 PR 9b (T050). UHD MultiUSRP via spawn b205_spectrum.py.'
+							notes:
+								'Shipped in spec-024 PR 9b (T050). Spawns scripts/spectrum/b205_spectrum.py (UHD MultiUSRP, num_recv_frames=512+recv_frame_size=8192) and emits NDJSON spectrum frames. Hardware-gated — requires python3-uhd + a wired B205mini.'
 						},
 						{
 							name: 'auto',
