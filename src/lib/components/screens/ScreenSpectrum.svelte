@@ -13,18 +13,17 @@
 <script lang="ts">
 	import { onDestroy, onMount } from 'svelte';
 
-	import Spectrum from './parts/Spectrum.svelte';
-	import SpectrumControls from './parts/SpectrumControls.svelte';
-	import Waterfall from './parts/Waterfall.svelte';
-
 	import { spectrumRuntime } from '$lib/state/spectrum.svelte';
-
 	import type {
 		ConnectedPayload,
 		ErrorPayload,
 		SourceStatus,
 		SpectrumFrame
 	} from '$lib/types/spectrum';
+
+	import Spectrum from './parts/Spectrum.svelte';
+	import SpectrumControls from './parts/SpectrumControls.svelte';
+	import Waterfall from './parts/Waterfall.svelte';
 
 	let source: EventSource | null = null;
 

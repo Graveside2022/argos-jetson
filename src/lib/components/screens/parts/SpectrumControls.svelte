@@ -16,7 +16,6 @@
 -->
 <script lang="ts">
 	import { spectrumConfigStore, spectrumRuntime } from '$lib/state/spectrum.svelte';
-
 	import type { GainConfig, SpectrumConfig } from '$lib/types/spectrum';
 
 	const LNA_STEPS = [0, 8, 16, 24, 32, 40];

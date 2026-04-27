@@ -20,9 +20,6 @@
  */
 
 import { browser } from '$app/environment';
-
-import { lsState } from './ui.svelte';
-
 import type {
 	SourceState,
 	SpectrumConfig,
@@ -30,6 +27,8 @@ import type {
 	SpectrumFrame
 } from '$lib/types/spectrum';
 import { DEFAULT_HACKRF_CONFIG } from '$lib/types/spectrum';
+
+import { lsState } from './ui.svelte';
 
 const PEAK_DECAY_PER_FRAME = 0.985; // ~30 s half-life at 10 Hz
 const isDevice = (v: unknown): v is SpectrumDevice => v === 'hackrf' || v === 'b205';
@@ -106,17 +105,21 @@ export const spectrumRuntime = {
 	}
 };
 
+function decayInto(target: Float32Array, power: readonly number[]): void {
+	for (let i = 0; i < power.length; i += 1) {
+		const decayed = target[i] * PEAK_DECAY_PER_FRAME + power[i] * (1 - PEAK_DECAY_PER_FRAME);
+		target[i] = power[i] > target[i] ? power[i] : decayed;
+	}
+}
+
 function updatePeakHold(power: readonly number[]): void {
 	if (!browser) return;
 	if (!_peakHold || _peakHold.length !== power.length) {
 		_peakHold = Float32Array.from(power);
 		return;
 	}
-	const next = _peakHold;
-	for (let i = 0; i < power.length; i += 1) {
-		const decayed = next[i] * PEAK_DECAY_PER_FRAME + power[i] * (1 - PEAK_DECAY_PER_FRAME);
-		next[i] = power[i] > next[i] ? power[i] : decayed;
-	}
-	// Trigger reactivity by reassigning — runes track reference identity.
-	_peakHold = next;
+	decayInto(_peakHold, power);
+	// No reactivity bump needed — Spectrum.svelte re-evaluates its derived
+	// path when `lastFrame` changes (every ingestFrame), reading the
+	// freshly-mutated _peakHold buffer in the same render pass.
 }
