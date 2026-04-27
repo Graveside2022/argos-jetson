@@ -87,7 +87,48 @@ if (srcDirs.size > 3) {
 	);
 }
 
-// ── 3. Tests-required for server-code changes ──────────────────────────
+// ── 3. Tests-required for server-code changes (with type-only carve-out) ─
+//
+// Default: any non-test .ts/.js change under src/lib/server/ requires a
+// matching test delta. Carve-out: micro-PRs whose server-code changes are
+// 100% import/export type relocations (and similar pure-leaf edits) skip
+// the requirement. Same trick as PRs #46/#47/#48 — those are pure type
+// surgery with zero behavioral risk; tests would not add coverage.
+//
+// Carve-out gates (ALL must hold):
+//   (a) Total human-authored LOC ≤ MICRO_LOC_CAP
+//   (b) No new .ts / .js source files created (test files OK)
+//   (c) Every +/- diff line in src/lib/server/** matches one of:
+//       - blank line                          /^[+-]\s*$/
+//       - import/export type ...              /^[+-]\s*(import|export)\s+type\b/
+//       - line comment                        /^[+-]\s*\/\//
+//       - block comment line                  /^[+-]\s*\*/
+//
+// Conservative bias: false-negative (gate fires when it shouldn't, e.g. on
+// multi-line import { type X, type Y } blocks) is preferred over
+// false-positive (gate skips real behavioral change). When carve-out fires,
+// we emit a warn() recording the heuristic + LOC count for audit.
+//
+// Audit: PR comment shows EITHER fail() (no carve-out) OR warn() with the
+// LOC count + file count. No silent passes. Mechanical detection only —
+// no labels, no titles, no human override.
+//
+// References:
+//   - https://danger.systems/js/reference.html (linesOfCode, diffForFile,
+//     created_files, schedule)
+//   - https://danger.systems/js/guides/the_dangerfile.html (async via
+//     schedule is required)
+//   - https://github.com/danger/danger-js/blob/main/source/dsl/GitDSL.ts
+//     (TextDiff shape: {before, after, diff, added, removed})
+
+const MICRO_LOC_CAP = 10;
+const TYPE_ONLY_LINE_PATTERNS = [
+	/^[+-]\s*$/,
+	/^[+-]\s*(import|export)\s+type\b/,
+	/^[+-]\s*\/\//,
+	/^[+-]\s*\*/
+];
+
 const serverCodeChanged = changed.some(
 	(f) =>
 		f.startsWith('src/lib/server/') &&
@@ -105,11 +146,68 @@ const serverCodeChanged = changed.some(
 const testChanged = changed.some((f) =>
 	/^(src\/lib\/server|tests)\/.*\.(test|spec)\.(ts|js)$/.test(f)
 );
-if (serverCodeChanged && !testChanged) {
+
+schedule(async () => {
+	if (!serverCodeChanged || testChanged) {
+		return; // gate doesn't fire OR is already satisfied
+	}
+
+	// Try the carve-out before the fail(). All gates are conservative —
+	// any failure to evaluate falls through to the original fail().
+	try {
+		const total = await danger.git.linesOfCode();
+		let generated = 0;
+		for (const pat of GENERATED_GLOBS) {
+			generated += await danger.git.linesOfCode(pat);
+		}
+		const lineCount = Math.max(0, total - generated);
+
+		if (lineCount <= MICRO_LOC_CAP) {
+			const noNewSourceFiles = (danger.git.created_files || []).every(
+				(f) => !/\.(ts|js)$/.test(f) || /\.(test|spec|d)\./.test(f)
+			);
+
+			if (noNewSourceFiles) {
+				const serverFiles = changed.filter((f) => f.startsWith('src/lib/server/'));
+				let allTypeOnly = serverFiles.length > 0;
+
+				for (const f of serverFiles) {
+					const td = await danger.git.diffForFile(f);
+					if (!td) {
+						allTypeOnly = false;
+						break;
+					}
+					const meaningful = td.diff
+						.split('\n')
+						.filter((l) => /^[+-]/.test(l) && !/^[+-]{3}/.test(l));
+					const fileTypeOnly = meaningful.every((l) =>
+						TYPE_ONLY_LINE_PATTERNS.some((re) => re.test(l))
+					);
+					if (!fileTypeOnly) {
+						allTypeOnly = false;
+						break;
+					}
+				}
+
+				if (allTypeOnly) {
+					warn(
+						`Tests-required gate skipped: PR is ${lineCount} human-authored line(s) and contains only type-import/export edits across ${serverFiles.length} server file(s). Auditable via diff. (Carve-out rule: dangerfile.js, see TYPE_ONLY_LINE_PATTERNS.)`
+					);
+					return;
+				}
+			}
+		}
+	} catch (err) {
+		// Couldn't evaluate carve-out (e.g. shallow clone, missing git
+		// metadata). Fall through to fail() below — fail-closed bias.
+		const msg = err instanceof Error ? err.message : String(err);
+		warn(`Tests-required carve-out skipped due to git error: ${msg}. Falling back to strict gate.`);
+	}
+
 	fail(
 		'Server code under src/lib/server/ changed but no test files were added or modified. Add unit or integration tests.'
 	);
-}
+});
 
 // ── 4. Migration vs schema drift ───────────────────────────────────────
 const migrationTouched = changed.some((f) => f.startsWith('src/lib/server/db/migrations/'));
