@@ -70,6 +70,13 @@
 
 	onDestroy(() => {
 		source?.close();
+		// Reset shared runtime state so a re-mount (route navigation back
+		// to /dashboard/mk2/spectrum) starts in 'loading' rather than
+		// inheriting the previous session's last-known device/state.
+		spectrumRuntime.setConnState('loading');
+		spectrumRuntime.setSourceState(null);
+		spectrumRuntime.setError(null);
+		spectrumRuntime.resetPeakHold();
 	});
 </script>
 

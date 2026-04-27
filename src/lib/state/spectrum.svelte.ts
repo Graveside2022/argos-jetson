@@ -32,12 +32,40 @@ import { lsState } from './ui.svelte';
 
 const PEAK_DECAY_PER_FRAME = 0.985; // ~30 s half-life at 10 Hz
 const isDevice = (v: unknown): v is SpectrumDevice => v === 'hackrf' || v === 'b205';
-const isConfig = (v: unknown): v is SpectrumConfig =>
-	typeof v === 'object' &&
-	v !== null &&
-	typeof (v as { startFreq?: unknown }).startFreq === 'number' &&
-	typeof (v as { endFreq?: unknown }).endFreq === 'number' &&
-	typeof (v as { binWidth?: unknown }).binWidth === 'number';
+const isObj = (v: unknown): v is Record<string, unknown> =>
+	typeof v === 'object' && v !== null;
+const isNum = (v: unknown): v is number => typeof v === 'number';
+
+function isHackrfAmp(amp: unknown): boolean {
+	return amp === 0 || amp === 1;
+}
+
+function isHackrfGain(g: unknown): boolean {
+	if (!isObj(g)) return false;
+	if (g.kind !== 'hackrf') return false;
+	if (!isHackrfAmp(g.amp)) return false;
+	return isNum(g.lna) && isNum(g.vga);
+}
+
+function isB205Gain(g: unknown): boolean {
+	if (!isObj(g)) return false;
+	if (g.kind !== 'b205') return false;
+	return isNum(g.rxGain);
+}
+
+function hasFreqShape(v: Record<string, unknown>): boolean {
+	return isNum(v.startFreq) && isNum(v.endFreq) && isNum(v.binWidth);
+}
+
+function hasGainShape(v: Record<string, unknown>): boolean {
+	return isHackrfGain(v.gain) || isB205Gain(v.gain);
+}
+
+function isConfig(v: unknown): v is SpectrumConfig {
+	if (!isObj(v)) return false;
+	if (!hasFreqShape(v)) return false;
+	return hasGainShape(v);
+}
 
 // Persistent — survives reload.
 export const spectrumDeviceStore = lsState<SpectrumDevice>(

@@ -49,7 +49,10 @@
 		canvas.height = H;
 		ctx = canvas.getContext('2d', { alpha: false });
 		if (!ctx) return;
-		ctx.fillStyle = '#000000';
+		// Resolve --mk2-bg via getComputedStyle so the initial fill matches
+		// the design-token background. Falls back to a CSS-token-aligned
+		// raw value if the var isn't yet applied (initial paint race).
+		ctx.fillStyle = readBgToken(canvas) ?? 'oklch(13% 0.008 255)';
 		ctx.fillRect(0, 0, W, H);
 		topRow = ctx.createImageData(W, 1);
 		scheduleRaf();
@@ -125,6 +128,11 @@
 			Math.round(b0 + (b1 - b0) * k)
 		];
 	}
+
+	function readBgToken(el: HTMLElement): string | null {
+		const v = getComputedStyle(el).getPropertyValue('--mk2-bg').trim();
+		return v.length > 0 ? v : null;
+	}
 </script>
 
 <canvas bind:this={canvas} aria-label="Spectrum waterfall — newest at top, scrolls down"></canvas>
@@ -135,7 +143,7 @@
 		width: 100%;
 		height: 100%;
 		image-rendering: pixelated;
-		background: #000;
+		background: var(--mk2-bg);
 		border: 1px solid var(--mk2-line);
 	}
 </style>

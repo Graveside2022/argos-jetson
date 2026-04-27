@@ -19,7 +19,8 @@
 	import type { GainConfig, SpectrumConfig } from '$lib/types/spectrum';
 
 	const LNA_STEPS = [0, 8, 16, 24, 32, 40];
-	const VGA_STEPS = [0, 4, 8, 12, 16, 20, 24, 30, 40, 50, 62];
+	// 0-62 dB step 2 per `hackrf_sweep -h` — full range, 32 values.
+	const VGA_STEPS = Array.from({ length: 32 }, (_, i) => i * 2);
 	const BIN_PRESETS = [
 		{ label: '20 kHz', hz: 20_000 },
 		{ label: '50 kHz', hz: 50_000 },
@@ -81,10 +82,14 @@
 		postError = null;
 		try {
 			const res = await fetch('/api/spectrum/stop', { method: 'POST' });
-			if (!res.ok) postError = `stop failed: ${res.status} ${res.statusText}`;
+			if (!res.ok) {
+				postError = `stop failed: ${res.status} ${res.statusText}`;
+				spectrumRuntime.setError(postError);
+			}
 			spectrumRuntime.resetPeakHold();
 		} catch (err) {
 			postError = err instanceof Error ? err.message : String(err);
+			spectrumRuntime.setError(postError);
 		} finally {
 			busy = false;
 		}

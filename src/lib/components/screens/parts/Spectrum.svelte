@@ -39,13 +39,20 @@
 	const tickLabels = $derived(buildFreqTicks(frame));
 	const dbLabels = $derived([maxDb, Math.round((maxDb + minDb) / 2), minDb]);
 
-	function buildPath(values: readonly number[] | Float32Array | null): string {
-		if (!values || values.length === 0) return '';
+	// Single-bin frames (n=1) would divide-by-zero on (n-1); render as a
+	// flat 2-px dot at the midpoint so the trace stays visible.
+	function singleBinPath(v: number): string {
 		const range = maxDb - minDb;
-		const n = values.length;
-		const stepX = plotW / (n - 1);
+		const norm = Math.max(0, Math.min(1, (v - minDb) / range));
+		const x = PAD_L + plotW / 2;
+		const y = PAD_T + (1 - norm) * plotH;
+		return `M${x.toFixed(1)},${y.toFixed(1)} l1,0`;
+	}
+
+	function pointsPath(values: readonly number[] | Float32Array, stepX: number): string {
+		const range = maxDb - minDb;
 		let d = '';
-		for (let i = 0; i < n; i += 1) {
+		for (let i = 0; i < values.length; i += 1) {
 			const v = values[i];
 			const norm = Math.max(0, Math.min(1, (v - minDb) / range));
 			const x = PAD_L + i * stepX;
@@ -53,6 +60,13 @@
 			d += i === 0 ? `M${x.toFixed(1)},${y.toFixed(1)}` : ` L${x.toFixed(1)},${y.toFixed(1)}`;
 		}
 		return d;
+	}
+
+	function buildPath(values: readonly number[] | Float32Array | null): string {
+		if (!values || values.length === 0) return '';
+		const n = values.length;
+		if (n === 1) return singleBinPath(values[0]);
+		return pointsPath(values, plotW / (n - 1));
 	}
 
 	function buildFreqTicks(f: SpectrumFrame | null): { x: number; label: string }[] {
