@@ -61,14 +61,17 @@ describe('HackRFSpectrumSource', () => {
 		const received: SpectrumFrame[] = [];
 		src.on('frame', (f) => received.push(f));
 
+		// Input mirrors the real SpectrumData shape that buffer-parser.ts:148
+		// emits: frequencies in MHz, timestamp as Date. The source must
+		// convert at the boundary so SpectrumFrame stays Hz + ms epoch.
 		mockSweepManager.emit('spectrum_data', {
-			frequency: 98_000_000,
-			timestamp: 1234,
+			frequency: 98,
+			timestamp: new Date(1234),
 			data: {
 				powerValues: [-50, -45, -40, -35],
-				startFreq: 96_000_000,
-				endFreq: 100_000_000,
-				timestamp: 1234
+				startFreq: 96,
+				endFreq: 100,
+				timestamp: new Date(1234)
 			}
 		});
 
@@ -77,9 +80,53 @@ describe('HackRFSpectrumSource', () => {
 		expect(frame.device).toBe(HardwareDevice.HACKRF);
 		expect(frame.startFreq).toBe(96_000_000);
 		expect(frame.endFreq).toBe(100_000_000);
-		expect(frame.binWidth).toBe(1_000_000); // (100-96 MHz) / 4 bins
+		expect(frame.binWidth).toBe(1_000_000); // (100-96 MHz) / 4 bins → 1 MHz in Hz
 		expect(frame.power).toEqual([-50, -45, -40, -35]);
 		expect(frame.timestamp).toBe(1234);
+	});
+
+	it('coerces missing data.timestamp via payload.timestamp fallback (number ms)', async () => {
+		const src = new HackRFSpectrumSource();
+		await src.start(baseConfig);
+
+		const received: SpectrumFrame[] = [];
+		src.on('frame', (f) => received.push(f));
+
+		mockSweepManager.emit('spectrum_data', {
+			frequency: 98,
+			timestamp: 5678,
+			data: {
+				powerValues: [-50, -45],
+				startFreq: 96,
+				endFreq: 100
+			}
+		});
+
+		expect(received).toHaveLength(1);
+		expect(received[0].timestamp).toBe(5678);
+	});
+
+	it('coerces all-undefined timestamp paths to Date.now() (number ms)', async () => {
+		const src = new HackRFSpectrumSource();
+		await src.start(baseConfig);
+
+		const received: SpectrumFrame[] = [];
+		src.on('frame', (f) => received.push(f));
+
+		const before = Date.now();
+		mockSweepManager.emit('spectrum_data', {
+			data: {
+				powerValues: [-50, -45],
+				startFreq: 96,
+				endFreq: 100
+			}
+		});
+		const after = Date.now();
+
+		expect(received).toHaveLength(1);
+		expect(typeof received[0].timestamp).toBe('number');
+		expect(received[0].timestamp).toBeGreaterThanOrEqual(before);
+		expect(received[0].timestamp).toBeLessThanOrEqual(after);
 	});
 
 	it('drops malformed events (missing powerValues / freq bounds)', async () => {
