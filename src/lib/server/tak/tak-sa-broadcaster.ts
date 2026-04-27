@@ -12,7 +12,7 @@ import CoT from '@tak-ps/node-cot';
 import { logger } from '$lib/utils/logger';
 
 import { getGpsPosition } from '../services/gps/gps-position-service';
-import type { TakService } from './tak-service';
+import type { CotSender } from './types';
 
 const BROADCAST_INTERVAL_MS = 30_000;
 const STALE_DURATION_MS = 90_000;
@@ -68,11 +68,11 @@ function buildSaCot(
 
 export class TakSaBroadcaster {
 	private intervalId: NodeJS.Timeout | null = null;
-	private takService: TakService;
+	private takService: CotSender;
 	private _broadcastCount = 0;
 	private _lastBroadcastAt: number | null = null;
 
-	constructor(takService: TakService) {
+	constructor(takService: CotSender) {
 		this.takService = takService;
 	}
 
