@@ -30,9 +30,7 @@ export function createSpectrumSource(device: HardwareDevice): SpectrumSource {
 		case HardwareDevice.HACKRF:
 			return new HackRFSpectrumSource();
 		case HardwareDevice.B205:
-			throw new Error(
-				'B205SpectrumSource lands in spec-024 PR9b — see plan + tasks.md T050'
-			);
+			throw new Error('B205SpectrumSource lands in spec-024 PR9b — see plan + tasks.md T050');
 		default:
 			throw new Error(`No SpectrumSource registered for device: ${device}`);
 	}

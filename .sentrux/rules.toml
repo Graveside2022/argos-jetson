@@ -1,0 +1,94 @@
+# Sentrux architectural rules for Argos
+# See: https://github.com/sentrux/sentrux
+#
+# Day-0 baseline (2026-04-27, sentrux 0.5.7):
+#   quality_signal = 5401 / 10000
+#   bottleneck     = acyclicity (raw=2 SCCs, score=3333)
+#   modularity Q   = 0.218  (Newman)
+#   depth          = 2      (Lakos)
+#   redundancy     = 0.249
+#   equality       = 0.520  (1 - Gini)
+#   files          = 1616   import_edges = 1757   LOC = 393211
+#
+# The 2 SCCs (named by `sentrux check`):
+#   1. src/lib/server/tak/{tak-sa-broadcaster.ts ⇄ tak-service.ts}
+#   2. src/lib/server/services/cell-towers/{cell-tower-service.ts ⇄ opencellid-client.ts}
+#
+# Strategy: each SCC is fixed in its own dependency-inversion PR.
+
+# NOTE on omitted thresholds (sentrux v0.5.7 limitation):
+#   max_cc / max_fn_lines are GLOBAL ONLY — `[language.X.constraints]` is parsed
+#   but not honored by check_max_cc / check_max_fn_lines (sentrux-core/.../rules/checks.rs:171-208).
+#   Vendored static/webtak/ has zlib funcs up to 780 lines and a 9898-line
+#   webpack bundle that will always exceed any threshold sane for Argos source.
+#   These constraints stay opt-in until sentrux ships per-file language dispatch.
+#   Argos still enforces 50 LOC/fn + CC ≤ 5 via ESLint; sentrux's role is
+#   structural (cycles + layer direction).
+[constraints]
+max_cycles = 2 # Phased ratchet — current tree has 2 SCCs (see header).
+# Hold the line at 2 until PR9b kills TAK SCC (→ ratchet to 1)
+# and PR9c kills cell-towers SCC (→ ratchet to 0). Setting 0
+# today would freeze every PR's check_rules until both fixes
+# land. Per CR review on PR #43.
+no_god_files = false # Argos has fat stores; ratchet to true after store splits land.
+
+# ─── Layer order ─────────────────────────────────────────────────────────────────
+# Sentrux v0.5.7 semantic (verified in source: sentrux-core/.../rules/mod.rs:214):
+#   `from_ord > to_ord` = violation. Therefore lower order = top of dependency tree
+#   (depends on everything below), higher order = leaf (depended-on by everything
+#   above). Arrange layers TOP-DOWN: routes at order=0, types at order=5.
+
+[[layers]]
+name = "routes"
+paths = ["src/routes/**"]
+order = 0                 # presentation top — routes depend on everything below
+
+[[layers]]
+name = "components"
+paths = ["src/lib/components/**"]
+order = 1
+
+[[layers]]
+name = "client_state"
+paths = ["src/lib/stores/**", "src/lib/state/**"]
+order = 2
+
+[[layers]]
+name = "server"
+paths = ["src/lib/server/**"]
+order = 3
+
+[[layers]]
+name = "utils"
+paths = ["src/lib/utils/**"]
+order = 4
+
+[[layers]]
+name = "types"
+paths = ["src/lib/types/**", "src/lib/schemas/**"]
+order = 5                                          # leaves — depended-on by everything above
+
+# ─── Hard boundaries (forbidden upward shortcuts the order alone would permit) ───
+# The /api network boundary is the only legitimate path from client → server.
+# These rules forbid the four direct-import shortcuts that would bypass it.
+
+[[boundaries]]
+from = "src/lib/components/**"
+to = "src/lib/server/**"
+reason = "Components must call /api endpoints, never import server modules directly"
+
+[[boundaries]]
+from = "src/lib/stores/**"
+to = "src/lib/server/**"
+reason = "Stores must call /api endpoints, never import server modules directly"
+
+[[boundaries]]
+from = "src/lib/state/**"
+to = "src/lib/server/**"
+reason = "Client state must call /api endpoints, never import server modules directly"
+
+# Routes that ship to the browser must not import test fixtures.
+[[boundaries]]
+from = "src/routes/**"
+to = "tests/**"
+reason = "Production route bundles must not include test fixtures"

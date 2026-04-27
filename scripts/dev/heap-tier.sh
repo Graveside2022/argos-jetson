@@ -14,11 +14,11 @@
 # Respect caller-provided NODE_OPTIONS (specialized runs still win).
 set -euo pipefail
 
-if [ -z "${NODE_OPTIONS:-}" ]; then
+if [[ -z "${NODE_OPTIONS:-}" ]]; then
     _ram_mb=$(awk '/MemTotal/{print int($2/1024)}' /proc/meminfo 2>/dev/null || echo 0)
-    if   [ "${_ram_mb:-0}" -ge 24000 ]; then _heap=4096     # Jetson AGX Orin (64 GB)
-    elif [ "${_ram_mb:-0}" -ge 12000 ]; then _heap=3072     # Jetson Nano 16 GB / RPi5 16 GB
-    elif [ "${_ram_mb:-0}" -ge  6000 ]; then _heap=2048     # RPi5 8 GB (primary target)
+    if   [[ "${_ram_mb:-0}" -ge 24000 ]]; then _heap=4096     # Jetson AGX Orin (64 GB)
+    elif [[ "${_ram_mb:-0}" -ge 12000 ]]; then _heap=3072     # Jetson Nano 16 GB / RPi5 16 GB
+    elif [[ "${_ram_mb:-0}" -ge  6000 ]]; then _heap=2048     # RPi5 8 GB (primary target)
     else                                     _heap=1024     # minimal / edge devices
     fi
     export NODE_OPTIONS="--max-old-space-size=${_heap}"

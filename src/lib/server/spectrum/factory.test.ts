@@ -14,6 +14,11 @@ describe('spectrum factory — createSpectrumSource', () => {
 
 	it('throws for B205 in PR9a (lands in PR9b)', () => {
 		expect(() => createSpectrumSource(HardwareDevice.B205)).toThrow(/PR9b/);
+		// Lock exact deferred-feature anchor — guards against accidental
+		// message drift before PR9b lands and updates this branch.
+		expect(() => createSpectrumSource(HardwareDevice.B205)).toThrow(
+			/B205SpectrumSource lands in spec-024 PR9b/
+		);
 	});
 
 	it('throws for unsupported devices (ALFA, BLUETOOTH)', () => {
