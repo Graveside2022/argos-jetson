@@ -6,6 +6,11 @@
 // Module-scope $state is fine because Svelte 5 schedules updates lazily; any
 // component that reads `accentStore.value` opts into reactivity automatically.
 
+import { DRAWER_TABS, type DrawerTab, isDrawerTab } from '$lib/types/drawer';
+
+export type { DrawerTab };
+export { DRAWER_TABS };
+
 export type AccentName = 'amber' | 'green' | 'cyan' | 'magenta' | 'steel';
 export type Density = 'compact' | 'normal' | 'comfy';
 
@@ -101,20 +106,6 @@ export const densityStore = lsState<Density>('argos.mk2.density', 'normal', isDe
 // stored raw; the Drawer component clamps it on mount + viewport-resize so
 // the drawer can never collapse below the 120-px tab-strip floor or push the
 // main stage below 200 px.
-
-export type DrawerTab = 'terminal' | 'logs' | 'captures' | 'wifi' | 'bluetooth' | 'uas';
-
-export const DRAWER_TABS: DrawerTab[] = [
-	'terminal',
-	'logs',
-	'captures',
-	'wifi',
-	'bluetooth',
-	'uas'
-];
-
-const isDrawerTab = (v: unknown): v is DrawerTab =>
-	typeof v === 'string' && (DRAWER_TABS as readonly string[]).includes(v);
 
 const isFiniteNumber = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
 

@@ -10,6 +10,8 @@
 
 import type { Feature, FeatureCollection, LineString, Point } from 'geojson';
 
+import type { DeviceEllipse } from '$lib/types/rf-ellipse';
+
 import { LiveRefreshController } from './rf-live-refresh';
 
 /** Path layer vertex arg from the server. */
@@ -249,13 +251,7 @@ interface ObservationPoint {
 	timestamp: number;
 }
 
-export interface DeviceEllipse {
-	centerLat: number;
-	centerLon: number;
-	semiMajorM: number;
-	semiMinorM: number;
-	rotationDeg: number;
-}
+export type { DeviceEllipse } from '$lib/types/rf-ellipse';
 
 interface ObservationsResponse {
 	observations: ObservationPoint[];

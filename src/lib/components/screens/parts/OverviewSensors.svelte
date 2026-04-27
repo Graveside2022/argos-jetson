@@ -16,7 +16,7 @@
 
 	import { onDestroy, onMount } from 'svelte';
 
-	import { METRIC_WINDOW,pushSample } from '$lib/state/sparkline-buffer.svelte';
+	import { METRIC_WINDOW, pushSample } from '$lib/utils/sparkline-buffer';
 
 	import SensorTile from './SensorTile.svelte';
 

@@ -2,11 +2,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	import {
-		activePanel,
-		type ActiveView,
-		activeView
-	} from '$lib/stores/dashboard/dashboard-store';
+	import { activePanel, activeView } from '$lib/stores/dashboard/dashboard-store';
+	import type { ActiveView } from '$lib/types/dashboard-view';
 	import { gpsStore } from '$lib/stores/tactical-map/gps-store';
 	import { kismetStore } from '$lib/stores/tactical-map/kismet-store';
 	import type { SystemInfo } from '$lib/types/system';

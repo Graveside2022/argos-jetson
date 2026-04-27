@@ -1,7 +1,7 @@
 import type { IconProps } from '@lucide/svelte';
 import type { Component } from 'svelte';
 
-import type { DrawerTab } from '$lib/state/ui.svelte';
+import type { DrawerTab } from '$lib/types/drawer';
 
 // spec-024 PR8 T046/T047 — Tools Flyout type defs.
 //

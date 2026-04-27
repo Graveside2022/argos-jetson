@@ -4,7 +4,7 @@ import {
 	bytesPerSecond,
 	METRIC_WINDOW,
 	pushSample
-} from '../../src/lib/components/screens/systems/system-metrics-buffer';
+} from '../../src/lib/utils/sparkline-buffer';
 
 describe('pushSample', () => {
 	it('appends to an empty buffer', () => {

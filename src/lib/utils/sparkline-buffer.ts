@@ -1,6 +1,10 @@
-// Pure helpers for the SYSTEMS host-metrics tab. pushSample returns a new
-// array so Svelte 5 reactivity catches the change. bytesPerSecond returns 0
-// for first-sample / negative-dt / negative-byte-delta (counter wrap).
+// Pure helpers for rolling-buffer sparklines (host metrics tile + overview
+// sensor tiles). pushSample returns a new array so Svelte 5 reactivity
+// catches the change. bytesPerSecond returns 0 for first-sample / negative-dt
+// / negative-byte-delta (counter wrap).
+//
+// Lives in utils/ (not components/) so consumers in different component
+// families can share without an upward dep into screens/systems/.
 
 export const METRIC_WINDOW = 40;
 
