@@ -163,3 +163,77 @@ No `npm install` without user approval. Pin exact versions. No ORMs. No CSS fram
 **Commits**: One per task. Format: `type(scope): TXXX — description`. Never commit broken code.
 
 **Spec-kit workflow**: Features follow `spec.md` → `plan.md` → `tasks.md` in `specs/NNN-feature-name/`.
+
+---
+
+## AI Code Reviewer Conventions (CodeRabbit & equivalents)
+
+This section is read by AI code reviewers (CodeRabbit auto-detects via `knowledge_base.code_guidelines.filePatterns` default `**/AGENTS.md`). Sections above describe the project; rules below describe how to review PRs against it.
+
+### Hard rules — REJECT changes that violate any of these
+
+1. **Never propose Gemini Code Assist.** User has excluded it from the project. Filter alternatives to: CodeRabbit, Qodo, Greptile, Sourcery, Codacy, OSS options. (Hard-failed by `.coderabbit.yaml` `pre_merge_checks.custom_checks`.)
+
+2. **Never inject synthetic / mock data into `data/rf_signals.db` or any production DB.** Real capture data only. For demos use `:memory:` SQLite or throwaway DB in `/tmp/`. Reject any PR adding rows from a fixture, seed, or migration.
+
+3. **Never invoke `npx vitest` directly — always `npm run test:*`.** All test commands MUST go through the npm scripts, which wrap `scripts/ops/mem-guard.sh` (lockfile + RAM-aware `NODE_OPTIONS` tiering required to avoid OOM on RPi5). Same rule for build/lint/typecheck. Reject suggestions like `npx vitest run X` in scripts/READMEs/CI.
+
+4. **Never set `NoNewPrivileges=true` in `argos-final.service` or any sudo-calling unit.** Argos control endpoints shell out to `sudo /usr/bin/systemctl start <unit>`; that flag blocks sudo's setuid → 500 on every control call, invisible in UI. Privilege is scoped via narrow NOPASSWD rules in `/etc/sudoers.d/argos`.
+
+5. **Never propose deleting files inside `/home/jetson2/code/Argos/**` while live services are active.** Disk-cleanup stays confined to `~/.cache/*` and system stores. Even gitignored paths (`coverage/`, `build/`, `.svelte-kit/`, `node_modules/`) risk corrupting in-flight state. Reject `rm -rf node_modules && npm install` style cleanup in deployment PRs.
+
+6. **Never propose `npm install <X>` without explicit user authorization.** Research is fine; adding a dependency requires the user to type "install X" verbatim. Reject PRs that grow `package.json` dependencies/devDependencies without an authorization line in the commit message.
+
+### Strong recommendations — fix or document the deviation
+
+7. **Cite official documentation URLs for any config/library/API/hook/CI/3rd-party change.** PRs touching `config/*`, `package.json`, `.github/workflows/*`, `.husky/*`, `scripts/ops/*`, `dangerfile.js`, `eslint.config.*`, `vitest.config.*`, `.coderabbit.yaml`, `.sentrux/rules.toml`, or any third-party SDK call MUST include a "Sources cited" section with the official docs URL. Source code is type-authoritative but NOT usage-authoritative.
+
+8. **Absolute rules apply to ALL violators, not top-N.** 300 LOC/file, 50 LOC/function, cyclomatic ≤ 5, cognitive ≤ 5 have no severity gradient. Reject "fix top 3 worst offenders" framing. Either fix all violators OR explicitly document deferred ones with a follow-up issue link.
+
+9. **Mechanical enforcement over audit review.** New rules in CLAUDE.md / AGENTS.md / docs/ MUST come with a corresponding gate (ESLint, ruff, pre-commit hook, danger rule). Documentation alone rots. Argos has three-tier defense for layer rules (sentrux + eslint-plugin-boundaries + ArchUnitTS) — new conventions follow the same pattern.
+
+10. **Tests required for `src/lib/server/**` changes — type-only carve-out exists.** Default: any non-test `.ts/.js` change under `src/lib/server/` requires a matching test delta. Carve-out (`dangerfile.js:90-205`): micro-PRs (< 10 LOC) where every diff line matches `^[+-]\s*(import|export)\s+type\b|^[+-]\s*$|^[+-]\s*\/\/|^[+-]\s*\*` skip the requirement. CR should still ask for tests on substantive server changes — defense-in-depth.
+
+### Domain-specific review hints
+
+**Server-only code (`src/lib/server/**`)**
+- Native addons (`better-sqlite3`, `node-pty`) MUST stay in `dependencies` not `devDependencies`. `@sveltejs/adapter-node` only externalizes `dependencies`; native addons in devDeps get bundled and break with `ReferenceError: __filename is not defined`.
+- All `/api/*` routes (except `/api/health`) require `X-API-Key` header or HMAC session cookie — fail-closed via `src/hooks.server.ts`.
+- OpenTelemetry imports MUST be dynamic inside the `OTEL_ENABLED=1` gate. Static OTel imports cause `ERR_AMBIGUOUS_MODULE_SYNTAX` (require-in-the-middle intercepts `better-sqlite3`).
+- Direct SQLite via `better-sqlite3` (WAL mode, no ORM). Repository pattern in `src/lib/server/db/`. Don't suggest Prisma/Drizzle/Knex.
+
+**Client code (`src/lib/components/**`, `src/lib/stores/**`, `src/lib/state/**`, `src/routes/**`)**
+- Use Svelte 5 runes (`$state`, `$derived`, `$effect`, `$props`, `$bindable`). Reject Svelte 4 `$:` syntax in new code.
+- Tailwind CSS v4 only. No CSS-in-JS, no Emotion, no styled-components.
+- Client must call `/api/*` endpoints — NEVER import from `src/lib/server/**` directly. Enforced by `eslint-plugin-boundaries` `boundaries/dependencies` rule + sentrux + ArchUnitTS.
+
+**Files that should NEVER be edited (review noise)**
+- `static/webtak/**` — vendored noVNC + WebTAK; upstream MPL-2.0 code
+- `**/.svelte-kit/**` — generated by `svelte-kit sync`
+- `data/**` — runtime data store, gitignored
+- `tactical/modules/__pycache__/**`, vendored Python tools
+
+### Test conventions
+
+- Vitest only. No Jest, no Mocha. Vitest config at `vitest.config.ts` has `globals: true` for ArchUnitTS.
+- Single worker on RPi5 (`maxWorkers: 1, pool: 'forks'`). Tests must be IO-deterministic, not parallel-coupled.
+- Integration tests in `tests/integration/`. Unit tests inline (`*.test.ts`) OR in `tests/unit/`. E2E uses Playwright (`tests/e2e/`).
+- Reject tests that hit live hardware (HackRF, GPS, USB) in `tests/unit/` — those go in `tests/integration/` with explicit gating.
+
+### Sentrux MCP cadence (informational)
+
+Per `feedback_sentrux_tool_cadence.md`: sentrux core tools (`scan`, `health`, `session_start/end`, `check_rules`, `rescan`) bracket every PR per CLAUDE.md Rule 6. Three secondary tools have specific cadences:
+- `dsm` — fire post-`session_end` if `signal_delta == 0` AND bottleneck is not acyclicity (a hook auto-suggests)
+- `test_gaps` — fire before scoping any feature PR touching an undertested domain
+- `evolution` — fire every 5 merged PRs OR monthly
+
+CR doesn't invoke these directly, but PRs scoped against modularity/coverage gaps SHOULD reference relevant `dsm`/`test_gaps` output in their bodies.
+
+### Prior-PR refactor patterns (use as templates)
+
+Three landed Day-0 cleanup PRs demonstrate the project's preferred refactor style:
+- **PR #46** — TAK SCC kill via `CotSender` interface (dependency inversion to a leaf `types.ts` file)
+- **PR #47** — cell-towers SCC kill via direct repo-type import (drop barrel re-export → import from owner)
+- **PR #48** — 4 layer-direction violations via leaf-type extraction (relocate types to `src/lib/types/*`)
+
+When suggesting a refactor that involves type ownership, prefer "relocate to `src/lib/types/*` leaf and have all consumers import from there" — it's the canonical Argos pattern.
