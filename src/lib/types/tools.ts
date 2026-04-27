@@ -2,7 +2,7 @@
  * Type definitions for hierarchical tool navigation system
  */
 
-import type { ActiveView } from '$lib/stores/dashboard/dashboard-store';
+import type { ActiveView } from '$lib/types/dashboard-view';
 
 export type ToolStatus = 'stopped' | 'starting' | 'running' | 'stopping';
 

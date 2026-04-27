@@ -3,7 +3,7 @@
 
 	import DiskRow from './DiskRow.svelte';
 	import MetricCard from './MetricCard.svelte';
-	import { bytesPerSecond, METRIC_WINDOW, pushSample } from './system-metrics-buffer';
+	import { bytesPerSecond, METRIC_WINDOW, pushSample } from '$lib/utils/sparkline-buffer';
 
 	const POLL_METRICS_MS = 1200;
 	const POLL_INFO_MS = 5000;

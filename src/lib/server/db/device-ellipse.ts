@@ -13,19 +13,14 @@
  *   5. Scale eigenvalue magnitude by 2 (2σ) and convert degrees → meters.
  */
 
+import type { DeviceEllipse } from '$lib/types/rf-ellipse';
+
+export type { DeviceEllipse };
+
 export interface ObservationLite {
 	lat: number;
 	lon: number;
 	dbm: number;
-}
-
-export interface DeviceEllipse {
-	centerLat: number;
-	centerLon: number;
-	semiMajorM: number;
-	semiMinorM: number;
-	/** Rotation of the semi-major axis from true east, in degrees (-90..90). */
-	rotationDeg: number;
 }
 
 const METERS_PER_DEG_LAT = 111_320;

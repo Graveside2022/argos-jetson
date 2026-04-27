@@ -2,12 +2,11 @@
 	import { ChevronDown, ChevronUp } from '@lucide/svelte';
 
 	import {
-		DRAWER_TABS,
 		drawerActiveStore,
 		drawerHeightStore,
-		drawerOpenStore,
-		type DrawerTab
+		drawerOpenStore
 	} from '$lib/state/ui.svelte';
+	import { DRAWER_TABS, type DrawerTab } from '$lib/types/drawer';
 
 	import { clampDrawerHeight } from './drawer-clamp';
 	import BluetoothTab from './drawer-tabs/BluetoothTab.svelte';

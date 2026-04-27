@@ -7,7 +7,7 @@
 
 import type { Feature, Polygon } from 'geojson';
 
-import type { DeviceEllipse } from '$lib/stores/rf-visualization.svelte';
+import type { DeviceEllipse } from '$lib/types/rf-ellipse';
 
 const POINTS = 64;
 const METERS_PER_DEG_LAT = 111_320;
