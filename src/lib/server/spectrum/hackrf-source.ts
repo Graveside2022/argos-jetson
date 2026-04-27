@@ -28,27 +28,36 @@ import type {
 	SpectrumSource
 } from './types';
 
+const HZ_PER_MHZ = 1_000_000;
+const DEFAULT_CYCLE_TIME_MS = 10_000;
+
 /**
- * Shape of the payload emitted by sweep-coordinator.ts:200 — typed
- * locally because `sweepManager` re-exports the raw event without a
- * narrow event-payload contract.
+ * Shape of the payload emitted by sweep-coordinator.ts:227. Typed locally
+ * because `sweepManager` re-exports the raw event without a narrow
+ * event-payload contract.
+ *
+ * Units / shape come from `SpectrumData` (src/lib/server/hackrf/types.ts:39)
+ * which buffer-parser.ts:140-152 populates with MHz frequencies + a Date
+ * timestamp. The boundary conversion to Hz + ms epoch happens in
+ * `validateSweepEvent` below — that's where the multi-SDR `SpectrumFrame`
+ * schema (Hz + ms epoch) takes over.
  */
 interface SweepDataEvent {
 	frequency?: number;
-	timestamp?: number;
+	timestamp?: Date | number;
 	data?: {
 		powerValues?: number[];
-		startFreq?: number;
-		endFreq?: number;
-		timestamp?: number;
+		startFreq?: number; // MHz at this layer
+		endFreq?: number; // MHz at this layer
+		timestamp?: Date | number; // SpectrumData stores Date here
 	};
 }
 
 interface ValidatedSweepData {
 	powerValues: number[];
-	startFreq: number;
-	endFreq: number;
-	timestamp: number;
+	startFreqHz: number;
+	endFreqHz: number;
+	timestampMs: number;
 }
 
 function hasUsablePayload(
@@ -62,20 +71,32 @@ function hasFreqBounds(data: { startFreq?: number; endFreq?: number }): boolean 
 	return data.startFreq !== undefined && data.endFreq !== undefined;
 }
 
+function coerceTimestampMs(
+	primary: Date | number | undefined,
+	fallback: Date | number | undefined
+): number {
+	if (primary instanceof Date) return primary.getTime();
+	if (typeof primary === 'number') return primary;
+	if (fallback instanceof Date) return fallback.getTime();
+	if (typeof fallback === 'number') return fallback;
+	return Date.now();
+}
+
 function validateSweepEvent(payload: SweepDataEvent): ValidatedSweepData | null {
 	const d = payload.data;
 	if (!hasUsablePayload(d) || !hasFreqBounds(d)) return null;
-	const ts = d.timestamp ?? payload.timestamp ?? Date.now();
+	// Boundary conversion: SpectrumData stamps `unit: 'MHz'` at
+	// buffer-parser.ts:148 and `timestamp: Date` at types.ts:40.
+	// SpectrumFrame's contract is Hz + ms epoch — translate here so
+	// every downstream consumer (SSE, MCP diag, client store) sees the
+	// schema-correct shape regardless of which coordinator emits.
 	return {
 		powerValues: d.powerValues as number[],
-		startFreq: d.startFreq as number,
-		endFreq: d.endFreq as number,
-		timestamp: ts
+		startFreqHz: (d.startFreq as number) * HZ_PER_MHZ,
+		endFreqHz: (d.endFreq as number) * HZ_PER_MHZ,
+		timestampMs: coerceTimestampMs(d.timestamp, payload.timestamp)
 	};
 }
-
-const HZ_PER_MHZ = 1_000_000;
-const DEFAULT_CYCLE_TIME_MS = 10_000;
 
 export class HackRFSpectrumSource extends EventEmitter implements SpectrumSource {
 	readonly device = HardwareDevice.HACKRF;
@@ -145,11 +166,11 @@ export class HackRFSpectrumSource extends EventEmitter implements SpectrumSource
 		if (!v) return;
 		const frame: SpectrumFrame = {
 			device: this.device,
-			startFreq: v.startFreq,
-			endFreq: v.endFreq,
-			binWidth: (v.endFreq - v.startFreq) / v.powerValues.length,
+			startFreq: v.startFreqHz,
+			endFreq: v.endFreqHz,
+			binWidth: (v.endFreqHz - v.startFreqHz) / v.powerValues.length,
 			power: v.powerValues,
-			timestamp: v.timestamp
+			timestamp: v.timestampMs
 		};
 		this.lastFrameAt = frame.timestamp;
 		this.emit('frame', frame);

@@ -122,8 +122,10 @@
 		>
 	{/each}
 
-	<!-- Frequency ticks (bottom) -->
-	{#each tickLabels as t (t.label)}
+	<!-- Frequency ticks (bottom) — key by structural x-position so
+	     narrow-span sweeps don't trip Svelte 5 each_key_duplicate when
+	     coarse-rounded labels collide (e.g. all "0M"). -->
+	{#each tickLabels as t (t.x)}
 		<line
 			x1={t.x}
 			x2={t.x}
