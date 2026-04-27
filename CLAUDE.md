@@ -41,6 +41,19 @@ For ANY GitHub interaction (repo structure, file content, search, PR history): u
 
 For ANY question about a third-party library, framework, SDK, or CLI tool (React, SvelteKit internals, Puppeteer, node-pty, better-sqlite3, etc.): call `mcp__plugin_context7-plugin_context7__resolve-library-id` then `query-docs`. Only fall back to `WebFetch` if context7 has no entry for the library. This avoids stale training-data answers.
 
+### Rule 6 — Sentrux session bracketing on every PR
+
+Every PR is bracketed by sentrux:
+
+1. **Branch creation**: after `git checkout -b feature/...`, call `mcp__plugin_sentrux_sentrux__session_start` (captures pre-change graph baseline).
+2. **Pre-merge**: before `gh pr merge --squash`, call in order:
+    - `mcp__plugin_sentrux_sentrux__rescan` (re-walk after final commit)
+    - `mcp__plugin_sentrux_sentrux__session_end` (delta report)
+    - `mcp__plugin_sentrux_sentrux__check_rules` (must pass `.sentrux/rules.toml`)
+3. **`quality_signal` must NOT regress** vs the baseline recorded in `project_sentrux_baseline.md` (Day-0 = 5401). Regressions block merge unless explicitly approved by the user with a follow-up issue filed.
+
+The `.sentrux/rules.toml` enforces `max_cycles = 0` + layer ordering (routes → components → client_state → server → utils → types) + 4 hard `from→to` boundaries. CC and fn-line checks are deferred until sentrux ships per-language dispatch (see baseline memory for v0.5.7 limitation).
+
 ## Active MCP Servers
 
 Verify current state with `claude mcp list`. Authoritative config: `~/.claude.json` (user scope) + each plugin's `.claude-plugin/plugin.json`.
