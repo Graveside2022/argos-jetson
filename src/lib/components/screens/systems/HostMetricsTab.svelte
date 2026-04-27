@@ -1,9 +1,9 @@
 <script lang="ts">
 	import type { SystemInfo } from '$lib/types/system';
+	import { bytesPerSecond, METRIC_WINDOW, pushSample } from '$lib/utils/sparkline-buffer';
 
 	import DiskRow from './DiskRow.svelte';
 	import MetricCard from './MetricCard.svelte';
-	import { bytesPerSecond, METRIC_WINDOW, pushSample } from '$lib/utils/sparkline-buffer';
 
 	const POLL_METRICS_MS = 1200;
 	const POLL_INFO_MS = 5000;

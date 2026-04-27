@@ -1,6 +1,7 @@
 import js from '@eslint/js';
 import ts from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
+import boundaries from 'eslint-plugin-boundaries';
 import prettier from 'eslint-config-prettier';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
 import sonarjs from 'eslint-plugin-sonarjs';
@@ -165,6 +166,66 @@ export default [
 		files: ['src/**/*.{js,ts,svelte}'],
 		rules: {
 			'@typescript-eslint/no-non-null-assertion': 'error'
+		}
+	},
+	{
+		// Architectural boundaries (eslint-plugin-boundaries v6).
+		// Mirrors .sentrux/rules.toml layer ordering + the 3 client→server
+		// hard boundaries. Sentrux Free tier caps check_rules at 3 simultaneous
+		// rules, so we trim sentrux to max_cycles=0 + 2 boundaries and let
+		// ESLint enforce the rest at lint time (uncapped, fires on every
+		// commit via husky). The architectural fitness tests in
+		// tests/architecture/ are the comprehensive third tier.
+		files: ['src/**/*.{js,ts,svelte}'],
+		plugins: {
+			boundaries
+		},
+		settings: {
+			'boundaries/elements': [
+				{ type: 'route', pattern: 'src/routes/**' },
+				{ type: 'component', pattern: 'src/lib/components/**' },
+				{ type: 'state', pattern: ['src/lib/stores/**', 'src/lib/state/**'] },
+				{ type: 'server', pattern: 'src/lib/server/**' },
+				{ type: 'util', pattern: 'src/lib/utils/**' },
+				{ type: 'type', pattern: ['src/lib/types/**', 'src/lib/schemas/**'] }
+			],
+			'boundaries/include': ['src/**/*.{js,ts,svelte}'],
+			'boundaries/ignore': ['**/*.{test,spec}.{js,ts}', 'src/lib/server/mcp/**']
+		},
+		rules: {
+			'boundaries/dependencies': [
+				'error',
+				{
+					default: 'allow',
+					rules: [
+						{
+							from: { type: 'component' },
+							disallow: { to: { type: 'server' } },
+							message: 'Components must call /api endpoints, never import server modules directly'
+						},
+						{
+							from: { type: 'state' },
+							disallow: { to: { type: 'server' } },
+							message: 'Stores/state must call /api endpoints, never import server modules directly'
+						},
+						{
+							from: { type: 'state' },
+							disallow: { to: { type: 'component' } },
+							message: 'state must not import from components (inverted layer direction)'
+						},
+						{
+							from: { type: 'type' },
+							disallow: { to: { type: ['state', 'component', 'server'] } },
+							message: 'types must be leaves — no imports of state/components/server'
+						},
+						{
+							from: { type: 'util' },
+							disallow: { to: { type: ['state', 'component', 'server'] } },
+							message: 'utils must not import from state/components/server'
+						}
+					]
+				}
+			]
 		}
 	},
 	prettier
