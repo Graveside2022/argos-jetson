@@ -11,9 +11,8 @@
  * server validation. This file locks the de-coupling.
  */
 
-import { describe, expect, it, vi } from 'vitest';
-
 import type CoT from '@tak-ps/node-cot';
+import { describe, expect, it, vi } from 'vitest';
 
 import { TakSaBroadcaster } from './tak-sa-broadcaster';
 import type { CotSender } from './types';
