@@ -14,6 +14,7 @@
 
 import { HardwareDevice } from '$lib/server/hardware/types';
 
+import { B205SpectrumSource } from './b205-source';
 import { HackRFSpectrumSource } from './hackrf-source';
 import type { SpectrumSource } from './types';
 
@@ -22,15 +23,15 @@ import type { SpectrumSource } from './types';
  * the returned instance — must call `.stop()` to release hardware locks
  * and detach event listeners before discarding.
  *
- * Throws `Error` for unsupported devices. PR9a registers HACKRF only;
- * PR9b adds B205 by extending the switch.
+ * Throws `Error` for unsupported devices. PR9a wired HACKRF; PR9b T050
+ * wires B205. Future SDRs (Lime, RTL-SDR) extend this switch.
  */
 export function createSpectrumSource(device: HardwareDevice): SpectrumSource {
 	switch (device) {
 		case HardwareDevice.HACKRF:
 			return new HackRFSpectrumSource();
 		case HardwareDevice.B205:
-			throw new Error('B205SpectrumSource lands in spec-024 PR9b — see plan + tasks.md T050');
+			return new B205SpectrumSource();
 		default:
 			throw new Error(`No SpectrumSource registered for device: ${device}`);
 	}

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { HardwareDevice } from '$lib/server/hardware/types';
 
+import { B205SpectrumSource } from './b205-source';
 import { createSpectrumSource, resolveDeviceType } from './factory';
 import { HackRFSpectrumSource } from './hackrf-source';
 
@@ -12,13 +13,10 @@ describe('spectrum factory — createSpectrumSource', () => {
 		expect(source.device).toBe(HardwareDevice.HACKRF);
 	});
 
-	it('throws for B205 in PR9a (lands in PR9b)', () => {
-		expect(() => createSpectrumSource(HardwareDevice.B205)).toThrow(/PR9b/);
-		// Lock exact deferred-feature anchor — guards against accidental
-		// message drift before PR9b lands and updates this branch.
-		expect(() => createSpectrumSource(HardwareDevice.B205)).toThrow(
-			/B205SpectrumSource lands in spec-024 PR9b/
-		);
+	it('returns a B205SpectrumSource for B205 (PR9b T050)', () => {
+		const source = createSpectrumSource(HardwareDevice.B205);
+		expect(source).toBeInstanceOf(B205SpectrumSource);
+		expect(source.device).toBe(HardwareDevice.B205);
 	});
 
 	it('throws for unsupported devices (ALFA, BLUETOOTH)', () => {
