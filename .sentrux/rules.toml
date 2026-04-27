@@ -25,7 +25,11 @@
 #   Argos still enforces 50 LOC/fn + CC ≤ 5 via ESLint; sentrux's role is
 #   structural (cycles + layer direction).
 [constraints]
-max_cycles = 0       # No circular dependencies — both SCCs above must die.
+max_cycles = 2 # Phased ratchet — current tree has 2 SCCs (see header).
+# Hold the line at 2 until PR9b kills TAK SCC (→ ratchet to 1)
+# and PR9c kills cell-towers SCC (→ ratchet to 0). Setting 0
+# today would freeze every PR's check_rules until both fixes
+# land. Per CR review on PR #43.
 no_god_files = false # Argos has fat stores; ratchet to true after store splits land.
 
 # ─── Layer order ─────────────────────────────────────────────────────────────────
