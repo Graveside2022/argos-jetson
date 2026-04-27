@@ -28,17 +28,30 @@ export interface CyclingHealthUpdate {
 	processHealth?: string;
 }
 
-export function sweepArgsFromCenter(frequency: { value: number; unit: string }): SweepArgs {
+export function sweepArgsFromCenter(
+	frequency: { value: number; unit: string },
+	override?: Partial<SweepArgs>
+): SweepArgs {
 	const centerMHz = convertToMHz(frequency.value, frequency.unit);
 	// 100 kHz bin width is the minimum that produces stdout reliably on
 	// /usr/bin/hackrf_sweep across our hardware (verified on Jetson Orin
 	// AGX with HackRF One r9 + libhackrf 0.6, FW 2024.02.1). Finer widths
 	// (20 kHz, 50 kHz) accumulate output in the kernel pipe buffer for
 	// >20 s before flushing — sweeps appear hung. Coarser widths
-	// (≥ 500 kHz) work too. Caller can override via SweepArgs (PR9 UI
-	// will plumb SpectrumConfig.binWidth here once HackRFSpectrumSource
-	// is upgraded — see ROADMAP / spec-024 follow-up).
-	return { startMHz: centerMHz - 10, endMHz: centerMHz + 10, binWidthHz: 100_000 };
+	// (≥ 500 kHz) work too.
+	const base: SweepArgs = {
+		startMHz: centerMHz - 10,
+		endMHz: centerMHz + 10,
+		binWidthHz: 100_000
+	};
+	if (!override) return base;
+	return {
+		startMHz: override.startMHz ?? base.startMHz,
+		endMHz: override.endMHz ?? base.endMHz,
+		binWidthHz: override.binWidthHz ?? base.binWidthHz,
+		lnaGain: override.lnaGain,
+		vgaGain: override.vgaGain
+	};
 }
 
 export function buildHackrfArgs(sweepArgs: SweepArgs): string[] {

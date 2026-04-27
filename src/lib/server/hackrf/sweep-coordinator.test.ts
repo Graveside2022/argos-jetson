@@ -67,3 +67,38 @@ describe('buildHackrfArgs — regression for invalid -P/-n flags', () => {
 		expect(args[gIdx + 1]).toBe('50');
 	});
 });
+
+describe('sweepArgsFromCenter — override merge (bug C2)', () => {
+	const fm = { value: 100, unit: 'MHz' };
+
+	it('without override uses 100 kHz default bin width', () => {
+		const args = sweepArgsFromCenter(fm);
+		expect(args.binWidthHz).toBe(100_000);
+		expect(args.lnaGain).toBeUndefined();
+		expect(args.vgaGain).toBeUndefined();
+	});
+
+	it('caller-supplied binWidthHz wins over default', () => {
+		const args = sweepArgsFromCenter(fm, { binWidthHz: 50_000 });
+		expect(args.binWidthHz).toBe(50_000);
+	});
+
+	it('caller-supplied lnaGain / vgaGain pass through', () => {
+		const args = sweepArgsFromCenter(fm, { lnaGain: '24', vgaGain: '18' });
+		expect(args.lnaGain).toBe('24');
+		expect(args.vgaGain).toBe('18');
+	});
+
+	it('partial override leaves window from center, only patches supplied fields', () => {
+		const args = sweepArgsFromCenter(fm, { binWidthHz: 500_000 });
+		expect(args.startMHz).toBe(90);
+		expect(args.endMHz).toBe(110);
+		expect(args.binWidthHz).toBe(500_000);
+	});
+
+	it('empty override behaves as no override (defaults retained)', () => {
+		const args = sweepArgsFromCenter(fm, {});
+		expect(args.binWidthHz).toBe(100_000);
+		expect(args.lnaGain).toBeUndefined();
+	});
+});
