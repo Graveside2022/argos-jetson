@@ -5,8 +5,6 @@ import { env } from '$lib/server/env';
 import { queryOpenCellID } from '$lib/server/services/cell-towers/opencellid-client';
 import { logger } from '$lib/utils/logger';
 
-export type { CellTower };
-
 export interface CellTowerResult {
 	success: boolean;
 	source?: 'database' | 'opencellid-api';
