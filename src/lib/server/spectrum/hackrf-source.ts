@@ -16,6 +16,7 @@
 import { EventEmitter } from 'node:events';
 
 import { sweepManager } from '$lib/server/hackrf/sweep-manager';
+import type { SweepArgs } from '$lib/server/hackrf/types';
 import { HardwareDevice } from '$lib/server/hardware/types';
 import { logger } from '$lib/utils/logger';
 
@@ -93,6 +94,10 @@ export class HackRFSpectrumSource extends EventEmitter implements SpectrumSource
 		this.transitionState('starting');
 
 		sweepManager.on('spectrum_data', this.onSweepData);
+		// Plumb caller-supplied bin width + per-band gains into hackrf_sweep
+		// CLI args. Falls through to coordinator defaults for any field
+		// SpectrumConfig doesn't supply.
+		sweepManager.setSweepArgsOverride(buildSweepArgsOverride(config));
 
 		try {
 			const success = await sweepManager.startCycle(
@@ -102,6 +107,7 @@ export class HackRFSpectrumSource extends EventEmitter implements SpectrumSource
 			if (!success) throw new Error('sweepManager.startCycle returned false');
 		} catch (error) {
 			sweepManager.off('spectrum_data', this.onSweepData);
+			sweepManager.setSweepArgsOverride(null);
 			this.lastError = error instanceof Error ? error.message : String(error);
 			this.transitionState('error');
 			throw error;
@@ -157,4 +163,21 @@ export class HackRFSpectrumSource extends EventEmitter implements SpectrumSource
 		this.state = next;
 		this.emit('status', this.getStatus());
 	}
+}
+
+/**
+ * Translate a `SpectrumConfig` into the `Partial<SweepArgs>` shape the
+ * coordinator's `sweepArgsFromCenter` accepts. Only fields the caller
+ * actually set are forwarded; missing fields fall through to the
+ * coordinator's defaults (100 kHz bin width, per-band selectGains).
+ */
+export function buildSweepArgsOverride(config: SpectrumConfig): Partial<SweepArgs> {
+	const out: Partial<SweepArgs> = {
+		binWidthHz: config.binWidth
+	};
+	if (config.gain.kind === 'hackrf') {
+		out.lnaGain = String(config.gain.lna);
+		out.vgaGain = String(config.gain.vga);
+	}
+	return out;
 }

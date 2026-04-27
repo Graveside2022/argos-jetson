@@ -8,14 +8,15 @@ import { HardwareDevice } from '$lib/server/hardware/types';
 // captures the singleton at import time.
 const mockSweepManager = Object.assign(new EventEmitter(), {
 	startCycle: vi.fn().mockResolvedValue(true),
-	stopSweep: vi.fn().mockResolvedValue(undefined)
+	stopSweep: vi.fn().mockResolvedValue(undefined),
+	setSweepArgsOverride: vi.fn()
 });
 
 vi.mock('$lib/server/hackrf/sweep-manager', () => ({
 	sweepManager: mockSweepManager
 }));
 
-const { HackRFSpectrumSource } = await import('./hackrf-source');
+const { HackRFSpectrumSource, buildSweepArgsOverride } = await import('./hackrf-source');
 
 import type { SpectrumConfig, SpectrumFrame } from './types';
 
@@ -30,6 +31,7 @@ describe('HackRFSpectrumSource', () => {
 	beforeEach(() => {
 		mockSweepManager.startCycle.mockClear();
 		mockSweepManager.stopSweep.mockClear();
+		mockSweepManager.setSweepArgsOverride.mockClear();
 		mockSweepManager.removeAllListeners();
 	});
 
@@ -126,5 +128,71 @@ describe('HackRFSpectrumSource', () => {
 
 		await expect(src.start(baseConfig)).rejects.toThrow(/returned false/);
 		expect(src.getStatus().state).toBe('error');
+	});
+
+	it('plumbs SpectrumConfig through sweepManager.setSweepArgsOverride before startCycle (bug C2)', async () => {
+		const src = new HackRFSpectrumSource();
+		await src.start({
+			...baseConfig,
+			binWidth: 50_000,
+			gain: { kind: 'hackrf', amp: 0, lna: 32, vga: 24 }
+		});
+
+		expect(mockSweepManager.setSweepArgsOverride).toHaveBeenCalledTimes(1);
+		expect(mockSweepManager.setSweepArgsOverride).toHaveBeenCalledWith({
+			binWidthHz: 50_000,
+			lnaGain: '32',
+			vgaGain: '24'
+		});
+		// setSweepArgsOverride must fire BEFORE startCycle so the args land
+		// before the first hackrf_sweep spawn.
+		const overrideOrder = mockSweepManager.setSweepArgsOverride.mock.invocationCallOrder[0];
+		const startCycleOrder = mockSweepManager.startCycle.mock.invocationCallOrder[0];
+		expect(overrideOrder).toBeLessThan(startCycleOrder);
+	});
+
+	it('clears sweepArgsOverride on startCycle failure', async () => {
+		mockSweepManager.startCycle.mockResolvedValueOnce(false);
+		const src = new HackRFSpectrumSource();
+
+		await expect(src.start(baseConfig)).rejects.toThrow();
+		// Two calls: 1) override built from config, 2) null to clear after failure.
+		expect(mockSweepManager.setSweepArgsOverride).toHaveBeenCalledTimes(2);
+		expect(mockSweepManager.setSweepArgsOverride).toHaveBeenLastCalledWith(null);
+	});
+});
+
+describe('buildSweepArgsOverride (bug C2)', () => {
+	it('forwards binWidth Hz directly', () => {
+		const o = buildSweepArgsOverride({
+			startFreq: 88_000_000,
+			endFreq: 108_000_000,
+			binWidth: 25_000,
+			gain: { kind: 'hackrf', amp: 0, lna: 0, vga: 0 }
+		});
+		expect(o.binWidthHz).toBe(25_000);
+	});
+
+	it('stringifies HackRF lna/vga so SweepArgs CLI mapping accepts them', () => {
+		const o = buildSweepArgsOverride({
+			startFreq: 88_000_000,
+			endFreq: 108_000_000,
+			binWidth: 100_000,
+			gain: { kind: 'hackrf', amp: 1, lna: 40, vga: 62 }
+		});
+		expect(o.lnaGain).toBe('40');
+		expect(o.vgaGain).toBe('62');
+	});
+
+	it('omits hackrf-specific gain fields for B205 configs', () => {
+		const o = buildSweepArgsOverride({
+			startFreq: 88_000_000,
+			endFreq: 108_000_000,
+			binWidth: 100_000,
+			gain: { kind: 'b205', rxGain: 30 }
+		});
+		expect(o.lnaGain).toBeUndefined();
+		expect(o.vgaGain).toBeUndefined();
+		expect(o.binWidthHz).toBe(100_000);
 	});
 });
