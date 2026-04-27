@@ -5,7 +5,7 @@
  * a tiled approach to work around the 4 km² bbox limit.
  */
 
-import type { CellTower } from '$lib/server/services/cell-towers/cell-tower-service';
+import type { CellTower } from '$lib/server/db/cell-tower-repository';
 import { logger } from '$lib/utils/logger';
 
 // OpenCellID getInArea limits bbox to 4 km² (~2km x 2km).
