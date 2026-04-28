@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Dot from '$lib/components/mk2/Dot.svelte';
-	import { type SystemsTab,systemsTabStore } from '$lib/state/systems.svelte';
+	import { type SystemsTab, systemsTabStore } from '$lib/state/systems.svelte';
 	import type { SystemInfo } from '$lib/types/system';
 
 	import HardwareTab from './systems/HardwareTab.svelte';
@@ -35,6 +35,22 @@
 		{ id: 'svc', label: 'SERVICES' },
 		{ id: 'net', label: 'NETWORK' }
 	];
+
+	function svcCount(): number | string {
+		return totalCount > 0 ? totalCount : '—';
+	}
+
+	function netCount(): number | string {
+		const wifi = info?.wifiInterfaces;
+		return wifi ? wifi.length : '—';
+	}
+
+	function tabCount(id: SystemsTab): number | string {
+		if (id === 'host') return 4;
+		if (id === 'svc') return svcCount();
+		if (id === 'net') return netCount();
+		return '—';
+	}
 
 	function fmtUptime(seconds: number): string {
 		const h = Math.floor(seconds / 3600);
@@ -102,7 +118,13 @@
 			<div class="host">
 				<span class="host-name">{info?.hostname ?? 'argos-host'}</span>
 				<span class="host-meta mono">
-					{info?.kernel ? `kernel ${info.kernel}` : '—'}
+					{#if info?.distro && info?.kernel}
+						{info.distro} · kernel {info.kernel}
+					{:else if info?.kernel}
+						kernel {info.kernel}
+					{:else}
+						—
+					{/if}
 				</span>
 			</div>
 		</div>
@@ -116,11 +138,20 @@
 					<Dot kind="err" label="header stale" /> HEADER STALE — {headerError}
 				</span>
 			{:else}
-				<span class="stat mono"><Dot kind="ok" label="uptime" /> UPTIME {info ? fmtUptime(info.uptime) : '—'}</span>
-				<span class="stat mono"><Dot kind="ok" label="load" /> LOAD {fmtLoad(info?.loadAvg)}</span>
-				<span class="stat mono"><Dot kind="ok" label="ok services" /> {healthyCount} OK</span>
+				<span class="stat mono"
+					><Dot kind="ok" label="uptime" /> UPTIME {info
+						? fmtUptime(info.uptime)
+						: '—'}</span
+				>
+				<span class="stat mono"
+					><Dot kind="ok" label="load" /> LOAD {fmtLoad(info?.loadAvg)}</span
+				>
+				<span class="stat mono"
+					><Dot kind="ok" label="ok services" /> {healthyCount} OK</span
+				>
 				<span class="stat mono">
-					<Dot kind={warnCount > 0 ? 'warn' : 'inactive'} label="warn services" /> {warnCount} WARN
+					<Dot kind={warnCount > 0 ? 'warn' : 'inactive'} label="warn services" />
+					{warnCount} WARN
 				</span>
 			{/if}
 		</div>
@@ -136,6 +167,7 @@
 				onclick={() => selectTab(tab.id)}
 			>
 				{tab.label}
+				<span class="sys-tab-count mono">{tabCount(tab.id)}</span>
 			</button>
 		{/each}
 	</nav>
@@ -262,6 +294,19 @@
 	.sys-tab:focus-visible {
 		outline: 1px solid var(--mk2-accent);
 		outline-offset: -2px;
+	}
+
+	.sys-tab-count {
+		color: var(--mk2-ink-4);
+		font-size: var(--mk2-fs-1);
+		padding: 2px 5px;
+		border: 1px solid var(--mk2-line-2);
+		letter-spacing: 0.04em;
+	}
+
+	.sys-tab.active .sys-tab-count {
+		color: var(--mk2-accent);
+		border-color: var(--mk2-accent);
 	}
 
 	.sys-body {

@@ -1,11 +1,7 @@
 <script lang="ts">
 	import { ChevronDown, ChevronUp } from '@lucide/svelte';
 
-	import {
-		drawerActiveStore,
-		drawerHeightStore,
-		drawerOpenStore
-	} from '$lib/state/ui.svelte';
+	import { drawerActiveStore, drawerHeightStore, drawerOpenStore } from '$lib/state/ui.svelte';
 	import { DRAWER_TABS, type DrawerTab } from '$lib/types/drawer';
 
 	import { clampDrawerHeight } from './drawer-clamp';
@@ -37,7 +33,10 @@
 	$effect(() => {
 		if (typeof window === 'undefined') return;
 		const apply = () => {
-			drawerHeightStore.value = clampDrawerHeight(drawerHeightStore.value, window.innerHeight);
+			drawerHeightStore.value = clampDrawerHeight(
+				drawerHeightStore.value,
+				window.innerHeight
+			);
 		};
 		apply();
 		window.addEventListener('resize', apply);
@@ -86,9 +85,7 @@
 <div
 	class="drawer"
 	class:open={drawerOpenStore.value}
-	style:height={drawerOpenStore.value
-		? `${drawerHeightStore.value}px`
-		: `${COLLAPSED_HEIGHT}px`}
+	style:height={drawerOpenStore.value ? `${drawerHeightStore.value}px` : `${COLLAPSED_HEIGHT}px`}
 >
 	{#if drawerOpenStore.value}
 		<div
@@ -200,11 +197,11 @@
 	.tabs {
 		display: flex;
 		align-items: stretch;
-		height: 30px;
-		min-height: 30px;
+		height: var(--mk2-h-tab-bar);
+		min-height: var(--mk2-h-tab-bar);
 		border-bottom: 1px solid var(--mk2-line);
 		background: var(--mk2-bg-2);
-		font: 500 var(--mk2-fs-2) / 1 var(--mk2-f-mono);
+		font: 500 var(--mk2-fs-tab-bar) / 1 var(--mk2-f-mono);
 		letter-spacing: 0.08em;
 		text-transform: uppercase;
 	}
@@ -292,5 +289,7 @@
 		background: var(--mk2-bg);
 		display: flex;
 		flex-direction: column;
+		font-size: var(--mk2-fs-drawer-body);
+		font-family: var(--mk2-f-mono);
 	}
 </style>

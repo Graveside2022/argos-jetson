@@ -3,8 +3,9 @@
 
 	import IconBtn from '$lib/components/mk2/IconBtn.svelte';
 
-	// spec-024 PR3 T021 — Captures drawer tab (static stub).
-	// Hardcoded mock rows matching prototype. Real wiring lands in PR5+.
+	import DrawerTable, { type Column } from './DrawerTable.svelte';
+
+	// spec-024 PR3 T021 — Captures drawer tab. Reorderable + sortable via DrawerTable.
 
 	interface Row {
 		file: string;
@@ -49,39 +50,36 @@
 			dur: '14m 38s'
 		}
 	];
+
+	const columns: readonly Column<Row>[] = [
+		{ id: 'start', label: 'TIME STAMP', accessor: (r) => r.start, isNum: true },
+		{ id: 'file', label: 'FILE', accessor: (r) => r.file },
+		{ id: 'tool', label: 'TOOL', accessor: (r) => r.tool },
+		{ id: 'size', label: 'SIZE', accessor: (r) => r.size, isNum: true },
+		{ id: 'packets', label: 'PACKETS', accessor: (r) => r.packets, isNum: true },
+		{ id: 'dur', label: 'DUR', accessor: (r) => r.dur, isNum: true },
+		{ id: 'actions', label: '', accessor: () => null }
+	];
 </script>
 
 <div class="drw-scroll">
-	<table class="tbl">
-		<thead>
-			<tr>
-				<th>FILE</th>
-				<th>TOOL</th>
-				<th class="num">SIZE</th>
-				<th class="num">PACKETS</th>
-				<th class="num">START</th>
-				<th class="num">DUR</th>
-				<th></th>
-			</tr>
-		</thead>
-		<tbody>
-			{#each rows as r, i (`${r.file}-${i}`)}
-				<tr>
-					<td>{r.file}</td>
-					<td class="dim">{r.tool}</td>
-					<td class="num">{r.size}</td>
-					<td class="num">{r.packets}</td>
-					<td class="num dim">{r.start}</td>
-					<td class="num dim">{r.dur}</td>
-					<td>
-						<IconBtn ariaLabel={`Download ${r.file}`} variant="ghost">
-							<Download size={12} />
-						</IconBtn>
-					</td>
-				</tr>
-			{/each}
-		</tbody>
-	</table>
+	<DrawerTable storageKey="argos.drawer.captures.cols" {columns} {rows} rowKey={(r) => r.file}>
+		{#snippet cell(r, col)}
+			{#if col.id === 'start'}
+				<span class="dim">{r.start}</span>
+			{:else if col.id === 'tool'}
+				<span class="dim">{r.tool}</span>
+			{:else if col.id === 'dur'}
+				<span class="dim">{r.dur}</span>
+			{:else if col.id === 'actions'}
+				<IconBtn ariaLabel={`Download ${r.file}`} variant="ghost">
+					<Download size={12} />
+				</IconBtn>
+			{:else}
+				{col.accessor(r) ?? ''}
+			{/if}
+		{/snippet}
+	</DrawerTable>
 </div>
 
 <style>
@@ -91,45 +89,7 @@
 		overflow: auto;
 	}
 
-	.tbl {
-		width: 100%;
-		border-collapse: collapse;
-		font: 500 var(--mk2-fs-3) / 1.4 var(--mk2-f-mono);
-		font-variant-numeric: tabular-nums;
-	}
-
-	.tbl th {
-		text-align: left;
-		padding: 6px 12px;
-		color: var(--mk2-ink-4);
-		font-size: var(--mk2-fs-2);
-		font-weight: 500;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-		background: var(--mk2-bg-2);
-		border-bottom: 1px solid var(--mk2-line);
-	}
-
-	.tbl th.num {
-		text-align: right;
-	}
-
-	.tbl td {
-		padding: 6px 12px;
-		border-bottom: 1px dashed var(--mk2-line);
-		color: var(--mk2-ink);
-		vertical-align: middle;
-	}
-
-	.tbl td.num {
-		text-align: right;
-	}
-
-	.tbl td.dim {
+	.dim {
 		color: var(--mk2-ink-3);
-	}
-
-	.tbl tr:hover td {
-		background: var(--mk2-bg-2);
 	}
 </style>
