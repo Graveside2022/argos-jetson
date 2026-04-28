@@ -32,8 +32,7 @@ import { lsState } from './ui.svelte';
 
 const PEAK_DECAY_PER_FRAME = 0.985; // ~30 s half-life at 10 Hz
 const isDevice = (v: unknown): v is SpectrumDevice => v === 'hackrf' || v === 'b205';
-const isObj = (v: unknown): v is Record<string, unknown> =>
-	typeof v === 'object' && v !== null;
+const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null;
 const isNum = (v: unknown): v is number => typeof v === 'number';
 
 function isHackrfAmp(amp: unknown): boolean {

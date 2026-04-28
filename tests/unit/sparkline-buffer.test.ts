@@ -1,10 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-	bytesPerSecond,
-	METRIC_WINDOW,
-	pushSample
-} from '../../src/lib/utils/sparkline-buffer';
+import { bytesPerSecond, METRIC_WINDOW, pushSample } from '../../src/lib/utils/sparkline-buffer';
 
 describe('pushSample', () => {
 	it('appends to an empty buffer', () => {

@@ -1,10 +1,10 @@
 <script lang="ts">
 	import Dot from '$lib/components/mk2/Dot.svelte';
 
-	// spec-024 PR3 T021 — UAS drawer tab (static stub).
-	// Hardcoded mock rows matching prototype. Real wiring to DragonSync SSE
-	// (/api/dragonsync/*) lands per-screen in PR5+ — current UAS scan view
-	// already exists at /uas (memory `project_uas_phase2_scan_view.md`).
+	import DrawerTable, { type Column } from './DrawerTable.svelte';
+
+	// spec-024 PR3 T021 — UAS drawer tab. Reorderable + sortable via DrawerTable.
+	// Real wiring to DragonSync SSE (/api/dragonsync/*) lands per-screen in PR5+.
 
 	interface Row {
 		id: string;
@@ -17,9 +17,43 @@
 	}
 
 	const rows: readonly Row[] = [
-		{ id: '1581F6AFD204A0', make: 'DJI Mavic 3', lat: 50.04188, lon: 8.32712, alt: '128 m', speed: '11 m/s', rssi: -51 },
-		{ id: '1581F6BB821E83', make: 'DJI Mini 3', lat: 50.04021, lon: 8.33094, alt: '62 m', speed: '4 m/s', rssi: -64 },
-		{ id: '4E82AA01F3', make: 'Autel EVO II', lat: 50.04412, lon: 8.32201, alt: '204 m', speed: '18 m/s', rssi: -72 }
+		{
+			id: '1581F6AFD204A0',
+			make: 'DJI Mavic 3',
+			lat: 50.04188,
+			lon: 8.32712,
+			alt: '128 m',
+			speed: '11 m/s',
+			rssi: -51
+		},
+		{
+			id: '1581F6BB821E83',
+			make: 'DJI Mini 3',
+			lat: 50.04021,
+			lon: 8.33094,
+			alt: '62 m',
+			speed: '4 m/s',
+			rssi: -64
+		},
+		{
+			id: '4E82AA01F3',
+			make: 'Autel EVO II',
+			lat: 50.04412,
+			lon: 8.32201,
+			alt: '204 m',
+			speed: '18 m/s',
+			rssi: -72
+		}
+	];
+
+	const columns: readonly Column<Row>[] = [
+		{ id: 'id', label: 'ID', accessor: (r) => r.id, kind: 'id' },
+		{ id: 'make', label: 'MAKE', accessor: (r) => r.make, kind: 'text' },
+		{ id: 'lat', label: 'LAT', accessor: (r) => r.lat, kind: 'num' },
+		{ id: 'lon', label: 'LON', accessor: (r) => r.lon, kind: 'num' },
+		{ id: 'alt', label: 'ALT', accessor: (r) => r.alt, kind: 'num' },
+		{ id: 'speed', label: 'SPEED', accessor: (r) => r.speed, kind: 'num' },
+		{ id: 'rssi', label: 'RSSI', accessor: (r) => r.rssi, kind: 'num' }
 	];
 
 	function rssiColor(rssi: number): string {
@@ -36,32 +70,21 @@
 		<span class="sep">·</span>
 		<span class="meta">3 TRACKS</span>
 	</div>
-	<table class="tbl">
-		<thead>
-			<tr>
-				<th>ID</th>
-				<th>MAKE</th>
-				<th>LAT</th>
-				<th>LON</th>
-				<th class="num">ALT</th>
-				<th class="num">SPEED</th>
-				<th class="num">RSSI</th>
-			</tr>
-		</thead>
-		<tbody>
-			{#each rows as r, i (`${r.id}-${i}`)}
-				<tr>
-					<td>{r.id}</td>
-					<td class="dim">{r.make}</td>
-					<td>{r.lat.toFixed(5)}</td>
-					<td>{r.lon.toFixed(5)}</td>
-					<td class="num">{r.alt}</td>
-					<td class="num">{r.speed}</td>
-					<td class="num" style:color={rssiColor(r.rssi)}>{r.rssi}</td>
-				</tr>
-			{/each}
-		</tbody>
-	</table>
+	<DrawerTable storageKey="argos.drawer.uas.cols" {columns} {rows} rowKey={(r) => r.id}>
+		{#snippet cell(r, col)}
+			{#if col.id === 'make'}
+				<span class="dim">{r.make}</span>
+			{:else if col.id === 'lat'}
+				{r.lat.toFixed(5)}
+			{:else if col.id === 'lon'}
+				{r.lon.toFixed(5)}
+			{:else if col.id === 'rssi'}
+				<span style:color={rssiColor(r.rssi)}>{r.rssi}</span>
+			{:else}
+				{col.accessor(r) ?? ''}
+			{/if}
+		{/snippet}
+	</DrawerTable>
 </div>
 
 <style>
@@ -94,44 +117,7 @@
 		color: var(--mk2-ink-4);
 	}
 
-	.tbl {
-		width: 100%;
-		border-collapse: collapse;
-		font: 500 var(--mk2-fs-3) / 1.4 var(--mk2-f-mono);
-		font-variant-numeric: tabular-nums;
-	}
-
-	.tbl th {
-		text-align: left;
-		padding: 6px 12px;
-		color: var(--mk2-ink-4);
-		font-size: var(--mk2-fs-2);
-		font-weight: 500;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-		background: var(--mk2-bg-2);
-		border-bottom: 1px solid var(--mk2-line);
-	}
-
-	.tbl th.num {
-		text-align: right;
-	}
-
-	.tbl td {
-		padding: 6px 12px;
-		border-bottom: 1px dashed var(--mk2-line);
-		color: var(--mk2-ink);
-	}
-
-	.tbl td.num {
-		text-align: right;
-	}
-
-	.tbl td.dim {
+	.dim {
 		color: var(--mk2-ink-3);
-	}
-
-	.tbl tr:hover td {
-		background: var(--mk2-bg-2);
 	}
 </style>

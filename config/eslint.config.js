@@ -201,17 +201,20 @@ export default [
 						{
 							from: { type: 'component' },
 							disallow: { to: { type: 'server' } },
-							message: 'Components must call /api endpoints, never import server modules directly'
+							message:
+								'Components must call /api endpoints, never import server modules directly'
 						},
 						{
 							from: { type: 'state' },
 							disallow: { to: { type: 'server' } },
-							message: 'Stores/state must call /api endpoints, never import server modules directly'
+							message:
+								'Stores/state must call /api endpoints, never import server modules directly'
 						},
 						{
 							from: { type: 'state' },
 							disallow: { to: { type: 'component' } },
-							message: 'state must not import from components (inverted layer direction)'
+							message:
+								'state must not import from components (inverted layer direction)'
 						},
 						{
 							from: { type: 'type' },

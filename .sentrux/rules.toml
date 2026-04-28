@@ -28,8 +28,8 @@
 # acyclicity floor + components→server sentinel boundary.
 
 [constraints]
-max_cycles = 0       # Hard floor — both Day-0 SCCs killed in PR #46 + #47.
-                     # Any new SCC introduced by a PR fails check_rules.
+max_cycles = 0 # Hard floor — both Day-0 SCCs killed in PR #46 + #47.
+# Any new SCC introduced by a PR fails check_rules.
 no_god_files = false # Argos has fat stores; ratchet to true after store splits land.
 
 # ─── Layer ordering moved to eslint-plugin-boundaries ───────────────────────

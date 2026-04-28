@@ -16,7 +16,7 @@ language: en
 early_access: false
 
 # 250-char cap per schema. Keep terse — operator-style, no fluff.
-tone_instructions: 'Operator-grade EW comms. Direct, terse, no hedging. Cite official docs in suggestions. Match the project conventions in AGENTS.md and CLAUDE.md before suggesting alternatives.'
+tone_instructions: Operator-grade EW comms. Direct, terse, no hedging. Cite official docs in suggestions. Match the project conventions in AGENTS.md and CLAUDE.md before suggesting alternatives.
 
 reviews:
   profile: chill
@@ -64,7 +64,7 @@ reviews:
   # surface domain-specific reminders that should fire on the relevant
   # diffs only.
   path_instructions:
-    - path: 'src/lib/server/db/**'
+    - path: src/lib/server/db/**
       instructions: |
         Server-side database code. Argos uses better-sqlite3 with WAL mode
         and a hand-rolled repository pattern under src/lib/server/db/ — do
@@ -85,7 +85,7 @@ reviews:
         carved out of the tests-required gate by dangerfile.js — that
         carve-out is mechanical, no human override.
 
-    - path: 'tests/**'
+    - path: tests/**
       instructions: |
         Vitest only — no Jest, no Mocha. Tests on RPi5 run with
         maxWorkers=1, pool=forks (vitest.config.ts). Tests must be
@@ -106,7 +106,7 @@ reviews:
         defense (sentrux + eslint-plugin-boundaries + ArchUnitTS) is
         intentional.
 
-    - path: 'deployment/*.service'
+    - path: deployment/*.service
       instructions: |
         Systemd unit files for argos-final and related services.
         NEVER suggest adding `NoNewPrivileges=true` — the control
@@ -120,7 +120,7 @@ reviews:
         RestrictAddressFamilies, etc.) is fine to suggest case-by-case
         — but verify against the actual ExecStart command first.
 
-    - path: 'package.json'
+    - path: package.json
       instructions: |
         Never suggest `npm install <X>` without explicit user
         authorization noted in the PR body. Research/recommendation
@@ -142,8 +142,8 @@ reviews:
 # Each `instructions` field max 10,000 chars per schema.
 pre_merge_checks:
   custom_checks:
-    - name: 'Reject Gemini Code Assist references'
-      mode: 'error'
+    - name: Reject Gemini Code Assist references
+      mode: error
       instructions: |
         Argos has explicitly excluded Gemini Code Assist from the project
         toolchain (per memory feedback_no_gemini_code_assist.md). Hard-fail

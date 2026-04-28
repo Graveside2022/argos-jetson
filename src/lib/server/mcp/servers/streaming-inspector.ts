@@ -347,7 +347,8 @@ class StreamingInspector extends BaseMCPServer {
 					},
 					validate_data: {
 						type: 'boolean',
-						description: 'Validate SpectrumFrame structure on every event (default: true)'
+						description:
+							'Validate SpectrumFrame structure on every event (default: true)'
 					}
 				},
 				required: []
@@ -381,12 +382,20 @@ class StreamingInspector extends BaseMCPServer {
 					eventSource.addEventListener('frame', (event: { data: string }) => {
 						eventCount++;
 						byteCount += event.data.length;
-						const parsed = parseFrameOrRecord(event.data, errors, Date.now() - startTime);
+						const parsed = parseFrameOrRecord(
+							event.data,
+							errors,
+							Date.now() - startTime
+						);
 						if (parsed === null) return;
 						if (validateData) {
 							recordIfShapeInvalid(parsed, errors, Date.now() - startTime);
 						}
-						events.push({ type: 'frame', data: parsed, timestamp: Date.now() - startTime });
+						events.push({
+							type: 'frame',
+							data: parsed,
+							timestamp: Date.now() - startTime
+						});
 					});
 
 					eventSource.addEventListener('error', (event: { data?: string }) => {
@@ -451,8 +460,7 @@ class StreamingInspector extends BaseMCPServer {
 							name: 'b205',
 							state: 'available',
 							source_class: 'B205SpectrumSource',
-							notes:
-								'Shipped in spec-024 PR 9b (T050). Spawns scripts/spectrum/b205_spectrum.py (UHD MultiUSRP, num_recv_frames=512+recv_frame_size=8192) and emits NDJSON spectrum frames. Hardware-gated — requires python3-uhd + a wired B205mini.'
+							notes: 'Shipped in spec-024 PR 9b (T050). Spawns scripts/spectrum/b205_spectrum.py (UHD MultiUSRP, num_recv_frames=512+recv_frame_size=8192) and emits NDJSON spectrum frames. Hardware-gated — requires python3-uhd + a wired B205mini.'
 						},
 						{
 							name: 'auto',
