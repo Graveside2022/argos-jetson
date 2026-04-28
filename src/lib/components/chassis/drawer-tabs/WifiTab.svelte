@@ -51,12 +51,12 @@
 	];
 
 	const columns: readonly Column<Row>[] = [
-		{ id: 'mac', label: 'MAC', accessor: (r) => r.mac },
-		{ id: 'ssid', label: 'SSID', accessor: (r) => r.ssid },
-		{ id: 'vendor', label: 'VENDOR', accessor: (r) => r.vendor },
-		{ id: 'ch', label: 'CH', accessor: (r) => r.ch, isNum: true },
-		{ id: 'rssi', label: 'RSSI', accessor: (r) => r.rssi, isNum: true },
-		{ id: 'enc', label: 'ENC', accessor: (r) => r.enc }
+		{ id: 'mac', label: 'MAC', accessor: (r) => r.mac, kind: 'id' },
+		{ id: 'ssid', label: 'SSID', accessor: (r) => r.ssid, kind: 'text' },
+		{ id: 'vendor', label: 'VENDOR', accessor: (r) => r.vendor, kind: 'text' },
+		{ id: 'ch', label: 'CH', accessor: (r) => r.ch, kind: 'num' },
+		{ id: 'rssi', label: 'RSSI', accessor: (r) => r.rssi, kind: 'num' },
+		{ id: 'enc', label: 'ENC', accessor: (r) => r.enc, kind: 'tag' }
 	];
 
 	function rssiColor(rssi: number): string {

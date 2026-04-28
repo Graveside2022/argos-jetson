@@ -47,13 +47,13 @@
 	];
 
 	const columns: readonly Column<Row>[] = [
-		{ id: 'id', label: 'ID', accessor: (r) => r.id },
-		{ id: 'make', label: 'MAKE', accessor: (r) => r.make },
-		{ id: 'lat', label: 'LAT', accessor: (r) => r.lat, isNum: true },
-		{ id: 'lon', label: 'LON', accessor: (r) => r.lon, isNum: true },
-		{ id: 'alt', label: 'ALT', accessor: (r) => r.alt, isNum: true },
-		{ id: 'speed', label: 'SPEED', accessor: (r) => r.speed, isNum: true },
-		{ id: 'rssi', label: 'RSSI', accessor: (r) => r.rssi, isNum: true }
+		{ id: 'id', label: 'ID', accessor: (r) => r.id, kind: 'id' },
+		{ id: 'make', label: 'MAKE', accessor: (r) => r.make, kind: 'text' },
+		{ id: 'lat', label: 'LAT', accessor: (r) => r.lat, kind: 'num' },
+		{ id: 'lon', label: 'LON', accessor: (r) => r.lon, kind: 'num' },
+		{ id: 'alt', label: 'ALT', accessor: (r) => r.alt, kind: 'num' },
+		{ id: 'speed', label: 'SPEED', accessor: (r) => r.speed, kind: 'num' },
+		{ id: 'rssi', label: 'RSSI', accessor: (r) => r.rssi, kind: 'num' }
 	];
 
 	function rssiColor(rssi: number): string {

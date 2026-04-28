@@ -38,11 +38,11 @@
 	];
 
 	const columns: readonly Column<Row>[] = [
-		{ id: 'last', label: 'TIME STAMP', accessor: (r) => r.last, isNum: true },
-		{ id: 'mac', label: 'MAC', accessor: (r) => r.mac },
-		{ id: 'name', label: 'NAME', accessor: (r) => r.name },
-		{ id: 'type', label: 'TYPE', accessor: (r) => r.type },
-		{ id: 'rssi', label: 'RSSI', accessor: (r) => r.rssi, isNum: true }
+		{ id: 'last', label: 'TIME STAMP', accessor: (r) => r.last, kind: 'time' },
+		{ id: 'mac', label: 'MAC', accessor: (r) => r.mac, kind: 'id' },
+		{ id: 'name', label: 'NAME', accessor: (r) => r.name, kind: 'text' },
+		{ id: 'type', label: 'TYPE', accessor: (r) => r.type, kind: 'tag' },
+		{ id: 'rssi', label: 'RSSI', accessor: (r) => r.rssi, kind: 'num' }
 	];
 </script>
 

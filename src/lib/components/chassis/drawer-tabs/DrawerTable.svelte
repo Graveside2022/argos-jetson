@@ -6,11 +6,23 @@
 	// column header left/right to reorder; click to cycle sort asc → desc → asc.
 	// Both states persist to localStorage per `storageKey`.
 
+	// spec-024 Phase 3 — column-kind taxonomy. One discriminant drives
+	// alignment, min-width, whitespace, and font for both <th> and <td>.
+	// Header inherits body alignment so the eye doesn't see "swim" between
+	// a left-aligned label sitting above right-aligned numbers.
+	//   id     identifiers (MAC, filename, drone serial). mono, nowrap, left.
+	//   text   freeform prose (SSID, message, name). flex-grow, left, wrap.
+	//   num    measures (RSSI, channel, size, packets). tabular-nums, right.
+	//   time   timestamps (Z-suffixed). tabular-nums, nowrap, left.
+	//   tag    short categorical badges (LEVEL, ENC, TOOL, TYPE). nowrap, left.
+	//   action icon-only cells (download). narrow fixed width, right.
+	export type ColumnKind = 'id' | 'text' | 'num' | 'time' | 'tag' | 'action';
+
 	export interface Column<Row> {
 		id: string;
 		label: string;
 		accessor: (row: Row) => string | number | null;
-		isNum?: boolean;
+		kind: ColumnKind;
 	}
 
 	interface Props<Row> {
@@ -23,7 +35,9 @@
 
 	let { storageKey, columns, rows, rowKey, cell }: Props<R> = $props();
 
-	let order = $state<string[]>(columns.map((c) => c.id));
+	// `order` is user drag-state; we don't want it reactive to prop changes.
+	// Empty-init avoids `state_referenced_locally` warning; populate in onMount.
+	let order = $state<string[]>([]);
 	let sortById = $state<string | null>(null);
 	let sortDir = $state<'asc' | 'desc'>('asc');
 	let dragId = $state<string | null>(null);
@@ -56,6 +70,7 @@
 	let mounted = $state(false);
 
 	onMount(() => {
+		order = columns.map((c) => c.id);
 		loadStored();
 		mounted = true;
 	});
@@ -160,7 +175,7 @@
 		<tr>
 			{#each orderedColumns as col (col.id)}
 				<th
-					class:num={col.isNum}
+					data-kind={col.kind}
 					class:drag={dragId === col.id}
 					class:over={overId === col.id}
 					class:active-sort={sortById === col.id}
@@ -171,7 +186,7 @@
 					ondrop={(e) => onDrop(e, col.id)}
 					ondragend={onDragEnd}
 					onclick={() => onSortClick(col.id)}
-					title={`Click to sort · drag to reorder`}
+					title="Click to sort · drag to reorder"
 				>
 					<span class="label">{col.label}</span>
 					<span class="sort-ind">{sortIndicator(col.id)}</span>
@@ -183,7 +198,7 @@
 		{#each sortedRows as r (rowKey(r))}
 			<tr>
 				{#each orderedColumns as col (col.id)}
-					<td class:num={col.isNum}>
+					<td data-kind={col.kind}>
 						{#if cell}
 							{@render cell(r, col)}
 						{:else}
@@ -222,8 +237,54 @@
 		white-space: nowrap;
 	}
 
-	.tbl th.num {
+	/* Column-type alignment convention — drives th + td from one [data-kind]
+	   attribute. Header alignment inherits body alignment so the eye doesn't
+	   see "swim" between a left-aligned label sitting above right-aligned
+	   numbers. See Column<Row>.kind in <script> for taxonomy. */
+	.tbl th[data-kind='num'],
+	.tbl td[data-kind='num'],
+	.tbl th[data-kind='action'],
+	.tbl td[data-kind='action'] {
 		text-align: right;
+	}
+
+	.tbl th[data-kind='id'],
+	.tbl td[data-kind='id'] {
+		white-space: nowrap;
+	}
+
+	.tbl th[data-kind='num'],
+	.tbl td[data-kind='num'],
+	.tbl th[data-kind='time'],
+	.tbl td[data-kind='time'],
+	.tbl th[data-kind='tag'],
+	.tbl td[data-kind='tag'] {
+		white-space: nowrap;
+		font-variant-numeric: tabular-nums;
+	}
+
+	/* Min-widths in ch units — monospace 1ch ≈ glyph advance, so widths
+	   survive theme / zoom changes that pixel widths don't. Action cells
+	   carry a 12px lucide icon + 8px breathing room. */
+	.tbl th[data-kind='id'] {
+		min-width: 18ch;
+	}
+	.tbl th[data-kind='num'] {
+		min-width: 6ch;
+	}
+	.tbl th[data-kind='time'] {
+		min-width: 9ch;
+	}
+	.tbl th[data-kind='tag'] {
+		min-width: 8ch;
+	}
+	.tbl th[data-kind='text'] {
+		min-width: 12ch;
+	}
+	.tbl th[data-kind='action'],
+	.tbl td[data-kind='action'] {
+		width: 32px;
+		min-width: 32px;
 	}
 
 	.tbl th:hover {
@@ -254,10 +315,6 @@
 		padding: 6px 12px;
 		border-bottom: 1px dashed var(--mk2-line);
 		vertical-align: middle;
-	}
-
-	.tbl td.num {
-		text-align: right;
 	}
 
 	.tbl tr:hover td {

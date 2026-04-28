@@ -36,10 +36,10 @@
 	};
 
 	const columns: readonly Column<Row>[] = [
-		{ id: 't', label: 'TIME STAMP', accessor: (r) => r.t },
-		{ id: 'm', label: 'MESSAGE', accessor: (r) => r.m },
-		{ id: 'src', label: 'SOURCE', accessor: (r) => r.src },
-		{ id: 'lvl', label: 'LEVEL', accessor: (r) => r.lvl }
+		{ id: 't', label: 'TIME STAMP', accessor: (r) => r.t, kind: 'time' },
+		{ id: 'm', label: 'MESSAGE', accessor: (r) => r.m, kind: 'text' },
+		{ id: 'src', label: 'SOURCE', accessor: (r) => r.src, kind: 'tag' },
+		{ id: 'lvl', label: 'LEVEL', accessor: (r) => r.lvl, kind: 'tag' }
 	];
 </script>
 

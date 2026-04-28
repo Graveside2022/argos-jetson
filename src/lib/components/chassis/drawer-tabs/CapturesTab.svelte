@@ -52,13 +52,13 @@
 	];
 
 	const columns: readonly Column<Row>[] = [
-		{ id: 'start', label: 'TIME STAMP', accessor: (r) => r.start, isNum: true },
-		{ id: 'file', label: 'FILE', accessor: (r) => r.file },
-		{ id: 'tool', label: 'TOOL', accessor: (r) => r.tool },
-		{ id: 'size', label: 'SIZE', accessor: (r) => r.size, isNum: true },
-		{ id: 'packets', label: 'PACKETS', accessor: (r) => r.packets, isNum: true },
-		{ id: 'dur', label: 'DUR', accessor: (r) => r.dur, isNum: true },
-		{ id: 'actions', label: '', accessor: () => null }
+		{ id: 'start', label: 'TIME STAMP', accessor: (r) => r.start, kind: 'time' },
+		{ id: 'file', label: 'FILE', accessor: (r) => r.file, kind: 'id' },
+		{ id: 'tool', label: 'TOOL', accessor: (r) => r.tool, kind: 'tag' },
+		{ id: 'size', label: 'SIZE', accessor: (r) => r.size, kind: 'num' },
+		{ id: 'packets', label: 'PACKETS', accessor: (r) => r.packets, kind: 'num' },
+		{ id: 'dur', label: 'DUR', accessor: (r) => r.dur, kind: 'num' },
+		{ id: 'actions', label: '', accessor: () => null, kind: 'action' }
 	];
 </script>
 
