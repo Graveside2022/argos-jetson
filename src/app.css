@@ -401,17 +401,38 @@
 	/* default accent — overridable via [data-accent="..."] below */
 	--mk2-accent: var(--mk2-amber);
 
-	/* type scale (6 steps, 9–15 px) */
-	--mk2-fs-1: 9px;
-	--mk2-fs-2: 10px;
+	/* type scale (6 steps; fs-1 + fs-2 both 10.5 px — JSX prototype's workhorse
+	   size for rail-num, statusbar, panel labels, metric labels. Mk II Visual-
+	   Parity Audit (docs/UI/MK2-AUDIT.md, 2026-04-28) called out fs-1 at 9 px
+	   as the most-off −1.5 px gap on Left Rail; raising to 10.5 px brings
+	   LeftRail / Statusbar / MetricCard / SpectrumControls / Tweaks into JSX-
+	   intent simultaneously. */
+	--mk2-fs-1: 10.5px;
+	--mk2-fs-2: 10.5px;
 	--mk2-fs-3: 11px;
 	--mk2-fs-4: 12px;
 	--mk2-fs-5: 13px;
 	--mk2-fs-6: 15px;
 
-	/* fonts */
+	/* drawer tab bar — intentional design departure from JSX prototype's 10.5 px.
+	   Larger size for operator legibility on the always-visible bottom chrome.
+	   15.5 px settles at a 1.29× ratio over the 12 px drawer body — Material
+	   Design type-scale convention; tabs read as primary nav, body as secondary. */
+	--mk2-fs-tab-bar: 15.5px;
+	--mk2-h-tab-bar: 40px;
+
+	/* drawer body content (Logs/Captures/WiFi/Bluetooth/UAS rows). Lifted from
+	   the JSX prototype's 11.5 px to 12 px for dense-data legibility at desk
+	   distance. Pairs with --mk2-fs-tab-bar above at the Material 1.29× ratio. */
+	--mk2-fs-drawer-body: 12.5px;
+
+	/* fonts — Geist Mono is the workhorse for ALL data/labels/metrics/terminal
+	   per JSX prototype (~30+ selectors use var(--f-mono)). Fira Code retained
+	   as fallback for partial-install hosts. Loaded locally from
+	   /static/fonts/geist/GeistMono-{Regular,Medium,SemiBold}.woff2 — see
+	   /static/fonts/geist.css. */
 	--mk2-f-sans: 'Geist', ui-sans-serif, system-ui, sans-serif;
-	--mk2-f-mono: 'Fira Code', ui-monospace, 'Geist Mono', 'SFMono-Regular', 'Menlo', monospace;
+	--mk2-f-mono: 'Geist Mono', 'Fira Code', ui-monospace, 'SFMono-Regular', 'Menlo', monospace;
 
 	/* radii (2–4 px range) */
 	--mk2-r-0: 0px;

@@ -1,5 +1,6 @@
-/* Geist Sans — Vercel (MIT License, OFL) */
-/* Used for UI navigation chrome and tab labels */
+/* Geist Sans + Geist Mono — Vercel (OFL License) */
+/* Geist Sans = UI navigation chrome / Geist Mono = data, labels, metrics, terminal */
+/* Source: https://github.com/vercel/geist-font (fonts/Geist|GeistMono/webfonts/) */
 
 @font-face {
 	font-family: 'Geist';
@@ -20,6 +21,30 @@
 @font-face {
 	font-family: 'Geist';
 	src: url('/fonts/geist/Geist-SemiBold.woff2') format('woff2');
+	font-weight: 600;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Geist Mono';
+	src: url('/fonts/geist/GeistMono-Regular.woff2') format('woff2');
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Geist Mono';
+	src: url('/fonts/geist/GeistMono-Medium.woff2') format('woff2');
+	font-weight: 500;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Geist Mono';
+	src: url('/fonts/geist/GeistMono-SemiBold.woff2') format('woff2');
 	font-weight: 600;
 	font-style: normal;
 	font-display: swap;
