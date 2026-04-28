@@ -286,6 +286,24 @@ plans/                         # Architecture plans and roadmaps
 
 **Component state handling**: Every component must handle ALL states: Empty, Loading, Default, Active, Error, Success, Disabled, Disconnected.
 
+## Design System Authority
+
+**IBM Carbon Design System is the canonical methodology authority for Argos v2 (Mk II) component conventions.** Lunaris remains the visual identity (color palette, typography choices, layout chrome, military-tactical aesthetic). Geist remains the typeface. Carbon supplies the per-component conventions (alignment, spacing rhythm, sort behavior, accessibility patterns) that all visual surfaces conform to.
+
+**Three reference surfaces** under `docs/` (gitignored — recreate locally on demand per `specs/026-lunaris-design-system/spec.md`):
+
+| Path                                           | Role                                                       | Precedence                                                                           |
+| ---------------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `docs/carbon-design-system/` (sparse-checkout) | Carbon SCSS + React + themes source-of-truth               | **Wins** when source disagrees with site docs (last-modified date is the tiebreaker) |
+| `docs/carbon-website/` (full clone)            | Carbon usage / a11y / style mdx docs                       | Provides context but never overrides source SCSS                                     |
+| `docs/argos-v2-mockup/` (extracted user zip)   | Argos v2 visual layout reference + screenshot ground-truth | Visual identity wins on look-and-feel; Carbon wins on methodology/anatomy            |
+
+**Per-component spec structure** at `specs/026-lunaris-design-system/components/<name>/{usage.md, style.md, code.md, accessibility.md}` — modeled on Carbon's docs site. Spec citations live in `authorities.md`. Token mappings live in `tokens.md`. Migration roadmap (8 phases) in `migration-roadmap.md`.
+
+**Workflow rule** (per memory `feedback_lunaris_spec_first.md`): no visual / behavioral component change ships without first writing or updating the matching `style.md` citing Carbon source. Implementation references the spec.
+
+**Stack**: `carbon-components-svelte@^0.107.0` (Svelte 5 supported), `@carbon/styles@^1.105.0`, `carbon-icons-svelte@^13.10.0`. Theme overlay file at `src/lib/styles/lunaris-carbon-theme.scss` translates Carbon Sass tokens to Lunaris CSS custom properties.
+
 ## Design System — Lunaris
 
 The UI follows the **Lunaris design language** — a military-grade enterprise dashboard aesthetic (not cyberpunk). The definitive visual reference is `pencil-lunaris.pen` and the spec at `specs/012-lunaris-ui-redesign/design-reference.md`.
