@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Dot from '$lib/components/mk2/Dot.svelte';
 
-	import DrawerTable, { type Column } from './DrawerTable.svelte';
+	import DrawerTable, { type Column } from './DrawerTableCarbon.svelte';
 
 	// spec-024 PR3 T021 — UAS drawer tab. Reorderable + sortable via DrawerTable.
 	// Real wiring to DragonSync SSE (/api/dragonsync/*) lands per-screen in PR5+.

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import DrawerTable, { type Column } from './DrawerTable.svelte';
+	import DrawerTable, { type Column } from './DrawerTableCarbon.svelte';
 
 	// spec-024 PR3 T021 — Wi-Fi drawer tab. Reorderable + sortable via DrawerTable.
 	// Real wiring to /api/kismet/devices lands per-screen in PR5+.

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import DrawerTable, { type Column } from './DrawerTable.svelte';
+	import DrawerTable, { type Column } from './DrawerTableCarbon.svelte';
 
 	// spec-024 PR3 T021 — Bluetooth drawer tab. Reorderable + sortable via DrawerTable.
 	// Real wiring (/api/bluedragon/*) per memory `project_bluetooth_e2e_done.md` lands in PR5+.

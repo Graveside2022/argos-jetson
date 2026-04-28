@@ -4,7 +4,7 @@
 	// spec-026 Phase 1 — IconBtn → IconBtnCarbon (Carbon-wrapped, same public API).
 	import IconBtn from '$lib/components/mk2/IconBtnCarbon.svelte';
 
-	import DrawerTable, { type Column } from './DrawerTable.svelte';
+	import DrawerTable, { type Column } from './DrawerTableCarbon.svelte';
 
 	// spec-024 PR3 T021 — Captures drawer tab. Reorderable + sortable via DrawerTable.
 
