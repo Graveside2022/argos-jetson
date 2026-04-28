@@ -93,7 +93,7 @@ Per-phase pre-merge gate (CLAUDE.md Rule 6 already enforces sentrux):
 Five layers, cheapest to slowest:
 
 1. **Per-commit revert** — every phase has atomic commits. `git revert <sha>`. Cost: ~30s.
-2. **Per-phase git tag** — `phase-N-complete` tag at end of each phase. `git checkout phase-N-complete -- <files>`. Cost: ~1 min.
+2. **Per-phase git tag** — `spec-026-phase-N-complete` tag at end of each phase. `git checkout phase-N-complete -- <files>`. Cost: ~1 min.
 3. **Per-phase branch isolation** — each phase on its own feature branch; merged to `dev` only after green verify.
 4. **Parallel implementations** — bespoke component file kept alive (renamed `*Bespoke.svelte`) until 100% migrated. Switching back is a 1-line consumer-side change.
 5. **Production-build rollback** — `git checkout phase-N-complete && npm run build && sudo systemctl restart argos-final.service`. Cost: ~2 min.

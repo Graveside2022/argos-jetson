@@ -15,17 +15,17 @@
 
 ## Phase board
 
-| #     | Phase                                     | Branch                                            | Status                                               | Tag at completion        | Risk        | Effort   |
-| ----- | ----------------------------------------- | ------------------------------------------------- | ---------------------------------------------------- | ------------------------ | ----------- | -------- |
-| Pre-0 | Cleanup reverts (`f8bdc233` + `86b49fad`) | `feature/spec-024-mk2-phase-3-pr-b2-tools-flyout` | ✅ Done 2026-04-28 (commits `4c29ebc2` + `625160ef`) | n/a (predecessor branch) | Low         | < 1 day  |
-| **0** | **Pre-flight scaffold**                   | `feature/spec-026-carbon-phase-0-scaffold`        | ⏳ In progress                                       | `phase-0-complete`       | Low         | 1-2 days |
-| 1     | DrawerTable → Carbon `<DataTable>`        | `feature/spec-026-carbon-phase-1-datatable`       | ⬜                                                   | `phase-1-complete`       | Medium      | 3-5 days |
-| 2     | Buttons + IconBtn                         | `feature/spec-026-carbon-phase-2-buttons`         | ⬜                                                   | `phase-2-complete`       | Low-Medium  | 2-3 days |
-| 3     | Form fields                               | `feature/spec-026-carbon-phase-3-forms`           | ⬜                                                   | `phase-3-complete`       | Medium      | 5-7 days |
-| 4     | Modal + Notification + Tooltip            | `feature/spec-026-carbon-phase-4-overlays`        | ⬜                                                   | `phase-4-complete`       | Medium-High | 3-5 days |
-| 5     | Tabs                                      | `feature/spec-026-carbon-phase-5-tabs`            | ⬜                                                   | `phase-5-complete`       | Medium      | 2-3 days |
-| 6     | Pagination + Loading + Search             | `feature/spec-026-carbon-phase-6-misc`            | ⬜                                                   | `phase-6-complete`       | Low-Medium  | 3-5 days |
-| 7     | A11y audit + dead-code cleanup            | `feature/spec-026-carbon-phase-7-a11y-cleanup`    | ⬜                                                   | `phase-7-complete`       | Low         | 2-3 days |
+| #     | Phase                                     | Branch                                            | Status                                               | Tag at completion           | Risk        | Effort   |
+| ----- | ----------------------------------------- | ------------------------------------------------- | ---------------------------------------------------- | --------------------------- | ----------- | -------- |
+| Pre-0 | Cleanup reverts (`f8bdc233` + `86b49fad`) | `feature/spec-024-mk2-phase-3-pr-b2-tools-flyout` | ✅ Done 2026-04-28 (commits `4c29ebc2` + `625160ef`) | n/a (predecessor branch)    | Low         | < 1 day  |
+| **0** | **Pre-flight scaffold**                   | `feature/spec-026-carbon-phase-0-scaffold`        | ⏳ In progress                                       | `spec-026-phase-0-complete` | Low         | 1-2 days |
+| 1     | DrawerTable → Carbon `<DataTable>`        | `feature/spec-026-carbon-phase-1-datatable`       | ⬜                                                   | `spec-026-phase-1-complete` | Medium      | 3-5 days |
+| 2     | Buttons + IconBtn                         | `feature/spec-026-carbon-phase-2-buttons`         | ⬜                                                   | `spec-026-phase-2-complete` | Low-Medium  | 2-3 days |
+| 3     | Form fields                               | `feature/spec-026-carbon-phase-3-forms`           | ⬜                                                   | `spec-026-phase-3-complete` | Medium      | 5-7 days |
+| 4     | Modal + Notification + Tooltip            | `feature/spec-026-carbon-phase-4-overlays`        | ⬜                                                   | `spec-026-phase-4-complete` | Medium-High | 3-5 days |
+| 5     | Tabs                                      | `feature/spec-026-carbon-phase-5-tabs`            | ⬜                                                   | `spec-026-phase-5-complete` | Medium      | 2-3 days |
+| 6     | Pagination + Loading + Search             | `feature/spec-026-carbon-phase-6-misc`            | ⬜                                                   | `spec-026-phase-6-complete` | Low-Medium  | 3-5 days |
+| 7     | A11y audit + dead-code cleanup            | `feature/spec-026-carbon-phase-7-a11y-cleanup`    | ⬜                                                   | `spec-026-phase-7-complete` | Low         | 2-3 days |
 
 **Total estimated effort:** ~21-33 engineer-days over 6-10 calendar weeks.
 
@@ -50,7 +50,7 @@
 - [ ] Update `CLAUDE.md` with Design System Authority section
 - [ ] Memory updates: `reference_argos_design_authorities.md` + `feedback_lunaris_spec_first.md`
 - [ ] Open PR `feature/spec-026-carbon-phase-0-scaffold` → `dev`
-- [ ] Merge to `dev`, tag `phase-0-complete`
+- [ ] Merge to `dev`, tag `spec-026-phase-0-complete`
 
 ---
 
@@ -59,10 +59,10 @@
 Five layers, cheapest to slowest:
 
 1. **Per-commit revert** (`git revert <sha>`) — 30s
-2. **Per-phase tag rollback** (`git checkout phase-N-complete -- <files>`) — 1 min
+2. **Per-phase tag rollback** (`git checkout spec-026-phase-N-complete -- <files>`) — 1 min
 3. **Per-phase branch isolation** (don't merge if not green) — branch is throwaway
 4. **Parallel implementations** during transition (bespoke kept as `*Bespoke.svelte`) — 1-line consumer-side switch back
-5. **Production-build rollback** (`git checkout phase-N-complete && npm run build && sudo systemctl restart argos-final.service`) — ~2 min
+5. **Production-build rollback** (`git checkout spec-026-phase-N-complete && npm run build && sudo systemctl restart argos-final.service`) — ~2 min
 
 ---
 
