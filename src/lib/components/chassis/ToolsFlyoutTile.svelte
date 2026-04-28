@@ -1,104 +1,96 @@
 <script lang="ts">
 	import type { Mk2Tool } from '$lib/types/mk2-tool';
 
-	// spec-024 PR8 T046 — single tile inside ToolsFlyout's pillar column.
-	// Pure presentational; parent owns activation + close lifecycle.
+	// spec-024 PR8 T046 / Phase 3 PR B2-full — single tool row inside ToolsFlyout's tree.
+	// Hover or focus selects (caller updates selection); click activates.
 
 	interface Props {
 		tool: Mk2Tool;
+		selected: boolean;
+		showCrumb: boolean;
+		hint: string;
+		onSelect: (id: string) => void;
 		onActivate: (tool: Mk2Tool) => void;
 	}
 
-	let { tool, onActivate }: Props = $props();
+	let { tool, selected, showCrumb, hint, onSelect, onActivate }: Props = $props();
 
 	const disabled = $derived(tool.action.kind === 'unwired');
-
-	function actionHint(): string {
-		const k = tool.action.kind;
-		if (k === 'route') return 'OPEN';
-		if (k === 'drawer') return 'DRAWER';
-		if (k === 'external') return 'EXTERNAL ↗';
-		return 'PENDING';
-	}
 </script>
 
 <button
 	type="button"
-	class="tile"
+	class="row"
+	class:sel={selected}
 	class:disabled
-	{disabled}
+	role="option"
+	aria-selected={selected}
+	onmouseenter={() => onSelect(tool.id)}
+	onfocus={() => onSelect(tool.id)}
 	onclick={() => onActivate(tool)}
-	aria-label={tool.name}
 >
-	<span class="tile-icon" aria-hidden="true">
-		<tool.icon size={16} />
-	</span>
-	<span class="tile-body">
-		<span class="tile-name">{tool.name}</span>
-		<span class="tile-desc">{tool.description}</span>
-	</span>
-	<span class="tile-hint">{actionHint()}</span>
+	<span class="icon" aria-hidden="true"><tool.icon size={14} /></span>
+	<span class="name">{tool.name}</span>
+	{#if showCrumb}
+		<span class="crumb">{tool.pillar}</span>
+	{/if}
+	<span class="hint">{hint}</span>
 </button>
 
 <style>
-	.tile {
+	.row {
 		display: grid;
-		grid-template-columns: auto 1fr auto;
+		grid-template-columns: auto 1fr auto auto;
 		align-items: center;
 		gap: 10px;
 		width: 100%;
-		padding: 10px 14px;
+		padding: 8px 14px;
 		background: transparent;
 		border: 0;
-		border-bottom: 1px solid var(--mk2-line);
-		color: inherit;
+		color: var(--mk2-ink-2);
 		font: inherit;
 		cursor: pointer;
 		text-align: left;
+		position: relative;
 	}
-
-	.tile:hover:not(.disabled) {
+	.row:hover {
 		background: var(--mk2-bg-2);
+		color: var(--mk2-ink);
 	}
-
-	.tile.disabled {
-		cursor: not-allowed;
+	.row.sel {
+		background: var(--mk2-bg-2);
+		color: var(--mk2-ink);
+	}
+	.row.sel::before {
+		content: '';
+		position: absolute;
+		left: 0;
+		top: 0;
+		bottom: 0;
+		width: 2px;
+		background: var(--mk2-accent);
+	}
+	.row.disabled {
 		opacity: 0.5;
+		cursor: not-allowed;
 	}
-
-	.tile-icon {
+	.icon {
 		display: flex;
 		align-items: center;
-		justify-content: center;
-		width: 24px;
-		height: 24px;
 		color: var(--mk2-accent);
 	}
-
-	.tile-body {
-		display: flex;
-		flex-direction: column;
-		gap: 2px;
-		min-width: 0;
-	}
-
-	.tile-name {
+	.name {
 		font-size: var(--mk2-fs-3);
-		color: var(--mk2-ink-1);
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
 	}
-
-	.tile-desc {
-		font-size: var(--mk2-fs-2);
-		color: var(--mk2-ink-3);
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
+	.crumb {
+		font-size: var(--mk2-fs-1);
+		color: var(--mk2-ink-4);
+		letter-spacing: 0.12em;
 	}
-
-	.tile-hint {
+	.hint {
 		font-size: var(--mk2-fs-2);
 		letter-spacing: 0.08em;
 		color: var(--mk2-ink-4);

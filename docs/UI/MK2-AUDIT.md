@@ -97,21 +97,24 @@ This is Phase 1 of the 4-phase visual-parity sweep. **No code changed in this ph
 
 ### 12. Tools Flyout (`ToolsFlyout.svelte` vs `tools-flyout.jsx`)
 
-**Status: 🟡 ~50% complete (RTFM 2026-04-28 02:58 expanded scope).**
+**Status: ✅ closed (PR-B2-full, 2026-04-28).**
 
-Initial Phase 1 audit framed this as "80% complete, 3 missing pieces". A direct read of the JSX prototype's 431 lines (`/tmp/argos-design-ref/src/tools-flyout.jsx`) shows the gap is meaningfully larger — pillar layout, hierarchical tree, schema, and a separate user-manual modal are all part of the JSX intent. See `/tmp/phase3-pr-b-scope.md` for the proposed B1/B2/B3 split.
+Restructured to match the JSX prototype's command-palette layout — pillar TAB bar (one visible at a time), 2-column body (tree left + detail right, 1fr / 360 px), keybind footer. Parent file split into `ToolsFlyout.svelte` (orchestrator, 293 LOC) + `ToolsFlyoutHeader.svelte` (header strip, 121 LOC) + `ToolsFlyoutDetail.svelte` (right pane, 124 LOC) + `ToolsFlyoutTile.svelte` (tool row, 99 LOC) + `tools-flyout-focus.ts` (helpers, 105 LOC). Uses existing `Mk2Tool` schema — no migration. The richer JSX fields (`installed`, `view`, `docs`, hierarchical `path`, manual modal) are deferred to **PR B3** (separate, future).
 
-| Property                                                                                    | JSX intent                 | Svelte port                 | Gap               |
-| ------------------------------------------------------------------------------------------- | -------------------------- | --------------------------- | ----------------- |
-| Header text                                                                                 | `TOOLS  97 TOTAL`          | `TOOLS · LIBRARY`           | wrong copy        |
-| 3 vertical pillars (OFFNET / ONNET / OSINT)                                                 | yes                        | yes                         | ✅                |
-| Per-pillar count badges                                                                     | per-pillar count           | derived from `items.length` | ✅                |
-| Live search                                                                                 | filter by name+description | identical                   | ✅                |
-| Keyboard nav (↑↓ Enter Esc)                                                                 | yes                        | Tab/Esc; no ↑↓              | partial           |
-| **Right detail pane** (selected tool: name, description, OPEN VIEW / MANUAL / DOCS buttons) | **yes**                    | **MISSING**                 | ❌ structural gap |
-| **Bottom keybind footer** (`↑↓ NAVIGATE  ⏎ OPEN  ESC CLOSE`)                                | **yes**                    | **MISSING**                 | ❌                |
+| Property                                                           | JSX intent       | Svelte port                                    | Status            |
+| ------------------------------------------------------------------ | ---------------- | ---------------------------------------------- | ----------------- |
+| Header text                                                        | `TOOLS  N TOTAL` | `TOOLS  ${catalog.length} TOTAL`               | ✅                |
+| Pillar TAB bar (one active at a time)                              | yes              | yes                                            | ✅                |
+| Per-pillar count badges                                            | per-pillar count | `pillarCounts[p]`                              | ✅                |
+| Live search (flat across pillars when active)                      | yes              | `visibleTools` switches mode on query          | ✅                |
+| Keyboard nav: ↑↓ Enter Esc + ←→ pillar cycle                       | yes              | `pickArrowTarget` + `routeKey` dispatcher      | ✅                |
+| Right detail pane (name, pillar crumb, description, action button) | yes              | `ToolsFlyoutDetail` w/ `actionLabel(tool)` CTA | ✅                |
+| Bottom keybind footer `↑↓ NAVIGATE  ⏎ OPEN  ←→ PILLAR  ESC CLOSE`  | yes              | `<footer class="foot">` block                  | ✅                |
+| INSTALLED dot / NOT INSTALLED pill                                 | yes              | requires `installed: boolean`                  | deferred to PR B3 |
+| Hierarchical workflow → subcategory → tool tree                    | yes              | requires `path: TreeNode[]`                    | deferred to PR B3 |
+| ToolManual modal (OVERVIEW / QUICKSTART / SHORTCUTS / REFS)        | yes              | requires `manual: ManualSpec`                  | deferred to PR B3 |
 
-**This is the surface the user explicitly flagged as "NOT the same".** Audit confirms — it's missing the right detail pane and keybind footer. Header copy also differs.
+PR B2 closes the user-flagged "NOT the same" gap — visual-spatial parity with the prototype is achieved without a schema migration. PR B3 will fill the data-richness gap once the catalog is annotated with `installed`/`view`/`docs`/`path`/`manual` fields.
 
 ---
 
