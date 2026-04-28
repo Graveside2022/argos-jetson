@@ -2,7 +2,8 @@
 	import { Settings2 } from '@lucide/svelte';
 	import type { Snippet } from 'svelte';
 
-	import IconBtn from '$lib/components/mk2/IconBtn.svelte';
+	// spec-026 Phase 1 — IconBtn → IconBtnCarbon (Carbon-wrapped, same public API).
+	import IconBtn from '$lib/components/mk2/IconBtnCarbon.svelte';
 	import Tweaks from '$lib/components/mk2/Tweaks.svelte';
 	import { latLonToMGRS } from '$lib/utils/mgrs-converter';
 

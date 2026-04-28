@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { Download } from '@lucide/svelte';
 
-	import IconBtn from '$lib/components/mk2/IconBtn.svelte';
+	// spec-026 Phase 1 — IconBtn → IconBtnCarbon (Carbon-wrapped, same public API).
+	import IconBtn from '$lib/components/mk2/IconBtnCarbon.svelte';
 
 	import DrawerTable, { type Column } from './DrawerTable.svelte';
 

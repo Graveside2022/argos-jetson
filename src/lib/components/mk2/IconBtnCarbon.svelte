@@ -7,7 +7,7 @@
 	// so consumer call sites don't change. Internally delegates to Carbon's
 	// `<Button kind="ghost" iconOnly>` for a11y + focus management while
 	// Lunaris-specific visual identity (28×28 + 1px border) is preserved
-	// via :global() selectors targeting Carbon's `.cds--btn` class.
+	// via :global() selectors targeting Carbon's `.bx--btn` class.
 	//
 	// See specs/026-lunaris-design-system/components/button/ for the
 	// authority citations + canonical-pattern matrix.
@@ -54,10 +54,10 @@
 
 <style>
 	/* Lunaris visual identity preservation over Carbon `<Button kind="ghost">`.
-	   :global() needed because Carbon's `.cds--btn` class is rendered inside
+	   :global() needed because Carbon's `.bx--btn` class is rendered inside
 	   the Carbon component, not in this scope. See style.md for the
 	   canonical-pattern matrix this implements. */
-	:global(.lunaris-icon-btn.cds--btn) {
+	:global(.lunaris-icon-btn.bx--btn) {
 		min-block-size: 28px;
 		block-size: 28px;
 		inline-size: 28px;
@@ -72,26 +72,26 @@
 			border-color var(--mk2-mo-1),
 			background-color var(--mk2-mo-1);
 	}
-	:global(.lunaris-icon-btn.cds--btn:hover:not(:disabled)) {
+	:global(.lunaris-icon-btn.bx--btn:hover:not(:disabled)) {
 		color: var(--mk2-ink);
 		border-color: var(--mk2-line-hi);
 		background: transparent;
 	}
-	:global(.lunaris-icon-btn--ghost.cds--btn) {
+	:global(.lunaris-icon-btn--ghost.bx--btn) {
 		border-color: transparent;
 	}
-	:global(.lunaris-icon-btn--ghost.cds--btn:hover:not(:disabled)) {
+	:global(.lunaris-icon-btn--ghost.bx--btn:hover:not(:disabled)) {
 		border-color: var(--mk2-line);
 	}
-	:global(.lunaris-icon-btn--active.cds--btn) {
+	:global(.lunaris-icon-btn--active.bx--btn) {
 		color: var(--mk2-accent);
 		border-color: var(--mk2-accent);
 	}
-	:global(.lunaris-icon-btn.cds--btn:disabled) {
+	:global(.lunaris-icon-btn.bx--btn:disabled) {
 		opacity: 0.4;
 		cursor: not-allowed;
 	}
-	:global(.lunaris-icon-btn.cds--btn:focus-visible) {
+	:global(.lunaris-icon-btn.bx--btn:focus-visible) {
 		outline: 1px solid var(--mk2-accent);
 		outline-offset: 1px;
 	}

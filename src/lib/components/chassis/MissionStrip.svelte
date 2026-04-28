@@ -10,7 +10,8 @@
 	// fresh mission and promotes it to active.
 	import { onMount } from 'svelte';
 
-	import IconBtn from '$lib/components/mk2/IconBtn.svelte';
+	// spec-026 Phase 1 — IconBtn → IconBtnCarbon (Carbon-wrapped, same public API).
+	import IconBtn from '$lib/components/mk2/IconBtnCarbon.svelte';
 	import { missionStore } from '$lib/state/missions.svelte';
 	import type { Mission, MissionPatch } from '$lib/types/mission';
 
@@ -67,7 +68,10 @@
 		return Number.isFinite(n) ? n : undefined;
 	}
 
-	function parseEditValue(field: keyof MissionPatch, raw: string): MissionPatch[keyof MissionPatch] {
+	function parseEditValue(
+		field: keyof MissionPatch,
+		raw: string
+	): MissionPatch[keyof MissionPatch] {
 		const trimmed = raw.trim();
 		if (field === 'link_budget') return parseLinkBudget(trimmed);
 		// name disallows empty per server schema; surface as undefined → no-op
@@ -147,13 +151,7 @@
 	</div>
 
 	<div class="strip-cells">
-		{#each [
-			{ field: 'name' as const, label: 'ENGAGEMENT', readonly: false },
-			{ field: 'operator' as const, label: 'OPERATOR', readonly: false },
-			{ field: 'target' as const, label: 'TARGET', readonly: false },
-			{ field: null, label: 'TIMER', readonly: true },
-			{ field: 'link_budget' as const, label: 'LINK BUDGET', readonly: false }
-		] as cell (cell.label)}
+		{#each [{ field: 'name' as const, label: 'ENGAGEMENT', readonly: false }, { field: 'operator' as const, label: 'OPERATOR', readonly: false }, { field: 'target' as const, label: 'TARGET', readonly: false }, { field: null, label: 'TIMER', readonly: true }, { field: 'link_budget' as const, label: 'LINK BUDGET', readonly: false }] as cell (cell.label)}
 			<div class="cell">
 				<div class="cell-label">{cell.label}</div>
 				{#if !active}
@@ -176,13 +174,15 @@
 						class="cell-value mono editable"
 						type="button"
 						onclick={() => cell.field && startEdit(cell.field)}
-					>{fmtLinkBudget(active.link_budget)}</button>
+						>{fmtLinkBudget(active.link_budget)}</button
+					>
 				{:else if cell.field !== null}
 					<button
 						class="cell-value mono editable"
 						type="button"
 						onclick={() => cell.field && startEdit(cell.field)}
-					>{active[cell.field] ?? '—'}</button>
+						>{active[cell.field] ?? '—'}</button
+					>
 				{/if}
 			</div>
 		{/each}

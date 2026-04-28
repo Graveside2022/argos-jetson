@@ -8,7 +8,11 @@
 		densityStore
 	} from '$lib/state/ui.svelte';
 
-	import IconBtn from './IconBtn.svelte';
+	// spec-026 Phase 1 canary — IconBtn → IconBtnCarbon (Carbon-wrapped).
+	// Bespoke IconBtn.svelte still alive at sibling path; revert by reverting
+	// this single import line. Per memory feedback_lunaris_spec_first.md +
+	// specs/026-lunaris-design-system/components/button/code.md.
+	import IconBtn from './IconBtnCarbon.svelte';
 
 	// spec-024 PR2 T017 — Mk II Tweaks panel.
 	// Floating popover anchored top-right under the topbar, activated from the
