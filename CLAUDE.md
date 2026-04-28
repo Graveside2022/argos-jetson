@@ -27,9 +27,9 @@ When debugging any frontend, UI rendering, network, or browser-side issue: use t
 
 Before beginning any significant task, search claude-mem (`smart_search`) to check if this work (or equivalent) has been done in prior sessions. This prevents duplicate effort and surfaces prior decisions, failed approaches, and context that would otherwise be lost.
 
-### Rule 3 — Svelte MCP on every .svelte edit
+### Rule 3 — Svelte MCP + LSP on every .svelte edit
 
-Before writing or changing any Svelte component, call `mcp__svelte-remote__list-sections` → `get-documentation` → `svelte-autofixer`. Do not send Svelte code to the user unless `svelte-autofixer` returns clean. See the **Svelte MCP** section below for the full sequence.
+Before writing or changing any Svelte component, call `mcp__plugin_svelte_svelte__list-sections` → `get-documentation` → `svelte-autofixer`. Do not send Svelte code to the user unless `svelte-autofixer` returns clean. **Plus** for any modified type / interface / exported symbol, run `LSP findReferences` (svelteserver via the `svelte` plugin) PRE-edit to lock the consumer set, and `LSP hover` POST-edit to confirm type narrowing — beats grep + faster than `svelte-check`. See the **Svelte MCP** section below for the full sequence.
 
 ### Rule 4 — GitHub Access via Octocode Only
 
@@ -60,16 +60,16 @@ Verify current state with `claude mcp list`. Authoritative config: `~/.claude.js
 
 ### User + Plugin Scope (always on)
 
-| Tool namespace                                       | Source                                            | Purpose                                                                                     | When to use                                                                                   |
-| ---------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `mcp__serena__*`                                     | user scope (`uv tool`)                            | LSP-backed symbol search, refactor, find-refs                                               | Known symbol name → prefer over Grep/Glob                                                     |
-| `mcp__octocode__*`                                   | user scope (`npx octocode-mcp`)                   | GitHub repo/file/code/PR search                                                             | Any `github.com` lookup (**Rule 5**)                                                          |
-| `mcp__svelte-remote__*`                              | user scope (`https://mcp.svelte.dev/mcp`)         | Official Svelte 5/SvelteKit docs + autofixer                                                | Every `.svelte` file change (**Rule 4**)                                                      |
-| `mcp__chrome-devtools__*`                            | user scope (`--browserUrl http://127.0.0.1:9222`) | Browser DOM/console/network/perf                                                            | Frontend debugging (**Rule 2**). Requires headless chromium pre-launched                      |
-| `mcp__plugin_claude-mem_mcp-search__*`               | plugin `claude-mem`                               | Cross-session memory + smart code search                                                    | Prior work check (**Rule 3**), `smart_search`, `timeline`, `smart_outline`, `knowledge-agent` |
-| `mcp__plugin_context-mode_context-mode__*`           | plugin `context-mode`                             | Keep raw tool output in sandbox (FTS5) to protect context window                            | `ctx_batch_execute`, `ctx_search`, `ctx_execute` for >20-line outputs                         |
-| `mcp__plugin_context7-plugin_context7__*`            | plugin `context7-plugin`                          | Live third-party library docs                                                               | Any library/framework question (**Rule 6**)                                                   |
-| `mcp__plugin_chrome-devtools-mcp_chrome-devtools__*` | plugin `chrome-devtools-mcp`                      | Duplicate namespace — **fails on Jetson aarch64** (defaults to `/opt/google/chrome/chrome`) | Ignore on Jetson; prefer user-scope `mcp__chrome-devtools__*`                                 |
+| Tool namespace                                       | Source                                                                    | Purpose                                                                                                                           | When to use                                                                                    |
+| ---------------------------------------------------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `mcp__serena__*`                                     | user scope (`uv tool`)                                                    | LSP-backed symbol search, refactor, find-refs                                                                                     | Known symbol name → prefer over Grep/Glob                                                      |
+| `mcp__octocode__*`                                   | user scope (`npx octocode-mcp`)                                           | GitHub repo/file/code/PR search                                                                                                   | Any `github.com` lookup (**Rule 5**)                                                           |
+| `mcp__plugin_svelte_svelte__*` + `LSP`               | plugin `svelte` v1.0.4+ (`npx -y @sveltejs/mcp` + `svelteserver --stdio`) | Official Svelte 5/SvelteKit docs, autofixer, AND language-server intelligence (`findReferences`, `hover`, `goToDefinition`, etc.) | Every `.svelte` file change (**Rule 3**). Requires one-time `npm i -g svelte-language-server`. |
+| `mcp__chrome-devtools__*`                            | user scope (`--browserUrl http://127.0.0.1:9222`)                         | Browser DOM/console/network/perf                                                                                                  | Frontend debugging (**Rule 2**). Requires headless chromium pre-launched                       |
+| `mcp__plugin_claude-mem_mcp-search__*`               | plugin `claude-mem`                                                       | Cross-session memory + smart code search                                                                                          | Prior work check (**Rule 3**), `smart_search`, `timeline`, `smart_outline`, `knowledge-agent`  |
+| `mcp__plugin_context-mode_context-mode__*`           | plugin `context-mode`                                                     | Keep raw tool output in sandbox (FTS5) to protect context window                                                                  | `ctx_batch_execute`, `ctx_search`, `ctx_execute` for >20-line outputs                          |
+| `mcp__plugin_context7-plugin_context7__*`            | plugin `context7-plugin`                                                  | Live third-party library docs                                                                                                     | Any library/framework question (**Rule 6**)                                                    |
+| `mcp__plugin_chrome-devtools-mcp_chrome-devtools__*` | plugin `chrome-devtools-mcp`                                              | Duplicate namespace — **fails on Jetson aarch64** (defaults to `/opt/google/chrome/chrome`)                                       | Ignore on Jetson; prefer user-scope `mcp__chrome-devtools__*`                                  |
 
 #### context-mode — enforcement reality
 
@@ -136,16 +136,16 @@ Verify with `/plugin list`. Install more with `/plugin install <name>` (marketpl
 - **MCP vs skill**: MCP = live tool calls that return data. Skill = prompt-time instructions loaded into context. Use MCP for data, skill for workflow discipline.
 - **Reload after edits**: Editing any plugin config or `.claude.json` requires `/reload-plugins` to respawn MCP server subprocesses with new args. Plain config reload does not update already-running subprocesses — kill stale `pgrep chrome-devtools-mcp` procs if needed.
 
-## Svelte MCP
+## Svelte MCP + LSP
 
-## Svelte MCP
+When working with Svelte or SvelteKit code, you MUST use the `svelte` plugin's tools in this order. Plugin source: `sveltejs/ai-tools` marketplace, plugin name `svelte`, v1.0.4+. One-time setup: `npm i -g svelte-language-server` (provides the `svelteserver` binary the LSP wires to).
 
-When working with Svelte or SvelteKit code, you MUST use the Svelte MCP tools in this order:
-
-1. **list-sections** — Call FIRST to discover relevant documentation sections. Analyze the `use_cases` field to find all applicable sections.
-2. **get-documentation** — Fetch ALL relevant documentation sections identified above.
-3. **svelte-autofixer** — MUST run on all Svelte code before sending to user. Keep calling until no issues remain.
-4. **playground-link** — Ask user if they want one after completing code. NEVER generate if code was written to project files.
+1. **`LSP findReferences`** (PRE-edit) — Lock the blast radius of any modified type / interface / exported symbol. Returns the authoritative consumer set from the language-server-parsed AST. Beats grep — won't miss aliases, shorthand, or test/story consumers. Args: `(operation: "findReferences", filePath, line, character)` — line/character both 1-based as shown in editors.
+2. **`mcp__plugin_svelte_svelte__list-sections`** — Call to discover relevant doc sections. Analyze the `use_cases` field to identify what to fetch. Skip if the change is purely structural (data-shape, not Svelte-idiom).
+3. **`mcp__plugin_svelte_svelte__get-documentation`** — Fetch ALL relevant sections. Token-expensive per the tool's own description; only call after autofixer flags something you can't immediately fix.
+4. **`mcp__plugin_svelte_svelte__svelte-autofixer`** — MUST run on all Svelte code before sending to user. Keep calling until `issues: []`. Suggestions about `$effect` calling functions can be acknowledged-and-ignored if the function is verifiably non-mutating; the autofixer self-flags these as low-confidence.
+5. **`LSP hover`** (POST-edit) — Confirm TypeScript narrowed correctly on a sample of the migrated consumer sites. One LSP call per site beats running `svelte-check` (~650 MB RAM, 30+ s).
+6. **`mcp__plugin_svelte_svelte__playground-link`** — Ask user if they want one ONLY when no project file was modified. NEVER generate when code was written to project files (the tool description forbids it).
 
 ## Tactical AI Kill Chain Framework
 
