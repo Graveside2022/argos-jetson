@@ -220,7 +220,7 @@
 	}
 
 	.tbl th {
-		text-align: center;
+		text-align: left;
 		padding: 6px 12px;
 		color: var(--mk2-ink-4);
 		font-size: var(--mk2-fs-drawer-body);
@@ -237,26 +237,24 @@
 		white-space: nowrap;
 	}
 
-	/* Headers always center (UI-label convention; see `.tbl th` rule above).
-	   Body alignment per kind — keeps numbers decimal-scannable while
-	   headers float center-balanced for short label text:
+	/* Column-type alignment convention — drives th + td from one [data-kind]
+	   attribute. Three alignment groups (per AG Grid + Material Data Tables):
 	     - num + action  → right (decimal scanning, icon edge)
-	     - time + tag    → center (≤8 chars, optical balance)
-	     - id + text     → left (word-stem alignment for identifiers and prose) */
+	     - time + tag    → center (≤8 chars, optical balance, no scanning need)
+	     - id + text     → left (word-stem alignment for identifiers and prose)
+	   Header alignment inherits body alignment so the eye doesn't see "swim". */
+	.tbl th[data-kind='num'],
 	.tbl td[data-kind='num'],
+	.tbl th[data-kind='action'],
 	.tbl td[data-kind='action'] {
 		text-align: right;
-	}
-
-	.tbl td[data-kind='time'],
-	.tbl td[data-kind='tag'] {
-		text-align: center;
 	}
 
 	.tbl th[data-kind='time'],
 	.tbl td[data-kind='time'],
 	.tbl th[data-kind='tag'],
 	.tbl td[data-kind='tag'] {
+		text-align: center;
 		white-space: nowrap;
 		font-variant-numeric: tabular-nums;
 	}
