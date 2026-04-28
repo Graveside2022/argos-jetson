@@ -37,7 +37,14 @@ export default [
 			// etc.) land in data/reports/ and include thousands of vendor JS
 			// files that ESLint shouldn't scan. The whole data/ tree is
 			// gitignored already; this mirrors that for the linter.
-			'data/**'
+			'data/**',
+			// Spec 026 reference docs cloned under docs/ (argos-v2-mockup,
+			// carbon-design-system, carbon-website). All gitignored; mirror
+			// here so ESLint doesn't scan thousands of vendor JSX/JS files
+			// from Carbon and the v2 mockup.
+			'docs/argos-v2-mockup/**',
+			'docs/carbon-design-system/**',
+			'docs/carbon-website/**'
 		]
 	},
 	{
