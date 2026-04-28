@@ -1,9 +1,11 @@
 <script lang="ts">
 	import '../app.css';
+	// spec 026 Phase 1 — Lunaris-on-Carbon theme overlay (currently a stub
+	// with no @carbon/styles imports; subsequent commits add per-component
+	// imports). Wired now that sass-embedded is installed (Vite v7 SCSS
+	// preprocessor requirement).
+	import '$lib/styles/lunaris-carbon-theme.scss';
 
-	// spec 026 Phase 1+ will import: '$lib/styles/lunaris-carbon-theme.scss'
-	// after sass-embedded is added as a devDep (Vite v7 requirement). Phase 0
-	// ships the theme file as a stub-only scaffold; no SCSS pipeline change yet.
 	import type { Snippet } from 'svelte';
 	import { onMount } from 'svelte';
 	import { Toaster } from 'svelte-sonner';
