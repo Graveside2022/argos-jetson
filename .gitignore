@@ -324,3 +324,11 @@ claude-code-lsp-enforcement-kit/
 
 # Cell tower CSV dump — reconstitute from data/celltowers/towers.db or release asset
 docs/cell_towers.csv.gz
+
+# Spec 026 — Lunaris Design System reference docs (local-only, recreate on demand)
+# argos-v2-mockup: extract from docs/Argos\ \(1\).zip (visual layout reference)
+# carbon-design-system: git clone --depth 1 --filter=blob:none --sparse https://github.com/carbon-design-system/carbon.git
+# carbon-website: git clone --depth 1 https://github.com/carbon-design-system/carbon-website.git
+docs/argos-v2-mockup/
+docs/carbon-design-system/
+docs/carbon-website/
