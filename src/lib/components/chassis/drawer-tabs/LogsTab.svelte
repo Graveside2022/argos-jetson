@@ -1,7 +1,7 @@
 <script lang="ts">
 	// spec-024 PR3 T021 — Logs drawer tab. Reorderable + sortable via DrawerTable.
 
-	import DrawerTable, { type Column } from './DrawerTable.svelte';
+	import DrawerTable, { type Column } from './DrawerTableCarbon.svelte';
 
 	type Level = 'INFO' | 'WARN' | 'ERROR';
 
