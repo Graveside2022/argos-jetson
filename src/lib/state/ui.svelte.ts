@@ -111,6 +111,10 @@ const isFiniteNumber = (v: unknown): v is number => typeof v === 'number' && Num
 
 const isBool = (v: unknown): v is boolean => typeof v === 'boolean';
 
-export const drawerActiveStore = lsState<DrawerTab>('argos.mk2.drawer.active', 'terminal', isDrawerTab);
+export const drawerActiveStore = lsState<DrawerTab>(
+	'argos.mk2.drawer.active',
+	'terminal',
+	isDrawerTab
+);
 export const drawerOpenStore = lsState<boolean>('argos.mk2.drawer.open', true, isBool);
 export const drawerHeightStore = lsState<number>('argos.mk2.drawer.height', 280, isFiniteNumber);

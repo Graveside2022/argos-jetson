@@ -201,7 +201,9 @@ schedule(async () => {
 		// Couldn't evaluate carve-out (e.g. shallow clone, missing git
 		// metadata). Fall through to fail() below — fail-closed bias.
 		const msg = err instanceof Error ? err.message : String(err);
-		warn(`Tests-required carve-out skipped due to git error: ${msg}. Falling back to strict gate.`);
+		warn(
+			`Tests-required carve-out skipped due to git error: ${msg}. Falling back to strict gate.`
+		);
 	}
 
 	fail(

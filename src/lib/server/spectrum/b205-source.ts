@@ -81,9 +81,7 @@ interface SidecarFrame {
 
 function hasNumericTriad(o: Record<string, unknown>): boolean {
 	return (
-		typeof o.ts === 'number' &&
-		typeof o.startFreq === 'number' &&
-		typeof o.endFreq === 'number'
+		typeof o.ts === 'number' && typeof o.startFreq === 'number' && typeof o.endFreq === 'number'
 	);
 }
 
@@ -111,14 +109,10 @@ export function resolveScriptPath(): string {
  */
 export function validateB205Config(config: SpectrumConfig): void {
 	if (config.gain.kind !== 'b205') {
-		throw new Error(
-			`B205SpectrumSource requires gain.kind='b205', got '${config.gain.kind}'`
-		);
+		throw new Error(`B205SpectrumSource requires gain.kind='b205', got '${config.gain.kind}'`);
 	}
 	if (config.startFreq < B205_MIN_FREQ_HZ) {
-		throw new Error(
-			`B205 startFreq below 70 MHz lower edge: ${config.startFreq} Hz`
-		);
+		throw new Error(`B205 startFreq below 70 MHz lower edge: ${config.startFreq} Hz`);
 	}
 	if (config.endFreq > B205_MAX_FREQ_HZ) {
 		throw new Error(`B205 endFreq above 6 GHz upper edge: ${config.endFreq} Hz`);
