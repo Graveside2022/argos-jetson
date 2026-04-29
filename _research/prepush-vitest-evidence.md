@@ -69,7 +69,7 @@ Microsoft Engineering blog (Azure DevOps Test Impact Analysis): TIA's whole prem
 
 **Keep**: typecheck + ESLint in pre-push (fast, file-scoped, catches the class of bugs that block CI cheaply).
 
-**Rely on**: server-side CI vitest stage as the actual gate. This matches `vuejs/core` exactly (lint+check pre-commit, full tests CI).
+**Rely on**: server-side CI vitest stage as the actual gate. This aligns with the broader CI-owned-test-gating pattern shared by `vuejs/core` (lint+check pre-commit, no pre-push hook), `vercel/next.js`, `sveltejs/svelte`, `sveltejs/kit`, and `carbon-components-svelte` — none of which run tests in any git hook. (Argos retains typecheck + ESLint in pre-push, so the match is to CI test-gating, not to Vue's full pre-push policy.)
 
 ## Honest Caveats
 

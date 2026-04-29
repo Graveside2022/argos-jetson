@@ -142,7 +142,7 @@ Each section: (a) what it is (b) official docs (c) Argos use today (d) industry 
 
 (a) Opinionated formatter.
 (b) https://prettier.io/
-(c) `prettier@3.6.2` + `prettier-plugin-svelte`. `npm run format:check` in CI; `prettier --write` in (missing) lint-staged config.
+(c) `prettier@3.6.2` + `prettier-plugin-svelte`. `npm run format:check` in CI; `prettier --write` invoked from `.lintstagedrc.json` rules on staged JS/TS/Svelte/JSON/MD/CSS files.
 (d) Verbatim from Prettier docs: _"npx prettier . --check … `--check` is like `--write`, but only checks that files are already formatted, rather than overwriting them."_ Standard pattern: ESLint + `eslint-config-prettier` (turns off conflicting rules) + lint-staged in pre-commit + `--check` in CI.
 (e) `eslint-config-prettier@10.1.5` is installed and imported. CI runs `format:check` in `ci.yml` only. trunk also runs prettier (potential double-format).
 (f) Disable prettier in trunk (`.trunk/trunk.yaml` `lint.disabled` array — already disables eslint, oxipng, black, isort, shfmt). Keep prettier as the single owner via `format:check` in CI + lint-staged in pre-commit.
