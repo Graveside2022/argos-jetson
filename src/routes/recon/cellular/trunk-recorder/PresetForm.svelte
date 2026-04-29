@@ -1,7 +1,9 @@
 <script lang="ts">
+	import { SelectItem } from 'carbon-components-svelte';
 	import { untrack } from 'svelte';
 
 	import NumberInput from '$lib/components/chassis/forms/NumberInput.svelte';
+	import Select from '$lib/components/chassis/forms/Select.svelte';
 	import type {
 		Preset,
 		PresetInput,
@@ -155,13 +157,10 @@
 		<input type="text" bind:value={name} required maxlength="80" />
 	</label>
 
-	<label>
-		<span>System type</span>
-		<select bind:value={systemType}>
-			<option value="p25">P25 (Phase 1 / Phase 2)</option>
-			<option value="smartnet">Motorola SmartNet / SmartZone</option>
-		</select>
-	</label>
+	<Select labelText="System type" bind:value={systemType} size="sm">
+		<SelectItem value="p25" text="P25 (Phase 1 / Phase 2)" />
+		<SelectItem value="smartnet" text="Motorola SmartNet / SmartZone" />
+	</Select>
 
 	<label>
 		<span>System label (rdio-scanner display)</span>
@@ -315,7 +314,6 @@
 		color: var(--muted-foreground, #9ca3af);
 	}
 	.preset-form input[type='text'],
-	.preset-form select,
 	.preset-form textarea {
 		background: var(--background);
 		color: var(--foreground);

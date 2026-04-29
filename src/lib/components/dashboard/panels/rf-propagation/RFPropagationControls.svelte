@@ -1,6 +1,9 @@
 <!-- RF Propagation parameter controls — compact form for CloudRF computation settings -->
 <script lang="ts">
+	import { SelectItem } from 'carbon-components-svelte';
+
 	import NumberInput from '$lib/components/chassis/forms/NumberInput.svelte';
+	import Select from '$lib/components/chassis/forms/Select.svelte';
 	import { rfParams, updateRFParam } from '$lib/stores/dashboard/rf-propagation-store';
 
 	function setRfNumber(
@@ -10,8 +13,8 @@
 		if (v != null) updateRFParam(key, v);
 	}
 
-	function handlePolarization(e: Event) {
-		updateRFParam('polarization', parseInt((e.target as HTMLSelectElement).value, 10));
+	function handlePolarization(v: string | number | undefined): void {
+		if (v !== undefined) updateRFParam('polarization', Number(v));
 	}
 </script>
 
@@ -31,17 +34,15 @@
 			onChange={(v) => setRfNumber('frequency', v)}
 		/>
 
-		<label class="field">
-			<span class="field-label">POLARIZATION</span>
-			<select
-				class="field-input field-select"
-				value={$rfParams.polarization}
-				onchange={handlePolarization}
-			>
-				<option value={0}>Horizontal</option>
-				<option value={1}>Vertical</option>
-			</select>
-		</label>
+		<Select
+			labelText="POLARIZATION"
+			value={$rfParams.polarization}
+			onChange={handlePolarization}
+			size="sm"
+		>
+			<SelectItem value={0} text="Horizontal" />
+			<SelectItem value={1} text="Vertical" />
+		</Select>
 	</div>
 
 	<div class="field-grid">
@@ -120,52 +121,6 @@
 		display: grid;
 		grid-template-columns: 1fr 1fr;
 		gap: 8px;
-	}
-
-	.field {
-		display: flex;
-		flex-direction: column;
-		gap: 3px;
-	}
-
-	.field-label {
-		font-family: var(--font-mono, 'Fira Code', monospace);
-		font-size: 9px;
-		font-weight: 500;
-		letter-spacing: 1.2px;
-		text-transform: uppercase;
-		color: var(--foreground-secondary, #888888);
-	}
-
-	.field-input {
-		flex: 1;
-		background: var(--surface-elevated, #151515);
-		border: 1px solid var(--border);
-		border-radius: 4px;
-		padding: 4px 8px;
-		font-family: var(--font-mono, 'Fira Code', monospace);
-		font-size: 11px;
-		color: var(--foreground);
-		min-width: 0;
-	}
-
-	.field-input:focus {
-		outline: none;
-		border-color: var(--primary);
-	}
-
-	.field-select {
-		appearance: none;
-		cursor: pointer;
-		padding-right: 20px;
-		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E");
-		background-repeat: no-repeat;
-		background-position: right 6px center;
-	}
-
-	.field-select option {
-		background: var(--card, #1a1a1a);
-		color: var(--foreground);
 	}
 
 </style>

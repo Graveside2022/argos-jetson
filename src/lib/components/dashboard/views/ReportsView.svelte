@@ -10,8 +10,10 @@
 		Trash2,
 		X
 	} from '@lucide/svelte';
+	import { SelectItem } from 'carbon-components-svelte';
 
 	import Checkbox from '$lib/components/chassis/forms/Checkbox.svelte';
+	import Select from '$lib/components/chassis/forms/Select.svelte';
 	import PanelEmptyState from '$lib/components/ui/PanelEmptyState.svelte';
 	import { persistedWritable } from '$lib/stores/persisted-writable';
 
@@ -299,16 +301,19 @@
 
 		<div class="toolbar-group">
 			<label class="field-label" for="filter-type">FILTER</label>
-			<select
+			<Select
 				id="filter-type"
-				class="select"
-				bind:value={filterType}
-				aria-label="Filter by type"
+				noLabel
+				value={filterType}
+				onChange={(v) => {
+					if (v !== undefined) filterType = String(v) as typeof filterType;
+				}}
+				size="sm"
 			>
-				<option value="all">ALL</option>
-				<option value="sitrep">SITREP</option>
-				<option value="emcon-survey">EMCON SURVEY</option>
-			</select>
+				<SelectItem value="all" text="ALL" />
+				<SelectItem value="sitrep" text="SITREP" />
+				<SelectItem value="emcon-survey" text="EMCON SURVEY" />
+			</Select>
 		</div>
 
 		<div class="toolbar-group">
@@ -571,17 +576,20 @@
 							disabled={missionSubmitting}
 						/>
 					</label>
-					<label class="form-field">
-						<span class="field-label">TYPE</span>
-						<select
-							class="select"
-							bind:value={missionType}
+					<div class="form-field">
+						<Select
+							labelText="TYPE"
+							value={missionType}
+							onChange={(v) => {
+								if (v !== undefined) missionType = String(v) as typeof missionType;
+							}}
 							disabled={missionSubmitting}
+							size="sm"
 						>
-							<option value="sitrep-loop">SITREP LOOP</option>
-							<option value="emcon-survey">EMCON SURVEY</option>
-						</select>
-					</label>
+							<SelectItem value="sitrep-loop" text="SITREP LOOP" />
+							<SelectItem value="emcon-survey" text="EMCON SURVEY" />
+						</Select>
+					</div>
 					<label class="form-field">
 						<span class="field-label">UNIT</span>
 						<input
@@ -720,7 +728,6 @@
 		color: var(--primary);
 	}
 
-	.select,
 	.input {
 		background: var(--background);
 		color: var(--foreground);
@@ -734,8 +741,7 @@
 		outline: none;
 	}
 
-	.input:focus,
-	.select:focus {
+	.input:focus {
 		border-color: var(--primary);
 	}
 
