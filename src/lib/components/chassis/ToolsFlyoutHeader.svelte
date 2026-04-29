@@ -1,9 +1,11 @@
 <script lang="ts">
-	import { Search, X } from '@lucide/svelte';
-	import { tick } from 'svelte';
+	import { X } from '@lucide/svelte';
+
+	import Search from '$lib/components/chassis/forms/Search.svelte';
 
 	// spec-024 Phase 3 PR B2-full — header strip for ToolsFlyout: title + total
-	// + search + ESC chip + close. Self-manages focus when `open` becomes true.
+	// + search + ESC chip + close. PR3b (spec-026): bespoke <input type="search">
+	// migrated to Carbon <Search> adapter per ADR-0001.
 
 	interface Props {
 		total: number;
@@ -13,13 +15,6 @@
 	}
 
 	let { total, query = $bindable(), open, onClose }: Props = $props();
-
-	let searchInput = $state<HTMLInputElement | null>(null);
-
-	$effect(() => {
-		if (!open) return;
-		void tick().then(() => searchInput?.focus());
-	});
 </script>
 
 <header class="head">
@@ -27,16 +22,13 @@
 		<span class="brand">TOOLS</span>
 		<span class="total">{total} TOTAL</span>
 	</div>
-	<div class="search">
-		<Search size={14} />
-		<input
-			bind:this={searchInput}
-			bind:value={query}
-			type="search"
+	<div class="search-row">
+		<Search
+			ariaLabel="Search tools"
 			placeholder="Search tools…"
-			aria-label="Search tools"
-			spellcheck="false"
-			autocomplete="off"
+			autofocus={open}
+			bind:value={query}
+			size="sm"
 		/>
 		<span class="kbd">ESC</span>
 	</div>
@@ -71,32 +63,12 @@
 		color: var(--mk2-ink-3);
 		letter-spacing: 0.08em;
 	}
-	.search {
+	.search-row {
 		display: flex;
 		align-items: center;
 		gap: 8px;
-		padding: 4px 10px;
-		background: var(--mk2-bg);
-		border: 1px solid var(--mk2-line);
-		color: var(--mk2-ink-3);
-	}
-	.search:focus-within {
-		border-color: var(--mk2-accent);
-		color: var(--mk2-ink);
-	}
-	.search input {
-		flex: 1;
-		background: transparent;
-		border: 0;
-		color: var(--mk2-ink);
-		font: inherit;
-		outline: none;
-	}
-	.search input::placeholder {
-		color: var(--mk2-ink-4);
 	}
 	.kbd {
-		margin-left: auto;
 		padding: 1px 6px;
 		background: var(--mk2-bg);
 		border: 1px solid var(--mk2-line);
