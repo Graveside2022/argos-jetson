@@ -222,7 +222,7 @@ Each section: (a) what it is (b) official docs (c) Argos use today (d) industry 
 ### 3.15 Sentrux
 
 (a) Architecture quality gate. Walks the dependency graph and produces `quality_signal` score + cycle/layer detection.
-(b) Internal MCP (configured per `CLAUDE.md` Rule 6). Day-0 baseline: 5401, current: 6730 (+24.6% per memory `project_sentrux_day0_complete.md`).
+(b) Internal MCP (configured per `CLAUDE.md` Rule 6). Day-0 baseline: 5401. Current `quality_signal` and per-PR delta history are tracked in memory `project_sentrux_baseline.md` + `project_sentrux_day0_complete.md` (single source of truth — hard-coded values omitted from this spec to avoid drift).
 (c) Per-PR session bracketing: `session_start` after branch creation, `rescan` + `session_end` + `check_rules` before merge. `quality_signal` MUST NOT regress.
 (d) Sentrux is internal — no public canon. The bracketing pattern is documented in `feedback_sentrux_per_pr_session.md`.
 (e) Not currently a CI step — runs only via the per-PR Claude session. Risk: a `--no-verify` push that lands without sentrux bracketing degrades the score silently.
