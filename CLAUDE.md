@@ -70,6 +70,49 @@ User has explicitly instructed: explain every command, tool, library, and concep
 
 Full pattern catalogue + counter-examples + edge cases in user memory `feedback_explain_as_you_go.md`. Rationale: user stated _"the way you explain it, it has to be extremely simple. like i have no idea what your doing when you run a long bash command etc, you really have to break things down clearly"_ — non-negotiable preference; failure to explain is failure to deliver even when the technical work is correct.
 
+### Rule 9 — Parallel work during background dispatches (no idle waits)
+
+When ANY of these bg-trigger patterns fires in a turn, the SAME turn MUST include BOTH a one-shot status check AND ≥1 parallel-safe action. **Ending a turn with a bg job pending and zero parallel work dispatched is a non-negotiable user-flagged lint violation** — treat with the same severity as committing broken code.
+
+**Trigger patterns** (auto-fire the rule):
+
+- `run_in_background: true` on `npm run build|test:*|typecheck`, `git commit` (quality-gate ≈ 2-3 min), `gh pr create`, `gh pr merge --auto`, any `Agent` dispatch
+- `ScheduleWakeup({ delaySeconds > 60 })`
+- `gh pr view` showing PR awaiting CR / CI checks
+- `mcp__plugin_sentrux_sentrux__rescan` on a >50K-line repo
+
+**Same-turn obligation** (do all three):
+
+1. **One-shot status check** — `tail -3 /tmp/<log>` + `pgrep -af <proc>` + (if applicable) `gh pr view <N> --json statusCheckRollup`. Single call. NOT a wait loop. NOT `until ... sleep ... done`.
+
+2. **Dispatch ≥1 parallel-safe action** from the Lightweight Parallel-Safe Ops list. Always-available examples:
+    - **Memory + plan + commit-message + PR-body writes** to `~/.claude/projects/.../memory/*.md`, `plans/*.md`, `/tmp/*.md`
+    - **Source reads** via Read/Grep/Glob (the autofixer reminder about symbolic tools is token-efficiency guidance, NOT a parallel-work blocker)
+    - **Doc fetches** via `mcp__plugin_context7-plugin_context7__*`, `mcp__octocode__*`, `WebFetch` to vendor docs
+    - **Hardware/service probes** — `lsusb`, `systemctl status`, `ss -tnlp`, `curl -sf http://localhost:5173/api/health`
+    - **Worktree + symlink setup** — `git worktree add -b ...`, `ln -s node_modules .env`, `npx svelte-kit sync`
+    - **GitHub status checks** — `gh pr view`, `gh run list`, `gh api`
+    - **Next-PR migrations** if file-disjoint from in-flight work (use the conflict matrix in the memory)
+
+3. **State which next-phase work is being prepared** — give the user visibility into what's in flight.
+
+**If no parallel-safe work fits, say so explicitly** ("Build running. No parallel-safe prep applies because PR-A and PR-B share `src/app.css`") — don't go silent.
+
+**FORBIDDEN sentences** after a `run_in_background=true` dispatch (these are all fabricated excuses for ending the turn idle):
+
+- "staying silent until it notifies"
+- "to avoid burning cache cycles"
+- "will check status next turn"
+- "let the notification fire"
+- "monitoring in background"
+- "standing by for completion"
+
+The `tail -3` cost is ~50 tokens; the cost of NOT parallelizing is 1-3 minutes of wasted wall-clock per bg job × every bg job in the session.
+
+**Banned wait shells:** `until <cond>; do sleep N; done` and `tail -f file & wait` — these orphan across turns and burn process slots without observation. Replace with single-shot check + `Monitor` tool (event-driven) or `ScheduleWakeup` (self-paced re-entry).
+
+Full 6-incident catalogue (escalating remediation across 2026-04-27 → 2026-04-29) + lightweight-vs-heavy ops table + conflict-matrix for parallel PRs in user memory `feedback_parallel_work_during_waits.md`.
+
 ## Active MCP Servers
 
 Verify current state with `claude mcp list`. Authoritative config: `~/.claude.json` (user scope) + each plugin's `.claude-plugin/plugin.json`.
