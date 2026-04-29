@@ -51,9 +51,14 @@ jobs:
         # locally and commits the updated .audit-baseline.json.
         run: ./scripts/ops/audit-delta.sh
 
-      - name: 'Run Linting, Formatting, and Type Checks'
+      - name: 'Run Formatting and Type Checks'
+        # ESLint scan deliberately removed 2026-04-29 — duplicate of the
+        # canonical `lint.yml::eslint` job which already runs on every push
+        # and PR (any branch) with proper `actions/cache@v4` ESLint cache.
+        # `lint.yml` strictly broader trigger than `ci.yml` (main-only),
+        # so the gate is fully preserved server-side. Single-source-of-truth
+        # canon (PR-CI-3 of pipeline audit).
         run: |
-          npm run lint
           npm run format:check
           npm run typecheck
 
