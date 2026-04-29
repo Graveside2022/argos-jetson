@@ -15,6 +15,7 @@
   POST shape matches StartSpectrumRequestSchema in src/lib/schemas/spectrum.ts.
 -->
 <script lang="ts">
+	import Dropdown from '$lib/components/chassis/forms/Dropdown.svelte';
 	import NumberInput from '$lib/components/chassis/forms/NumberInput.svelte';
 	import { spectrumConfigStore, spectrumRuntime } from '$lib/state/spectrum.svelte';
 	import type { GainConfig, SpectrumConfig } from '$lib/types/spectrum';
@@ -29,6 +30,14 @@
 		{ label: '500 kHz', hz: 500_000 },
 		{ label: '1 MHz', hz: 1_000_000 }
 	];
+
+	const binItems = BIN_PRESETS.map((p) => ({ id: p.hz, label: p.label }));
+	const ampItems = [
+		{ id: 0, label: 'off' },
+		{ id: 1, label: 'on (+14 dB)' }
+	];
+	const lnaItems = LNA_STEPS.map((v) => ({ id: v, label: String(v) }));
+	const vgaItems = VGA_STEPS.map((v) => ({ id: v, label: String(v) }));
 
 	let busy = $state(false);
 	let postError = $state<string | null>(null);
@@ -139,48 +148,37 @@
 			onChange={(v) => v != null && patchConfig({ endFreq: v * 1e6 })}
 		/>
 
-		<label>
-			<span>bin width</span>
-			<select
-				value={spectrumConfigStore.value.binWidth}
-				onchange={(e) => patchConfig({ binWidth: Number(e.currentTarget.value) })}
-			>
-				{#each BIN_PRESETS as p (p.hz)}
-					<option value={p.hz}>{p.label}</option>
-				{/each}
-			</select>
-		</label>
+		<Dropdown
+			labelText="bin width"
+			items={binItems}
+			selectedId={spectrumConfigStore.value.binWidth}
+			onSelect={(id) => patchConfig({ binWidth: Number(id) })}
+			size="sm"
+		/>
 
-		<label>
-			<span>amp</span>
-			<select
-				value={gain.amp}
-				onchange={(e) => patchHackrfGain({ amp: Number(e.currentTarget.value) as 0 | 1 })}
-			>
-				<option value={0}>off</option>
-				<option value={1}>on (+14 dB)</option>
-			</select>
-		</label>
+		<Dropdown
+			labelText="amp"
+			items={ampItems}
+			selectedId={gain.amp}
+			onSelect={(id) => patchHackrfGain({ amp: Number(id) as 0 | 1 })}
+			size="sm"
+		/>
 
-		<label>
-			<span>LNA (dB)</span>
-			<select
-				value={gain.lna}
-				onchange={(e) => patchHackrfGain({ lna: Number(e.currentTarget.value) })}
-			>
-				{#each LNA_STEPS as v (v)}<option value={v}>{v}</option>{/each}
-			</select>
-		</label>
+		<Dropdown
+			labelText="LNA (dB)"
+			items={lnaItems}
+			selectedId={gain.lna}
+			onSelect={(id) => patchHackrfGain({ lna: Number(id) })}
+			size="sm"
+		/>
 
-		<label>
-			<span>VGA (dB)</span>
-			<select
-				value={gain.vga}
-				onchange={(e) => patchHackrfGain({ vga: Number(e.currentTarget.value) })}
-			>
-				{#each VGA_STEPS as v (v)}<option value={v}>{v}</option>{/each}
-			</select>
-		</label>
+		<Dropdown
+			labelText="VGA (dB)"
+			items={vgaItems}
+			selectedId={gain.vga}
+			onSelect={(id) => patchHackrfGain({ vga: Number(id) })}
+			size="sm"
+		/>
 	</fieldset>
 
 	<div class="actions">
@@ -234,25 +232,6 @@
 		border: 0;
 		padding: 0;
 		margin: 0;
-	}
-	label {
-		display: flex;
-		flex-direction: column;
-		gap: 2px;
-	}
-	label span {
-		font-size: var(--mk2-fs-1);
-		letter-spacing: 0.1em;
-		text-transform: uppercase;
-		color: var(--mk2-ink-3);
-	}
-	select {
-		font-family: var(--mk2-f-mono);
-		font-size: var(--mk2-fs-3);
-		background: var(--mk2-bg);
-		color: var(--mk2-ink);
-		border: 1px solid var(--mk2-line);
-		padding: 3px 6px;
 	}
 	.actions {
 		display: flex;
