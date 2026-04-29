@@ -54,6 +54,10 @@ Every PR is bracketed by sentrux:
 
 The `.sentrux/rules.toml` enforces `max_cycles = 0` + layer ordering (routes → components → client_state → server → utils → types) + 4 hard `from→to` boundaries. CC and fn-line checks are deferred until sentrux ships per-language dispatch (see baseline memory for v0.5.7 limitation).
 
+### Rule 7 — CI/CD pipeline edits reference the canon spec
+
+Before any change to `.github/workflows/`, `.husky/`, `package.json` scripts, `.trunk/`, `.lintstagedrc.json`, `commitlint.config.mjs`, `dangerfile.js`, or `config/eslint.config.js`: **read `docs/ci-cd-pipeline-spec.md` first**. It is the canonical pipeline reference (per-tool config, gate-matrix-with-canonical-owner, edge-case handling, decision log). All citations live there — don't re-derive them. If a proposed change isn't represented in the spec, AMEND the spec in the same PR. Once the L3 audit script (`scripts/ops/audit-pipeline-config.sh`, ships in PR-AUD-1b) and audit workflow are merged, drift will be enforced mechanically on every pipeline-touching PR + nightly cron. Until then, this rule is a Claude-session discipline check. Rationale: per `feedback_pro_architecture_playbook.md` Tuning-vs-architectural section + memory `feedback_mechanical_enforcement_over_audit.md` — mechanical gates catch drift that human / Claude audits miss.
+
 ## Active MCP Servers
 
 Verify current state with `claude mcp list`. Authoritative config: `~/.claude.json` (user scope) + each plugin's `.claude-plugin/plugin.json`.
