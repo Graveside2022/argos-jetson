@@ -16,22 +16,23 @@ Single-line free-text capture (search query, MAC filter, SSID prefix, frequency 
 - Numeric values with up/down stepper → use `<NumberInput>` (separate spec).
 - Multi-line capture (logs, notes, free-form CoT message body) → use Carbon `<TextArea>` (deferred — not in Phase 3 scope).
 - Passwords / secrets → use Carbon's `<PasswordInput>` variant which adds the visibility toggle. Argos rarely surfaces secrets in the UI; the existing TAK enroll flow at `src/routes/api/tak/enroll/+server.ts` uses HTTP-only.
+- **Search boxes** (input with `type="search"` + magnifier icon + clear-on-Escape semantics) → use Carbon's dedicated `<Search>` component, NOT `<TextInput>`. Carbon explicitly separates these concerns; mixing them in one adapter conflates two component specs. (ADR-0001 — `specs/026-lunaris-design-system/adrs/0001-phase-3-canary-textinput.md`).
 
 ## Argos surface inventory
 
-Bespoke text inputs that Phase 3 retires by migrating to `<TextInput>`:
+Bespoke text inputs that Phase 3 retires by migrating to `<TextInput>`. Updated 2026-04-29 post-RTFM Carbon taxonomy verification (ADR-0001).
 
-| Surface                 | File                                                                              | Current pattern                                                         |
-| ----------------------- | --------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| Tools flyout filter     | `src/lib/components/chassis/ToolsFlyout.svelte`                                   | bespoke `<input>` with `class:input-search`                             |
-| Filter bar              | `src/lib/components/dashboard/panels/FilterBar.svelte`                            | bespoke `<input>` with hand-rolled focus styles                         |
-| Kismet inspector query  | `src/lib/components/screens/parts/KismetInspector.svelte`                         | bespoke `<input>` with debounce                                         |
-| Frequency tuner         | `src/lib/components/screens/parts/FrequencyTuner.svelte`                          | bespoke numeric input — split: numeric → NumberInput, label → TextInput |
-| GP server form          | `src/lib/components/dashboard/globalprotect/GpServerForm.svelte`                  | multiple bespoke `<input>` for hostname, username                       |
-| TAK URL form            | `src/lib/components/dashboard/views/webtak/webtak-url-form.svelte`                | bespoke URL input                                                       |
-| RF propagation controls | `src/lib/components/dashboard/panels/rf-propagation/RFPropagationControls.svelte` | bespoke numeric inputs — TBD split                                      |
+| Surface                 | File                                                                              | Current pattern                                        | Phase 3 target                                                                                                            |
+| ----------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| GP server form          | `src/lib/components/dashboard/globalprotect/GpServerForm.svelte`                  | 3 bespoke `<input>` (portal, username, password)       | **PR3a canary** (portal + username only). Password → PR3b via `<PasswordInput>`.                                          |
+| Filter bar              | `src/lib/components/dashboard/panels/FilterBar.svelte`                            | bespoke `<input>` with hand-rolled focus styles        | PR3b tier-migrate.                                                                                                        |
+| Frequency tuner         | `src/lib/components/screens/parts/FrequencyTuner.svelte`                          | bespoke numeric input + label                          | PR3b: label half via `<TextInput>`. Numeric half → `<NumberInput>` (separate adapter, separate PR).                       |
+| TAK URL form            | `src/lib/components/dashboard/views/webtak/webtak-url-form.svelte`                | bespoke URL input                                      | PR3b tier-migrate (use `type="url"`).                                                                                     |
+| RF propagation controls | `src/lib/components/dashboard/panels/rf-propagation/RFPropagationControls.svelte` | bespoke numeric inputs                                 | NOT a `<TextInput>` consumer — defers to `<NumberInput>` adapter (drafted PR #68 usage.md).                               |
+| Tools flyout filter     | `src/lib/components/chassis/ToolsFlyoutHeader.svelte`                             | `type="search"` with magnifier prefix + ESC clear chip | **NOT a `<TextInput>` consumer** — semantically Carbon `<Search>`. Migrates under a future `components/search/` spec set. |
+| Kismet inspector query  | `src/lib/components/screens/parts/KismetInspector.svelte`                         | (unverified — `grep '<input'` returns 0 in this file)  | Re-verify before scheduling. May already use a different abstraction.                                                     |
 
-Total bespoke text-input call sites: ~15-20. Migration order: tools-flyout (low-traffic, easy canary) → filter-bar (high visibility) → forms (TAK, GP, etc.) → screen inspectors.
+Total bespoke text-input call sites: ~5-7 confirmed (excluding Search/NumberInput taxonomy). Migration order codified in ADR-0001: GpServerForm portal+username (canary, PR3a) → password+filter-bar+webtak+frequency-tuner-label (PR3b).
 
 ## Anatomy
 
