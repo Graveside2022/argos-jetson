@@ -1,7 +1,9 @@
 <script lang="ts">
+	import { SelectItem } from 'carbon-components-svelte';
 	import { onDestroy, onMount, untrack } from 'svelte';
 
 	import { invalidateAll } from '$app/navigation';
+	import Select from '$lib/components/chassis/forms/Select.svelte';
 	import type {
 		Preset,
 		PresetInput,
@@ -163,18 +165,27 @@
 <div class="page">
 	<header class="control-strip">
 		<div class="preset-select">
-			<label for="preset">Preset</label>
-			<select id="preset" bind:value={selectedPresetId} disabled={status.running}>
+			<Select
+				id="preset"
+				labelText="Preset"
+				value={selectedPresetId ?? ''}
+				onChange={(v) => {
+					selectedPresetId = v === '' || v === undefined ? null : String(v);
+				}}
+				disabled={status.running}
+				size="sm"
+			>
 				{#if presets.length === 0}
-					<option value={null}>No presets yet — click + New</option>
+					<SelectItem value="" text="No presets yet — click + New" />
 				{:else}
 					{#each presets as preset (preset.id)}
-						<option value={preset.id}>
-							{preset.name} — {preset.systemType.toUpperCase()}
-						</option>
+						<SelectItem
+							value={preset.id}
+							text={`${preset.name} — ${preset.systemType.toUpperCase()}`}
+						/>
 					{/each}
 				{/if}
-			</select>
+			</Select>
 			<button
 				type="button"
 				class="btn-ghost"
@@ -286,21 +297,6 @@
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
-	}
-	.preset-select label {
-		font-family: 'Fira Code', monospace;
-		font-size: 10px;
-		text-transform: uppercase;
-		letter-spacing: 1.2px;
-	}
-	.preset-select select {
-		background: var(--background);
-		color: var(--foreground);
-		border: 1px solid var(--border);
-		padding: 0.25rem 0.5rem;
-		font-family: 'Fira Code', monospace;
-		font-size: 11px;
-		min-width: 280px;
 	}
 	.btn-ghost {
 		background: transparent;

@@ -5,10 +5,12 @@
 -->
 <!-- @constitutional-exemption Article-IV-4.2 issue:#12 — Custom table layout tightly coupled to BluetoothDevice shape; shadcn Table component incompatible with fixed-width column spec -->
 <script lang="ts">
+	import { SelectItem } from 'carbon-components-svelte';
 	import { onDestroy, onMount } from 'svelte';
 
 	import { browser } from '$app/environment';
 	import Checkbox from '$lib/components/chassis/forms/Checkbox.svelte';
+	import Select from '$lib/components/chassis/forms/Select.svelte';
 	import PanelEmptyState from '$lib/components/ui/PanelEmptyState.svelte';
 	import {
 		applyBluetoothDevices,
@@ -221,11 +223,20 @@
 		<span class="packets">{$bluetoothStore.packetCount} pkts</span>
 		<button class="btn-clear" onclick={onClear}>Clear</button>
 		{#if $bluetoothStore.status === 'stopped'}
-			<select class="profile-select" bind:value={profile} disabled={togglesDisabled}>
-				<option value="clean">CLEAN (98% CRC)</option>
-				<option value="volume">VOLUME (recommended)</option>
-				<option value="max">MAX DECODE</option>
-			</select>
+			<Select
+				hideLabel
+				labelText="profile"
+				value={profile}
+				onChange={(v) => {
+					if (v !== undefined) profile = String(v) as BluedragonProfile;
+				}}
+				disabled={togglesDisabled}
+				size="sm"
+			>
+				<SelectItem value="clean" text="CLEAN (98% CRC)" />
+				<SelectItem value="volume" text="VOLUME (recommended)" />
+				<SelectItem value="max" text="MAX DECODE" />
+			</Select>
 			<Checkbox
 				class="opt"
 				bind:checked={allChannels}

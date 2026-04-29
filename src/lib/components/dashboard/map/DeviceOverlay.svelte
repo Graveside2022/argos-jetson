@@ -1,5 +1,8 @@
 <!-- @constitutional-exemption Article-IV-4.2 — overlay-close button uses custom micro icon, shadcn Button not appropriate for 12px close control -->
 <script lang="ts">
+	import { SelectItem } from 'carbon-components-svelte';
+
+	import Select from '$lib/components/chassis/forms/Select.svelte';
 	import { isolateDevice } from '$lib/stores/dashboard/dashboard-store';
 	import type { Affiliation } from '$lib/stores/tactical-map/kismet-store';
 	import { setDeviceAffiliation } from '$lib/stores/tactical-map/kismet-store';
@@ -62,19 +65,22 @@
 		<span class="overlay-label">AFFIL</span>
 		<span class="overlay-value">
 			<span class="affil-indicator affil-{content.affiliation}"></span>
-			<select
-				class="affil-select"
+			<Select
+				hideLabel
+				labelText="affiliation"
 				value={content.affiliation}
-				onchange={(e) => {
-					const val = (e.target as HTMLSelectElement).value as Affiliation;
+				onChange={(v) => {
+					if (v === undefined) return;
+					const val = String(v) as Affiliation;
 					setDeviceAffiliation(content.mac, val);
 					content = { ...content, affiliation: val };
 				}}
+				size="sm"
 			>
-				<option value="unknown">Unknown</option>
-				<option value="friendly">Friendly</option>
-				<option value="hostile">Hostile</option>
-			</select>
+				<SelectItem value="unknown" text="Unknown" />
+				<SelectItem value="friendly" text="Friendly" />
+				<SelectItem value="hostile" text="Hostile" />
+			</Select>
 		</span>
 	</div>
 	<div class="overlay-divider"></div>

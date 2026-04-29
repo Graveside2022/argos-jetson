@@ -8,8 +8,10 @@
 	// rendered (Lunaris design rule). Multi-mission switcher uses a
 	// native <select> for accessibility; a "+ NEW" button creates a
 	// fresh mission and promotes it to active.
+	import { SelectItem } from 'carbon-components-svelte';
 	import { onMount } from 'svelte';
 
+	import Select from '$lib/components/chassis/forms/Select.svelte';
 	// spec-026 Phase 1 — IconBtn → IconBtnCarbon (Carbon-wrapped, same public API).
 	import IconBtn from '$lib/components/mk2/IconBtn.svelte';
 	import { missionStore } from '$lib/state/missions.svelte';
@@ -110,8 +112,8 @@
 		}
 	}
 
-	function onSwitcherChange(e: Event): void {
-		const id = (e.target as HTMLSelectElement).value;
+	function onSwitcherChange(value: string | number | undefined): void {
+		const id = value === undefined ? '' : String(value);
 		if (id && id !== active?.id) void missionStore.setActive(id);
 	}
 
@@ -130,19 +132,20 @@
 			<span class="empty-label">NO MISSIONS — </span>
 			<button class="new-btn" type="button" onclick={onNewMission}>+ CREATE FIRST</button>
 		{:else}
-			<select
-				class="switcher"
+			<Select
+				hideLabel
+				labelText="active mission"
 				value={active?.id ?? ''}
-				onchange={onSwitcherChange}
-				aria-label="active mission"
+				onChange={onSwitcherChange}
+				size="sm"
 			>
 				{#if !active}
-					<option value="">— select active —</option>
+					<SelectItem value="" text="— select active —" />
 				{/if}
 				{#each all as m (m.id)}
-					<option value={m.id}>{m.name}</option>
+					<SelectItem value={m.id} text={m.name} />
 				{/each}
-			</select>
+			</Select>
 			<IconBtn onclick={onNewMission} ariaLabel="new mission">+</IconBtn>
 		{/if}
 		{#if missionStore.lastError}
@@ -206,18 +209,6 @@
 		font-size: 9px;
 		text-transform: uppercase;
 		letter-spacing: 1.2px;
-	}
-	.switcher {
-		background: transparent;
-		color: inherit;
-		border: 1px solid var(--border);
-		padding: 2px 6px;
-		font-family: inherit;
-		font-size: 11px;
-		min-width: 200px;
-	}
-	.switcher:focus {
-		outline: 1px solid var(--primary);
 	}
 	.empty-label {
 		color: var(--muted-foreground);
