@@ -15,6 +15,7 @@
   POST shape matches StartSpectrumRequestSchema in src/lib/schemas/spectrum.ts.
 -->
 <script lang="ts">
+	import NumberInput from '$lib/components/chassis/forms/NumberInput.svelte';
 	import { spectrumConfigStore, spectrumRuntime } from '$lib/state/spectrum.svelte';
 	import type { GainConfig, SpectrumConfig } from '$lib/types/spectrum';
 
@@ -114,30 +115,29 @@
 	</header>
 
 	<fieldset disabled={busy}>
-		<label>
-			<span>start (MHz)</span>
-			<input
-				type="number"
-				min="1"
-				max="6000"
-				step="1"
-				value={spectrumConfigStore.value.startFreq / 1e6}
-				oninput={(e) =>
-					patchConfig({ startFreq: Number(e.currentTarget.value) * 1e6 })}
-			/>
-		</label>
+		<NumberInput
+			labelText="start (MHz)"
+			value={spectrumConfigStore.value.startFreq / 1e6}
+			min={1}
+			max={6000}
+			step={1}
+			size="sm"
+			hideSteppers
+			disableWheel
+			onChange={(v) => v != null && patchConfig({ startFreq: v * 1e6 })}
+		/>
 
-		<label>
-			<span>stop (MHz)</span>
-			<input
-				type="number"
-				min="1"
-				max="6000"
-				step="1"
-				value={spectrumConfigStore.value.endFreq / 1e6}
-				oninput={(e) => patchConfig({ endFreq: Number(e.currentTarget.value) * 1e6 })}
-			/>
-		</label>
+		<NumberInput
+			labelText="stop (MHz)"
+			value={spectrumConfigStore.value.endFreq / 1e6}
+			min={1}
+			max={6000}
+			step={1}
+			size="sm"
+			hideSteppers
+			disableWheel
+			onChange={(v) => v != null && patchConfig({ endFreq: v * 1e6 })}
+		/>
 
 		<label>
 			<span>bin width</span>
@@ -246,7 +246,6 @@
 		text-transform: uppercase;
 		color: var(--mk2-ink-3);
 	}
-	input,
 	select {
 		font-family: var(--mk2-f-mono);
 		font-size: var(--mk2-fs-3);
