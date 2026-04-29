@@ -123,9 +123,14 @@
 
 	const carbonRows = $derived.by((): CarbonAugmentedRow[] =>
 		sortedRows.map((r) => {
-			const out: CarbonAugmentedRow = { id: rowKey(r) };
+			// Project accessor data first, then set `id` LAST. Carbon reserves
+			// the `id` field as the row identifier; if a consumer's column has
+			// id === 'id' (e.g. UasTab), the column accessor would overwrite
+			// the identifier without this ordering. Per CR feedback on PR #65.
+			const out: Record<string, unknown> = {};
 			for (const c of columns) out[c.id] = c.accessor(r);
-			return out;
+			out.id = rowKey(r);
+			return out as CarbonAugmentedRow;
 		})
 	);
 
@@ -176,7 +181,11 @@
 
 	function commitReorder(toId: string): void {
 		if (dragId === null || dragId === toId) return;
-		const next = [...order];
+		// Build from orderedColumns (already reconciles appended columns),
+		// not raw `order` which may be stale and missing newly added column
+		// ids — those would silently drop with indexOf -1. Per CR feedback
+		// on PR #65.
+		const next = orderedColumns.map((c) => c.id);
 		const fromIdx = next.indexOf(dragId);
 		const toIdx = next.indexOf(toId);
 		if (fromIdx < 0 || toIdx < 0) return;
