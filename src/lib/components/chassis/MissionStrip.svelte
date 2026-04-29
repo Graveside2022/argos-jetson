@@ -11,7 +11,7 @@
 	import { onMount } from 'svelte';
 
 	// spec-026 Phase 1 — IconBtn → IconBtnCarbon (Carbon-wrapped, same public API).
-	import IconBtn from '$lib/components/mk2/IconBtnCarbon.svelte';
+	import IconBtn from '$lib/components/mk2/IconBtn.svelte';
 	import { missionStore } from '$lib/state/missions.svelte';
 	import type { Mission, MissionPatch } from '$lib/types/mission';
 

@@ -1,8 +1,8 @@
 # Button — Code
 
-**Status:** Phase 1 in progress
-**Last updated:** 2026-04-28
-**Implementation file** (Phase 1 target): `src/lib/components/mk2/IconBtn.svelte` (replaces bespoke; wraps Carbon `<Button>`)
+**Status:** ✅ Phase 1 done 2026-04-29 (atomic swap)
+**Last updated:** 2026-04-29
+**Implementation file:** `src/lib/components/mk2/IconBtn.svelte` (Carbon-wrapped; atomic-swap-merged from `IconBtnCarbon.svelte` parallel impl; bespoke deleted)
 **Carbon component:** `<Button>` from `carbon-components-svelte` v0.107.0+
 
 ---
@@ -17,7 +17,7 @@ interface Props {
 	size?: number; // icon size in px (default 12 per v2 mockup)
 	title?: string; // tooltip text + aria-label
 	ariaLabel?: string; // overrides title for aria-label specifically (Carbon iconDescription)
-	variant?: 'ghost' | 'panel-actions' | 'tab-strip'; // size + density variant
+	variant?: 'default' | 'ghost'; // density variant — only the 2 actually shipped
 	disabled?: boolean;
 	onClick?: () => void;
 }
@@ -25,11 +25,12 @@ interface Props {
 
 **Variant mapping**:
 
-| Argos `variant`     | Carbon `kind` + `size`                          | Visual                                    |
-| ------------------- | ----------------------------------------------- | ----------------------------------------- |
-| `'ghost'` (default) | `kind="ghost" size="sm"`                        | 28×28px chassis-level icon button         |
-| `'panel-actions'`   | `kind="ghost" size="sm"` + custom 18px override | 18×18px inside panel headers (denser)     |
-| `'tab-strip'`       | `kind="tertiary" size="sm"`                     | tab-strip secondary actions (border-only) |
+| Argos `variant`       | Carbon `kind` + `size`               | Visual                                                         |
+| --------------------- | ------------------------------------ | -------------------------------------------------------------- |
+| `'default'` (default) | `kind="ghost" size="small" iconOnly` | 28×28px chassis-level icon button (1px border, transparent bg) |
+| `'ghost'`             | `kind="ghost" size="small" iconOnly` | 28×28px chassis-level icon button (no border, transparent bg)  |
+
+**Shipped variants only.** The earlier `'panel-actions'` / `'tab-strip'` variants from the pre-impl spec were YAGNI — the 4 actual consumers (Tweaks, Topbar, MissionStrip, CapturesTab) only needed `'default'` and `'ghost'`. Add more when a real consumer surface needs one.
 
 ---
 
