@@ -3,17 +3,27 @@
 #   1. Block direct pushes to protected branches (main, master).
 #   2. Full-repo typecheck (svelte-check via mem-guard wrapper).
 #   3. Full-repo ESLint scan (cached).
-#   4. test:unit:related:upstream — scoped to files changed vs upstream.
 #
-# All checks run before anything leaves the local machine. CI is the third
-# layer (.github/workflows/ci.yml + lint.yml).
+# All checks run before anything leaves the local machine. CI is the
+# authoritative gate — `lint.yml` runs ESLint on every push (any branch),
+# `commitlint.yml` runs on every PR, `ci.yml` runs typecheck + test:unit +
+# build on PRs targeting main. Pre-push is local DX preflight, not the
+# merge gate.
 #
-# All three checks share scripts/ops/mem-guard.sh's flock so two concurrent
+# Vitest deliberately NOT run in pre-push (audit canon, 2026-04-29):
+#   Husky docs scope hooks to "simple issues"; pre-commit framework docs
+#   scope to lint/format; vuejs/core, vercel/next.js, sveltejs/svelte,
+#   sveltejs/kit, and carbon-components-svelte all run zero tests in any
+#   git hook. Trunk-Based Development (Hammant): pre-push script ≡ CI
+#   script, not pre-push duplicates CI. Vitest still runs as
+#   `ci.yml::Run Automated Tests` on every PR, same merge-blocking signal.
+#   See _research/prepush-vitest-evidence.md for receipts.
+#
+# Both checks share scripts/ops/mem-guard.sh's flock so two concurrent
 # pre-push runs (e.g. double-click `git push` in a UI) can't race on RAM/CPU.
 #
 # Bypass protected-branch guard: ALLOW_MAIN_PUSH=1 git push ...
 # Bypass full-repo lint:         SKIP_FULL_LINT=1 git push ...
-# Bypass related-tests stage:    SKIP_TESTS=1 git push ...        (use when running inside an agent runtime that SIGTERMs subprocesses at ~3 min; CI runs full suite)
 # Skip everything:               git push --no-verify ...
 
 set -e
@@ -51,27 +61,13 @@ if [ "${SKIP_FULL_LINT:-0}" = "1" ]; then
 	echo "[pre-push] SKIP_FULL_LINT=1 — skipping full-repo eslint scan"
 else
 	echo "[pre-push] full-repo eslint scan (cached, cognitive complexity ≤5)..."
-	if ! npx eslint . --config config/eslint.config.js --cache --cache-location .eslintcache --cache-strategy content; then
+	# npm run lint wraps eslint via scripts/ops/mem-guard.sh (per package.json
+	# `lint` script, post PR-CI-1). This shares the flock with typecheck so
+	# two concurrent pushes can't race on RAM/CPU. Per CR feedback on PR #74.
+	if ! npm run lint; then
 		echo "[pre-push] ❌ eslint errors present — fix or bypass with SKIP_FULL_LINT=1 git push ..." >&2
 		exit 1
 	fi
-fi
-
-# 4) test:unit:related:upstream — scoped to the diff being pushed
-# Full 523-test suite runs in CI only — pre-push scopes to files changed vs the
-# upstream tracking branch. Catches breakage in the actual diff without paying
-# ~120 s on pushes that touch a handful of files. CI is the safety net.
-#
-# Bypass: SKIP_TESTS=1 git push ...
-#   Use when running pushes inside an agent runtime that imposes a ~3-min
-#   subprocess ceiling (e.g. Claude Code's bg-task wrapper) and tests would
-#   otherwise be SIGTERM'd mid-run. CI is authoritative; this stage is local
-#   belt-and-suspenders.
-if [ "${SKIP_TESTS:-0}" = "1" ]; then
-	echo "[pre-push] SKIP_TESTS=1 — skipping vitest related-tests stage (CI will run the full suite)"
-else
-	echo "[pre-push] test:unit:related:upstream (scoped to the diff being pushed)..."
-	npm run test:unit:related:upstream
 fi
 
 echo "[pre-push] ✓ all checks passed"
