@@ -89,20 +89,54 @@ Phase-by-phase changelog for the IBM Carbon Design System migration. Each entry:
 
 ---
 
-## Phase 2 — DrawerTable → Carbon `<DataTable>` (not started)
+## Phase 2 — DrawerTable → Carbon `<DataTable>` ✅ Done 2026-04-29
 
-**Planned branch:** `feature/spec-026-carbon-phase-2-datatable`
-**Planned tag:** `spec-026-phase-2-complete`
+**Branch:** `feature/spec-026-carbon-phase-2-datatable`
+**PR:** #65 (squash-merged, tip `ad76f374`, 5 commits `ba7d04a9` → `78eeb762`)
+**Tag:** `spec-026-phase-2-complete`
 
-Spec docs already authored in PR #60. Adapter pattern proven via Phase 1. Expected effort: 3-5 days.
+Bespoke `DrawerTable.svelte` replaced with Carbon `<DataTable size="compact">` wrapper. Strangler Fig: parallel impl → canary on LogsTab → tier 4 remaining tabs → atomic swap. Same public API (`Column<Row>` kind discriminant + storageKey + cell snippet) preserved via Adapter pattern; consumer code change = 1 import line per tab.
+
+Implementation deviations from initial plan (captured in `data-table/code.md`):
+- External sort (kind-aware compareValues in wrapper) instead of Carbon per-header sort fns
+- PointerEvents drag-reorder (6.5× P95 win per spec-024 wave-1 spike T039) instead of HTML5 DnD
+- Side `Map<string, R>` for original-row retrieval — keeps Carbon's `DataTableKey` type permissive
+
+CR Major findings addressed in `78eeb762`:
+- `commitReorder` uses `orderedColumns` (not stale `order`) so appended columns can reorder
+- Row `id` field set LAST so column projections never overwrite it
+
+Sentrux: signal stable at 6733 (signal_delta=0). Visual diff via chrome-devtools MCP confirmed Lunaris identity 100% preserved across all 5 drawer tabs.
+
+**Bespoke `DrawerTable.svelte` REMOVED** — Carbon implementation now canonical.
 
 ---
 
-## Phases 3-7 (not started)
+## Phase 2 follow-up — code.md actuals + Phase 3 prep ⏳ In review
+
+**Branch:** `feature/spec-026-phase-2-followup`
+**PR:** #66 (open as of 2026-04-29)
+
+Documentation-only follow-up:
+- `data-table/code.md` rewritten to match shipped implementation (external sort + PointerEvents + side-Map)
+- `migration-roadmap.md` phase board updated (Phases 0/1/2 ✅, Phase 3 ⏳)
+- Phase 3 form spec drafts: `text-input/{usage.md, style.md}`, `checkbox/usage.md`, `select/usage.md`
+
+---
+
+## Phase 3 — Form fields ⏳ Spec prep
+
+**Planned branch:** `feature/spec-026-carbon-phase-3-forms`
+**Planned tag:** `spec-026-phase-3-complete`
+
+Canary spec docs landing via PR #66. Phase 3 implementation work scopes ~30-50 bespoke form-input call sites across screens (Tweaks, FilterBar, GpServerForm, TAK forms, RFPropagationControls, FrequencyTuner, etc.). Migration order proposal: tools-flyout (low-traffic canary) → filter-bar (high visibility) → forms → screen inspectors. Expected effort: 5-7 days.
+
+---
+
+## Phases 4-7 (not started)
 
 Per `migration-roadmap.md`:
 
-- Phase 3 — Form fields
 - Phase 4 — Modal + Notification + Tooltip
 - Phase 5 — Tabs
 - Phase 6 — Pagination + Loading + Search
