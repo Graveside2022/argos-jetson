@@ -4,7 +4,10 @@
 	rfVisualization store's filters and triggers a reload on change.
 -->
 <script lang="ts">
+	import { SelectItem } from 'carbon-components-svelte';
+
 	import NumberInput from '$lib/components/chassis/forms/NumberInput.svelte';
+	import Select from '$lib/components/chassis/forms/Select.svelte';
 	import { rfVisualization } from '$lib/stores/rf-visualization.svelte';
 
 	type PanelState =
@@ -81,21 +84,21 @@
 	</div>
 
 	<div class="field">
-		<label for="fb-source">Source</label>
-		<select
+		<Select
 			id="fb-source"
+			labelText="Source"
 			bind:value={source}
 			disabled={isBusy}
-			onchange={() => void applyFilters()}
-			class="fb-select"
+			onChange={() => void applyFilters()}
+			size="sm"
 		>
-			<option value="">any</option>
-			<option value="kismet">kismet</option>
-			<option value="bluedragon">bluedragon</option>
-			<option value="gsm-evil">gsm-evil</option>
-			<option value="hackrf">hackrf</option>
-			<option value="rtl-sdr">rtl-sdr</option>
-		</select>
+			<SelectItem value="" text="any" />
+			<SelectItem value="kismet" text="kismet" />
+			<SelectItem value="bluedragon" text="bluedragon" />
+			<SelectItem value="gsm-evil" text="gsm-evil" />
+			<SelectItem value="hackrf" text="hackrf" />
+			<SelectItem value="rtl-sdr" text="rtl-sdr" />
+		</Select>
 	</div>
 
 	<div class="field">
@@ -157,25 +160,6 @@
 		flex-direction: column;
 		gap: 0.2em;
 	}
-	.field label {
-		font-size: 0.68em;
-		letter-spacing: 0.05em;
-		color: var(--muted-foreground);
-	}
-	.fb-select {
-		background: var(--card);
-		color: var(--foreground);
-		border: 1px solid var(--border);
-		border-radius: 3px;
-		padding: 0.3em 0.45em;
-		font-size: 0.82em;
-		font-family: inherit;
-	}
-	.fb-select:focus {
-		outline: none;
-		border-color: var(--primary);
-	}
-	.fb-select:disabled,
 	.fb-clear:disabled {
 		opacity: 0.55;
 		cursor: not-allowed;
