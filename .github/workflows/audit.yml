@@ -14,8 +14,12 @@ on:
       - '.husky/**'
       - '.trunk/**'
       - 'package.json'
+      # lint-staged config — every cosmiconfig variant the audit script knows
       - '.lintstagedrc*'
+      - 'lint-staged.config.*'
+      # commitlint config — every cosmiconfig variant the audit script knows
       - 'commitlint.config.*'
+      - '.commitlintrc*'
       - 'dangerfile.js'
       - 'config/eslint.config.js'
       - 'docs/ci-cd-pipeline-spec.md'

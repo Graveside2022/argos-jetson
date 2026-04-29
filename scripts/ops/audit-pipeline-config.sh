@@ -62,8 +62,20 @@ check_commitlint_config() {
 	local hook=".husky/commit-msg"
 	[ -f "$hook" ] || { warn "missing $hook"; return; }
 	if grep -qE '\bnpx[[:space:]]+(--no-install[[:space:]]+)?commitlint\b' "$hook"; then
-		if [ -f commitlint.config.mjs ] || [ -f commitlint.config.js ] \
-		   || [ -f commitlint.config.cjs ] || [ -f .commitlintrc.json ]; then
+		# commitlint supports the full cosmiconfig set per
+		# https://commitlint.js.org/reference/configuration.html
+		local found=0
+		for f in commitlint.config.ts commitlint.config.mjs commitlint.config.js \
+		         commitlint.config.cjs .commitlintrc.ts .commitlintrc.js \
+		         .commitlintrc.cjs .commitlintrc.mjs .commitlintrc.json \
+		         .commitlintrc.yml .commitlintrc.yaml .commitlintrc; do
+			[ -f "$f" ] && { found=1; break; }
+		done
+		# Also accept package.json#commitlint
+		if [ "$found" -eq 0 ] && grep -q '"commitlint"' package.json 2>/dev/null; then
+			found=1
+		fi
+		if [ "$found" -eq 1 ]; then
 			note "commitlint config present (hook + config aligned)"
 		else
 			warn "commitlint invoked from $hook but NO config file found"
@@ -72,30 +84,45 @@ check_commitlint_config() {
 }
 
 # ── Check 2 ──────────────────────────────────────────────────────────
-# ESLint cache flags present in every invocation site. The single biggest
-# velocity win identified in the audit was wiring --cache to npm run lint.
+# ESLint cache flags present in every invocation site. We enforce the FULL
+# contract: --cache PLUS --cache-strategy content. The content strategy is
+# what makes the cache survive reorders/timestamp drift; dropping it
+# silently degrades cache hit rate without breaking builds. Per CR feedback
+# on PR #76: a regression that drops --cache-strategy content must be
+# detected here, not pass silently.
 check_eslint_cache_flags() {
-	# package.json scripts
+	# package.json scripts: must have BOTH --cache and --cache-strategy content
 	for script in lint lint:fix; do
 		invocation=$(jq -r ".scripts[\"$script\"] // empty" package.json 2>/dev/null)
 		[ -z "$invocation" ] && continue
 		case "$invocation" in
-			*"--cache"*) note "package.json#$script wires --cache" ;;
-			*) warn "package.json#$script missing --cache flag" ;;
+			*"--cache"*"--cache-strategy"*"content"*|*"--cache-strategy"*"content"*"--cache"*)
+				note "package.json#$script wires --cache + --cache-strategy content" ;;
+			*"--cache"*)
+				warn "package.json#$script has --cache but missing --cache-strategy content" ;;
+			*)
+				warn "package.json#$script missing --cache flag entirely" ;;
 		esac
 	done
-	# husky pre-push
+	# husky pre-push (calls npm run lint per PR #74 fix; cache flags inherited
+	# from package.json#lint, so verify the package.json check above passed)
 	if [ -f .husky/pre-push ]; then
-		if grep -qE 'eslint[^|]*--cache' .husky/pre-push; then
-			note ".husky/pre-push wires --cache"
+		if grep -qE 'npm[[:space:]]+run[[:space:]]+lint' .husky/pre-push; then
+			note ".husky/pre-push delegates to npm run lint (cache flags inherited)"
+		elif grep -qE 'eslint[^|]*--cache[^|]*--cache-strategy[^|]*content' .husky/pre-push; then
+			note ".husky/pre-push wires --cache + --cache-strategy content directly"
+		elif grep -qE 'eslint[^|]*--cache' .husky/pre-push; then
+			warn ".husky/pre-push has --cache but missing --cache-strategy content"
 		else
 			warn ".husky/pre-push runs eslint without --cache"
 		fi
 	fi
-	# GH Actions
+	# GH Actions: lint.yml is canonical owner per spec doc gate matrix
 	if [ -f .github/workflows/lint.yml ]; then
-		if grep -qE 'eslint[^|]*--cache' .github/workflows/lint.yml; then
-			note "lint.yml wires --cache"
+		if grep -qE 'eslint[^|]*--cache[^|]*--cache-strategy[^|]*content' .github/workflows/lint.yml; then
+			note "lint.yml wires --cache + --cache-strategy content"
+		elif grep -qE 'eslint[^|]*--cache' .github/workflows/lint.yml; then
+			warn "lint.yml has --cache but missing --cache-strategy content"
 		else
 			warn "lint.yml runs eslint without --cache"
 		fi
@@ -144,7 +171,7 @@ check_sha_pinned_actions() {
 		[[ "$ref" =~ @[a-f0-9]{40}([[:space:]].*)?$ ]] && continue
 		warn "unpinned action ref: $ref"
 		issues=$((issues+1))
-	done < <(grep -hE '^[[:space:]]*uses:[[:space:]]+' .github/workflows/*.yml 2>/dev/null)
+	done < <(grep -hE '^[[:space:]]*uses:[[:space:]]+' .github/workflows/*.yml .github/workflows/*.yaml 2>/dev/null)
 	[ "$issues" -eq 0 ] && note "all action refs SHA-pinned or first-party tagged"
 }
 
