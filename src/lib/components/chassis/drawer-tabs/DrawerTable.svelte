@@ -1,21 +1,17 @@
 <script lang="ts" generics="R">
+	import { DataTable } from 'carbon-components-svelte';
 	import { onMount, type Snippet } from 'svelte';
 
-	// spec-024 Phase 3 — shared reorderable + sortable table primitive for the
-	// 5 drawer-tab screens (Logs / Captures / Wifi / Bluetooth / Uas). Drag a
-	// column header left/right to reorder; click to cycle sort asc → desc → asc.
-	// Both states persist to localStorage per `storageKey`.
+	// spec-026 Phase 2 — Carbon-themed DataTable wrapper. Same public API as
+	// bespoke DrawerTable.svelte (Column<Row> kind discriminant + storageKey
+	// persistence + cell snippet). Renders via Carbon's <DataTable size="compact">
+	// for theme + a11y + spacing, with Lunaris look layered via cellHeader/cell
+	// snippets and global CSS overrides on `.bx--data-table`.
+	//
+	// Reorder upgraded from HTML5 DnD to PointerEvents (per memory
+	// project_spec024_wave1_spikes_done.md — 6.5× P95 win). Threshold-gated
+	// click-vs-drag distinction lets sort + reorder share the same span.
 
-	// spec-024 Phase 3 — column-kind taxonomy. One discriminant drives
-	// alignment, min-width, whitespace, and font for both <th> and <td>.
-	// Header inherits body alignment so the eye doesn't see "swim" between
-	// a left-aligned label sitting above right-aligned numbers.
-	//   id     identifiers (MAC, filename, drone serial). mono, nowrap, left.
-	//   text   freeform prose (SSID, message, name). flex-grow, left, wrap.
-	//   num    measures (RSSI, channel, size, packets). tabular-nums, right.
-	//   time   timestamps (Z-suffixed). tabular-nums, nowrap, left.
-	//   tag    short categorical badges (LEVEL, ENC, TOOL, TYPE). nowrap, left.
-	//   action icon-only cells (download). narrow fixed width, right.
 	export type ColumnKind = 'id' | 'text' | 'num' | 'time' | 'tag' | 'action';
 
 	export interface Column<Row> {
@@ -33,15 +29,23 @@
 		cell?: Snippet<[Row, Column<Row>]>;
 	}
 
-	let { storageKey, columns, rows, rowKey, cell }: Props<R> = $props();
+	let { storageKey, columns, rows, rowKey, cell: userCell }: Props<R> = $props();
 
-	// `order` is user drag-state; we don't want it reactive to prop changes.
-	// Empty-init avoids `state_referenced_locally` warning; populate in onMount.
+	type CarbonAugmentedRow = { id: string; [key: string]: unknown };
+
 	let order = $state<string[]>([]);
 	let sortById = $state<string | null>(null);
 	let sortDir = $state<'asc' | 'desc'>('asc');
+
 	let dragId = $state<string | null>(null);
 	let overId = $state<string | null>(null);
+	let dragStartX = 0;
+	let isDragging = $state(false);
+	const DRAG_THRESHOLD_PX = 5;
+
+	function applyStoredOrder(v: unknown): void {
+		if (Array.isArray(v)) order = v as string[];
+	}
 
 	function applyStoredSortById(v: unknown): void {
 		if (typeof v === 'string' || v === null) sortById = v as string | null;
@@ -52,7 +56,7 @@
 	}
 
 	function applyStored(p: { order?: unknown; sortById?: unknown; sortDir?: unknown }): void {
-		if (Array.isArray(p.order)) order = p.order as string[];
+		applyStoredOrder(p.order);
 		applyStoredSortById(p.sortById);
 		applyStoredSortDir(p.sortDir);
 	}
@@ -68,7 +72,6 @@
 	}
 
 	let mounted = $state(false);
-
 	onMount(() => {
 		order = columns.map((c) => c.id);
 		loadStored();
@@ -84,15 +87,11 @@
 		}
 	});
 
-	// Reconcile in a $derived (read-only) instead of a $effect (which would
-	// mutate `order` and re-trigger itself → effect_update_depth_exceeded).
-	// Stale ids drop out, new column ids append, all without touching state.
 	const orderedColumns = $derived.by(() => {
 		const known = new Set(columns.map((c) => c.id));
 		const kept = order.filter((id) => known.has(id));
 		const added = columns.filter((c) => !kept.includes(c.id)).map((c) => c.id);
-		const reconciled = [...kept, ...added];
-		return reconciled
+		return [...kept, ...added]
 			.map((id) => columns.find((c) => c.id === id))
 			.filter((c): c is Column<R> => c !== undefined);
 	});
@@ -101,7 +100,7 @@
 		return v === null ? 1 : 0;
 	}
 
-	function nonNullCompare(va: string | number, vb: string | number): number {
+	function compareNonNull(va: string | number, vb: string | number): number {
 		if (typeof va === 'number' && typeof vb === 'number') return va - vb;
 		return String(va).localeCompare(String(vb));
 	}
@@ -111,7 +110,7 @@
 		const rb = nullRank(vb);
 		if (ra !== rb) return ra - rb;
 		if (ra === 1) return 0;
-		return nonNullCompare(va as string | number, vb as string | number);
+		return compareNonNull(va as string | number, vb as string | number);
 	}
 
 	const sortedRows = $derived.by(() => {
@@ -122,7 +121,38 @@
 		return [...rows].sort((a, b) => compareValues(col.accessor(a), col.accessor(b)) * dir);
 	});
 
+	const carbonRows = $derived.by((): CarbonAugmentedRow[] =>
+		sortedRows.map((r) => {
+			// Project accessor data first, then set `id` LAST. Carbon reserves
+			// the `id` field as the row identifier; if a consumer's column has
+			// id === 'id' (e.g. UasTab), the column accessor would overwrite
+			// the identifier without this ordering. Per CR feedback on PR #65.
+			const out: Record<string, unknown> = {};
+			for (const c of columns) out[c.id] = c.accessor(r);
+			out.id = rowKey(r);
+			return out as CarbonAugmentedRow;
+		})
+	);
+
+	const rowsById = $derived(new Map<string, R>(rows.map((r) => [rowKey(r), r])));
+
+	const headers = $derived(
+		orderedColumns.map((c) => ({
+			key: c.id,
+			value: c.label,
+			sort: false as const
+		}))
+	);
+
+	function getColumn(key: string): Column<R> | undefined {
+		return columns.find((c) => c.id === key);
+	}
+
 	function onSortClick(colId: string): void {
+		if (isDragging) {
+			isDragging = false;
+			return;
+		}
 		if (sortById === colId) {
 			sortDir = sortDir === 'asc' ? 'desc' : 'asc';
 			return;
@@ -131,193 +161,233 @@
 		sortDir = 'asc';
 	}
 
-	function onDragStart(e: DragEvent, colId: string): void {
+	function onPointerDown(e: PointerEvent, colId: string): void {
 		dragId = colId;
-		if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
+		dragStartX = e.clientX;
+		isDragging = false;
+		(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
 	}
 
-	function onDragOver(e: DragEvent, colId: string): void {
-		e.preventDefault();
-		if (dragId !== null && dragId !== colId) overId = colId;
+	function pastDragThreshold(e: PointerEvent): boolean {
+		return Math.abs(e.clientX - dragStartX) > DRAG_THRESHOLD_PX;
 	}
 
-	function onDragLeave(colId: string): void {
-		if (overId === colId) overId = null;
+	function onPointerMove(e: PointerEvent, colId: string): void {
+		if (dragId === null) return;
+		if (!isDragging && !pastDragThreshold(e)) return;
+		isDragging = true;
+		if (dragId !== colId) overId = colId;
 	}
 
-	function onDrop(e: DragEvent, toId: string): void {
-		e.preventDefault();
+	function commitReorder(toId: string): void {
 		if (dragId === null || dragId === toId) return;
-		const next = [...order];
+		// Build from orderedColumns (already reconciles appended columns),
+		// not raw `order` which may be stale and missing newly added column
+		// ids — those would silently drop with indexOf -1. Per CR feedback
+		// on PR #65.
+		const next = orderedColumns.map((c) => c.id);
 		const fromIdx = next.indexOf(dragId);
 		const toIdx = next.indexOf(toId);
 		if (fromIdx < 0 || toIdx < 0) return;
 		next.splice(fromIdx, 1);
 		next.splice(toIdx, 0, dragId);
 		order = next;
-		dragId = null;
-		overId = null;
 	}
 
-	function onDragEnd(): void {
+	function releasePointer(target: HTMLElement, pointerId: number): void {
+		try {
+			target.releasePointerCapture(pointerId);
+		} catch {
+			/* pointer already released by browser */
+		}
+	}
+
+	function onPointerUp(e: PointerEvent, toId: string): void {
+		if (dragId === null) return;
+		if (isDragging) commitReorder(toId);
 		dragId = null;
 		overId = null;
+		releasePointer(e.currentTarget as HTMLElement, e.pointerId);
+		// isDragging intentionally NOT reset — the click event fires next and
+		// reads it to suppress sort. onSortClick resets it on read; a fresh
+		// onPointerDown also resets it.
 	}
 
 	function sortIndicator(colId: string): string {
 		if (sortById !== colId) return '';
 		return sortDir === 'asc' ? '↑' : '↓';
 	}
+
+	function onHeaderKeyDown(e: KeyboardEvent, colId: string): void {
+		if (e.key !== 'Enter' && e.key !== ' ') return;
+		e.preventDefault();
+		onSortClick(colId);
+	}
 </script>
 
-<table class="tbl">
-	<thead>
-		<tr>
-			{#each orderedColumns as col (col.id)}
-				<th
-					data-kind={col.kind}
-					class:drag={dragId === col.id}
-					class:over={overId === col.id}
-					class:active-sort={sortById === col.id}
-					draggable="true"
-					ondragstart={(e) => onDragStart(e, col.id)}
-					ondragover={(e) => onDragOver(e, col.id)}
-					ondragleave={() => onDragLeave(col.id)}
-					ondrop={(e) => onDrop(e, col.id)}
-					ondragend={onDragEnd}
-					onclick={() => onSortClick(col.id)}
-					title="Click to sort · drag to reorder"
-				>
-					<span class="label">{col.label}</span>
-					<span class="sort-ind">{sortIndicator(col.id)}</span>
-				</th>
-			{/each}
-		</tr>
-	</thead>
-	<tbody>
-		{#each sortedRows as r (rowKey(r))}
-			<tr>
-				{#each orderedColumns as col (col.id)}
-					<td data-kind={col.kind}>
-						{#if cell}
-							{@render cell(r, col)}
-						{:else}
-							{col.accessor(r) ?? ''}
-						{/if}
-					</td>
-				{/each}
-			</tr>
-		{/each}
-	</tbody>
-</table>
+<DataTable class="lunaris-drawer-table" size="compact" {headers} rows={carbonRows}>
+	{#snippet cellHeader({ header })}
+		{@const col = getColumn(header.key as string)}
+		{#if col}
+			<span
+				class="dwt-th"
+				data-kind={col.kind}
+				class:dwt-th--drag={dragId === col.id}
+				class:dwt-th--over={overId === col.id}
+				class:dwt-th--active-sort={sortById === col.id}
+				role="button"
+				tabindex="0"
+				onpointerdown={(e) => onPointerDown(e, col.id)}
+				onpointermove={(e) => onPointerMove(e, col.id)}
+				onpointerup={(e) => onPointerUp(e, col.id)}
+				onclick={() => onSortClick(col.id)}
+				onkeydown={(e) => onHeaderKeyDown(e, col.id)}
+				title="Click to sort · drag to reorder"
+			>
+				<span class="dwt-label">{col.label}</span>
+				<span class="dwt-sort-ind">{sortIndicator(col.id)}</span>
+			</span>
+		{/if}
+	{/snippet}
+
+	{#snippet cell({ cell: cellData, row })}
+		{@const col = getColumn(cellData.key as string)}
+		{@const original = rowsById.get(row.id as string)}
+		{#if col}
+			<span class="dwt-td" data-kind={col.kind}>
+				{#if userCell && original}
+					{@render userCell(original, col)}
+				{:else}
+					{cellData.value ?? ''}
+				{/if}
+			</span>
+		{/if}
+	{/snippet}
+</DataTable>
 
 <style>
-	.tbl {
-		width: 100%;
-		border-collapse: collapse;
+	/* Lunaris overrides for Carbon's bx--data-table. We keep Carbon's chrome
+	   (size, hover row, dividers, theme tokens) and inject UPPERCASE Geist Mono
+	   headers + kind-aware alignment + dashed bottom borders for tactical look. */
+
+	:global(.lunaris-drawer-table .bx--data-table) {
 		font: 500 var(--mk2-fs-drawer-body) / 1.4 var(--mk2-f-mono);
 		font-variant-numeric: tabular-nums;
+		width: 100%;
 	}
 
-	.tbl th {
-		text-align: left;
-		padding: 6px 12px;
-		color: var(--mk2-ink-4);
-		font-size: var(--mk2-fs-drawer-body);
-		font-weight: 500;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
+	:global(.lunaris-drawer-table .bx--data-table thead th) {
 		background: var(--mk2-bg-2);
+		color: var(--mk2-ink-4);
 		border-bottom: 1px solid var(--mk2-line);
+		padding: 0;
 		position: sticky;
 		top: 0;
 		z-index: 1;
-		cursor: pointer;
-		user-select: none;
-		white-space: nowrap;
 	}
 
-	/* Column-type alignment convention — drives th + td from one [data-kind]
-	   attribute. Header alignment inherits body alignment so the eye doesn't
-	   see "swim" between a left-aligned label sitting above right-aligned
-	   numbers. See Column<Row>.kind in <script> for taxonomy. */
-	.tbl th[data-kind='num'],
-	.tbl td[data-kind='num'],
-	.tbl th[data-kind='action'],
-	.tbl td[data-kind='action'] {
-		text-align: right;
-	}
-
-	.tbl th[data-kind='id'],
-	.tbl td[data-kind='id'] {
-		white-space: nowrap;
-	}
-
-	.tbl th[data-kind='num'],
-	.tbl td[data-kind='num'],
-	.tbl th[data-kind='time'],
-	.tbl td[data-kind='time'],
-	.tbl th[data-kind='tag'],
-	.tbl td[data-kind='tag'] {
-		white-space: nowrap;
-		font-variant-numeric: tabular-nums;
-	}
-
-	/* Min-widths in ch units — monospace 1ch ≈ glyph advance, so widths
-	   survive theme / zoom changes that pixel widths don't. Action cells
-	   carry a 12px lucide icon + 8px breathing room. */
-	.tbl th[data-kind='id'] {
-		min-width: 18ch;
-	}
-	.tbl th[data-kind='num'] {
-		min-width: 6ch;
-	}
-	.tbl th[data-kind='time'] {
-		min-width: 9ch;
-	}
-	.tbl th[data-kind='tag'] {
-		min-width: 8ch;
-	}
-	.tbl th[data-kind='text'] {
-		min-width: 12ch;
-	}
-	.tbl th[data-kind='action'],
-	.tbl td[data-kind='action'] {
-		width: 32px;
-		min-width: 32px;
-	}
-
-	.tbl th:hover {
-		color: var(--mk2-ink-2);
-	}
-
-	.tbl th.active-sort {
-		color: var(--mk2-ink);
-	}
-
-	.tbl th.drag {
-		opacity: 0.4;
-	}
-
-	.tbl th.over {
-		box-shadow: inset 2px 0 0 var(--mk2-accent);
-	}
-
-	.tbl th .sort-ind {
-		display: inline-block;
-		min-width: 10px;
-		margin-left: 4px;
-		color: var(--mk2-accent);
-		font-weight: 600;
-	}
-
-	.tbl td {
-		padding: 6px 12px;
+	:global(.lunaris-drawer-table .bx--data-table tbody td) {
+		padding: 0;
 		border-bottom: 1px dashed var(--mk2-line);
 		vertical-align: middle;
 	}
 
-	.tbl tr:hover td {
+	:global(.lunaris-drawer-table .bx--data-table tbody tr:hover td) {
 		background: var(--mk2-bg-2);
+	}
+
+	:global(.lunaris-drawer-table .dwt-th) {
+		display: flex;
+		align-items: center;
+		gap: 4px;
+		padding: 6px 12px;
+		font: 500 var(--mk2-fs-drawer-body) / 1 var(--mk2-f-mono);
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		cursor: pointer;
+		user-select: none;
+		white-space: nowrap;
+		width: 100%;
+		box-sizing: border-box;
+		color: inherit;
+		background: transparent;
+		border: 0;
+		touch-action: none;
+	}
+
+	:global(.lunaris-drawer-table .dwt-th:hover) {
+		color: var(--mk2-ink-2);
+	}
+
+	:global(.lunaris-drawer-table .dwt-th--active-sort) {
+		color: var(--mk2-ink);
+	}
+
+	:global(.lunaris-drawer-table .dwt-th--drag) {
+		opacity: 0.4;
+	}
+
+	:global(.lunaris-drawer-table .dwt-th--over) {
+		box-shadow: inset 2px 0 0 var(--mk2-accent);
+	}
+
+	:global(.lunaris-drawer-table .dwt-td) {
+		display: flex;
+		align-items: center;
+		padding: 6px 12px;
+		width: 100%;
+		box-sizing: border-box;
+	}
+
+	/* Kind-aware alignment. Header inherits body alignment so the eye doesn't
+	   see "swim" between left-aligned label sitting above right-aligned numbers. */
+	:global(.lunaris-drawer-table .dwt-th[data-kind='num']),
+	:global(.lunaris-drawer-table .dwt-th[data-kind='action']),
+	:global(.lunaris-drawer-table .dwt-td[data-kind='num']),
+	:global(.lunaris-drawer-table .dwt-td[data-kind='action']) {
+		justify-content: flex-end;
+		text-align: right;
+	}
+
+	:global(.lunaris-drawer-table .dwt-th[data-kind='id']),
+	:global(.lunaris-drawer-table .dwt-td[data-kind='id']) {
+		white-space: nowrap;
+	}
+
+	:global(.lunaris-drawer-table .dwt-th[data-kind='num']),
+	:global(.lunaris-drawer-table .dwt-td[data-kind='num']),
+	:global(.lunaris-drawer-table .dwt-th[data-kind='time']),
+	:global(.lunaris-drawer-table .dwt-td[data-kind='time']),
+	:global(.lunaris-drawer-table .dwt-th[data-kind='tag']),
+	:global(.lunaris-drawer-table .dwt-td[data-kind='tag']) {
+		white-space: nowrap;
+		font-variant-numeric: tabular-nums;
+	}
+
+	:global(.lunaris-drawer-table .dwt-th[data-kind='id']) {
+		min-width: 18ch;
+	}
+	:global(.lunaris-drawer-table .dwt-th[data-kind='num']) {
+		min-width: 6ch;
+	}
+	:global(.lunaris-drawer-table .dwt-th[data-kind='time']) {
+		min-width: 9ch;
+	}
+	:global(.lunaris-drawer-table .dwt-th[data-kind='tag']) {
+		min-width: 8ch;
+	}
+	:global(.lunaris-drawer-table .dwt-th[data-kind='text']) {
+		min-width: 12ch;
+	}
+	:global(.lunaris-drawer-table .dwt-th[data-kind='action']),
+	:global(.lunaris-drawer-table .dwt-td[data-kind='action']) {
+		min-width: 32px;
+	}
+
+	:global(.lunaris-drawer-table .dwt-sort-ind) {
+		display: inline-block;
+		min-width: 10px;
+		color: var(--mk2-accent);
+		font-weight: 600;
 	}
 </style>
