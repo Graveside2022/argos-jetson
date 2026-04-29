@@ -1,4 +1,5 @@
 <script lang="ts">
+	import PasswordInput from '$lib/components/chassis/forms/PasswordInput.svelte';
 	import TextInput from '$lib/components/chassis/forms/TextInput.svelte';
 	import type { GlobalProtectConfig } from '$lib/types/globalprotect';
 
@@ -38,16 +39,12 @@
 			onInput={(value: string) => update('username', value)}
 		/>
 
-		<label class="flex flex-col gap-1 text-sm font-medium text-muted-foreground">
-			Password
-			<input
-				type="password"
-				class="h-9 rounded-md border border-border/40 px-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/60 focus:outline-none"
-				style="background-color: #2a2a2a"
-				placeholder="Enter password"
-				value={password}
-				oninput={(e) => onpassword(e.currentTarget.value)}
-			/>
-		</label>
+		<PasswordInput
+			labelText="Password"
+			placeholder="Enter password"
+			value={password}
+			autocomplete="current-password"
+			onInput={(value: string) => onpassword(value)}
+		/>
 	</div>
 </div>
