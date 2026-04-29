@@ -51,9 +51,11 @@ Carbon's stock theme passes WCAG 2.1 AA. Lunaris token overrides MUST preserve t
 
 ## Argos-specific a11y considerations
 
-### Tap target compliance (WCAG 2.5.5)
+### Tap target compliance (WCAG 2.2 SC 2.5.8 + WCAG 2.1 SC 2.5.5)
 
-WCAG 2.5.5 (AA) requires interactive targets ≥ 24×24 CSS pixels. Carbon's `md` size = 40px height — passes. `sm` size = 32px — passes. `xs` density (24px) — exactly at the threshold, marginal pass. The Argos `data-density="compact"` overlay reaches 28px which still passes.
+WCAG 2.2 introduced SC 2.5.8 "Target Size (Minimum)" at the AA conformance level requiring interactive targets ≥ 24×24 CSS pixels. (WCAG 2.1's SC 2.5.5 "Target Size" sets the stricter ≥ 44×44 threshold but only at the AAA level.)
+
+Carbon's `md` size = 40px height — passes 2.5.8 (AA) but not 2.5.5 (AAA). `sm` size = 32px — passes 2.5.8. `xs` density (24px) — exactly at the 2.5.8 threshold, marginal pass. The Argos `data-density="compact"` overlay reaches 28px — passes 2.5.8. None pass 2.5.5 (AAA) without explicit Argos extension; document deviation in Phase 7 audit.
 
 ### Label requirement enforcement
 

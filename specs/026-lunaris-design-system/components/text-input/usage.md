@@ -16,7 +16,7 @@ Single-line free-text capture (search query, MAC filter, SSID prefix, frequency 
 - Numeric values with up/down stepper → use `<NumberInput>` (separate spec).
 - Multi-line capture (logs, notes, free-form CoT message body) → use Carbon `<TextArea>` (deferred — not in Phase 3 scope).
 - Passwords / secrets → use Carbon's `<PasswordInput>` variant which adds the visibility toggle. Argos rarely surfaces secrets in the UI; the existing TAK enroll flow at `src/routes/api/tak/enroll/+server.ts` uses HTTP-only.
-- **Search boxes** (input with `type="search"` + magnifier icon + clear-on-Escape semantics) → use Carbon's dedicated `<Search>` component, NOT `<TextInput>`. Carbon explicitly separates these concerns; mixing them in one adapter conflates two component specs. (ADR-0001 — `text-input/adrs/0001-phase-3-canary-textinput.md`).
+- **Search boxes** (input with `type="search"` + magnifier icon + clear-on-Escape semantics) → use Carbon's dedicated `<Search>` component, NOT `<TextInput>`. Carbon explicitly separates these concerns; mixing them in one adapter conflates two component specs. (ADR-0001 — `specs/026-lunaris-design-system/adrs/0001-phase-3-canary-textinput.md`).
 
 ## Argos surface inventory
 

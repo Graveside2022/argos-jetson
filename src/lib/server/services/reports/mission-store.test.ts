@@ -142,8 +142,8 @@ describe('mission-store — strip metadata', () => {
 	});
 });
 
-describe('migration 008 idempotency contract', () => {
-	it('re-applying 008 raises a duplicate-column error matching isDuplicateColumnError()', () => {
+describe('migration 20260423_extend_missions_for_strip idempotency contract', () => {
+	it('re-applying the strip migration raises a duplicate-column error matching isDuplicateColumnError()', () => {
 		const db = new Database(':memory:');
 		try {
 			db.exec(SCHEMA_SQL);
