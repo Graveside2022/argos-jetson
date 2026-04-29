@@ -61,7 +61,10 @@ if [ "${SKIP_FULL_LINT:-0}" = "1" ]; then
 	echo "[pre-push] SKIP_FULL_LINT=1 — skipping full-repo eslint scan"
 else
 	echo "[pre-push] full-repo eslint scan (cached, cognitive complexity ≤5)..."
-	if ! npx eslint . --config config/eslint.config.js --cache --cache-location .eslintcache --cache-strategy content; then
+	# npm run lint wraps eslint via scripts/ops/mem-guard.sh (per package.json
+	# `lint` script, post PR-CI-1). This shares the flock with typecheck so
+	# two concurrent pushes can't race on RAM/CPU. Per CR feedback on PR #74.
+	if ! npm run lint; then
 		echo "[pre-push] ❌ eslint errors present — fix or bypass with SKIP_FULL_LINT=1 git push ..." >&2
 		exit 1
 	fi
