@@ -72,7 +72,7 @@ For each of the 7 PR-C sites, manually verify the keyboard map above against the
 
 - **SpectrumControls (bottom panel):** confirm TAB enters bin-width → amp → LNA → VGA in DOM order.
 - **RFAdvancedControls (drawer):** confirm ESC closes the Dropdown but NOT the drawer (drawer also listens for ESC). If both close, wrap Dropdown in a `<svelte:window on:keydown|stopPropagation>` scoped to popover-open state.
-- **Type-ahead:** type "u" in clutterProfile dropdown — should jump to "Urban dense".
+- **Type-ahead:** type "u" in clutterProfile dropdown — should jump to "Urban" (per `CLUTTER_PROFILES` label in `src/lib/types/rf-propagation.ts`).
 
 ## Phase 7 audit prep
 
