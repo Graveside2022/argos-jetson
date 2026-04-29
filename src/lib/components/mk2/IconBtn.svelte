@@ -29,7 +29,7 @@
 		ariaLabel,
 		disabled = false,
 		variant = 'default',
-		active = false,
+		active,
 		onclick,
 		children
 	}: Props = $props();
@@ -38,6 +38,9 @@
 	const variantClass = $derived(
 		`lunaris-icon-btn lunaris-icon-btn--${variant}${active ? ' lunaris-icon-btn--active' : ''}`
 	);
+	// `active` undefined → not a toggle button; aria-pressed omitted entirely.
+	// `active === true | false` → genuine toggle; aria-pressed announced to AT.
+	// Per WAI-ARIA APG button pattern + CR feedback on PR #67.
 </script>
 
 <Button
@@ -48,6 +51,7 @@
 	{disabled}
 	on:click={(e) => onclick?.(e as unknown as MouseEvent)}
 	class={variantClass}
+	aria-pressed={active}
 >
 	{#if children}{@render children()}{/if}
 </Button>
