@@ -48,7 +48,7 @@ Per Carbon `<Search>` source verification:
 ToolsFlyoutHeader has no visible label — the magnifier + placeholder communicate purpose visually. Per WCAG 2.1 SC 4.1.2 "Name, Role, Value" (Level A), the input STILL needs an accessible name. Adapter enforces by:
 
 - Making `labelText` a **required** prop.
-- Allowing `hideLabel={true}` to visually hide it while preserving AT announcement.
+- Exposing `ariaLabel` as a separate prop (Carbon's `<Search>` does NOT ship `hideLabel` like `<TextInput>` does); when `labelText` is omitted, `ariaLabel` flows through `$$restProps` as `aria-label` on the underlying `<input>`.
 
 ### ESC clear vs flyout dismissal
 

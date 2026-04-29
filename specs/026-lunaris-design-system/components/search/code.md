@@ -41,9 +41,9 @@ Carbon's default is `xl` which is 48px — too tall for Argos chrome. Adapter re
 **Rationale**:
 
 - `value` is `string`-typed (Carbon types it as generic `T`; adapter narrows for the consumer cases Argos has).
-- `labelText` is **required** — same Carbon a11y mandate as TextInput.
+- `labelText` is the visible label; when omitted, supply `ariaLabel` for screen-reader-only naming. Carbon does NOT ship `hideLabel` for `<Search>` (only for `<TextInput>`); the adapter routes `ariaLabel` through Carbon's `$$restProps` to the underlying `<input>`.
 - `onClear` callback exposed — Carbon emits `CustomEvent<null>`; adapter unwraps.
-- `expandable` / `expanded` props NOT exposed — Argos doesn't surface that variant in PR3b. Add later if needed.
+- `labelText` defaults to empty string — adapter does not require it. `expandable` / `expanded` props NOT exposed — Argos doesn't surface that variant in PR3b. Add later if needed.
 - `icon` prop NOT exposed — let Carbon's default magnifier ship; consumers don't override.
 
 ## Consumer pattern
@@ -72,7 +72,7 @@ Carbon's default is `xl` which is 48px — too tall for Argos chrome. Adapter re
 <div class="search-row">
 	<SearchAdapter
 		labelText="Search tools"
-		hideLabel={true}
+		ariaLabel="Search tools"
 		placeholder="Search tools…"
 		autofocus={open}
 		bind:value={query}
