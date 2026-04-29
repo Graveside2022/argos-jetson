@@ -11,6 +11,7 @@
 		X
 	} from '@lucide/svelte';
 
+	import Checkbox from '$lib/components/chassis/forms/Checkbox.svelte';
 	import PanelEmptyState from '$lib/components/ui/PanelEmptyState.svelte';
 	import { persistedWritable } from '$lib/stores/persisted-writable';
 
@@ -599,14 +600,13 @@
 							disabled={missionSubmitting}
 						/>
 					</label>
-					<label class="form-field form-field-inline">
-						<input
-							type="checkbox"
+					<div class="form-field form-field-inline">
+						<Checkbox
 							bind:checked={missionSetActive}
 							disabled={missionSubmitting}
+							labelText="SET ACTIVE"
 						/>
-						<span class="field-label">SET ACTIVE</span>
-					</label>
+					</div>
 
 					{#if missionError}
 						<p class="form-error" role="alert">{missionError}</p>
