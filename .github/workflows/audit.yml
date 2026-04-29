@@ -1,0 +1,54 @@
+name: 'Audit: Pipeline Config Drift'
+
+# L3 mechanical drift detector. Verifies actual CI/CD pipeline config
+# matches the canonical spec at docs/ci-cd-pipeline-spec.md.
+#
+# Per approved plan PR-AUD-1b: warning-only initially (`|| true`). After
+# 2 weeks of clean runs, a follow-up PR flips to hard-fail.
+
+on:
+  pull_request:
+    branches: ['**']
+    paths:
+      - '.github/workflows/**'
+      - '.husky/**'
+      - '.trunk/**'
+      - 'package.json'
+      # lint-staged config — every cosmiconfig variant the audit script knows
+      - '.lintstagedrc*'
+      - 'lint-staged.config.*'
+      # commitlint config — every cosmiconfig variant the audit script knows
+      - 'commitlint.config.*'
+      - '.commitlintrc*'
+      - 'dangerfile.js'
+      - 'config/eslint.config.js'
+      - 'docs/ci-cd-pipeline-spec.md'
+      - 'scripts/ops/audit-pipeline-config.sh'
+  schedule:
+    # Nightly drift check, jittered off the top-of-hour
+    - cron: '23 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: audit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  drift-check:
+    name: 'Pipeline drift detector'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: 'Checkout code'
+        # actions/checkout v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+
+      - name: 'Run audit-pipeline-config.sh (warning-only)'
+        # Warning-only initially per the approved plan. Output appears in
+        # the run log; a follow-up PR will drop `|| true` to enforce.
+        run: ./scripts/ops/audit-pipeline-config.sh || true
