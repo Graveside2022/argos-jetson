@@ -8,6 +8,7 @@
 	import { onDestroy, onMount } from 'svelte';
 
 	import { browser } from '$app/environment';
+	import Checkbox from '$lib/components/chassis/forms/Checkbox.svelte';
 	import PanelEmptyState from '$lib/components/ui/PanelEmptyState.svelte';
 	import {
 		applyBluetoothDevices,
@@ -225,51 +226,34 @@
 				<option value="volume">VOLUME (recommended)</option>
 				<option value="max">MAX DECODE</option>
 			</select>
-			<label
+			<Checkbox
 				class="opt"
+				bind:checked={allChannels}
+				disabled={togglesDisabled}
+				labelText="ALL CH"
 				title="Capture full BLE band 2402–2480 MHz (96 channels). Default covers ch37+ch38 only."
-			>
-				<input
-					type="checkbox"
-					bind:checked={allChannels}
-					disabled={togglesDisabled}
-					aria-label="All BLE channels (96 ch wideband)"
-				/>
-				ALL CH
-			</label>
-			<label
+			/>
+			<Checkbox
 				class="opt"
+				bind:checked={activeScan}
+				disabled={togglesDisabled}
+				labelText="ACTIVE"
 				title="HCI LE active scan via system Bluetooth — enriches device names + services"
-			>
-				<input
-					type="checkbox"
-					bind:checked={activeScan}
-					disabled={togglesDisabled}
-					aria-label="Active scan via system Bluetooth"
-				/>
-				ACTIVE
-			</label>
-			<label class="opt" title="GPS-tag every packet via gpsd (requires gpsd running)">
-				<input
-					type="checkbox"
-					bind:checked={gpsd}
-					disabled={togglesDisabled}
-					aria-label="GPS tag every packet via gpsd"
-				/>
-				GPS
-			</label>
-			<label
+			/>
+			<Checkbox
 				class="opt"
+				bind:checked={gpsd}
+				disabled={togglesDisabled}
+				labelText="GPS"
+				title="GPS-tag every packet via gpsd (requires gpsd running)"
+			/>
+			<Checkbox
+				class="opt"
+				bind:checked={codedScan}
+				disabled={togglesDisabled}
+				labelText="CODED"
 				title="Continuous LE Coded PHY (Long Range) scan on advertising channels — AirTag/IoT detection at distance"
-			>
-				<input
-					type="checkbox"
-					bind:checked={codedScan}
-					disabled={togglesDisabled}
-					aria-label="LE Coded PHY long-range scan"
-				/>
-				CODED
-			</label>
+			/>
 			<button class="btn-start" onclick={onStart} disabled={starting}>
 				{starting ? 'Starting…' : 'Start'}
 			</button>
@@ -469,16 +453,6 @@
 		color: var(--foreground-secondary);
 		cursor: pointer;
 		user-select: none;
-	}
-
-	.opt input {
-		margin: 0;
-		cursor: pointer;
-		accent-color: var(--primary);
-	}
-
-	.opt input:disabled {
-		cursor: not-allowed;
 	}
 
 	.btn-start,
