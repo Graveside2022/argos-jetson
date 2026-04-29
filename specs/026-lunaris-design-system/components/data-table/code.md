@@ -133,6 +133,6 @@ Reserved for future phases:
 
 - Carbon Svelte component: <https://svelte.carbondesignsystem.com/?path=/docs/components-datatable--default>
 - Carbon source: `docs/carbon-design-system/packages/react/src/components/DataTable/`
-- Carbon types: `node_modules/carbon-components-svelte/src/DataTable/DataTable.svelte.d.ts`
+- Carbon types: <https://github.com/carbon-design-system/carbon-components-svelte/blob/v0.107.0/src/DataTable/DataTable.svelte.d.ts> (pinned tag v0.107.0)
 - Argos current implementation: `src/lib/components/chassis/drawer-tabs/DrawerTable.svelte` (Phase 2 PR #65, merged 2026-04-29)
 - Wave-1 spike T039 (PointerEvents win): memory `project_spec024_wave1_spikes_done.md`
