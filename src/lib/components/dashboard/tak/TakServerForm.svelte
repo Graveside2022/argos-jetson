@@ -1,4 +1,5 @@
 <script lang="ts">
+	import NumberInput from '$lib/components/chassis/forms/NumberInput.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
 	import Switch from '$lib/components/ui/switch/switch.svelte';
 	import type { TakServerConfig } from '$lib/types/tak';
@@ -32,15 +33,19 @@
 					class="h-8 text-xs"
 				/>
 			</label>
-			<label class="flex flex-1 flex-col gap-1 text-[11px] font-medium text-muted-foreground">
-				Port
-				<Input
-					type="number"
+			<div class="flex-1">
+				<NumberInput
+					labelText="Port"
 					bind:value={config.port}
 					placeholder="8089"
-					class="h-8 text-xs"
+					min={1}
+					max={65535}
+					step={1}
+					size="sm"
+					hideSteppers
+					disableWheel
 				/>
-			</label>
+			</div>
 		</div>
 		<label
 			class="flex cursor-pointer flex-row items-center gap-2 rounded-md border border-border/40 bg-muted/20 px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-muted/40"

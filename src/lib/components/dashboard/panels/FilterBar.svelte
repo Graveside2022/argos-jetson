@@ -4,6 +4,7 @@
 	rfVisualization store's filters and triggers a reload on change.
 -->
 <script lang="ts">
+	import NumberInput from '$lib/components/chassis/forms/NumberInput.svelte';
 	import { rfVisualization } from '$lib/stores/rf-visualization.svelte';
 
 	type PanelState =
@@ -16,36 +17,13 @@
 		| 'Disabled'
 		| 'Disconnected';
 
-	/** Typed error so callers/UI can surface a corrective action rather than a swallowed string. */
-	class ParseError extends Error {
-		readonly field: string;
-		constructor(message: string, field: string) {
-			super(message);
-			this.name = 'ParseError';
-			this.field = field;
-		}
-	}
-
 	let source = $state<string>('');
-	let rssiFloor = $state<string>('');
+	let rssiFloor = $state<number | null>(null);
 	let panelState = $state<PanelState>('Default');
 	let errorMessage = $state<string>('');
 
 	const isBusy = $derived(panelState === 'Loading' || panelState === 'Disabled');
-	const hasActiveFilters = $derived(source !== '' || rssiFloor.trim() !== '');
-
-	function parseFloor(raw: string): number | undefined {
-		const trimmed = raw.trim();
-		if (trimmed === '') return undefined;
-		const n = Number(trimmed);
-		if (!Number.isFinite(n)) {
-			throw new ParseError(
-				`RSSI floor "${raw}" is not a number — enter a value like -70`,
-				'rssiFloor'
-			);
-		}
-		return n;
-	}
+	const hasActiveFilters = $derived(source !== '' || rssiFloor !== null);
 
 	async function runReload(activeAfter: boolean): Promise<void> {
 		panelState = 'Loading';
@@ -66,18 +44,12 @@
 
 	async function applyFilters(): Promise<void> {
 		try {
-			const rssiFloorDbm = parseFloor(rssiFloor);
 			rfVisualization.setFilters({
 				source: source || undefined,
-				rssiFloorDbm
+				rssiFloorDbm: rssiFloor ?? undefined
 			});
 			await runReload(hasActiveFilters);
-		} catch (err) {
-			if (err instanceof ParseError) {
-				panelState = 'Error';
-				errorMessage = err.message;
-				return;
-			}
+		} catch {
 			// Reload errors already set state in runReload — swallow at the
 			// boundary so unhandled rejections don't surface in the console.
 		}
@@ -85,7 +57,7 @@
 
 	async function clearFilters(): Promise<void> {
 		source = '';
-		rssiFloor = '';
+		rssiFloor = null;
 		rfVisualization.setFilters({ source: undefined, rssiFloorDbm: undefined });
 		try {
 			await runReload(false);
@@ -127,19 +99,19 @@
 	</div>
 
 	<div class="field">
-		<label for="fb-rssi">RSSI floor (dBm)</label>
-		<input
+		<NumberInput
 			id="fb-rssi"
-			type="number"
-			inputmode="numeric"
-			step="1"
-			min="-120"
-			max="0"
-			placeholder="-70"
+			labelText="RSSI floor (dBm)"
 			bind:value={rssiFloor}
+			min={-120}
+			max={0}
+			step={1}
+			placeholder="-70"
 			disabled={isBusy}
-			onblur={() => void applyFilters()}
-			class="fb-input"
+			onBlur={() => void applyFilters()}
+			size="sm"
+			hideSteppers
+			disableWheel
 		/>
 	</div>
 
@@ -190,8 +162,7 @@
 		letter-spacing: 0.05em;
 		color: var(--muted-foreground);
 	}
-	.fb-select,
-	.fb-input {
+	.fb-select {
 		background: var(--card);
 		color: var(--foreground);
 		border: 1px solid var(--border);
@@ -200,13 +171,11 @@
 		font-size: 0.82em;
 		font-family: inherit;
 	}
-	.fb-select:focus,
-	.fb-input:focus {
+	.fb-select:focus {
 		outline: none;
 		border-color: var(--primary);
 	}
 	.fb-select:disabled,
-	.fb-input:disabled,
 	.fb-clear:disabled {
 		opacity: 0.55;
 		cursor: not-allowed;
