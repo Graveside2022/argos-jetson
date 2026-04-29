@@ -2,7 +2,7 @@
  * mission-store unit tests (PR5a / spec-024).
  *
  * Covers the new MissionStrip metadata round-trip:
- *   - migration 008_extend_missions_for_strip.sql adds operator/target/link_budget
+ *   - migration 20260423_extend_missions_for_strip.sql adds operator/target/link_budget
  *   - createMission accepts and persists the new optional fields
  *   - updateMission applies a partial patch, leaving untouched fields intact
  *   - explicit `null` in a patch clears the stored value
@@ -21,8 +21,14 @@ import { createMission, getMission, updateMission } from './mission-store';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const MIGRATIONS_DIR = join(__dirname, '../../db/migrations');
-const SCHEMA_SQL = readFileSync(join(MIGRATIONS_DIR, '20260412_create_reports_missions.sql'), 'utf-8');
-const STRIP_SQL = readFileSync(join(MIGRATIONS_DIR, '008_extend_missions_for_strip.sql'), 'utf-8');
+const SCHEMA_SQL = readFileSync(
+	join(MIGRATIONS_DIR, '20260412_create_reports_missions.sql'),
+	'utf-8'
+);
+const STRIP_SQL = readFileSync(
+	join(MIGRATIONS_DIR, '20260423_extend_missions_for_strip.sql'),
+	'utf-8'
+);
 
 function makeDb(): Database.Database {
 	const db = new Database(':memory:');
@@ -150,7 +156,8 @@ describe('migration 008 idempotency contract', () => {
 			}
 			expect(caught).toBeDefined();
 			expect(isErrorWithCode(caught)).toBe(true);
-			if (!isErrorWithCode(caught)) throw new Error(`unexpected error shape: ${String(caught)}`);
+			if (!isErrorWithCode(caught))
+				throw new Error(`unexpected error shape: ${String(caught)}`);
 			expect(caught.code).toBe('SQLITE_ERROR');
 			expect(String(caught.message)).toMatch(/duplicate column name/);
 		} finally {
