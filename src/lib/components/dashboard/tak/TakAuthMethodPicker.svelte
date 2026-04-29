@@ -1,50 +1,63 @@
 <script lang="ts">
+	import RadioButton from '$lib/components/chassis/forms/RadioButton.svelte';
+	import RadioButtonGroup from '$lib/components/chassis/forms/RadioButtonGroup.svelte';
 	import type { TakServerConfig } from '$lib/types/tak';
 
 	let { config = $bindable() }: { config: TakServerConfig } = $props();
 </script>
 
-<!-- @constitutional-exemption Article-IV-4.2 issue:#12 — No RadioGroup component installed; native radio with bind:group is idiomatic Svelte -->
 <div class="rounded-lg border border-border/60 bg-card/40 p-3">
-	<span class="mb-2 block text-xs font-semibold tracking-widest text-muted-foreground"
-		>AUTHENTICATION</span
+	<span class="mb-2 block text-xs font-semibold tracking-widest text-muted-foreground">
+		AUTHENTICATION
+	</span>
+	<RadioButtonGroup
+		bind:selected={config.authMethod}
+		legendText="Authentication method"
+		hideLegend
+		orientation="vertical"
+		class="auth-method-group"
 	>
-	<div class="flex flex-col gap-2">
-		<label
-			class="flex cursor-pointer flex-row items-center gap-2.5 rounded-md border px-3 py-2 text-xs font-medium transition-colors {config.authMethod ===
-			'import'
-				? 'border-primary/60 bg-primary/10 text-foreground'
-				: 'border-border/40 bg-muted/10 text-muted-foreground hover:bg-muted/30'}"
-		>
-			<span
-				class="flex size-4 shrink-0 items-center justify-center rounded-full border-2 {config.authMethod ===
-				'import'
-					? 'border-primary'
-					: 'border-muted-foreground/50'}"
-			>
-				{#if config.authMethod === 'import'}<span class="size-2 rounded-full bg-primary"
-					></span>{/if}
-			</span>
-			<input type="radio" bind:group={config.authMethod} value="import" class="sr-only" />
-			Import Certificate (.p12)
-		</label>
-		<label
-			class="flex cursor-pointer flex-row items-center gap-2.5 rounded-md border px-3 py-2 text-xs font-medium transition-colors {config.authMethod ===
-			'enroll'
-				? 'border-primary/60 bg-primary/10 text-foreground'
-				: 'border-border/40 bg-muted/10 text-muted-foreground hover:bg-muted/30'}"
-		>
-			<span
-				class="flex size-4 shrink-0 items-center justify-center rounded-full border-2 {config.authMethod ===
-				'enroll'
-					? 'border-primary'
-					: 'border-muted-foreground/50'}"
-			>
-				{#if config.authMethod === 'enroll'}<span class="size-2 rounded-full bg-primary"
-					></span>{/if}
-			</span>
-			<input type="radio" bind:group={config.authMethod} value="enroll" class="sr-only" />
-			Enroll for Certificate
-		</label>
-	</div>
+		<RadioButton labelText="Import Certificate (.p12)" value="import" class="auth-chip" />
+		<RadioButton labelText="Enroll for Certificate" value="enroll" class="auth-chip" />
+	</RadioButtonGroup>
 </div>
+
+<style>
+	/* Chip-pill skin around Carbon's RadioButton wrapper.
+	   Selectors are :global because Carbon ships its own DOM that Svelte's
+	   scoped-CSS hashing cannot reach. */
+	:global(.auth-method-group .bx--radio-button-wrapper.auth-chip) {
+		display: flex;
+		align-items: center;
+		gap: 0.625rem;
+		padding: 0.5rem 0.75rem;
+		border: 1px solid hsl(var(--border) / 0.4);
+		border-radius: 0.375rem;
+		background: hsl(var(--muted) / 0.1);
+		color: hsl(var(--muted-foreground));
+		font-size: 0.75rem;
+		font-weight: 500;
+		cursor: pointer;
+		transition:
+			background-color 0.15s ease,
+			border-color 0.15s ease,
+			color 0.15s ease;
+	}
+
+	:global(.auth-method-group .bx--radio-button-wrapper.auth-chip:hover) {
+		background: hsl(var(--muted) / 0.3);
+	}
+
+	:global(
+		.auth-method-group .bx--radio-button-wrapper.auth-chip:has(input[type='radio']:checked)
+	) {
+		border-color: hsl(var(--primary) / 0.6);
+		background: hsl(var(--primary) / 0.1);
+		color: hsl(var(--foreground));
+	}
+
+	/* Vertical stack spacing — Carbon's default vertical group spacing */
+	:global(.auth-method-group.bx--radio-button-group--vertical) {
+		gap: 0.5rem;
+	}
+</style>

@@ -15,23 +15,23 @@
 
 ## Phase board
 
-| #     | Phase                                      | Branch                                                         | Status                                               | Tag at completion           | Risk        | Effort   |
-| ----- | ------------------------------------------ | -------------------------------------------------------------- | ---------------------------------------------------- | --------------------------- | ----------- | -------- |
-| Pre-0 | Cleanup reverts (`f8bdc233` + `86b49fad`)  | `feature/spec-024-mk2-phase-3-pr-b2-tools-flyout`              | ✅ Done 2026-04-28 (commits `4c29ebc2` + `625160ef`) | n/a (predecessor branch)    | Low         | < 1 day  |
-| 0     | Pre-flight scaffold                        | `feature/spec-026-carbon-phase-0-scaffold`                     | ✅ Done 2026-04-28 (PR #59, squash `8796ace7`)       | `spec-026-phase-0-complete` | Low         | 1-2 days |
-| 1     | Buttons + IconBtn (canonical first-bite)   | `feature/spec-026-carbon-phase-1-{datatable,canary-migration}` | ✅ Done 2026-04-28 (PRs #63 + #64, tip `fb7dddea`)   | `spec-026-phase-1-complete` | Low-Medium  | 2-3 days |
-| 2     | DrawerTable → Carbon `<DataTable>`         | `feature/spec-026-carbon-phase-2-datatable`                    | ✅ Done 2026-04-29 (PR #65, squash `ad76f374`)       | `spec-026-phase-2-complete` | Medium      | 3-5 days |
-| **3** | **Form fields** (split into per-field PRs) | see sub-rows below                                             | ⏳ 3a + 3b + 3c done, 3d–3f pending                  | `spec-026-phase-3-complete` | Medium      | 5-7 days |
-| 3a    | TextInput canary + GpsServerForm           | `feature/spec-026-carbon-phase-3-textinput-canary`             | ✅ Done 2026-04-29 (PR #69, squash `9ef239bf`)       | n/a (sub-phase)             | Low-Medium  | 1 day    |
-| 3b    | PasswordInput + Search                     | `feature/spec-026-carbon-phase-3-passwordinput-search-prep`    | ✅ Done 2026-04-29 (PR #70, squash `0da0567e`)       | n/a (sub-phase)             | Low-Medium  | 1 day    |
-| 3c    | Checkbox (5 sites)                         | `feature/spec-026-carbon-phase-3c-checkbox`                    | ⏳ In flight 2026-04-29                              | n/a (sub-phase)             | Low         | < 1 day  |
-| 3d    | RadioButton + RadioButtonGroup             | `feature/spec-026-carbon-phase-3d-radio` (TBD)                 | ⬜                                                   | n/a (sub-phase)             | Medium      | 1-2 days |
-| 3e    | NumberInput                                | `feature/spec-026-carbon-phase-3e-numberinput` (TBD)           | ⬜                                                   | n/a (sub-phase)             | Medium      | 1 day    |
-| 3f    | Select (Dropdown)                          | `feature/spec-026-carbon-phase-3f-select` (TBD)                | ⬜                                                   | n/a (sub-phase)             | Medium-High | 2 days   |
-| 4     | Modal + Notification + Tooltip             | `feature/spec-026-carbon-phase-4-overlays`                     | ⬜                                                   | `spec-026-phase-4-complete` | Medium-High | 3-5 days |
-| 5     | Tabs                                       | `feature/spec-026-carbon-phase-5-tabs`                         | ⬜                                                   | `spec-026-phase-5-complete` | Medium      | 2-3 days |
-| 6     | Pagination + Loading + Search              | `feature/spec-026-carbon-phase-6-misc`                         | ⬜                                                   | `spec-026-phase-6-complete` | Low-Medium  | 3-5 days |
-| 7     | A11y audit + dead-code cleanup             | `feature/spec-026-carbon-phase-7-a11y-cleanup`                 | ⬜                                                   | `spec-026-phase-7-complete` | Low         | 2-3 days |
+| #     | Phase                                            | Branch                                                         | Status                                               | Tag at completion           | Risk        | Effort   |
+| ----- | ------------------------------------------------ | -------------------------------------------------------------- | ---------------------------------------------------- | --------------------------- | ----------- | -------- |
+| Pre-0 | Cleanup reverts (`f8bdc233` + `86b49fad`)        | `feature/spec-024-mk2-phase-3-pr-b2-tools-flyout`              | ✅ Done 2026-04-28 (commits `4c29ebc2` + `625160ef`) | n/a (predecessor branch)    | Low         | < 1 day  |
+| 0     | Pre-flight scaffold                              | `feature/spec-026-carbon-phase-0-scaffold`                     | ✅ Done 2026-04-28 (PR #59, squash `8796ace7`)       | `spec-026-phase-0-complete` | Low         | 1-2 days |
+| 1     | Buttons + IconBtn (canonical first-bite)         | `feature/spec-026-carbon-phase-1-{datatable,canary-migration}` | ✅ Done 2026-04-28 (PRs #63 + #64, tip `fb7dddea`)   | `spec-026-phase-1-complete` | Low-Medium  | 2-3 days |
+| 2     | DrawerTable → Carbon `<DataTable>`               | `feature/spec-026-carbon-phase-2-datatable`                    | ✅ Done 2026-04-29 (PR #65, squash `ad76f374`)       | `spec-026-phase-2-complete` | Medium      | 3-5 days |
+| **3** | **Form fields** (split into per-field PRs)       | see sub-rows below                                             | ⏳ 3a + 3b + 3c done; 3d in flight; 3e + 3f pending  | `spec-026-phase-3-complete` | Medium      | 5-7 days |
+| 3a    | TextInput canary + GpsServerForm                 | `feature/spec-026-carbon-phase-3-textinput-canary`             | ✅ Done 2026-04-29 (PR #69, squash `9ef239bf`)       | n/a (sub-phase)             | Low-Medium  | 1 day    |
+| 3b    | PasswordInput + Search                           | `feature/spec-026-carbon-phase-3-passwordinput-search-prep`    | ✅ Done 2026-04-29 (PR #70, squash `0da0567e`)       | n/a (sub-phase)             | Low-Medium  | 1 day    |
+| 3c    | Checkbox (5 sites)                               | `feature/spec-026-carbon-phase-3c-checkbox`                    | ✅ Done 2026-04-29 (PR #78, squash `fe66f61d`)       | n/a (sub-phase)             | Low         | < 1 day  |
+| 3d    | RadioButton + RadioButtonGroup (1 file, 2 sites) | `feature/spec-026-carbon-phase-3d-radio`                       | ⏳ In flight 2026-04-29                              | n/a (sub-phase)             | Medium      | 1-2 days |
+| 3e    | NumberInput                                      | `feature/spec-026-carbon-phase-3e-numberinput` (TBD)           | ⬜                                                   | n/a (sub-phase)             | Medium      | 1 day    |
+| 3f    | Select (Dropdown)                                | `feature/spec-026-carbon-phase-3f-select` (TBD)                | ⬜                                                   | n/a (sub-phase)             | Medium-High | 2 days   |
+| 4     | Modal + Notification + Tooltip                   | `feature/spec-026-carbon-phase-4-overlays`                     | ⬜                                                   | `spec-026-phase-4-complete` | Medium-High | 3-5 days |
+| 5     | Tabs                                             | `feature/spec-026-carbon-phase-5-tabs`                         | ⬜                                                   | `spec-026-phase-5-complete` | Medium      | 2-3 days |
+| 6     | Pagination + Loading + Search                    | `feature/spec-026-carbon-phase-6-misc`                         | ⬜                                                   | `spec-026-phase-6-complete` | Low-Medium  | 3-5 days |
+| 7     | A11y audit + dead-code cleanup                   | `feature/spec-026-carbon-phase-7-a11y-cleanup`                 | ⬜                                                   | `spec-026-phase-7-complete` | Low         | 2-3 days |
 
 **Total estimated effort:** ~21-33 engineer-days over 6-10 calendar weeks.
 
