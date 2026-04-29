@@ -51,10 +51,17 @@ jobs:
           ./scripts/ops/audit-pipeline-config.sh > /tmp/audit-output.txt 2>&1
           echo "exit_code=$?" >> "$GITHUB_OUTPUT"
           cat /tmp/audit-output.txt
+          # Unique multiline delimiter — `EOF` would collide with any audit
+          # output that contained `EOF` on its own line. Per GitHub Actions
+          # workflow-command docs (https://docs.github.com/en/actions/
+          # writing-workflows/choosing-what-your-workflow-does/workflow-
+          # commands#multiline-strings) the delimiter just needs to be
+          # absent from the content. CR feedback on PR #77.
+          DELIM="AUDIT_$(uuidgen 2>/dev/null || python3 -c 'import secrets;print(secrets.token_hex(8))')"
           {
-            echo 'audit_output<<EOF'
+            echo "audit_output<<${DELIM}"
             cat /tmp/audit-output.txt
-            echo 'EOF'
+            echo "${DELIM}"
           } >> "$GITHUB_OUTPUT"
 
       - name: 'File drift issue if drift detected'
