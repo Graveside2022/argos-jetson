@@ -1,10 +1,16 @@
 <script lang="ts">
+	import { Button } from 'carbon-components-svelte';
 	import type { Snippet } from 'svelte';
 
-	// spec-024 PR2 T016 — Mk II IconBtn primitive.
-	// Square 28×28 icon button with 1px line border. `ghost` variant strips
-	// border until hover. `aria-label` defaults to `title` so keyboard users
-	// keep discoverability when the slot only contains an icon glyph.
+	// spec-026 Phase 1 — Carbon-wrapped IconBtn. Preserves the bespoke
+	// IconBtn.svelte public API exactly (Adapter pattern per Gang of Four)
+	// so consumer call sites don't change. Internally delegates to Carbon's
+	// `<Button kind="ghost" iconOnly>` for a11y + focus management while
+	// Lunaris-specific visual identity (28×28 + 1px border) is preserved
+	// via :global() selectors targeting Carbon's `.bx--btn` class.
+	//
+	// See specs/026-lunaris-design-system/components/button/ for the
+	// authority citations + canonical-pattern matrix.
 
 	type Variant = 'default' | 'ghost';
 
@@ -29,60 +35,63 @@
 	}: Props = $props();
 
 	const accessibleName = $derived(ariaLabel ?? title ?? 'Icon button');
+	const variantClass = $derived(
+		`lunaris-icon-btn lunaris-icon-btn--${variant}${active ? ' lunaris-icon-btn--active' : ''}`
+	);
 </script>
 
-<button
-	type="button"
-	class="icon-btn {variant}"
-	class:active
-	{title}
+<Button
+	kind="ghost"
+	size="small"
+	iconDescription={accessibleName}
+	tooltipPosition="top"
 	{disabled}
-	aria-label={accessibleName}
-	aria-pressed={active}
-	{onclick}
+	on:click={(e) => onclick?.(e as unknown as MouseEvent)}
+	class={variantClass}
 >
 	{#if children}{@render children()}{/if}
-</button>
+</Button>
 
 <style>
-	.icon-btn {
-		width: 28px;
-		height: 28px;
+	/* Lunaris visual identity preservation over Carbon `<Button kind="ghost">`.
+	   :global() needed because Carbon's `.bx--btn` class is rendered inside
+	   the Carbon component, not in this scope. See style.md for the
+	   canonical-pattern matrix this implements. */
+	:global(.lunaris-icon-btn.bx--btn) {
+		min-block-size: 28px;
+		block-size: 28px;
+		inline-size: 28px;
+		padding: 0;
 		display: grid;
 		place-items: center;
 		background: transparent;
 		border: 1px solid var(--mk2-line);
 		color: var(--mk2-ink-3);
-		cursor: pointer;
 		transition:
 			color var(--mk2-mo-1),
 			border-color var(--mk2-mo-1),
 			background-color var(--mk2-mo-1);
 	}
-
-	.icon-btn:hover:not(:disabled) {
+	:global(.lunaris-icon-btn.bx--btn:hover:not(:disabled)) {
 		color: var(--mk2-ink);
 		border-color: var(--mk2-line-hi);
+		background: transparent;
 	}
-
-	.icon-btn.active {
+	:global(.lunaris-icon-btn--ghost.bx--btn) {
+		border-color: transparent;
+	}
+	:global(.lunaris-icon-btn--ghost.bx--btn:hover:not(:disabled)) {
+		border-color: var(--mk2-line);
+	}
+	:global(.lunaris-icon-btn--active.bx--btn) {
 		color: var(--mk2-accent);
 		border-color: var(--mk2-accent);
 	}
-
-	.icon-btn:disabled {
+	:global(.lunaris-icon-btn.bx--btn:disabled) {
 		opacity: 0.4;
 		cursor: not-allowed;
 	}
-
-	.icon-btn.ghost {
-		border-color: transparent;
-	}
-	.icon-btn.ghost:hover:not(:disabled) {
-		border-color: var(--mk2-line);
-	}
-
-	.icon-btn:focus-visible {
+	:global(.lunaris-icon-btn.bx--btn:focus-visible) {
 		outline: 1px solid var(--mk2-accent);
 		outline-offset: 1px;
 	}
