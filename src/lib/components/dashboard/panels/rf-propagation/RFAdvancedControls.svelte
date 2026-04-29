@@ -1,5 +1,6 @@
 <!-- RF Advanced parameter controls — collapsible section for CloudRF power/model/environment -->
 <script lang="ts">
+	import NumberInput from '$lib/components/chassis/forms/NumberInput.svelte';
 	import { rfParams, updateRFParam } from '$lib/stores/dashboard/rf-propagation-store';
 	import type {
 		ClutterProfile,
@@ -22,14 +23,8 @@
 		return model ? model.label : 'Auto';
 	});
 
-	function handleTxPower(e: Event) {
-		const val = parseFloat((e.target as HTMLInputElement).value);
-		if (!Number.isNaN(val)) updateRFParam('txPower', val);
-	}
-
-	function handleRxSensitivity(e: Event) {
-		const val = parseFloat((e.target as HTMLInputElement).value);
-		if (!Number.isNaN(val)) updateRFParam('rxSensitivity', val);
+	function setRfNumber(key: 'txPower' | 'rxSensitivity', v: number | null): void {
+		if (v != null) updateRFParam(key, v);
 	}
 
 	function handleClutter(e: Event) {
@@ -61,37 +56,29 @@
 	{#if expanded}
 		<div class="advanced-body">
 			<div class="field-grid">
-				<label class="field">
-					<span class="field-label">TX POWER</span>
-					<div class="input-row">
-						<input
-							type="number"
-							class="field-input"
-							min="0.001"
-							max="100"
-							step="0.5"
-							value={$rfParams.txPower}
-							onchange={handleTxPower}
-						/>
-						<span class="unit">W</span>
-					</div>
-				</label>
+				<NumberInput
+					labelText="TX POWER (W)"
+					value={$rfParams.txPower}
+					min={0.001}
+					max={100}
+					step={0.5}
+					size="sm"
+					hideSteppers
+					disableWheel
+					onChange={(v) => setRfNumber('txPower', v)}
+				/>
 
-				<label class="field">
-					<span class="field-label">RX SENSITIVITY</span>
-					<div class="input-row">
-						<input
-							type="number"
-							class="field-input"
-							min="-150"
-							max="0"
-							step="1"
-							value={$rfParams.rxSensitivity}
-							onchange={handleRxSensitivity}
-						/>
-						<span class="unit">dBm</span>
-					</div>
-				</label>
+				<NumberInput
+					labelText="RX SENSITIVITY (dBm)"
+					value={$rfParams.rxSensitivity}
+					min={-150}
+					max={0}
+					step={1}
+					size="sm"
+					hideSteppers
+					disableWheel
+					onChange={(v) => setRfNumber('rxSensitivity', v)}
+				/>
 			</div>
 
 			<div class="field-grid">
@@ -102,7 +89,7 @@
 						value={$rfParams.clutterProfile}
 						onchange={handleClutter}
 					>
-						{#each CLUTTER_PROFILES as profile}
+						{#each CLUTTER_PROFILES as profile (profile.id)}
 							<option value={profile.id}>{profile.label}</option>
 						{/each}
 					</select>
@@ -115,7 +102,7 @@
 						value={$rfParams.reliability}
 						onchange={handleReliability}
 					>
-						{#each RELIABILITY_OPTIONS as opt}
+						{#each RELIABILITY_OPTIONS as opt (opt.value)}
 							<option value={opt.value}>{opt.label}</option>
 						{/each}
 					</select>
@@ -133,7 +120,7 @@
 						onchange={handlePropModel}
 					>
 						<option value="auto">Auto ({autoModelLabel})</option>
-						{#each PROPAGATION_MODELS as model}
+						{#each PROPAGATION_MODELS as model (model.id)}
 							<option value={String(model.id)}>{model.label} ({model.band})</option>
 						{/each}
 					</select>
@@ -212,12 +199,6 @@
 		color: var(--foreground-secondary, #888888);
 	}
 
-	.input-row {
-		display: flex;
-		align-items: center;
-		gap: 6px;
-	}
-
 	.field-input {
 		flex: 1;
 		background: var(--surface-elevated, #151515);
@@ -252,22 +233,4 @@
 		color: var(--foreground);
 	}
 
-	.unit {
-		font-family: var(--font-mono, 'Fira Code', monospace);
-		font-size: 10px;
-		color: var(--foreground-secondary, #888888);
-		flex-shrink: 0;
-		min-width: 24px;
-	}
-
-	/* Hide number input spinners */
-	.field-input[type='number']::-webkit-inner-spin-button,
-	.field-input[type='number']::-webkit-outer-spin-button {
-		-webkit-appearance: none;
-		margin: 0;
-	}
-
-	.field-input[type='number'] {
-		-moz-appearance: textfield;
-	}
 </style>

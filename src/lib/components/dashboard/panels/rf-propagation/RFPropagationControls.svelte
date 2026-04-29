@@ -1,13 +1,13 @@
 <!-- RF Propagation parameter controls — compact form for CloudRF computation settings -->
 <script lang="ts">
+	import NumberInput from '$lib/components/chassis/forms/NumberInput.svelte';
 	import { rfParams, updateRFParam } from '$lib/stores/dashboard/rf-propagation-store';
 
-	function handleNumber(
+	function setRfNumber(
 		key: 'frequency' | 'txHeight' | 'rxHeight' | 'radius' | 'resolution',
-		e: Event
-	) {
-		const val = parseFloat((e.target as HTMLInputElement).value);
-		if (!Number.isNaN(val)) updateRFParam(key, val);
+		v: number | null
+	): void {
+		if (v != null) updateRFParam(key, v);
 	}
 
 	function handlePolarization(e: Event) {
@@ -19,21 +19,17 @@
 	<h3 class="section-label">RF PARAMETERS</h3>
 
 	<div class="field-grid">
-		<label class="field">
-			<span class="field-label">FREQUENCY</span>
-			<div class="input-row">
-				<input
-					type="number"
-					class="field-input"
-					min="1"
-					max="100000"
-					step="1"
-					value={$rfParams.frequency}
-					onchange={(e) => handleNumber('frequency', e)}
-				/>
-				<span class="unit">MHz</span>
-			</div>
-		</label>
+		<NumberInput
+			labelText="FREQUENCY (MHz)"
+			value={$rfParams.frequency}
+			min={1}
+			max={100000}
+			step={1}
+			size="sm"
+			hideSteppers
+			disableWheel
+			onChange={(v) => setRfNumber('frequency', v)}
+		/>
 
 		<label class="field">
 			<span class="field-label">POLARIZATION</span>
@@ -49,71 +45,55 @@
 	</div>
 
 	<div class="field-grid">
-		<label class="field">
-			<span class="field-label">TX HEIGHT</span>
-			<div class="input-row">
-				<input
-					type="number"
-					class="field-input"
-					min="0.5"
-					max="500"
-					step="0.5"
-					value={$rfParams.txHeight}
-					onchange={(e) => handleNumber('txHeight', e)}
-				/>
-				<span class="unit">m</span>
-			</div>
-		</label>
+		<NumberInput
+			labelText="TX HEIGHT (m)"
+			value={$rfParams.txHeight}
+			min={0.5}
+			max={500}
+			step={0.5}
+			size="sm"
+			hideSteppers
+			disableWheel
+			onChange={(v) => setRfNumber('txHeight', v)}
+		/>
 
-		<label class="field">
-			<span class="field-label">RX HEIGHT</span>
-			<div class="input-row">
-				<input
-					type="number"
-					class="field-input"
-					min="0.5"
-					max="500"
-					step="0.5"
-					value={$rfParams.rxHeight}
-					onchange={(e) => handleNumber('rxHeight', e)}
-				/>
-				<span class="unit">m</span>
-			</div>
-		</label>
+		<NumberInput
+			labelText="RX HEIGHT (m)"
+			value={$rfParams.rxHeight}
+			min={0.5}
+			max={500}
+			step={0.5}
+			size="sm"
+			hideSteppers
+			disableWheel
+			onChange={(v) => setRfNumber('rxHeight', v)}
+		/>
 	</div>
 
 	<div class="field-grid">
-		<label class="field">
-			<span class="field-label">RADIUS</span>
-			<div class="input-row">
-				<input
-					type="number"
-					class="field-input"
-					min="0.1"
-					max="100"
-					step="0.5"
-					value={$rfParams.radius}
-					onchange={(e) => handleNumber('radius', e)}
-				/>
-				<span class="unit">km</span>
-			</div>
-		</label>
+		<NumberInput
+			labelText="RADIUS (km)"
+			value={$rfParams.radius}
+			min={0.1}
+			max={100}
+			step={0.5}
+			size="sm"
+			hideSteppers
+			disableWheel
+			onChange={(v) => setRfNumber('radius', v)}
+		/>
 
-		<label class="field">
-			<span class="field-label">RESOLUTION</span>
-			<div class="input-row">
-				<input
-					type="number"
-					class="field-input"
-					min="5"
-					max="300"
-					step="5"
-					value={$rfParams.resolution}
-					onchange={(e) => handleNumber('resolution', e)}
-				/>
-				<span class="unit">m/px</span>
-			</div>
-		</label>
+		<NumberInput
+			labelText="RESOLUTION (m/px)"
+			value={$rfParams.resolution}
+			min={5}
+			max={300}
+			step={5}
+			size="sm"
+			hideSteppers
+			disableWheel
+			onChange={(v) => setRfNumber('resolution', v)}
+		/>
 	</div>
 </section>
 
@@ -157,12 +137,6 @@
 		color: var(--foreground-secondary, #888888);
 	}
 
-	.input-row {
-		display: flex;
-		align-items: center;
-		gap: 6px;
-	}
-
 	.field-input {
 		flex: 1;
 		background: var(--surface-elevated, #151515);
@@ -194,22 +168,4 @@
 		color: var(--foreground);
 	}
 
-	.unit {
-		font-family: var(--font-mono, 'Fira Code', monospace);
-		font-size: 10px;
-		color: var(--foreground-secondary, #888888);
-		flex-shrink: 0;
-		min-width: 24px;
-	}
-
-	/* Hide number input spinners */
-	.field-input[type='number']::-webkit-inner-spin-button,
-	.field-input[type='number']::-webkit-outer-spin-button {
-		-webkit-appearance: none;
-		margin: 0;
-	}
-
-	.field-input[type='number'] {
-		-moz-appearance: textfield;
-	}
 </style>
