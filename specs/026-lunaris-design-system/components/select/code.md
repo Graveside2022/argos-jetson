@@ -16,7 +16,7 @@ Carbon ships `carbon-components-svelte@0.107.0`, which is **still Svelte 4 inter
 ```ts
 interface Props {
   /** Selected option value. Two-way bindable. */
-  value?: string | number | null;
+  value?: string | number;
   /** Visible label above the select. Required. */
   labelText: string;
   /** Helper text below the field. */
@@ -48,7 +48,7 @@ interface Props {
   /** Extra class name forwarded to Carbon's outer div. */
   class?: string;
   /** Callback fired on selection change. Mirrors NumberInput.onChange pattern. */
-  onChange?: (value: string | number | null) => void;
+  onChange?: (value: string | number | undefined) => void;
   /** SelectItem children — pass <SelectItem> elements imported from carbon-components-svelte. */
   children?: import('svelte').Snippet;
 }

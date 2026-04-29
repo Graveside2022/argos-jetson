@@ -48,7 +48,7 @@ These overrides live (or will live) in `src/lib/styles/lunaris-carbon-theme.scss
 
 ## Typography
 
-Carbon's Select inherits `$body-compact-01` → `font-family: $body-font-family` → mapped to Geist via Phase 0 `lunaris-carbon-theme.scss`. **No Argos override needed for the select text itself.** The chassis wrapper applies `font-family: 'Geist Mono', ...` only when the consumer site is monospace-themed (the wrapper does not override font globally — let consumers add `class="..."` if they want mono).
+Carbon's Select inherits `$body-compact-01` → `font-family: $body-font-family` → mapped to Geist via Phase 0 `lunaris-carbon-theme.scss`. **The chassis wrapper applies no font-family rule itself.** The Select element inherits whatever `font-family` the parent surface declares via CSS cascade. Per CLAUDE.md typography rules: Fira Code (monospace) for ALL data — so a parent that sets `font-family: 'Fira Code', ui-monospace, monospace` (e.g. FilterBar at `panels/FilterBar.svelte`) makes the Select render in Fira Code without any wrapper-side rule. Geist is reserved for tab labels and UI navigation chrome, not data.
 
 ## Sizing
 
@@ -64,7 +64,7 @@ Mapping is identical to NumberInput (Phase 3e) — see `components/number-input/
 
 ## Inline vs stacked label
 
-Default = stacked (label above input). For inline label-and-input pairs (rare in Argos — only the dashboard FilterBar uses it currently), pass `inline={true}`. Carbon's Select renders a different DOM tree for inline (`Select.svelte:157-209`) which the wrapper passes through without overriding.
+Default = stacked (label above input). For inline label-and-input pairs (none used in Argos as of PR-A — pattern reserved for tightly-packed control bars where vertical space is scarce), pass `inline={true}`. Carbon's Select renders a different DOM tree for inline (`Select.svelte:157-209`) which the wrapper passes through without overriding. PR-A's FilterBar canary uses the default stacked layout.
 
 ## Accent ring
 
