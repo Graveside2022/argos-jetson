@@ -25,7 +25,7 @@ Per Carbon `number-input/usage.mdx`:
 - **Default** — full-width with label, helper, stepper buttons + native input.
 - **`hideSteppers={true}`** — hides up/down buttons; useful when stepper would crowd a tight layout.
 - **`size`** — xs / sm / md (default) / lg matches text-input sizing.
-- **`min` / `max`** — clamps the value; stepper disables at limits.
+- **`min` / `max`** — control HTML5 input validity + stepper bounds (up/down buttons respect them). Note: typed values are NOT hard-clamped; they only flag the field as invalid. Consumers that need hard-clamping must do it in the bound `value` setter.
 - **`step`** — increment per stepper click (default 1; use 0.1 for sub-Hz tuning, 1000 for kHz, etc.).
 
 ## Argos surface inventory (provisional)

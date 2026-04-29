@@ -23,7 +23,7 @@ Mutually exclusive choices among a small set (2-5 options) where the user picks 
 Per Carbon `radio-button/usage.mdx`:
 
 - **`<RadioButton>`** — single radio control with label, `value` prop.
-- **`<RadioButtonGroup>`** — wrapper that groups radios, owns the selected `value`, dispatches `change` event. ALWAYS use the group, never bare `<RadioButton>` instances — group provides the keyboard nav semantics (arrows cycle, Tab moves out).
+- **`<RadioButtonGroup>`** — wrapper that groups radios, owns the current selection via the `selected` prop (NOT `value`), dispatches `change` event. ALWAYS use the group, never bare `<RadioButton>` instances — group provides the keyboard nav semantics (arrows cycle, Tab moves out). Per <https://github.com/carbon-design-system/carbon-components-svelte/pull/407>.
 - **Layout**: horizontal (default) or `orientation="vertical"` for tighter stacks.
 - **Label position**: right of dot (default) or `labelPosition="left"` for right-aligned label patterns.
 
