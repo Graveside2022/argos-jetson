@@ -51,6 +51,7 @@
 	{disabled}
 	on:click={(e) => onclick?.(e as unknown as MouseEvent)}
 	class={variantClass}
+	aria-label={accessibleName}
 	aria-pressed={active}
 >
 	{#if children}{@render children()}{/if}
