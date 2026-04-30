@@ -29,6 +29,7 @@
 		role="button"
 		tabindex="0"
 		title="GPS {sats} SAT"
+		aria-label="Toggle GPS dropdown"
 	>
 		<span
 			class="status-dot"

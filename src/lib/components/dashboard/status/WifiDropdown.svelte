@@ -15,9 +15,17 @@
 	<div
 		class="status-item device-btn"
 		onclick={onToggle}
+		onkeydown={(e: KeyboardEvent) => {
+			if (e.key === 'Enter' || e.key === ' ') {
+				e.preventDefault();
+				onToggle();
+			}
+		}}
 		role="button"
 		tabindex="0"
 		title="WiFi Adapter"
+		aria-label="Toggle WiFi adapter details"
+		aria-expanded={open}
 	>
 		<span
 			class="status-dot"
