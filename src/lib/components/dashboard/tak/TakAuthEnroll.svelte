@@ -1,8 +1,7 @@
 <script lang="ts">
-	import { toast } from 'svelte-sonner';
-
 	import NumberInput from '$lib/components/chassis/forms/NumberInput.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
+	import { toast } from '$lib/stores/toast.svelte';
 	import type { TakServerConfig } from '$lib/types/tak';
 
 	interface Props {

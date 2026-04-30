@@ -13,6 +13,8 @@
 	import { SelectItem } from 'carbon-components-svelte';
 
 	import Checkbox from '$lib/components/chassis/forms/Checkbox.svelte';
+	import InlineNotification from '$lib/components/chassis/forms/InlineNotification.svelte';
+	import Modal from '$lib/components/chassis/forms/Modal.svelte';
 	import Select from '$lib/components/chassis/forms/Select.svelte';
 	import PanelEmptyState from '$lib/components/ui/PanelEmptyState.svelte';
 	import { persistedWritable } from '$lib/stores/persisted-writable';
@@ -262,8 +264,7 @@
 		}
 	}
 
-	async function submitNewMission(e: SubmitEvent): Promise<void> {
-		e.preventDefault();
+	async function submitNewMission(): Promise<void> {
 		if (!missionName.trim()) {
 			missionError = 'Mission name is required';
 			return;
@@ -536,110 +537,80 @@
 	{/if}
 
 	<!-- New Mission modal -->
-	{#if showNewMissionModal}
-		<div
-			class="modal-backdrop"
-			role="presentation"
-			tabindex="-1"
-			onclick={(e) => {
-				if (e.target === e.currentTarget) closeNewMissionModal();
-			}}
-			onkeydown={(e) => {
-				if (e.key === 'Escape') closeNewMissionModal();
-			}}
-		>
-			<div
-				class="modal"
-				role="dialog"
-				aria-modal="true"
-				aria-labelledby="mission-modal-title"
+	<Modal
+		bind:open={showNewMissionModal}
+		hasForm
+		modalHeading="NEW MISSION"
+		primaryButtonText={missionSubmitting ? 'CREATING...' : 'CREATE'}
+		primaryButtonDisabled={missionSubmitting}
+		secondaryButtonText="CANCEL"
+		onSubmit={submitNewMission}
+		onClickSecondary={closeNewMissionModal}
+		onClose={closeNewMissionModal}
+	>
+		<label class="form-field">
+			<span class="field-label">NAME</span>
+			<input
+				class="input"
+				type="text"
+				bind:value={missionName}
+				required
+				disabled={missionSubmitting}
+			/>
+		</label>
+		<div class="form-field">
+			<Select
+				labelText="TYPE"
+				value={missionType}
+				onChange={(v) => {
+					if (v !== undefined) missionType = String(v) as typeof missionType;
+				}}
+				disabled={missionSubmitting}
+				size="sm"
 			>
-				<header class="modal-header">
-					<h3 id="mission-modal-title" class="section-label">NEW MISSION</h3>
-					<button
-						class="icon-btn"
-						type="button"
-						onclick={closeNewMissionModal}
-						aria-label="Close"
-					>
-						<X size={12} />
-					</button>
-				</header>
-				<form class="modal-body" onsubmit={submitNewMission}>
-					<label class="form-field">
-						<span class="field-label">NAME</span>
-						<input
-							class="input"
-							type="text"
-							bind:value={missionName}
-							required
-							disabled={missionSubmitting}
-						/>
-					</label>
-					<div class="form-field">
-						<Select
-							labelText="TYPE"
-							value={missionType}
-							onChange={(v) => {
-								if (v !== undefined) missionType = String(v) as typeof missionType;
-							}}
-							disabled={missionSubmitting}
-							size="sm"
-						>
-							<SelectItem value="sitrep-loop" text="SITREP LOOP" />
-							<SelectItem value="emcon-survey" text="EMCON SURVEY" />
-						</Select>
-					</div>
-					<label class="form-field">
-						<span class="field-label">UNIT</span>
-						<input
-							class="input"
-							type="text"
-							bind:value={missionUnit}
-							disabled={missionSubmitting}
-						/>
-					</label>
-					<label class="form-field">
-						<span class="field-label">AO (MGRS)</span>
-						<input
-							class="input"
-							type="text"
-							bind:value={missionAoMgrs}
-							disabled={missionSubmitting}
-						/>
-					</label>
-					<div class="form-field form-field-inline">
-						<Checkbox
-							bind:checked={missionSetActive}
-							disabled={missionSubmitting}
-							labelText="SET ACTIVE"
-						/>
-					</div>
-
-					{#if missionError}
-						<p class="form-error" role="alert">{missionError}</p>
-					{/if}
-					{#if missionSuccess}
-						<p class="form-success" role="status">{missionSuccess}</p>
-					{/if}
-
-					<div class="modal-footer">
-						<button
-							class="btn"
-							type="button"
-							onclick={closeNewMissionModal}
-							disabled={missionSubmitting}
-						>
-							CANCEL
-						</button>
-						<button class="btn btn-primary" type="submit" disabled={missionSubmitting}>
-							{missionSubmitting ? 'CREATING...' : 'CREATE'}
-						</button>
-					</div>
-				</form>
-			</div>
+				<SelectItem value="sitrep-loop" text="SITREP LOOP" />
+				<SelectItem value="emcon-survey" text="EMCON SURVEY" />
+			</Select>
 		</div>
-	{/if}
+		<label class="form-field">
+			<span class="field-label">UNIT</span>
+			<input
+				class="input"
+				type="text"
+				bind:value={missionUnit}
+				disabled={missionSubmitting}
+			/>
+		</label>
+		<label class="form-field">
+			<span class="field-label">AO (MGRS)</span>
+			<input
+				class="input"
+				type="text"
+				bind:value={missionAoMgrs}
+				disabled={missionSubmitting}
+			/>
+		</label>
+		<div class="form-field form-field-inline">
+			<Checkbox
+				bind:checked={missionSetActive}
+				disabled={missionSubmitting}
+				labelText="SET ACTIVE"
+			/>
+		</div>
+
+		{#if missionError}
+			<InlineNotification
+				kind="error"
+				title="Mission create failed"
+				subtitle={missionError}
+				hideCloseButton
+				lowContrast
+			/>
+		{/if}
+		{#if missionSuccess}
+			<InlineNotification kind="success" title={missionSuccess} hideCloseButton lowContrast />
+		{/if}
+	</Modal>
 </section>
 
 <style>
@@ -981,42 +952,6 @@
 		background: #ffffff;
 	}
 
-	/* Modal */
-	.modal-backdrop {
-		position: absolute;
-		inset: 0;
-		background: rgba(0, 0, 0, 0.7);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		z-index: 100;
-		border: none;
-		padding: 0;
-	}
-
-	.modal {
-		background: var(--card);
-		border: 1px solid var(--border);
-		min-width: 360px;
-		max-width: 480px;
-		width: 100%;
-	}
-
-	.modal-header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: 10px 14px;
-		border-bottom: 1px solid var(--border);
-	}
-
-	.modal-body {
-		display: flex;
-		flex-direction: column;
-		gap: 10px;
-		padding: 14px;
-	}
-
 	.form-field {
 		display: flex;
 		flex-direction: column;
@@ -1027,27 +962,6 @@
 		flex-direction: row;
 		align-items: center;
 		gap: 8px;
-	}
-
-	.form-error {
-		font-family: 'Fira Code', monospace;
-		font-size: 10px;
-		color: #ff5c33;
-		margin: 0;
-	}
-
-	.form-success {
-		font-family: 'Fira Code', monospace;
-		font-size: 10px;
-		color: #8bbfa0;
-		margin: 0;
-	}
-
-	.modal-footer {
-		display: flex;
-		justify-content: flex-end;
-		gap: 8px;
-		margin-top: 6px;
 	}
 
 	.reports-view.fullscreen {

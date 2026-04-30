@@ -1,4 +1,5 @@
 <script lang="ts">
+	import InlineNotification from '$lib/components/chassis/forms/InlineNotification.svelte';
 	import Dot from '$lib/components/mk2/Dot.svelte';
 
 	const POLL_MS = 4000;
@@ -93,9 +94,13 @@
 	{#if tabState === 'loading'}
 		<p class="loading mono" aria-live="polite">connecting to /api/system/services…</p>
 	{:else if tabState === 'error'}
-		<p class="err mono" role="alert">
-			cannot reach /api/system/services — {lastError}. Check ARGOS_API_KEY; retrying every {POLL_MS / 1000}s.
-		</p>
+		<InlineNotification
+			kind="error"
+			title="cannot reach /api/system/services"
+			subtitle={`${lastError}. Check ARGOS_API_KEY; retrying every ${POLL_MS / 1000}s.`}
+			hideCloseButton
+			lowContrast
+		/>
 	{:else if tabState === 'empty'}
 		<p class="empty mono">no services configured server-side.</p>
 	{:else}
@@ -116,7 +121,13 @@
 			</tbody>
 		</table>
 		{#if lastError}
-			<p class="err mono" role="alert">last poll error: {lastError}</p>
+			<InlineNotification
+				kind="warning"
+				title="last poll error"
+				subtitle={lastError}
+				hideCloseButton
+				lowContrast
+			/>
 		{/if}
 	{/if}
 </div>
@@ -205,10 +216,5 @@
 	.loading {
 		font-size: var(--mk2-fs-3);
 		color: var(--mk2-ink-3);
-	}
-
-	.err {
-		font-size: var(--mk2-fs-2);
-		color: var(--mk2-red);
 	}
 </style>

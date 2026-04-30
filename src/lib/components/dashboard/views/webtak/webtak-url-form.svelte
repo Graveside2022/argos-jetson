@@ -18,6 +18,8 @@
 		errorMessage?: string;
 	}
 
+	import InlineNotification from '$lib/components/chassis/forms/InlineNotification.svelte';
+
 	let { initialUrl = '', onConnect, busy = false, errorMessage = '' }: Props = $props();
 
 	let inputUrl = $state(initialUrl);
@@ -60,7 +62,13 @@
 			</button>
 		</div>
 		{#if errorMessage}
-			<p class="url-error">{errorMessage}</p>
+			<InlineNotification
+				kind="error"
+				title="Connection failed"
+				subtitle={errorMessage}
+				hideCloseButton
+				lowContrast
+			/>
 		{/if}
 	</div>
 </div>
@@ -146,13 +154,4 @@
 		cursor: not-allowed;
 	}
 
-	.url-error {
-		margin: 12px 0 0;
-		padding: 8px 12px;
-		background: var(--error-bg, rgba(196, 91, 74, 0.1));
-		border: 1px solid var(--destructive, #c45b4a);
-		color: var(--destructive, #c45b4a);
-		font-size: 10px;
-		line-height: 1.5;
-	}
 </style>

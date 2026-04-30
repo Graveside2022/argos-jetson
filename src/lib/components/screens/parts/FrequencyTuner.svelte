@@ -8,6 +8,7 @@
 	// initial tuner ships with the actual API contract. Status badge
 	// shows running/stopped from /api/gsm-evil/status.
 
+	import InlineNotification from '$lib/components/chassis/forms/InlineNotification.svelte';
 	import NumberInput from '$lib/components/chassis/forms/NumberInput.svelte';
 	import { gsmStore } from '$lib/state/gsm.svelte';
 
@@ -52,8 +53,11 @@
 		{gsmStore.running ? 'RUNNING' : 'STOPPED'}
 		{#if gsmStore.frequencyMHz}· {stripUnit(gsmStore.frequencyMHz)} MHz{/if}
 	</span>
-	{#if gsmStore.lastError}<span class="err" role="alert">{gsmStore.lastError}</span>{/if}
 </div>
+
+{#if gsmStore.lastError}
+	<InlineNotification kind="error" title={gsmStore.lastError} hideCloseButton lowContrast />
+{/if}
 
 <style>
 	.tuner {
@@ -93,9 +97,5 @@
 	}
 	.status[data-running='true'] {
 		color: var(--mk2-accent, var(--primary));
-	}
-	.err {
-		color: var(--mk2-err, #ff5c33);
-		font-size: 10px;
 	}
 </style>

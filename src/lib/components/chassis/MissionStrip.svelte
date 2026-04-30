@@ -11,6 +11,7 @@
 	import { SelectItem } from 'carbon-components-svelte';
 	import { onMount } from 'svelte';
 
+	import InlineNotification from '$lib/components/chassis/forms/InlineNotification.svelte';
 	import Select from '$lib/components/chassis/forms/Select.svelte';
 	// spec-026 Phase 1 — IconBtn → IconBtnCarbon (Carbon-wrapped, same public API).
 	import IconBtn from '$lib/components/mk2/IconBtn.svelte';
@@ -148,10 +149,17 @@
 			</Select>
 			<IconBtn onclick={onNewMission} ariaLabel="new mission">+</IconBtn>
 		{/if}
-		{#if missionStore.lastError}
-			<span class="err" role="alert">ERR: {missionStore.lastError}</span>
-		{/if}
 	</div>
+
+	{#if missionStore.lastError}
+		<InlineNotification
+			kind="error"
+			title="Mission error"
+			subtitle={missionStore.lastError}
+			hideCloseButton
+			lowContrast
+		/>
+	{/if}
 
 	<div class="strip-cells">
 		{#each [{ field: 'name' as const, label: 'ENGAGEMENT', readonly: false }, { field: 'operator' as const, label: 'OPERATOR', readonly: false }, { field: 'target' as const, label: 'TARGET', readonly: false }, { field: null, label: 'TIMER', readonly: true }, { field: 'link_budget' as const, label: 'LINK BUDGET', readonly: false }] as cell (cell.label)}
@@ -220,11 +228,6 @@
 		padding: 2px 8px;
 		font: inherit;
 		cursor: pointer;
-	}
-	.err {
-		color: var(--destructive);
-		margin-left: auto;
-		font-size: 10px;
 	}
 	.strip-cells {
 		display: grid;

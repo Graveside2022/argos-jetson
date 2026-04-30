@@ -2,13 +2,13 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { writable } from 'svelte/store';
-	import { toast } from 'svelte-sonner';
 
 	import ToolCard from '$lib/components/dashboard/shared/ToolCard.svelte';
 	import ToolCategoryCard from '$lib/components/dashboard/shared/ToolCategoryCard.svelte';
 	import { activePanel, activeView } from '$lib/stores/dashboard/dashboard-store';
 	import { currentCategory } from '$lib/stores/dashboard/tools-store';
 	import { kismetStore, setKismetStatus } from '$lib/stores/tactical-map/kismet-store';
+	import { toast } from '$lib/stores/toast.svelte';
 	import { isCategory, type ToolDefinition, type ToolStatus } from '$lib/types/tools';
 
 	/**

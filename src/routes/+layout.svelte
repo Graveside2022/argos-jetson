@@ -8,7 +8,6 @@
 
 	import type { Snippet } from 'svelte';
 	import { onMount } from 'svelte';
-	import { Toaster } from 'svelte-sonner';
 
 	import { page } from '$app/state';
 	import ToastRegion from '$lib/components/chassis/ToastRegion.svelte';
@@ -70,14 +69,6 @@
 		content="Army EW training console for SDR signal analysis, network reconnaissance, GPS tracking, and tactical communications."
 	/>
 </svelte:head>
-
-<Toaster
-	theme="dark"
-	position="bottom-right"
-	toastOptions={{
-		style: 'background: var(--card); color: var(--card-foreground); border: 1px solid var(--border); font-family: "Fira Code", monospace; font-size: 11px;'
-	}}
-/>
 
 <ToastRegion />
 

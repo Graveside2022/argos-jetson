@@ -12,6 +12,7 @@
 <script lang="ts">
 	import { SelectItem } from 'carbon-components-svelte';
 
+	import InlineNotification from '$lib/components/chassis/forms/InlineNotification.svelte';
 	import Select from '$lib/components/chassis/forms/Select.svelte';
 	import { rfVisualization } from '$lib/stores/rf-visualization.svelte';
 
@@ -55,12 +56,14 @@
 	{#if rfVisualization.sessionsLoading}
 		<div class="session-status">Loading sessions…</div>
 	{:else if rfVisualization.sessionsLoadFailed}
-		<div class="session-status session-error" role="alert">
-			<span class="session-error-msg" title={rfVisualization.error ?? ''}>
-				{rfVisualization.error ?? 'Failed to load sessions.'}
-			</span>
-			<button type="button" class="session-retry" onclick={retryLoad}>Retry</button>
-		</div>
+		<InlineNotification
+			kind="error"
+			title="Failed to load sessions"
+			subtitle={rfVisualization.error ?? ''}
+			hideCloseButton
+			lowContrast
+		/>
+		<button type="button" class="session-retry" onclick={retryLoad}>Retry</button>
 	{:else if rfVisualization.sessionsList.length === 0}
 		<div class="session-status">
 			No capture sessions yet. Start a Kismet scan to create one.
@@ -115,20 +118,6 @@
 		background: var(--card);
 		border: 1px solid var(--border);
 		border-radius: 4px;
-	}
-	.session-error {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 0.5em;
-		color: var(--destructive);
-		border-color: var(--destructive);
-	}
-	.session-error-msg {
-		flex: 1 1 auto;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
 	}
 	.session-retry {
 		flex: 0 0 auto;
