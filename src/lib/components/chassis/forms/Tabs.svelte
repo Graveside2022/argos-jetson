@@ -1,5 +1,5 @@
 <script lang="ts" module>
-	import type { ComponentType } from 'svelte';
+	import type { Component } from 'svelte';
 
 	export interface TabDef {
 		id: string;
@@ -7,7 +7,7 @@
 		badge?: string | number;
 		hasItems?: boolean;
 		disabled?: boolean;
-		icon?: ComponentType;
+		icon?: Component;
 		secondaryLabel?: string;
 	}
 </script>
