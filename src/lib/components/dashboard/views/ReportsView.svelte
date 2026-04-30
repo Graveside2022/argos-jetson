@@ -15,6 +15,7 @@
 	import Checkbox from '$lib/components/chassis/forms/Checkbox.svelte';
 	import InlineNotification from '$lib/components/chassis/forms/InlineNotification.svelte';
 	import Modal from '$lib/components/chassis/forms/Modal.svelte';
+	import Search from '$lib/components/chassis/forms/Search.svelte';
 	import Select from '$lib/components/chassis/forms/Select.svelte';
 	import PanelEmptyState from '$lib/components/ui/PanelEmptyState.svelte';
 	import { persistedWritable } from '$lib/stores/persisted-writable';
@@ -318,14 +319,12 @@
 		</div>
 
 		<div class="toolbar-group">
-			<label class="field-label" for="search-query">SEARCH</label>
-			<input
+			<Search
 				id="search-query"
-				class="input"
-				type="text"
 				bind:value={searchQuery}
 				placeholder="TITLE..."
-				aria-label="Search reports"
+				ariaLabel="Search reports"
+				size="sm"
 			/>
 		</div>
 
