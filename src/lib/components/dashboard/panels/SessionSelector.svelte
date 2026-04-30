@@ -10,6 +10,9 @@
 	the always-present "All sessions" option in Ready state.
 -->
 <script lang="ts">
+	import { SelectItem } from 'carbon-components-svelte';
+
+	import Select from '$lib/components/chassis/forms/Select.svelte';
 	import { rfVisualization } from '$lib/stores/rf-visualization.svelte';
 
 	// Load sessions once on mount. Guard with sessionsLoading + sessionsLoadFailed
@@ -32,9 +35,9 @@
 		return new Date(s.startedAt).toISOString().replace('T', ' ').slice(0, 16);
 	}
 
-	function handleChange(event: Event): void {
-		const value = (event.currentTarget as HTMLSelectElement).value;
-		void rfVisualization.setSession(value === '' ? null : value);
+	function handleChange(value: string | number | undefined): void {
+		const v = value === undefined ? '' : String(value);
+		void rfVisualization.setSession(v === '' ? null : v);
 	}
 
 	function retryLoad(): void {
@@ -63,17 +66,18 @@
 			No capture sessions yet. Start a Kismet scan to create one.
 		</div>
 	{:else}
-		<select
+		<Select
 			id="rf-session-select"
-			class="session-select"
+			noLabel
 			value={rfVisualization.activeSessionId ?? ''}
-			onchange={handleChange}
+			onChange={handleChange}
+			size="sm"
 		>
-			<option value="">All sessions</option>
+			<SelectItem value="" text="All sessions" />
 			{#each rfVisualization.sessionsList as session (session.id)}
-				<option value={session.id}>{labelFor(session)}</option>
+				<SelectItem value={session.id} text={labelFor(session)} />
 			{/each}
-		</select>
+		</Select>
 	{/if}
 </div>
 
@@ -103,19 +107,6 @@
 		padding: 0.08em 0.4em;
 		border: 1px solid var(--success);
 		border-radius: 3px;
-	}
-	.session-select {
-		background: var(--card);
-		color: var(--foreground);
-		border: 1px solid var(--border);
-		border-radius: 4px;
-		padding: 0.35em 0.5em;
-		font-size: 0.85em;
-		font-family: inherit;
-	}
-	.session-select:disabled {
-		opacity: 0.5;
-		cursor: not-allowed;
 	}
 	.session-status {
 		font-size: 0.78em;

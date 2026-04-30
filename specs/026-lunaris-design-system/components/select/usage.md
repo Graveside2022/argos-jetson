@@ -1,8 +1,8 @@
 # Select — Usage
 
-**Status:** Phase 3 prep (drafted during Phase 2 PR review)
-**Last updated:** 2026-04-29
-**Implementation file (target):** `src/lib/components/chassis/forms/Select.svelte`
+**Status:** Phase 3f PR-A — wrapper + canary live
+**Last updated:** 2026-04-29 (post-triage)
+**Implementation file:** `src/lib/components/chassis/forms/Select.svelte`
 **Carbon component:** `<Select>` from `carbon-components-svelte` v0.107.0+
 
 ---
@@ -19,20 +19,43 @@ Single-choice from a small-to-medium list (3-15 options) where the user's choice
 - **Multi-select** → use `<MultiSelect>`.
 - **Numeric step picker** → use `<NumberInput>`.
 
-## Argos surface inventory (provisional)
+## Argos surface inventory (post-triage 2026-04-29)
 
-Bespoke `<select>` sites that Phase 3 retires:
+Triage classified 11 files / 18 native `<select>` sites into two cohorts. **Select cohort (9 files / 11 sites)** wraps in this `<Select>`. **Dropdown cohort (2 files / 7 sites)** wraps in `<Dropdown>` (PR-C, separate spec).
 
-| Surface             | File                                                                              | Current pattern                                  |
-| ------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------ |
-| Theme accent picker | `src/lib/components/mk2/Tweaks.svelte`                                            | bespoke `<select>` over 13 oklch palette options |
-| HackRF gain mode    | `src/lib/components/dashboard/panels/rf-propagation/RFPropagationControls.svelte` | bespoke `<select>` (preset / manual)             |
-| TAK protocol        | `src/lib/components/dashboard/tak/*`                                              | bespoke `<select>` (TLS/SSL/Plain)               |
-| Report format       | `src/lib/components/dashboard/views/ReportsView.svelte`                           | bespoke `<select>` (PDF/JSON/CoT)                |
-| Density picker      | `src/lib/components/mk2/Tweaks.svelte`                                            | bespoke `<select>` (compact/default/comfy)       |
-| GPS source          | `src/lib/components/dashboard/panels/SessionSelector.svelte`                      | bespoke `<select>`                               |
+### Select cohort (this spec)
 
-Total bespoke select call sites: ~8-12. Migration order: Tweaks (Phase 2 pattern, theme/density already there) → RF controls → TAK → reports.
+| File                                                                                 | Site count | Options shape                                                       | Migration PR    |
+| ------------------------------------------------------------------------------------ | ---------- | ------------------------------------------------------------------- | --------------- |
+| `src/lib/components/dashboard/panels/FilterBar.svelte:85`                            | 1          | 6 static primitives (any/kismet/bluedragon/gsm-evil/hackrf/rtl-sdr) | **PR-A canary** |
+| `src/lib/components/dashboard/panels/BluetoothPanel.svelte:224`                      | 1          | 3 static, `disabled` gated                                          | PR-B            |
+| `src/lib/components/dashboard/panels/rf-propagation/RFPropagationControls.svelte:36` | 1          | 2 static (polarization)                                             | PR-B            |
+| `src/lib/components/dashboard/views/ReportsView.svelte:302,576`                      | 2          | 3+2 static, first `disabled` gated                                  | PR-B            |
+| `src/lib/components/dashboard/panels/SessionSelector.svelte:66`                      | 1          | dynamic ≤20 (session names)                                         | PR-B            |
+| `src/routes/recon/cellular/trunk-recorder/PresetForm.svelte:160`                     | 1          | 2 static                                                            | PR-B            |
+| `src/lib/components/dashboard/map/DeviceOverlay.svelte:65`                           | 1          | 3 static                                                            | PR-B            |
+| `src/lib/components/chassis/MissionStrip.svelte:133`                                 | 1          | dynamic ≤20 (mission names)                                         | PR-B            |
+| `src/routes/recon/cellular/trunk-recorder/+page.svelte:167`                          | 1          | dynamic ≤20 (presets), `disabled` gated                             | PR-B            |
+
+**Total Select cohort: 9 files / 11 sites.**
+
+### Dropdown cohort (separate `dropdown/` spec, PR-C)
+
+| File                                                                           | Sites | Why Dropdown not Select                                                                                                            |
+| ------------------------------------------------------------------------------ | ----- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `src/lib/components/screens/parts/SpectrumControls.svelte`                     | 4     | Object-keyed `BIN_PRESETS` with `.hz/.label`; LNA_STEPS / VGA_STEPS dynamic gain grids                                             |
+| `src/lib/components/dashboard/panels/rf-propagation/RFAdvancedControls.svelte` | 3     | Object-keyed `CLUTTER_PROFILES` / `RELIABILITY_OPTIONS` / `PROPAGATION_MODELS` with `.id/.label`; user-search benefit (filterable) |
+
+**Total Dropdown cohort: 2 files / 7 sites.**
+
+### Decision rule applied
+
+- ≤7 static + primitive → `<Select>` (preserves native a11y for free, lower risk).
+- Object-keyed OR >20 dynamic OR user-search hint → `<Dropdown>` (combobox, accept the re-implemented focus management).
+
+### Theme accent + density picker
+
+`src/lib/components/mk2/Tweaks.svelte` was scoped out of triage — the accent + density pickers there were already replaced with bespoke radio-group + segmented-button controls in earlier Mk II work. No `<select>` to migrate.
 
 ## Anatomy (per Carbon source)
 

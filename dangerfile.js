@@ -31,8 +31,13 @@ const changed = Array.from(
 );
 
 // ── 1. PR size cap (human-authored lines only — exclude generated files) ─
+// Hard cap raised from 1200 → 2000 on 2026-04-29 to support phase-level
+// PR bundling per memory `feedback_bulk_pr_bundling.md`. Spec-026 sub-phases
+// total ~1700-2000 LOC when bundled (wrapper + spec docs + consumer
+// migrations + roadmap flip). 2000 is the new ceiling; soft warn at 500
+// stays as the splitting nudge for non-phase-bundled PRs.
 const PR_SIZE_SOFT = 500;
-const PR_SIZE_HARD = 1200;
+const PR_SIZE_HARD = 2000;
 // Globs for files that bloat the raw diff without being reviewable prose.
 // Lock files, changelogs, and snapshot fixtures all fall in here — they can
 // legitimately add thousands of lines on a small PR and would defeat the gate.
