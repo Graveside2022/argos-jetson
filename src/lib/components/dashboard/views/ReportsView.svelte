@@ -1,4 +1,5 @@
 <script lang="ts">
+	import InlineNotification from '$lib/components/chassis/forms/InlineNotification.svelte';
 	import {
 		Eye,
 		FileText,
@@ -617,10 +618,21 @@
 					</div>
 
 					{#if missionError}
-						<p class="form-error" role="alert">{missionError}</p>
+						<InlineNotification
+							kind="error"
+							title="Mission create failed"
+							subtitle={missionError}
+							hideCloseButton
+							lowContrast
+						/>
 					{/if}
 					{#if missionSuccess}
-						<p class="form-success" role="status">{missionSuccess}</p>
+						<InlineNotification
+							kind="success"
+							title={missionSuccess}
+							hideCloseButton
+							lowContrast
+						/>
 					{/if}
 
 					<div class="modal-footer">
@@ -1027,20 +1039,6 @@
 		flex-direction: row;
 		align-items: center;
 		gap: 8px;
-	}
-
-	.form-error {
-		font-family: 'Fira Code', monospace;
-		font-size: 10px;
-		color: #ff5c33;
-		margin: 0;
-	}
-
-	.form-success {
-		font-family: 'Fira Code', monospace;
-		font-size: 10px;
-		color: #8bbfa0;
-		margin: 0;
 	}
 
 	.modal-footer {

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import InlineNotification from '$lib/components/chassis/forms/InlineNotification.svelte';
 	import { SelectItem } from 'carbon-components-svelte';
 	import { untrack } from 'svelte';
 
@@ -270,7 +271,13 @@
 	</details>
 
 	{#if errorMessage}
-		<div class="error" role="alert">{errorMessage}</div>
+		<InlineNotification
+			kind="error"
+			title="Preset save failed"
+			subtitle={errorMessage}
+			hideCloseButton
+			lowContrast
+		/>
 	{/if}
 
 	<div class="actions">
@@ -359,11 +366,6 @@
 		grid-template-columns: repeat(2, 1fr);
 		gap: 0.5rem;
 		padding-top: 0.5rem;
-	}
-	.error {
-		padding: 0.4rem 0.5rem;
-		background: rgba(196, 91, 74, 0.15);
-		color: #ff5c33;
 	}
 	.actions {
 		display: flex;

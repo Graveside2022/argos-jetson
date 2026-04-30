@@ -16,6 +16,7 @@
 -->
 <script lang="ts">
 	import Dropdown from '$lib/components/chassis/forms/Dropdown.svelte';
+	import InlineNotification from '$lib/components/chassis/forms/InlineNotification.svelte';
 	import NumberInput from '$lib/components/chassis/forms/NumberInput.svelte';
 	import { spectrumConfigStore, spectrumRuntime } from '$lib/state/spectrum.svelte';
 	import type { GainConfig, SpectrumConfig } from '$lib/types/spectrum';
@@ -185,11 +186,12 @@
 		<button type="submit" disabled={busy} class="primary">
 			{#if busy}…{:else if isStreaming}STOP{:else}START{/if}
 		</button>
-		{#if postError}
-			<span class="err" role="alert">{postError}</span>
-		{/if}
 	</div>
 </form>
+
+{#if postError}
+	<InlineNotification kind="error" title={postError} hideCloseButton lowContrast />
+{/if}
 
 <style>
 	.controls {
@@ -251,9 +253,5 @@
 	button.primary:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
-	}
-	.err {
-		color: var(--mk2-amber);
-		font-size: var(--mk2-fs-2);
 	}
 </style>

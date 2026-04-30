@@ -1,4 +1,5 @@
 <script lang="ts">
+	import InlineNotification from '$lib/components/chassis/forms/InlineNotification.svelte';
 	import type { SystemInfo } from '$lib/types/system';
 	import { bytesPerSecond, METRIC_WINDOW, pushSample } from '$lib/utils/sparkline-buffer';
 
@@ -136,9 +137,13 @@
 	{#if tabState === 'loading'}
 		<p class="loading mono" aria-live="polite">connecting to /api/system/metrics…</p>
 	{:else if tabState === 'error'}
-		<p class="err mono" role="alert">
-			cannot reach /api/system/metrics — {lastError}. Check ARGOS_API_KEY; retrying every {POLL_METRICS_MS / 1000}s.
-		</p>
+		<InlineNotification
+			kind="error"
+			title="cannot reach /api/system/metrics"
+			subtitle={`${lastError}. Check ARGOS_API_KEY; retrying every ${POLL_METRICS_MS / 1000}s.`}
+			hideCloseButton
+			lowContrast
+		/>
 	{:else}
 		<div class="metric-grid">
 			<MetricCard
@@ -187,7 +192,13 @@
 		</section>
 
 		{#if lastError}
-			<p class="err mono" role="alert">last poll error: {lastError}</p>
+			<InlineNotification
+				kind="warning"
+				title="last poll error"
+				subtitle={lastError}
+				hideCloseButton
+				lowContrast
+			/>
 		{/if}
 	{/if}
 </div>
@@ -239,10 +250,5 @@
 	.loading {
 		font-size: var(--mk2-fs-3);
 		color: var(--mk2-ink-3);
-	}
-
-	.err {
-		font-size: var(--mk2-fs-2);
-		color: var(--mk2-red);
 	}
 </style>
