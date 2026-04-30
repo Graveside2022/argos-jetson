@@ -6,6 +6,7 @@
 <script lang="ts">
 	import { SelectItem } from 'carbon-components-svelte';
 
+	import InlineNotification from '$lib/components/chassis/forms/InlineNotification.svelte';
 	import NumberInput from '$lib/components/chassis/forms/NumberInput.svelte';
 	import Select from '$lib/components/chassis/forms/Select.svelte';
 	import { rfVisualization } from '$lib/stores/rf-visualization.svelte';
@@ -119,7 +120,7 @@
 	</div>
 
 	{#if panelState === 'Error' && errorMessage}
-		<p class="fb-error" role="alert">{errorMessage}</p>
+		<InlineNotification kind="error" title={errorMessage} hideCloseButton />
 	{/if}
 </div>
 
@@ -163,12 +164,5 @@
 	.fb-clear:disabled {
 		opacity: 0.55;
 		cursor: not-allowed;
-	}
-	.fb-error {
-		font-size: 0.7em;
-		color: var(--error-desat);
-		margin: 0;
-		padding: 0.2em 0;
-		font-family: inherit;
 	}
 </style>
