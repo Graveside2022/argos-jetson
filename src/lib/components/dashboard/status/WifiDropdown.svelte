@@ -18,6 +18,7 @@
 		role="button"
 		tabindex="0"
 		title="WiFi Adapter"
+		aria-label="Toggle WiFi adapter details"
 	>
 		<span
 			class="status-dot"
