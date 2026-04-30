@@ -25,6 +25,12 @@
 			<div
 				class="weather-chip device-btn"
 				onclick={onToggleWeather}
+				onkeydown={(e: KeyboardEvent) => {
+					if (e.key === 'Enter' || e.key === ' ') {
+						e.preventDefault();
+						onToggleWeather();
+					}
+				}}
 				role="button"
 				tabindex="0"
 				aria-label="Toggle weather details"
