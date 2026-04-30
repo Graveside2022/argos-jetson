@@ -11,6 +11,7 @@
 	import { Toaster } from 'svelte-sonner';
 
 	import { page } from '$app/state';
+	import ToastRegion from '$lib/components/chassis/ToastRegion.svelte';
 	import { accentStore, densityStore } from '$lib/state/ui.svelte';
 	import { markCSSLoaded } from '$lib/utils/css-loader';
 
@@ -77,6 +78,8 @@
 		style: 'background: var(--card); color: var(--card-foreground); border: 1px solid var(--border); font-family: "Fira Code", monospace; font-size: 11px;'
 	}}
 />
+
+<ToastRegion />
 
 <main class="page-loading">
 	{@render children()}

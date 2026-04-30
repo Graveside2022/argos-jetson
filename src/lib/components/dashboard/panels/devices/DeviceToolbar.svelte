@@ -1,9 +1,8 @@
 <!-- @constitutional-exemption Article-IV-4.2 issue:#12 — Band filter chips, back button use custom 24x20px sizing incompatible with shadcn Button -->
 <script lang="ts">
-	import { toast } from 'svelte-sonner';
-
 	import Input from '$lib/components/ui/input/input.svelte';
 	import { kismetStore, setKismetStatus } from '$lib/stores/tactical-map/kismet-store';
+	import { toast } from '$lib/stores/toast.svelte';
 	import { signalBands } from '$lib/utils/signal-utils';
 
 	interface Props {

@@ -11,6 +11,7 @@
 	import { browser } from '$app/environment';
 	import Checkbox from '$lib/components/chassis/forms/Checkbox.svelte';
 	import Select from '$lib/components/chassis/forms/Select.svelte';
+	import Tooltip from '$lib/components/chassis/forms/Tooltip.svelte';
 	import PanelEmptyState from '$lib/components/ui/PanelEmptyState.svelte';
 	import {
 		applyBluetoothDevices,
@@ -237,34 +238,52 @@
 				<SelectItem value="volume" text="VOLUME (recommended)" />
 				<SelectItem value="max" text="MAX DECODE" />
 			</Select>
-			<Checkbox
-				class="opt"
-				bind:checked={allChannels}
-				disabled={togglesDisabled}
-				labelText="ALL CH"
-				title="Capture full BLE band 2402–2480 MHz (96 channels). Default covers ch37+ch38 only."
-			/>
-			<Checkbox
-				class="opt"
-				bind:checked={activeScan}
-				disabled={togglesDisabled}
-				labelText="ACTIVE"
-				title="HCI LE active scan via system Bluetooth — enriches device names + services"
-			/>
-			<Checkbox
-				class="opt"
-				bind:checked={gpsd}
-				disabled={togglesDisabled}
-				labelText="GPS"
-				title="GPS-tag every packet via gpsd (requires gpsd running)"
-			/>
-			<Checkbox
-				class="opt"
-				bind:checked={codedScan}
-				disabled={togglesDisabled}
-				labelText="CODED"
-				title="Continuous LE Coded PHY (Long Range) scan on advertising channels — AirTag/IoT detection at distance"
-			/>
+			<span class="opt-tooltip">
+				<Checkbox
+					class="opt"
+					bind:checked={allChannels}
+					disabled={togglesDisabled}
+					labelText="ALL CH"
+				/>
+				<Tooltip iconDescription="ALL CH capture details" align="end">
+					Capture full BLE band 2402–2480 MHz (96 channels). Default covers ch37+ch38
+					only.
+				</Tooltip>
+			</span>
+			<span class="opt-tooltip">
+				<Checkbox
+					class="opt"
+					bind:checked={activeScan}
+					disabled={togglesDisabled}
+					labelText="ACTIVE"
+				/>
+				<Tooltip iconDescription="ACTIVE scan details" align="end">
+					HCI LE active scan via system Bluetooth — enriches device names + services.
+				</Tooltip>
+			</span>
+			<span class="opt-tooltip">
+				<Checkbox
+					class="opt"
+					bind:checked={gpsd}
+					disabled={togglesDisabled}
+					labelText="GPS"
+				/>
+				<Tooltip iconDescription="GPS tagging details" align="end">
+					GPS-tag every packet via gpsd (requires gpsd running).
+				</Tooltip>
+			</span>
+			<span class="opt-tooltip">
+				<Checkbox
+					class="opt"
+					bind:checked={codedScan}
+					disabled={togglesDisabled}
+					labelText="CODED"
+				/>
+				<Tooltip iconDescription="CODED PHY scan details" align="end">
+					Continuous LE Coded PHY (Long Range) scan on advertising channels — AirTag/IoT
+					detection at distance.
+				</Tooltip>
+			</span>
 			<button class="btn-start" onclick={onStart} disabled={starting}>
 				{starting ? 'Starting…' : 'Start'}
 			</button>
@@ -653,5 +672,11 @@
 
 	.rssi-none {
 		color: var(--foreground-tertiary);
+	}
+
+	.opt-tooltip {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.15em;
 	}
 </style>
