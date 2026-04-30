@@ -15,14 +15,26 @@
 
 	let { activeTab, counts, tabs, onTabChange }: Props = $props();
 
-	const chassisTabs = $derived<TabDef[]>(
-		tabs.map((t) => ({
+	function badgeFor(id: string): string | number | undefined {
+		if (id === 'whitelist') return undefined;
+		return counts[id] ?? 0;
+	}
+
+	function hasItemsFor(id: string): boolean {
+		if (id === 'all' || id === 'whitelist') return false;
+		return (counts[id] ?? 0) > 0;
+	}
+
+	function toChassisTab(t: InputTab): TabDef {
+		return {
 			id: t.id,
 			label: t.label,
-			badge: t.id === 'whitelist' ? undefined : (counts[t.id] ?? 0),
-			hasItems: t.id !== 'all' && t.id !== 'whitelist' && (counts[t.id] ?? 0) > 0
-		}))
-	);
+			badge: badgeFor(t.id),
+			hasItems: hasItemsFor(t.id)
+		};
+	}
+
+	const chassisTabs = $derived<TabDef[]>(tabs.map(toChassisTab));
 </script>
 
 <Tabs tabs={chassisTabs} selectedId={activeTab} onChange={onTabChange} />
