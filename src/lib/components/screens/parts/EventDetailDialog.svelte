@@ -1,19 +1,11 @@
 <script lang="ts">
 	// spec-024 PR5c T033 — KV detail modal for an EventStream row.
-	//
-	// Reuses the bits-ui AlertDialog primitive (precedent:
-	// gsm-evil/ErrorDialog.svelte) so we keep one dialog implementation
-	// for the whole app, and the Mk II KV.svelte primitive so the body
-	// renders in the same data-row style as the rest of the chassis.
+	// spec-026 Phase 7 — migrated from bits-ui AlertDialog to chassis Modal
+	// (matches Phase 4 PR-A ErrorDialog migration `1f27dba8`). Unblocks
+	// deletion of `src/lib/components/ui/alert-dialog/` directory.
 
+	import Modal from '$lib/components/chassis/forms/Modal.svelte';
 	import KV from '$lib/components/mk2/KV.svelte';
-	import AlertDialogRoot from '$lib/components/ui/alert-dialog/alert-dialog.svelte';
-	import AlertDialogAction from '$lib/components/ui/alert-dialog/alert-dialog-action.svelte';
-	import AlertDialogContent from '$lib/components/ui/alert-dialog/alert-dialog-content.svelte';
-	import AlertDialogDescription from '$lib/components/ui/alert-dialog/alert-dialog-description.svelte';
-	import AlertDialogFooter from '$lib/components/ui/alert-dialog/alert-dialog-footer.svelte';
-	import AlertDialogHeader from '$lib/components/ui/alert-dialog/alert-dialog-header.svelte';
-	import AlertDialogTitle from '$lib/components/ui/alert-dialog/alert-dialog-title.svelte';
 	import type { AppEvent } from '$lib/types/event';
 
 	interface Props {
@@ -50,19 +42,15 @@
 	}
 </script>
 
-<AlertDialogRoot bind:open>
-	<AlertDialogContent>
-		<AlertDialogHeader>
-			<AlertDialogTitle>EVENT DETAIL</AlertDialogTitle>
-			<AlertDialogDescription>
-				{event ? `${event.source} · ${event.level}` : ''}
-			</AlertDialogDescription>
-		</AlertDialogHeader>
-		{#if event}
-			<KV rows={rowsFor(event)} />
-		{/if}
-		<AlertDialogFooter>
-			<AlertDialogAction>CLOSE</AlertDialogAction>
-		</AlertDialogFooter>
-	</AlertDialogContent>
-</AlertDialogRoot>
+<Modal
+	bind:open
+	modalLabel="EVENT DETAIL"
+	modalHeading={event ? `${event.source} · ${event.level}` : 'Event Detail'}
+	primaryButtonText="CLOSE"
+	onSubmit={() => (open = false)}
+	onClose={() => (open = false)}
+>
+	{#if event}
+		<KV rows={rowsFor(event)} />
+	{/if}
+</Modal>
