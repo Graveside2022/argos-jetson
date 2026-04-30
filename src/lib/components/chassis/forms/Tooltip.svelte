@@ -25,7 +25,7 @@
 		direction = 'bottom',
 		align = 'start',
 		hideIcon = false,
-		iconDescription = '',
+		iconDescription = 'More information',
 		triggerText = '',
 		enterDelayMs = 100,
 		leaveDelayMs = 300,

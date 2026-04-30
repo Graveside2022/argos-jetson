@@ -24,8 +24,8 @@ Carbon's `<Tooltip>` is **its own trigger**: it renders a button (default: an `I
 
 ## Argos surface inventory (Phase 4 scope — 5 sites of 102)
 
-| File | Line | Why migrate |
-|------|------|-------------|
+| File | Line | Why migrate | PR |
+|------|------|-------------|----|
 | `src/lib/components/dashboard/panels/BluetoothPanel.svelte` | 245, 252, 259, 266 | Multi-line capture-mode descriptions (CLEAN/VOLUME/MAX, ALL CH, ACTIVE, GPS, CODED) | **PR-A canary** |
 | `src/lib/components/dashboard/panels/devices/DevicesPanel.svelte` | 232-275 | 6 filter-badge tooltips with security warnings | PR-B sweep |
 | `src/lib/components/dashboard/panels/devices/DevicePriorityTable.svelte` | 197 | Beacon fingerprint hex display (scrollable) | PR-B sweep |

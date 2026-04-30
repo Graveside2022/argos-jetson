@@ -13,7 +13,7 @@
 
 ## When to use
 
-Transient, top-right confirmation or error after an operator action — Kismet start failed, report copied, link clipboard saved. Auto-dismiss (default 4 s). Stack vertically when fired in quick succession.
+Transient, bottom-right confirmation or error after an operator action — Kismet start failed, report copied, link clipboard saved. Auto-dismiss (default 4 s). Stack vertically when fired in quick succession.
 
 ## When NOT to use
 
