@@ -1,8 +1,8 @@
 <script lang="ts">
-	import InlineNotification from '$lib/components/chassis/forms/InlineNotification.svelte';
 	import { SelectItem } from 'carbon-components-svelte';
 	import { untrack } from 'svelte';
 
+	import InlineNotification from '$lib/components/chassis/forms/InlineNotification.svelte';
 	import NumberInput from '$lib/components/chassis/forms/NumberInput.svelte';
 	import Select from '$lib/components/chassis/forms/Select.svelte';
 	import type {

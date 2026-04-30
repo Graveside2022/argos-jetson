@@ -1,6 +1,4 @@
 <script lang="ts">
-	import InlineNotification from '$lib/components/chassis/forms/InlineNotification.svelte';
-	import Modal from '$lib/components/chassis/forms/Modal.svelte';
 	import {
 		Eye,
 		FileText,
@@ -15,6 +13,8 @@
 	import { SelectItem } from 'carbon-components-svelte';
 
 	import Checkbox from '$lib/components/chassis/forms/Checkbox.svelte';
+	import InlineNotification from '$lib/components/chassis/forms/InlineNotification.svelte';
+	import Modal from '$lib/components/chassis/forms/Modal.svelte';
 	import Select from '$lib/components/chassis/forms/Select.svelte';
 	import PanelEmptyState from '$lib/components/ui/PanelEmptyState.svelte';
 	import { persistedWritable } from '$lib/stores/persisted-writable';
@@ -608,12 +608,7 @@
 			/>
 		{/if}
 		{#if missionSuccess}
-			<InlineNotification
-				kind="success"
-				title={missionSuccess}
-				hideCloseButton
-				lowContrast
-			/>
+			<InlineNotification kind="success" title={missionSuccess} hideCloseButton lowContrast />
 		{/if}
 	</Modal>
 </section>
