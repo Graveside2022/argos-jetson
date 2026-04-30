@@ -12,13 +12,13 @@ The Carbon InlineLoading primitive (wrapped at `src/lib/components/chassis/forms
 | 1.4.3 Contrast (Minimum) | AA | Description text uses `$text-primary` (`var(--ink)`) ≥ 4.5:1 against parent surface. Status icons use `$support-success` / `$support-error` tokens — Lunaris values verified ≥ 3:1 against `var(--card)`. |
 | 1.4.11 Non-text Contrast | AA | Icon strokes target ≥ 3:1 against the container surface. |
 | 4.1.2 Name, Role, Value | A | Root `<div>` has implicit live-region role via `aria-live="assertive"`. Each icon has accessible name via SVG `<title>`. |
-| 4.1.3 Status Messages | AA | `aria-live="assertive"` (`InlineLoading.svelte:52`) ensures assistive tech announces the description on mount + on description change without moving focus. |
+| 4.1.3 Status Messages | AA | `aria-live="assertive"` (`node_modules/carbon-components-svelte/src/InlineLoading/InlineLoading.svelte:52` (Carbon source — chassis wrapper passes through)) ensures assistive tech announces the description on mount + on description change without moving focus. |
 
 ## ARIA — Carbon owns vs consumer owes
 
 | Attribute | Owner | Notes |
 | --------- | ----- | ----- |
-| `aria-live="assertive"` | Carbon | Hard-coded on the root (`InlineLoading.svelte:52`). Assertive — interrupts current screen reader output. |
+| `aria-live="assertive"` | Carbon | Hard-coded on the root (`node_modules/carbon-components-svelte/src/InlineLoading/InlineLoading.svelte:52` (Carbon source — chassis wrapper passes through)). Assertive — interrupts current screen reader output. |
 | `<title>` inside status icons | Carbon | Wired to `iconDescription` (with `status`-derived fallback for `'error'` / `'finished'`). |
 | Description text | **Consumer** | Pass a meaningful `description` so screen readers have content to announce. Empty `description` produces silent live region — bad UX. |
 | Container `role` | Implicit | Carbon does NOT set an explicit `role`. The `aria-live` makes it a live region implicitly. |
@@ -39,7 +39,7 @@ InlineLoading does not move, trap, or restore focus. Mounting the component does
 | State / event | Announcement |
 | ------------- | ------------ |
 | Mount with `status='active' description='Loading…'` | "Loading…" — assertive announcement, doesn't move focus. |
-| Mount with `status='inactive'` | Description (if any) announced once via the assertive live region; spinner is rendered stopped. No icon-state announcement (the inactive variant uses the same Loading SVG as `active` but with `active={false}` per `InlineLoading.svelte:75`). |
+| Mount with `status='inactive'` | Description (if any) announced once via the assertive live region; spinner is rendered stopped. No icon-state announcement (the inactive variant uses the same Loading SVG as `active` but with `active={false}` per `node_modules/carbon-components-svelte/src/InlineLoading/InlineLoading.svelte:71-77` (Carbon source)). |
 | Mount with `status='error' description='…'` | Description announced via the assertive live region. The X icon's `<title>` (defaulting to `'error'`) is announced only when the user navigates into the icon via screen-reader cursor mode (not Tab). |
 | Mount with empty/undefined `description` | Live region renders silent. The icon's `<title>` (`iconDescription` or status-derived fallback for `'error'` / `'finished'`) is the only screen-reader-detectable text. **Pitfall** — always pass a meaningful `description` (see "Common pitfalls" below). |
 | `description` changes (e.g., `'Loading…'` → `'Saved.'`) | New description announced (assertive live region). |

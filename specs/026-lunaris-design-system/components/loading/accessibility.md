@@ -6,10 +6,10 @@ The Carbon Loading primitive (wrapped at `src/lib/components/chassis/forms/Loadi
 
 | SC | Level | How Carbon satisfies it |
 | -- | ----- | ----------------------- |
-| 1.1.1 Non-text Content | A | SVG carries a `<title>` element wired to the `description` prop (`Loading.svelte:31, 59`). Screen readers announce the title when focus enters the loading region. |
+| 1.1.1 Non-text Content | A | SVG carries a `<title>` element wired to the `description` prop (`node_modules/carbon-components-svelte/src/Loading/Loading.svelte:31, 59` (Carbon source — chassis wrapper passes through)). Screen readers announce the title when focus enters the loading region. |
 | 1.4.1 Use of Color | A | The animation itself communicates state (movement = active, paused = stopped). Color is supplementary. |
 | 1.4.3 Contrast (Minimum) | AA | `bx--loading__stroke` uses `$interactive` token (mapped to `var(--accent)`) — Lunaris accents all clear ≥ 3:1 against `var(--background)` per the design-system contract. |
-| 4.1.3 Status Messages | AA | Root element carries `aria-live="assertive"` while `active`, `aria-live="off"` when stopped (`Loading.svelte:25, 52`). Assistive tech announces the description without moving focus. |
+| 4.1.3 Status Messages | AA | Root element carries `aria-live="assertive"` while `active`, `aria-live="off"` when stopped (`node_modules/carbon-components-svelte/src/Loading/Loading.svelte:25, 52` (Carbon source — chassis wrapper passes through)). Assistive tech announces the description without moving focus. |
 
 ## ARIA — Carbon owns vs consumer owes
 
@@ -36,7 +36,7 @@ Loading does not move, trap, or restore focus. The browser's natural focus order
 | State | Announcement |
 | ----- | ------------ |
 | Mount with `active=true` | "Loading" (or custom `description`) — assertive announcement. |
-| Mount with `active=false` initially | Carbon sets `aria-live="off"` from the first render (`Loading.svelte:25, 52`); the live region does NOT announce the description. The SVG `<title>` is still reachable via screen-reader cursor mode. Use case: pre-rendered SSR placeholder waiting to activate. |
+| Mount with `active=false` initially | Carbon sets `aria-live="off"` from the first render (`node_modules/carbon-components-svelte/src/Loading/Loading.svelte:25, 52` (Carbon source — chassis wrapper passes through)); the live region does NOT announce the description. The SVG `<title>` is still reachable via screen-reader cursor mode. Use case: pre-rendered SSR placeholder waiting to activate. |
 | Update of `description` while active | New description re-announced (because `aria-atomic="true"`). |
 | `active` flips `false` → `true` | `aria-live` flips `off` → `assertive`; the description IS announced assertively on the activation event. Use this to start a deferred loading state. |
 | `active` flips `true` → `false` | Carbon sets `aria-live="off"` — stops further announcements. SVG continues to render but spinner animation pauses. |
