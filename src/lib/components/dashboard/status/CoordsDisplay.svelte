@@ -34,6 +34,7 @@
 				role="button"
 				tabindex="0"
 				aria-label="Toggle weather details"
+				aria-expanded={weatherOpen}
 			>
 				<!-- @constitutional-exemption Article-IX-9.4 issue:#13 — getWeatherIcon() returns hardcoded SVG strings, no user input -->
 				<span class="weather-icon"
