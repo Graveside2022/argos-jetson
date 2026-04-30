@@ -76,7 +76,10 @@
 	{id}
 	class={className}
 	on:select={(e) => {
-		const detail = e.detail as { selectedId: string | number; selectedItem: { id: string | number; text: string; disabled?: boolean } };
+		const detail = e.detail as {
+			selectedId: string | number;
+			selectedItem: { id: string | number; text: string; disabled?: boolean };
+		};
 		const original = items.find((it) => it.id === detail.selectedId);
 		if (original) onSelect?.(detail.selectedId, original);
 	}}

@@ -56,7 +56,7 @@ interface Props {
 
 ## Consumer pattern
 
-### Before (raw HTML, FilterBar RSSI floor)
+### Before (raw HTML, FilterBar RSSI floor) — bespoke
 
 ```svelte
 <div class="field">
@@ -77,7 +77,7 @@ interface Props {
 </div>
 ```
 
-### After (Carbon-wrapped)
+### After (Carbon-wrapped) — FilterBar
 
 ```svelte
 <NumberInput
@@ -107,7 +107,7 @@ The parent `<div class="field">` + `<label>` are removed; Carbon owns label rend
 </label>
 ```
 
-### After (Carbon-wrapped)
+### After (Carbon-wrapped) — TakServerForm
 
 ```svelte
 <NumberInput
@@ -176,13 +176,38 @@ For surfaces needing Carbon-specific features the adapter doesn't expose (slot:l
 | `src/lib/components/dashboard/tak/TakServerForm.svelte` | 36-43   | TAK server port (integer 1-65535)          |
 | `src/lib/components/dashboard/tak/TakAuthEnroll.svelte` | 90-97   | TAK enrollment port (integer 1-65535)      |
 
-### PR3e-tier-2 (follow-up) — 16 sites across 5 files
+### PR3e-tier-2 — 16 sites across 5 files (✅ Done 2026-04-29)
 
-- `RFAdvancedControls.svelte` (2 sites — RF propagation advanced)
-- `RFPropagationControls.svelte` (5 sites — RF propagation main controls)
-- `SpectrumControls.svelte` (2 sites — spectrum analyzer)
-- `PresetForm.svelte` (6 sites — trunk-recorder preset, decimal frequencies via `allowDecimal`)
-- `FrequencyTuner.svelte` (1 site — main frequency display, large `xl` size + `locale` formatting)
+Split into two PRs along the `allowDecimal` axis under the 1200-line Danger PR-shape gate:
+
+**Tier-2a (PR #83, squash `18067250`)** — integer cohort, `value+onChange` pattern (legacy `persistedWritable` store):
+
+| File                                                                              | Lines (post-merge) | Sites                                                                                                       |
+| --------------------------------------------------------------------------------- | ------------------ | ----------------------------------------------------------------------------------------------------------- |
+| `src/lib/components/dashboard/panels/rf-propagation/RFPropagationControls.svelte` | ~22-96             | 5: FREQUENCY (1-100000 MHz), TX HEIGHT, RX HEIGHT (0.5-500 m), RADIUS (0.1-100 km), RESOLUTION (5-300 m/px) |
+| `src/lib/components/dashboard/panels/rf-propagation/RFAdvancedControls.svelte`    | ~59-81             | 2: TX POWER (0.001-100 W), RX SENSITIVITY (-150-0 dBm)                                                      |
+| `src/lib/components/screens/parts/SpectrumControls.svelte`                        | ~118-138           | 2: start MHz, stop MHz (1-6000 MHz, Hz↔MHz preserved via `* 1e6`)                                          |
+
+**Tier-2b (PR #84, squash `458b11ad`)** — decimal cohort, `bind:value` + `allowDecimal` (first production exercise of the wrapper's text-mode trailing-zero preservation):
+
+| File                                                         | Lines (post-merge) | Sites                                                                                        |
+| ------------------------------------------------------------ | ------------------ | -------------------------------------------------------------------------------------------- |
+| `src/lib/components/screens/parts/FrequencyTuner.svelte`     | ~22-32             | 1: GSM frequency (0-6000 MHz, step 0.1)                                                      |
+| `src/routes/recon/cellular/trunk-recorder/PresetForm.svelte` | ~165-260           | 6: control channels (array, P25 0.0125 MHz step), Center MHz, Sample rate Hz, RF/IF/BB gains |
+
+**Wrapper validation outcomes:**
+
+- `onChange` callback path: confirmed correct (Carbon's `dispatch("change", value)` emits `e.detail = number | null` directly per `node_modules/carbon-components-svelte/src/NumberInput/NumberInput.svelte:189, 217, 236, 421`)
+- `allowDecimal=true` text-mode: smoke-tested in production at `/gsm-evil` (FrequencyTuner) and `/recon/cellular/trunk-recorder` (PresetForm 851.0125 MHz P25 channel)
+
+**Deletions enabled by tier-2:**
+
+- `parseFloor()` function (RSSI-floor shim — already deleted in canary's FilterBar)
+- `parseFloat`-based `handleNumber` helpers in RFPropagationControls + RFAdvancedControls
+- `parseMhzToHz`, `parseOneControlChannel`, `tryAddChannel`, `parseIntegerField`, `hzToMhzString`, `isValidMHz` regex (PresetForm + FrequencyTuner)
+- Dead CSS rules: `.input-row`, `.unit`, `.field-input[type='number']::-webkit-*`, `.channel-row input { flex: 1 }`
+
+**Sentrux signal across tier-2:** baseline 6733 (canary tip) → 6733 (tier-2a merged) → 6733 (tier-2b merged). Zero architectural drift across 16-site migration.
 
 ---
 

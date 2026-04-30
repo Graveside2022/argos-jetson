@@ -6,18 +6,18 @@ Carbon's `<Dropdown>` is a custom popover combobox. UNLIKE `<Select>` (which inh
 
 Carbon Dropdown uses `ListBox` underneath. Per `node_modules/carbon-components-svelte/src/Dropdown/Dropdown.svelte:139-156`:
 
-| Attribute | Value | Source |
-|-----------|-------|--------|
-| Outer role | `combobox` | ListBox component |
-| `aria-expanded` | bound to `open` state | ListBox-Field button |
-| `aria-haspopup` | `listbox` | ListBox-Field |
-| `aria-labelledby` | label id | auto-wired from `labelText` + generated id |
-| `aria-activedescendant` | highlighted item id | tracks ARROW key navigation |
-| Inner menu role | `listbox` | ListBoxMenu |
-| Menu item role | `option` | ListBoxMenuItem |
-| `aria-selected` | `true` for selected item | ListBoxMenuItem |
-| `aria-describedby` | `errorId` / `warnId` / `helperId` | conditional per state |
-| `aria-invalid` | `true` when `invalid={true}` | wrapper field |
+| Attribute               | Value                             | Source                                     |
+| ----------------------- | --------------------------------- | ------------------------------------------ |
+| Outer role              | `combobox`                        | ListBox component                          |
+| `aria-expanded`         | bound to `open` state             | ListBox-Field button                       |
+| `aria-haspopup`         | `listbox`                         | ListBox-Field                              |
+| `aria-labelledby`       | label id                          | auto-wired from `labelText` + generated id |
+| `aria-activedescendant` | highlighted item id               | tracks ARROW key navigation                |
+| Inner menu role         | `listbox`                         | ListBoxMenu                                |
+| Menu item role          | `option`                          | ListBoxMenuItem                            |
+| `aria-selected`         | `true` for selected item          | ListBoxMenuItem                            |
+| `aria-describedby`      | `errorId` / `warnId` / `helperId` | conditional per state                      |
+| `aria-invalid`          | `true` when `invalid={true}`      | wrapper field                              |
 
 The Lunaris wrapper does NOT override any of this.
 
@@ -25,19 +25,19 @@ The Lunaris wrapper does NOT override any of this.
 
 Every PR-C migration MUST verify each path against the running app via chrome-devtools MCP:
 
-| Key | Behavior |
-|-----|----------|
-| TAB into field | Focus enters the closed dropdown button. Focus ring (Lunaris accent) visible. |
-| TAB out (closed) | Focus skips to next focusable element. |
-| TAB out (open) | Closes menu, focus returns to button, then advances. |
-| SPACE or ENTER (closed) | Opens the popover. First item highlighted (or current selection). |
-| SPACE or ENTER (open, on item) | Commits the highlighted option. Closes menu. Focus returns to button. |
-| ARROW DOWN (open) | Highlights next item. Wraps at end. |
-| ARROW UP (open) | Highlights previous item. Wraps at start. |
-| ESC (open) | Closes menu WITHOUT committing. Focus returns to button. |
-| ESC (closed) | No-op. |
-| Type-ahead (open) | Letter typed jumps to first matching item by `text`. 500ms timeout per Carbon. |
-| HOME / END (open) | First / last item. |
+| Key                            | Behavior                                                                       |
+| ------------------------------ | ------------------------------------------------------------------------------ |
+| TAB into field                 | Focus enters the closed dropdown button. Focus ring (Lunaris accent) visible.  |
+| TAB out (closed)               | Focus skips to next focusable element.                                         |
+| TAB out (open)                 | Closes menu, focus returns to button, then advances.                           |
+| SPACE or ENTER (closed)        | Opens the popover. First item highlighted (or current selection).              |
+| SPACE or ENTER (open, on item) | Commits the highlighted option. Closes menu. Focus returns to button.          |
+| ARROW DOWN (open)              | Highlights next item. Wraps at end.                                            |
+| ARROW UP (open)                | Highlights previous item. Wraps at start.                                      |
+| ESC (open)                     | Closes menu WITHOUT committing. Focus returns to button.                       |
+| ESC (closed)                   | No-op.                                                                         |
+| Type-ahead (open)              | Letter typed jumps to first matching item by `text`. 500ms timeout per Carbon. |
+| HOME / END (open)              | First / last item.                                                             |
 
 Each key path is a regression risk. The most common breakage is **ESC-bubbling**: if the Dropdown is inside a Modal or Drawer, Carbon's ESC handler may compete with the parent's ESC handler. Test ESC behavior at every nested-context site.
 
@@ -58,11 +58,11 @@ Carbon renders `disabled={true}` as an `aria-disabled` attribute on the trigger 
 
 ```svelte
 <Dropdown
-  labelText="Propagation model"
-  items={MODELS}
-  bind:selectedId
-  disabled={isLoadingModels}
-  helperText={isLoadingModels ? 'Loading models — please wait' : ''}
+	labelText="Propagation model"
+	items={MODELS}
+	bind:selectedId
+	disabled={isLoadingModels}
+	helperText={isLoadingModels ? 'Loading models — please wait' : ''}
 />
 ```
 

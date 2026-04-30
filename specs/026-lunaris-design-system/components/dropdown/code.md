@@ -6,14 +6,14 @@ The chassis `<Dropdown>` wrapper at `src/lib/components/chassis/forms/Dropdown.s
 
 Phase 3f ships **two** chassis wrappers because Carbon offers two DIFFERENT primitives with different ARIA semantics:
 
-| | `<Select>` (PR-A) | `<Dropdown>` (this) |
-|---|---|---|
-| Underlying element | Native HTML `<select>` | Custom popover combobox |
-| ARIA role | `<select>` (browser-native) | `combobox` + `listbox` |
-| Items API | Slot-based `<SelectItem>` children | Data prop `items: Array<{id, label}>` |
-| Keyboard | Browser handles all | Carbon implements (TAB/ARROW/ENTER/ESC/SPACE) |
-| Mobile picker | Native (iOS wheel, Android sheet) | Custom popover (no native picker) |
-| Focus management | Browser-native | Carbon implements + `portalMenu` for overflow escape |
+|                    | `<Select>` (PR-A)                  | `<Dropdown>` (this)                                  |
+| ------------------ | ---------------------------------- | ---------------------------------------------------- |
+| Underlying element | Native HTML `<select>`             | Custom popover combobox                              |
+| ARIA role          | `<select>` (browser-native)        | `combobox` + `listbox`                               |
+| Items API          | Slot-based `<SelectItem>` children | Data prop `items: Array<{id, label}>`                |
+| Keyboard           | Browser handles all                | Carbon implements (TAB/ARROW/ENTER/ESC/SPACE)        |
+| Mobile picker      | Native (iOS wheel, Android sheet)  | Custom popover (no native picker)                    |
+| Focus management   | Browser-native                     | Carbon implements + `portalMenu` for overflow escape |
 
 PR-C uses Dropdown specifically for object-keyed dynamic lists where `{id, label}` shape outperforms slot iteration.
 
@@ -21,48 +21,48 @@ PR-C uses Dropdown specifically for object-keyed dynamic lists where `{id, label
 
 ```ts
 interface DropdownItem {
-  id: string | number;
-  label: string;
-  disabled?: boolean;
+	id: string | number;
+	label: string;
+	disabled?: boolean;
 }
 
 interface Props {
-  /** Selected item id. Two-way bindable via $bindable. */
-  selectedId?: string | number;
-  /** Array of items to render. Required. */
-  items: DropdownItem[];
-  /** Visible label above the dropdown. Required for a11y. */
-  labelText: string;
-  /** Helper text below the field. */
-  helperText?: string;
-  /** Mark field invalid; renders red border + icon. */
-  invalid?: boolean;
-  /** Error text shown when invalid. */
-  invalidText?: string;
-  /** Mark field as warn; renders amber border + icon. */
-  warn?: boolean;
-  /** Warning text. */
-  warnText?: string;
-  /** Disable the entire dropdown. */
-  disabled?: boolean;
-  /** Visually hide the label (still announced). */
-  hideLabel?: boolean;
-  /** Inline label/field layout (vs default stacked). */
-  inline?: boolean;
-  /** Render menu in a portal to escape overflow:hidden parents. */
-  portalMenu?: boolean;
-  /** Argos-density size token. */
-  size?: 'sm' | 'md' | 'lg';
-  /** Popover direction. */
-  direction?: 'bottom' | 'top';
-  /** Form name attribute. */
-  name?: string;
-  /** Element id. */
-  id?: string;
-  /** Extra class. */
-  class?: string;
-  /** Callback fired on selection change. */
-  onSelect?: (selectedId: string | number, selectedItem: DropdownItem) => void;
+	/** Selected item id. Two-way bindable via $bindable. */
+	selectedId?: string | number;
+	/** Array of items to render. Required. */
+	items: DropdownItem[];
+	/** Visible label above the dropdown. Required for a11y. */
+	labelText: string;
+	/** Helper text below the field. */
+	helperText?: string;
+	/** Mark field invalid; renders red border + icon. */
+	invalid?: boolean;
+	/** Error text shown when invalid. */
+	invalidText?: string;
+	/** Mark field as warn; renders amber border + icon. */
+	warn?: boolean;
+	/** Warning text. */
+	warnText?: string;
+	/** Disable the entire dropdown. */
+	disabled?: boolean;
+	/** Visually hide the label (still announced). */
+	hideLabel?: boolean;
+	/** Inline label/field layout (vs default stacked). */
+	inline?: boolean;
+	/** Render menu in a portal to escape overflow:hidden parents. */
+	portalMenu?: boolean;
+	/** Argos-density size token. */
+	size?: 'sm' | 'md' | 'lg';
+	/** Popover direction. */
+	direction?: 'bottom' | 'top';
+	/** Form name attribute. */
+	name?: string;
+	/** Element id. */
+	id?: string;
+	/** Extra class. */
+	class?: string;
+	/** Callback fired on selection change. */
+	onSelect?: (selectedId: string | number, selectedItem: DropdownItem) => void;
 }
 ```
 
@@ -70,13 +70,13 @@ interface Props {
 
 ```svelte
 <CarbonDropdown
-  bind:selectedId
-  items={mapped}
-  itemToString={(item) => item.text}
-  {labelText}
-  size={carbonSize}
-  ...
-  on:select={(e) => onSelect?.(e.detail.selectedId, e.detail.selectedItem)}
+	bind:selectedId
+	items={mapped}
+	itemToString={(item) => item.text}
+	{labelText}
+	size={carbonSize}
+	...
+	on:select={(e) => onSelect?.(e.detail.selectedId, e.detail.selectedItem)}
 />
 ```
 

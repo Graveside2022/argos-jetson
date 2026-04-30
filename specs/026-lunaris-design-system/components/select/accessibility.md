@@ -4,17 +4,17 @@ Carbon Select's headline a11y win is that **it renders a real native `<select>` 
 
 ## What the browser gives us for free
 
-| Path | Behavior |
-|------|----------|
-| TAB to enter | Native focus order; focus ring driven by `:focus` (Carbon overrides with its own border-bottom + `bx--select__arrow` color shift) |
-| TAB to leave | Skip to next focusable; Select does not trap focus |
-| ARROW UP / DOWN (closed) | Cycle through options without opening the popover (browser-native) |
-| ARROW UP / DOWN (open) | Highlight next/previous option |
-| ENTER | Commit highlighted option, close popover |
-| ESC | Close popover without committing (when open) |
-| SPACE | Toggle popover (when closed) |
-| Type-ahead | Type letters to jump to matching option (browser-native) |
-| Mobile (iOS/Android) | Native picker UI — full-screen wheel on iOS, dropdown sheet on Android |
+| Path                     | Behavior                                                                                                                          |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
+| TAB to enter             | Native focus order; focus ring driven by `:focus` (Carbon overrides with its own border-bottom + `bx--select__arrow` color shift) |
+| TAB to leave             | Skip to next focusable; Select does not trap focus                                                                                |
+| ARROW UP / DOWN (closed) | Cycle through options without opening the popover (browser-native)                                                                |
+| ARROW UP / DOWN (open)   | Highlight next/previous option                                                                                                    |
+| ENTER                    | Commit highlighted option, close popover                                                                                          |
+| ESC                      | Close popover without committing (when open)                                                                                      |
+| SPACE                    | Toggle popover (when closed)                                                                                                      |
+| Type-ahead               | Type letters to jump to matching option (browser-native)                                                                          |
+| Mobile (iOS/Android)     | Native picker UI — full-screen wheel on iOS, dropdown sheet on Android                                                            |
 
 These behaviors are NOT re-implemented by the wrapper. **Do not add custom keyboard handlers** — they would compete with browser-native handling and cause regressions like "ESC doesn't close on iOS Safari" or "type-ahead skips the active option."
 
@@ -37,6 +37,7 @@ The Lunaris wrapper does not override any of this.
 ## Color is not the only signal
 
 Per Argos design rule (CLAUDE.md `Color Architecture`): "Color must never be the sole status indicator — always pair with a text label." Carbon already pairs:
+
 - Invalid → red border + `WarningFilled` icon + `invalidText` string.
 - Warn → amber border + `WarningAltFilled` icon + `warnText` string.
 
@@ -45,6 +46,7 @@ When the wrapper is configured `invalid={true}` without `invalidText`, the visua
 ## Disabled state
 
 Carbon renders `disabled={true}` as both:
+
 - The native HTML `disabled` attribute on `<select>` (browser locks the field, AT announces "dimmed/unavailable").
 - The CSS class `bx--select--disabled` (visual dim).
 
@@ -52,10 +54,10 @@ Argos consumer pattern: when `disabled` reflects a transient state (e.g. `disabl
 
 ```svelte
 <Select
-  labelText="Source"
-  bind:value={source}
-  disabled={isBusy}
-  helperText={isBusy ? 'Refreshing — please wait' : ''}
+	labelText="Source"
+	bind:value={source}
+	disabled={isBusy}
+	helperText={isBusy ? 'Refreshing — please wait' : ''}
 />
 ```
 

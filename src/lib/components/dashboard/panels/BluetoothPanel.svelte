@@ -246,7 +246,8 @@
 					labelText="ALL CH"
 				/>
 				<Tooltip iconDescription="ALL CH capture details" align="end">
-					Capture full BLE band 2402–2480 MHz (96 channels). Default covers ch37+ch38 only.
+					Capture full BLE band 2402–2480 MHz (96 channels). Default covers ch37+ch38
+					only.
 				</Tooltip>
 			</span>
 			<span class="opt-tooltip">
@@ -261,7 +262,12 @@
 				</Tooltip>
 			</span>
 			<span class="opt-tooltip">
-				<Checkbox class="opt" bind:checked={gpsd} disabled={togglesDisabled} labelText="GPS" />
+				<Checkbox
+					class="opt"
+					bind:checked={gpsd}
+					disabled={togglesDisabled}
+					labelText="GPS"
+				/>
 				<Tooltip iconDescription="GPS tagging details" align="end">
 					GPS-tag every packet via gpsd (requires gpsd running).
 				</Tooltip>
@@ -274,8 +280,8 @@
 					labelText="CODED"
 				/>
 				<Tooltip iconDescription="CODED PHY scan details" align="end">
-					Continuous LE Coded PHY (Long Range) scan on advertising channels — AirTag/IoT detection at
-					distance.
+					Continuous LE Coded PHY (Long Range) scan on advertising channels — AirTag/IoT
+					detection at distance.
 				</Tooltip>
 			</span>
 			<button class="btn-start" onclick={onStart} disabled={starting}>

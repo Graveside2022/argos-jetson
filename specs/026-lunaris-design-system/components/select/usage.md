@@ -25,26 +25,26 @@ Triage classified 11 files / 18 native `<select>` sites into two cohorts. **Sele
 
 ### Select cohort (this spec)
 
-| File | Site count | Options shape | Migration PR |
-|------|------------|---------------|--------------|
-| `src/lib/components/dashboard/panels/FilterBar.svelte:85` | 1 | 6 static primitives (any/kismet/bluedragon/gsm-evil/hackrf/rtl-sdr) | **PR-A canary** |
-| `src/lib/components/dashboard/panels/BluetoothPanel.svelte:224` | 1 | 3 static, `disabled` gated | PR-B |
-| `src/lib/components/dashboard/panels/rf-propagation/RFPropagationControls.svelte:36` | 1 | 2 static (polarization) | PR-B |
-| `src/lib/components/dashboard/views/ReportsView.svelte:302,576` | 2 | 3+2 static, first `disabled` gated | PR-B |
-| `src/lib/components/dashboard/panels/SessionSelector.svelte:66` | 1 | dynamic ≤20 (session names) | PR-B |
-| `src/routes/recon/cellular/trunk-recorder/PresetForm.svelte:160` | 1 | 2 static | PR-B |
-| `src/lib/components/dashboard/map/DeviceOverlay.svelte:65` | 1 | 3 static | PR-B |
-| `src/lib/components/chassis/MissionStrip.svelte:133` | 1 | dynamic ≤20 (mission names) | PR-B |
-| `src/routes/recon/cellular/trunk-recorder/+page.svelte:167` | 1 | dynamic ≤20 (presets), `disabled` gated | PR-B |
+| File                                                                                 | Site count | Options shape                                                       | Migration PR    |
+| ------------------------------------------------------------------------------------ | ---------- | ------------------------------------------------------------------- | --------------- |
+| `src/lib/components/dashboard/panels/FilterBar.svelte:85`                            | 1          | 6 static primitives (any/kismet/bluedragon/gsm-evil/hackrf/rtl-sdr) | **PR-A canary** |
+| `src/lib/components/dashboard/panels/BluetoothPanel.svelte:224`                      | 1          | 3 static, `disabled` gated                                          | PR-B            |
+| `src/lib/components/dashboard/panels/rf-propagation/RFPropagationControls.svelte:36` | 1          | 2 static (polarization)                                             | PR-B            |
+| `src/lib/components/dashboard/views/ReportsView.svelte:302,576`                      | 2          | 3+2 static, first `disabled` gated                                  | PR-B            |
+| `src/lib/components/dashboard/panels/SessionSelector.svelte:66`                      | 1          | dynamic ≤20 (session names)                                         | PR-B            |
+| `src/routes/recon/cellular/trunk-recorder/PresetForm.svelte:160`                     | 1          | 2 static                                                            | PR-B            |
+| `src/lib/components/dashboard/map/DeviceOverlay.svelte:65`                           | 1          | 3 static                                                            | PR-B            |
+| `src/lib/components/chassis/MissionStrip.svelte:133`                                 | 1          | dynamic ≤20 (mission names)                                         | PR-B            |
+| `src/routes/recon/cellular/trunk-recorder/+page.svelte:167`                          | 1          | dynamic ≤20 (presets), `disabled` gated                             | PR-B            |
 
 **Total Select cohort: 9 files / 11 sites.**
 
 ### Dropdown cohort (separate `dropdown/` spec, PR-C)
 
-| File | Sites | Why Dropdown not Select |
-|------|-------|-------------------------|
-| `src/lib/components/screens/parts/SpectrumControls.svelte` | 4 | Object-keyed `BIN_PRESETS` with `.hz/.label`; LNA_STEPS / VGA_STEPS dynamic gain grids |
-| `src/lib/components/dashboard/panels/rf-propagation/RFAdvancedControls.svelte` | 3 | Object-keyed `CLUTTER_PROFILES` / `RELIABILITY_OPTIONS` / `PROPAGATION_MODELS` with `.id/.label`; user-search benefit (filterable) |
+| File                                                                           | Sites | Why Dropdown not Select                                                                                                            |
+| ------------------------------------------------------------------------------ | ----- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `src/lib/components/screens/parts/SpectrumControls.svelte`                     | 4     | Object-keyed `BIN_PRESETS` with `.hz/.label`; LNA_STEPS / VGA_STEPS dynamic gain grids                                             |
+| `src/lib/components/dashboard/panels/rf-propagation/RFAdvancedControls.svelte` | 3     | Object-keyed `CLUTTER_PROFILES` / `RELIABILITY_OPTIONS` / `PROPAGATION_MODELS` with `.id/.label`; user-search benefit (filterable) |
 
 **Total Dropdown cohort: 2 files / 7 sites.**
 

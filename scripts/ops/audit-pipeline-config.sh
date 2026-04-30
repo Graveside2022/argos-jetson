@@ -24,8 +24,13 @@
 
 set -uo pipefail
 
-REPO_ROOT="$(git rev-parse --show-toplevel)"
-cd "$REPO_ROOT"
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
+if ! cd "$REPO_ROOT" 2>/dev/null; then
+	echo "[audit] Argos pipeline config drift check"
+	echo "[audit] findings:"
+	echo "  [warn] unable to enter repository root: ${REPO_ROOT:-<unset>}"
+	exit 1
+fi
 
 EXIT_CODE=0
 FINDINGS=()
@@ -43,7 +48,7 @@ echo
 # Same for commitlint, eslint, prettier.
 check_lint_staged_config() {
 	local hook=".husky/pre-commit"
-	[ -f "$hook" ] || { warn "missing $hook"; return; }
+	[[ -f "$hook" ]] || { warn "missing $hook"; return; }
 	if grep -qE '\bnpx[[:space:]]+(--no-install[[:space:]]+)?lint-staged\b' "$hook"; then
 		# lint-staged supports several config paths
 		if ls .lintstagedrc.json .lintstagedrc.cjs .lintstagedrc.mjs \
@@ -60,7 +65,7 @@ check_lint_staged_config() {
 
 check_commitlint_config() {
 	local hook=".husky/commit-msg"
-	[ -f "$hook" ] || { warn "missing $hook"; return; }
+	[[ -f "$hook" ]] || { warn "missing $hook"; return; }
 	if grep -qE '\bnpx[[:space:]]+(--no-install[[:space:]]+)?commitlint\b' "$hook"; then
 		# commitlint supports the full cosmiconfig set per
 		# https://commitlint.js.org/reference/configuration.html
@@ -69,13 +74,13 @@ check_commitlint_config() {
 		         commitlint.config.cjs .commitlintrc.ts .commitlintrc.js \
 		         .commitlintrc.cjs .commitlintrc.mjs .commitlintrc.json \
 		         .commitlintrc.yml .commitlintrc.yaml .commitlintrc; do
-			[ -f "$f" ] && { found=1; break; }
+			[[ -f "$f" ]] && { found=1; break; }
 		done
 		# Also accept package.json#commitlint
-		if [ "$found" -eq 0 ] && grep -q '"commitlint"' package.json 2>/dev/null; then
+		if [[ "$found" -eq 0 ]] && grep -q '"commitlint"' package.json 2>/dev/null; then
 			found=1
 		fi
-		if [ "$found" -eq 1 ]; then
+		if [[ "$found" -eq 1 ]]; then
 			note "commitlint config present (hook + config aligned)"
 		else
 			warn "commitlint invoked from $hook but NO config file found"
@@ -94,7 +99,7 @@ check_eslint_cache_flags() {
 	# package.json scripts: must have BOTH --cache and --cache-strategy content
 	for script in lint lint:fix; do
 		invocation=$(jq -r ".scripts[\"$script\"] // empty" package.json 2>/dev/null)
-		[ -z "$invocation" ] && continue
+		[[ -z "$invocation" ]] && continue
 		case "$invocation" in
 			*"--cache"*"--cache-strategy"*"content"*|*"--cache-strategy"*"content"*"--cache"*)
 				note "package.json#$script wires --cache + --cache-strategy content" ;;
@@ -106,7 +111,7 @@ check_eslint_cache_flags() {
 	done
 	# husky pre-push (calls npm run lint per PR #74 fix; cache flags inherited
 	# from package.json#lint, so verify the package.json check above passed)
-	if [ -f .husky/pre-push ]; then
+	if [[ -f .husky/pre-push ]]; then
 		if grep -qE 'npm[[:space:]]+run[[:space:]]+lint' .husky/pre-push; then
 			note ".husky/pre-push delegates to npm run lint (cache flags inherited)"
 		elif grep -qE 'eslint[^|]*--cache[^|]*--cache-strategy[^|]*content' .husky/pre-push; then
@@ -118,7 +123,7 @@ check_eslint_cache_flags() {
 		fi
 	fi
 	# GH Actions: lint.yml is canonical owner per spec doc gate matrix
-	if [ -f .github/workflows/lint.yml ]; then
+	if [[ -f .github/workflows/lint.yml ]]; then
 		if grep -qE 'eslint[^|]*--cache[^|]*--cache-strategy[^|]*content' .github/workflows/lint.yml; then
 			note "lint.yml wires --cache + --cache-strategy content"
 		elif grep -qE 'eslint[^|]*--cache' .github/workflows/lint.yml; then
@@ -134,16 +139,16 @@ check_eslint_cache_flags() {
 # feedback (otherwise spec rots into a lying source of truth).
 check_spec_freshness() {
 	local spec="docs/ci-cd-pipeline-spec.md"
-	[ -f "$spec" ] || { warn "missing $spec — canonical reference not present"; return; }
+	[[ -f "$spec" ]] || { warn "missing $spec — canonical reference not present"; return; }
 	local last=$(awk '/^last_validated:/ { print $2; exit }' "$spec")
-	if [ -z "$last" ]; then
+	if [[ -z "$last" ]]; then
 		warn "$spec has no last_validated frontmatter date"
 		return
 	fi
 	local last_epoch=$(date -d "$last" +%s 2>/dev/null || echo 0)
 	local now_epoch=$(date +%s)
 	local days_old=$(( (now_epoch - last_epoch) / 86400 ))
-	if [ "$days_old" -le 90 ]; then
+	if [[ "$days_old" -le 90 ]]; then
 		note "spec doc last_validated $last ($days_old days ago, ≤90)"
 	else
 		warn "spec doc last_validated $last is $days_old days old (>90 — re-audit due)"
@@ -172,7 +177,7 @@ check_sha_pinned_actions() {
 		warn "unpinned action ref: $ref"
 		issues=$((issues+1))
 	done < <(grep -hE '^[[:space:]]*uses:[[:space:]]+' .github/workflows/*.yml .github/workflows/*.yaml 2>/dev/null)
-	[ "$issues" -eq 0 ] && note "all action refs SHA-pinned or first-party tagged"
+	[[ "$issues" -eq 0 ]] && note "all action refs SHA-pinned or first-party tagged"
 }
 
 # ── Run all checks ────────────────────────────────────────────────────
@@ -188,7 +193,7 @@ for f in "${FINDINGS[@]}"; do
 	echo "  $f"
 done
 
-if [ "$EXIT_CODE" -ne 0 ]; then
+if [[ "$EXIT_CODE" -ne 0 ]]; then
 	echo
 	echo "[audit] ⚠ drift detected — see warnings above"
 	echo "[audit] (warning-only mode; will become hard-fail after 2-week soak)"

@@ -3,11 +3,12 @@
 **Status:** Phase 4 PR-A — wrapper + canary live
 **Last updated:** 2026-04-30
 **Implementation files:**
+
 - Wrapper: `src/lib/components/chassis/forms/ToastNotification.svelte`
 - Region: `src/lib/components/chassis/ToastRegion.svelte`
 - Store: `src/lib/stores/toast.svelte.ts`
-**Carbon component:** `<ToastNotification>` from `carbon-components-svelte` v0.107.0+
-**Carbon source:** `node_modules/carbon-components-svelte/src/Notification/ToastNotification.svelte`
+  **Carbon component:** `<ToastNotification>` from `carbon-components-svelte` v0.107.0+
+  **Carbon source:** `node_modules/carbon-components-svelte/src/Notification/ToastNotification.svelte`
 
 ---
 
@@ -23,11 +24,11 @@ Transient, bottom-right confirmation or error after an operator action — Kisme
 
 ## Argos surface inventory (Phase 4 scope — 3 sites today, 4-after PR-A)
 
-| File | Line | Pattern | PR |
-|------|------|---------|----|
-| `src/lib/components/dashboard/panels/devices/DeviceToolbar.svelte` | 53, 70 | `toast.error` (svelte-sonner) | **PR-A canary** |
-| `src/lib/components/dashboard/panels/ToolsNavigationView.svelte` | 174, 177, 194, 201 | `toast.error/info` (svelte-sonner) | PR-B sweep |
-| `src/lib/components/tak/TakAuthEnroll.svelte` | 34, 37, 63 | `toast.success/error` (svelte-sonner) | PR-B sweep |
+| File                                                               | Line               | Pattern                               | PR              |
+| ------------------------------------------------------------------ | ------------------ | ------------------------------------- | --------------- |
+| `src/lib/components/dashboard/panels/devices/DeviceToolbar.svelte` | 53, 70             | `toast.error` (svelte-sonner)         | **PR-A canary** |
+| `src/lib/components/dashboard/panels/ToolsNavigationView.svelte`   | 174, 177, 194, 201 | `toast.error/info` (svelte-sonner)    | PR-B sweep      |
+| `src/lib/components/tak/TakAuthEnroll.svelte`                      | 34, 37, 63         | `toast.success/error` (svelte-sonner) | PR-B sweep      |
 
 PR-B closes the sweep, removes `<Toaster>` from `+layout.svelte`, drops `svelte-sonner` from `package.json`.
 

@@ -24,13 +24,13 @@ Carbon's `<Tooltip>` is **its own trigger**: it renders a button (default: an `I
 
 ## Argos surface inventory (Phase 4 scope — 5 sites of 102)
 
-| File | Line | Why migrate | PR |
-|------|------|-------------|----|
-| `src/lib/components/dashboard/panels/BluetoothPanel.svelte` | 245, 252, 259, 266 | Multi-line capture-mode descriptions (CLEAN/VOLUME/MAX, ALL CH, ACTIVE, GPS, CODED) | **PR-A canary** |
-| `src/lib/components/dashboard/panels/devices/DevicesPanel.svelte` | 232-275 | 6 filter-badge tooltips with security warnings | PR-B sweep |
-| `src/lib/components/dashboard/panels/devices/DevicePriorityTable.svelte` | 197 | Beacon fingerprint hex display (scrollable) | PR-B sweep |
-| `src/lib/components/dashboard/views/MissionHeader.svelte` | 185 | Session-state explanation + actionable hint | PR-B sweep |
-| `src/lib/components/dashboard/agent/AgentChatPanel.svelte` + `AgentChatToolbar.svelte` | multiple | Send/clear icon buttons, future keyboard-shortcut hints | PR-B sweep |
+| File                                                                                   | Line               | Why migrate                                                                         | PR              |
+| -------------------------------------------------------------------------------------- | ------------------ | ----------------------------------------------------------------------------------- | --------------- |
+| `src/lib/components/dashboard/panels/BluetoothPanel.svelte`                            | 245, 252, 259, 266 | Multi-line capture-mode descriptions (CLEAN/VOLUME/MAX, ALL CH, ACTIVE, GPS, CODED) | **PR-A canary** |
+| `src/lib/components/dashboard/panels/devices/DevicesPanel.svelte`                      | 232-275            | 6 filter-badge tooltips with security warnings                                      | PR-B sweep      |
+| `src/lib/components/dashboard/panels/devices/DevicePriorityTable.svelte`               | 197                | Beacon fingerprint hex display (scrollable)                                         | PR-B sweep      |
+| `src/lib/components/dashboard/views/MissionHeader.svelte`                              | 185                | Session-state explanation + actionable hint                                         | PR-B sweep      |
+| `src/lib/components/dashboard/agent/AgentChatPanel.svelte` + `AgentChatToolbar.svelte` | multiple           | Send/clear icon buttons, future keyboard-shortcut hints                             | PR-B sweep      |
 
 The remaining 97 `title=` instances stay native — see `migration-roadmap.md` for the cost-vs-benefit decision.
 
@@ -38,22 +38,22 @@ The remaining 97 `title=` instances stay native — see `migration-roadmap.md` f
 
 Wrapper defaults: `direction="bottom"`, `align="start"`. Override on a per-site basis when the trigger sits at a panel edge.
 
-| Direction | When |
-|-----------|------|
+| Direction            | When                                                           |
+| -------------------- | -------------------------------------------------------------- |
 | `'bottom'` (default) | Most cases — opens downward, doesn't collide with panel header |
-| `'top'` | Trigger sits near the bottom of a scrollable container |
+| `'top'`              | Trigger sits near the bottom of a scrollable container         |
 | `'right'` / `'left'` | Trigger embedded in a vertical rail (side menu, mission strip) |
 
 ## Trigger anatomy
 
 ```svelte
 <Tooltip
-  iconDescription="ALL CH capture details"
-  triggerText="ALL CH"
-  direction="bottom"
-  align="start"
+	iconDescription="ALL CH capture details"
+	triggerText="ALL CH"
+	direction="bottom"
+	align="start"
 >
-  Capture full BLE band 2402–2480 MHz (96 channels). Default covers ch37+ch38 only.
+	Capture full BLE band 2402–2480 MHz (96 channels). Default covers ch37+ch38 only.
 </Tooltip>
 ```
 
@@ -67,16 +67,16 @@ Carbon auto-portals tooltips that live inside a `<Modal>`. No extra wiring. Veri
 
 ```svelte
 <script lang="ts">
-  import Tooltip from '$lib/components/chassis/forms/Tooltip.svelte';
+	import Tooltip from '$lib/components/chassis/forms/Tooltip.svelte';
 </script>
 
 <Tooltip
-  triggerText="ACTIVE"
-  iconDescription="ACTIVE scan tooltip"
-  direction="bottom"
-  align="start"
+	triggerText="ACTIVE"
+	iconDescription="ACTIVE scan tooltip"
+	direction="bottom"
+	align="start"
 >
-  HCI LE active scan via system Bluetooth — enriches device names + services.
+	HCI LE active scan via system Bluetooth — enriches device names + services.
 </Tooltip>
 ```
 

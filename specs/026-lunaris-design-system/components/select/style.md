@@ -4,11 +4,11 @@ This document maps Carbon Select's visual treatment to Lunaris tokens. Per spec-
 
 ## Carbon source-of-truth files
 
-| File | Purpose |
-|------|---------|
-| `node_modules/carbon-components-svelte/src/Select/Select.svelte` | Component template + class-name authority (`bx--select`, `bx--select-input`, `bx--select__arrow`) |
-| `node_modules/@carbon/styles/scss/components/select/_select.scss` | SCSS rules + token consumption |
-| `node_modules/@carbon/styles/scss/components/form/_form.scss` | `bx--form-item`, `bx--label`, `bx--form__helper-text`, `bx--form-requirement` (shared with all form fields) |
+| File                                                              | Purpose                                                                                                     |
+| ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `node_modules/carbon-components-svelte/src/Select/Select.svelte`  | Component template + class-name authority (`bx--select`, `bx--select-input`, `bx--select__arrow`)           |
+| `node_modules/@carbon/styles/scss/components/select/_select.scss` | SCSS rules + token consumption                                                                              |
+| `node_modules/@carbon/styles/scss/components/form/_form.scss`     | `bx--form-item`, `bx--label`, `bx--form__helper-text`, `bx--form-requirement` (shared with all form fields) |
 
 ## Anatomy
 
@@ -35,16 +35,16 @@ The Lunaris wrapper introduces no extra DOM — it forwards directly into Carbon
 
 These overrides live (or will live) in `src/lib/styles/lunaris-carbon-theme.scss`. **Token additions are deferred** to whichever PR's chrome-devtools visual diff first exposes drift; do not edit the theme file unless the diff fails.
 
-| Carbon token | Lunaris value | Used by | Citation |
-|--------------|---------------|---------|----------|
-| `$field-01` (select background) | `var(--bg-2)` | `<select>` background | `@carbon/styles/scss/components/select/_select.scss` |
-| `$text-primary` | `var(--ink)` | selected option text | shared with TextInput, mapped Phase 3a |
-| `$text-secondary` | `var(--ink-3)` | label text | shared with TextInput |
-| `$border-strong-01` (select border) | `var(--line-2)` | `bx--select-input` border-bottom | `_select.scss` |
-| `$focus` (focus ring) | `var(--accent)` | `:focus` outline | shared with all form fields |
-| `$icon-primary` (chevron) | `var(--ink-3)` | `bx--select__arrow` color | `Select.svelte:189` |
-| `$support-error` | `var(--red)` | `bx--select--invalid` border + invalid icon | shared with TextInput error state |
-| `$support-warning` | `var(--amber)` | `bx--select--warning` border + warning icon | shared |
+| Carbon token                        | Lunaris value   | Used by                                     | Citation                                             |
+| ----------------------------------- | --------------- | ------------------------------------------- | ---------------------------------------------------- |
+| `$field-01` (select background)     | `var(--bg-2)`   | `<select>` background                       | `@carbon/styles/scss/components/select/_select.scss` |
+| `$text-primary`                     | `var(--ink)`    | selected option text                        | shared with TextInput, mapped Phase 3a               |
+| `$text-secondary`                   | `var(--ink-3)`  | label text                                  | shared with TextInput                                |
+| `$border-strong-01` (select border) | `var(--line-2)` | `bx--select-input` border-bottom            | `_select.scss`                                       |
+| `$focus` (focus ring)               | `var(--accent)` | `:focus` outline                            | shared with all form fields                          |
+| `$icon-primary` (chevron)           | `var(--ink-3)`  | `bx--select__arrow` color                   | `Select.svelte:189`                                  |
+| `$support-error`                    | `var(--red)`    | `bx--select--invalid` border + invalid icon | shared with TextInput error state                    |
+| `$support-warning`                  | `var(--amber)`  | `bx--select--warning` border + warning icon | shared                                               |
 
 ## Typography
 
@@ -54,11 +54,11 @@ Carbon's Select inherits `$body-compact-01` → `font-family: $body-font-family`
 
 Carbon offers `'sm'` and `'xl'` sizes. The wrapper exposes Argos sizes `'sm' | 'md' | 'lg'` and maps:
 
-| Argos `size` | Carbon `size` |
-|--------------|----------------|
-| `'sm'` | `'sm'` |
-| `'md'` | undefined (Carbon default) |
-| `'lg'` | `'xl'` |
+| Argos `size` | Carbon `size`              |
+| ------------ | -------------------------- |
+| `'sm'`       | `'sm'`                     |
+| `'md'`       | undefined (Carbon default) |
+| `'lg'`       | `'xl'`                     |
 
 Mapping is identical to NumberInput (Phase 3e) — see `components/number-input/style.md` for the precedent.
 

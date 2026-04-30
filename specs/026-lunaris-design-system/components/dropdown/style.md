@@ -2,11 +2,11 @@
 
 ## Carbon source-of-truth files
 
-| File | Purpose |
-|------|---------|
-| `node_modules/carbon-components-svelte/src/Dropdown/Dropdown.svelte` | Component template + items API + dispatch shape |
-| `node_modules/@carbon/styles/scss/components/dropdown/_dropdown.scss` | SCSS rules + token consumption |
-| `node_modules/carbon-components-svelte/src/ListBox/` | Underlying ListBox primitive (Dropdown uses ListBoxMenu + ListBoxMenuItem) |
+| File                                                                  | Purpose                                                                    |
+| --------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `node_modules/carbon-components-svelte/src/Dropdown/Dropdown.svelte`  | Component template + items API + dispatch shape                            |
+| `node_modules/@carbon/styles/scss/components/dropdown/_dropdown.scss` | SCSS rules + token consumption                                             |
+| `node_modules/carbon-components-svelte/src/ListBox/`                  | Underlying ListBox primitive (Dropdown uses ListBoxMenu + ListBoxMenuItem) |
 
 ## Anatomy
 
@@ -36,20 +36,20 @@ The Lunaris wrapper introduces no extra DOM.
 
 ## Token mapping (Carbon → Lunaris)
 
-| Carbon token | Lunaris value | Used by |
-|--------------|---------------|---------|
-| `$field-01` | `var(--bg-2)` | dropdown closed-state background |
-| `$field-hover-01` | `var(--bg-3)` | hover background |
-| `$layer-01` | `var(--panel)` | open menu background |
-| `$layer-hover-01` | `var(--bg-2)` | menu item hover |
-| `$layer-selected-01` | `var(--bg-3)` | currently-selected item background |
-| `$text-primary` | `var(--ink)` | item text |
-| `$text-helper` | `var(--ink-3)` | placeholder + helper text |
-| `$border-strong-01` | `var(--line-2)` | dropdown border |
-| `$focus` | `var(--accent)` | focus ring on closed button |
-| `$icon-primary` | `var(--ink-3)` | chevron + checkmark icons |
-| `$support-error` | `var(--red)` | invalid state border + icon |
-| `$shadow-popover` | (defer to chrome-devtools diff) | menu drop-shadow |
+| Carbon token         | Lunaris value                   | Used by                            |
+| -------------------- | ------------------------------- | ---------------------------------- |
+| `$field-01`          | `var(--bg-2)`                   | dropdown closed-state background   |
+| `$field-hover-01`    | `var(--bg-3)`                   | hover background                   |
+| `$layer-01`          | `var(--panel)`                  | open menu background               |
+| `$layer-hover-01`    | `var(--bg-2)`                   | menu item hover                    |
+| `$layer-selected-01` | `var(--bg-3)`                   | currently-selected item background |
+| `$text-primary`      | `var(--ink)`                    | item text                          |
+| `$text-helper`       | `var(--ink-3)`                  | placeholder + helper text          |
+| `$border-strong-01`  | `var(--line-2)`                 | dropdown border                    |
+| `$focus`             | `var(--accent)`                 | focus ring on closed button        |
+| `$icon-primary`      | `var(--ink-3)`                  | chevron + checkmark icons          |
+| `$support-error`     | `var(--red)`                    | invalid state border + icon        |
+| `$shadow-popover`    | (defer to chrome-devtools diff) | menu drop-shadow                   |
 
 Token mappings are **deferred to `lunaris-carbon-theme.scss`** until chrome-devtools visual diff exposes drift. Carbon defaults often match the Lunaris dark palette closely enough that no overrides are needed.
 
@@ -57,11 +57,11 @@ Token mappings are **deferred to `lunaris-carbon-theme.scss`** until chrome-devt
 
 Argos `'sm' | 'md' | 'lg'` → Carbon `'sm' | undefined | 'xl'`. Carbon Dropdown sizes: `'sm' | 'lg' | 'xl'` per `Dropdown.svelte:47`. Mapping:
 
-| Argos `size` | Carbon `size` |
-|--------------|----------------|
-| `'sm'` | `'sm'` |
-| `'md'` | undefined (Carbon default = `'lg'`) |
-| `'lg'` | `'xl'` |
+| Argos `size` | Carbon `size`                       |
+| ------------ | ----------------------------------- |
+| `'sm'`       | `'sm'`                              |
+| `'md'`       | undefined (Carbon default = `'lg'`) |
+| `'lg'`       | `'xl'`                              |
 
 Note: Carbon's `Dropdown` default differs from `Select` default. `Select`'s default size is undefined which renders the medium 40px field; `Dropdown`'s undefined renders 'lg'. For visual parity with NumberInput / Select on dashboards, pass `size="sm"` explicitly on tight-density surfaces.
 

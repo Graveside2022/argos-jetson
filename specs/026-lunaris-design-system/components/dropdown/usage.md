@@ -23,34 +23,29 @@ The Lunaris **`<Dropdown>`** wraps Carbon's [`Dropdown`](../../../../node_module
 
 ```svelte
 <script lang="ts">
-  import Dropdown from '$lib/components/chassis/forms/Dropdown.svelte';
+	import Dropdown from '$lib/components/chassis/forms/Dropdown.svelte';
 
-  const PROFILES = [
-    { id: 'urban', label: 'Urban dense' },
-    { id: 'suburban', label: 'Suburban' },
-    { id: 'rural', label: 'Rural' },
-    { id: 'open', label: 'Open terrain' }
-  ];
+	const PROFILES = [
+		{ id: 'urban', label: 'Urban dense' },
+		{ id: 'suburban', label: 'Suburban' },
+		{ id: 'rural', label: 'Rural' },
+		{ id: 'open', label: 'Open terrain' }
+	];
 
-  let selectedId = $state<string>('suburban');
+	let selectedId = $state<string>('suburban');
 </script>
 
-<Dropdown
-  labelText="Clutter profile"
-  items={PROFILES}
-  bind:selectedId
-  size="sm"
-/>
+<Dropdown labelText="Clutter profile" items={PROFILES} bind:selectedId size="sm" />
 ```
 
 ## Argos surface inventory (post-triage 2026-04-29)
 
 Phase 3f triage classified 7 native `<select>` sites into the Dropdown cohort:
 
-| File | Sites | Filterable? | Notes |
-|------|-------|-------------|-------|
-| `src/lib/components/screens/parts/SpectrumControls.svelte` | 4 (binWidth + amp + LNA + VGA) | No | binWidth uses object-keyed `BIN_PRESETS`; gain steps are dynamic numeric arrays. |
-| `src/lib/components/dashboard/panels/rf-propagation/RFAdvancedControls.svelte` | 3 (clutterProfile + reliability + propagationModel) | Deferred (use scrollable popover instead) | Object-keyed `CLUTTER_PROFILES` / `RELIABILITY_OPTIONS` / `PROPAGATION_MODELS`. |
+| File                                                                           | Sites                                               | Filterable?                               | Notes                                                                            |
+| ------------------------------------------------------------------------------ | --------------------------------------------------- | ----------------------------------------- | -------------------------------------------------------------------------------- |
+| `src/lib/components/screens/parts/SpectrumControls.svelte`                     | 4 (binWidth + amp + LNA + VGA)                      | No                                        | binWidth uses object-keyed `BIN_PRESETS`; gain steps are dynamic numeric arrays. |
+| `src/lib/components/dashboard/panels/rf-propagation/RFAdvancedControls.svelte` | 3 (clutterProfile + reliability + propagationModel) | Deferred (use scrollable popover instead) | Object-keyed `CLUTTER_PROFILES` / `RELIABILITY_OPTIONS` / `PROPAGATION_MODELS`.  |
 
 **Total: 2 files / 7 sites.**
 
@@ -66,13 +61,13 @@ Tracked as follow-up in `migration-roadmap.md`.
 
 ## States
 
-| State | Mechanism |
-|-------|-----------|
-| Empty | `selectedId={undefined}` — Carbon shows the placeholder via `label` prop |
-| Loading | `disabled={true}` while async items fetch |
-| Default | Standard render |
+| State         | Mechanism                                                                                |
+| ------------- | ---------------------------------------------------------------------------------------- |
+| Empty         | `selectedId={undefined}` — Carbon shows the placeholder via `label` prop                 |
+| Loading       | `disabled={true}` while async items fetch                                                |
+| Default       | Standard render                                                                          |
 | Active (open) | Carbon's controlled `open={true}` OR user click — popover opens, focused item highlights |
-| Error | `invalid={true}` + `invalidText="..."` |
-| Success | Carbon doesn't ship a success state; pair with sibling helper text |
-| Disabled | `disabled={true}` |
-| Disconnected | `disabled={true}` + sibling helper text explaining why |
+| Error         | `invalid={true}` + `invalidText="..."`                                                   |
+| Success       | Carbon doesn't ship a success state; pair with sibling helper text                       |
+| Disabled      | `disabled={true}`                                                                        |
+| Disconnected  | `disabled={true}` + sibling helper text explaining why                                   |

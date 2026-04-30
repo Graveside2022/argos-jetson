@@ -34,7 +34,8 @@
 	}: Props = $props();
 
 	const resolvedRole = $derived(
-		role ?? (kind === 'error' || kind === 'warning' || kind === 'warning-alt' ? 'alert' : 'status')
+		role ??
+			(kind === 'error' || kind === 'warning' || kind === 'warning-alt' ? 'alert' : 'status')
 	);
 </script>
 

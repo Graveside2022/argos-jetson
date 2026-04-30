@@ -122,5 +122,4 @@
 		grid-template-columns: 1fr 1fr;
 		gap: 8px;
 	}
-
 </style>

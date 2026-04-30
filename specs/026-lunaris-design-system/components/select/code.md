@@ -15,42 +15,42 @@ Carbon ships `carbon-components-svelte@0.107.0`, which is **still Svelte 4 inter
 
 ```ts
 interface Props {
-  /** Selected option value. Two-way bindable. */
-  value?: string | number;
-  /** Visible label above the select. Required. */
-  labelText: string;
-  /** Helper text below the field. */
-  helperText?: string;
-  /** Mark field invalid; renders red border + icon. */
-  invalid?: boolean;
-  /** Error text shown when invalid is true. */
-  invalidText?: string;
-  /** Mark field as warn; renders amber border + icon. */
-  warn?: boolean;
-  /** Warning text shown when warn is true. */
-  warnText?: string;
-  /** Disable the field. */
-  disabled?: boolean;
-  /** Mark field as required (browser validation gate). */
-  required?: boolean;
-  /** Visually hide the label (a11y label still announced). */
-  hideLabel?: boolean;
-  /** Don't render any label at all (a11y hazard — supply aria-label externally). */
-  noLabel?: boolean;
-  /** Inline label/input layout instead of stacked. */
-  inline?: boolean;
-  /** Argos-density size token. Maps to Carbon sm/undefined/xl. */
-  size?: 'sm' | 'md' | 'lg';
-  /** Form name attribute. */
-  name?: string;
-  /** Element id. Auto-generated if omitted. */
-  id?: string;
-  /** Extra class name forwarded to Carbon's outer div. */
-  class?: string;
-  /** Callback fired on selection change. Mirrors NumberInput.onChange pattern. */
-  onChange?: (value: string | number | undefined) => void;
-  /** SelectItem children — pass <SelectItem> elements imported from carbon-components-svelte. */
-  children?: import('svelte').Snippet;
+	/** Selected option value. Two-way bindable. */
+	value?: string | number;
+	/** Visible label above the select. Required. */
+	labelText: string;
+	/** Helper text below the field. */
+	helperText?: string;
+	/** Mark field invalid; renders red border + icon. */
+	invalid?: boolean;
+	/** Error text shown when invalid is true. */
+	invalidText?: string;
+	/** Mark field as warn; renders amber border + icon. */
+	warn?: boolean;
+	/** Warning text shown when warn is true. */
+	warnText?: string;
+	/** Disable the field. */
+	disabled?: boolean;
+	/** Mark field as required (browser validation gate). */
+	required?: boolean;
+	/** Visually hide the label (a11y label still announced). */
+	hideLabel?: boolean;
+	/** Don't render any label at all (a11y hazard — supply aria-label externally). */
+	noLabel?: boolean;
+	/** Inline label/input layout instead of stacked. */
+	inline?: boolean;
+	/** Argos-density size token. Maps to Carbon sm/undefined/xl. */
+	size?: 'sm' | 'md' | 'lg';
+	/** Form name attribute. */
+	name?: string;
+	/** Element id. Auto-generated if omitted. */
+	id?: string;
+	/** Extra class name forwarded to Carbon's outer div. */
+	class?: string;
+	/** Callback fired on selection change. Mirrors NumberInput.onChange pattern. */
+	onChange?: (value: string | number | undefined) => void;
+	/** SelectItem children — pass <SelectItem> elements imported from carbon-components-svelte. */
+	children?: import('svelte').Snippet;
 }
 ```
 
@@ -74,9 +74,9 @@ The wrapper exposes the Carbon Select slot via the `children` snippet rune. Cons
 
 ```svelte
 <Select labelText="Severity" bind:value={severity}>
-  <SelectItem value="" text="Any" />
-  <SelectItem value="critical" text="Critical" />
-  <SelectItem value="warning" text="Warning" />
+	<SelectItem value="" text="Any" />
+	<SelectItem value="critical" text="Critical" />
+	<SelectItem value="warning" text="Warning" />
 </Select>
 ```
 
@@ -95,6 +95,7 @@ The wrapper is target ≤80 LOC including JSDoc (NumberInput is 102 LOC and incl
 ## Tests
 
 No Vitest tests in PR-A — Carbon's own test suite covers the underlying primitive. The Argos-side smoke is:
+
 1. `npm run build` clean (vite SSR compile catches any prop-type mismatch).
 2. Chrome-devtools MCP visual diff (PR-A spec.md visual diff procedure).
 3. Manual TAB/ENTER/ESC keyboard trace (a11y — see `accessibility.md`).

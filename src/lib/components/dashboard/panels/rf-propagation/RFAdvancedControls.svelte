@@ -48,7 +48,10 @@
 	}
 
 	function handlePropModel(id: string | number): void {
-		updateRFParam('propagationModel', id === 'auto' ? null : (Number(id) as PropagationModelId));
+		updateRFParam(
+			'propagationModel',
+			id === 'auto' ? null : (Number(id) as PropagationModelId)
+		);
 	}
 
 	function handleReliability(id: string | number): void {
@@ -174,5 +177,4 @@
 	.field-grid--full {
 		grid-template-columns: 1fr;
 	}
-
 </style>
