@@ -31,9 +31,9 @@ Carbon ships `carbon-components-svelte@0.107.0`, which is **still Svelte 4 inter
 
 Chassis uses Svelte 5 callback props that bridge Carbon's Svelte 4 `createEventDispatcher` events.
 
-| Callback prop | Carbon source event              | Argument                                                          | Description                                                                                            |
-| ------------- | -------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `onClose`     | `dispatch("close", { timeout })` | `fromTimeout: boolean` (true if dismissed by `timeout` countdown) | Fired on dismissal (close-button click OR auto-timeout). Use the boolean to log analytics differently. |
+| Callback prop | Carbon source event              | Argument                                                          | Description                                                                                                                                                                                                                 |
+| ------------- | -------------------------------- | ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `onClose`     | `dispatch("close", { timeout })` | `fromTimeout: boolean` (true if dismissed by `timeout` countdown) | Fired ONLY when Carbon dispatches `close` (close-button click OR auto-timeout). Setting `bind:open={false}` from external state does NOT fire `onClose` — handle analytics in the consumer state-change path for that case. |
 
 ## Slots / children
 
@@ -114,7 +114,7 @@ InlineNotification has **no slot / children** — title and subtitle are passed 
 
 ## What the wrapper does NOT expose
 
-- `hideIcon` — Carbon does not support hiding the leading status icon on InlineNotification (only on ToastNotification). If you need a text-only notification, use a different component.
+- `hideIcon` — not surfaced by this wrapper. If you need a text-only notification, use a different component.
 - `light` (Carbon's light-theme variant) — Argos is dark-only per Lunaris spec.
 - Direct keyboard event forwarding — InlineNotification does not implement Escape-to-close; dismissal is via the close button (Tab + Enter/Space), `bind:open` from external state, or `timeout > 0` for auto-dismiss. Per Carbon source (carbon-components-svelte v0.107.0 `Notification/InlineNotification.svelte`) — no Escape handler is registered; `role="alert"` semantic requires explicit interaction.
 - Multiple action buttons — InlineNotification has no action-button slot. Use `<ActionableNotification>` (not yet wrapped) for that case.
