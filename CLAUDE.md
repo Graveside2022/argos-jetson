@@ -83,7 +83,7 @@ When ANY of these bg-trigger patterns fires in a turn, the SAME turn MUST includ
 
 **Same-turn obligation** (do all three):
 
-1. **One-shot status check** — `tail -3 /tmp/<log>` + `pgrep -af <proc>` + (if applicable) `gh pr view <N> --json statusCheckRollup`. Single call. NOT a wait loop. NOT `until ... sleep ... done`.
+1. **One-shot status check** — execute `tail -3 /tmp/<log>` + `pgrep -af <proc>` + (if applicable) `gh pr view <N> --json statusCheckRollup` together as ONE bash invocation (chain with `&&` / `;` / `echo ---`). NOT split across turns. NOT a wait loop. NOT `until ... sleep ... done`. The hook at `scripts/claude-hooks/post-push-pr-flow.sh:44` uses a different `--json number,state,baseRefName` shape — that's a PR-identity probe, NOT a status check; both fields are valid for `gh pr view`.
 
 2. **Dispatch ≥1 parallel-safe action** from the Lightweight Parallel-Safe Ops list. Always-available examples:
     - **Memory + plan + commit-message + PR-body writes** to `~/.claude/projects/.../memory/*.md`, `plans/*.md`, `/tmp/*.md`
@@ -104,12 +104,19 @@ When ANY of these bg-trigger patterns fires in a turn, the SAME turn MUST includ
 - "to avoid burning cache cycles"
 - "will check status next turn"
 - "let the notification fire"
-- "monitoring in background"
+- "monitoring in background" (passive idle wait — see distinction below)
 - "standing by for completion"
 
 The `tail -3` cost is ~50 tokens; the cost of NOT parallelizing is 1-3 minutes of wasted wall-clock per bg job × every bg job in the session.
 
 **Banned wait shells:** `until <cond>; do sleep N; done` and `tail -f file & wait` — these orphan across turns and burn process slots without observation. Replace with single-shot check + `Monitor` tool (event-driven) or `ScheduleWakeup` (self-paced re-entry).
+
+**Idle wait vs. event-driven `Monitor` tool — they are NOT the same:**
+
+- ❌ **Forbidden** "monitoring in background" = passive idle polling that strands the turn (the agent ends a turn with a bg job pending and zero parallel work dispatched).
+- ✅ **Allowed** `Monitor` tool = event-driven harness primitive that streams stdout lines as notifications. The turn ends, the next notification re-enters the loop. No idle stranding.
+
+`Monitor` is a Claude Code-internal tool (sibling of `Bash`/`Read`/`Edit`). Surfaced via `ToolSearch` if its schema isn't already loaded — query `select:Monitor` to fetch.
 
 Full 6-incident catalogue (escalating remediation across 2026-04-27 → 2026-04-29) + lightweight-vs-heavy ops table + conflict-matrix for parallel PRs in user memory `feedback_parallel_work_during_waits.md`.
 

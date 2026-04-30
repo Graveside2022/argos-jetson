@@ -24,8 +24,13 @@
 
 set -uo pipefail
 
-REPO_ROOT="$(git rev-parse --show-toplevel)"
-cd "$REPO_ROOT" || exit
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
+if ! cd "$REPO_ROOT" 2>/dev/null; then
+	echo "[audit] Argos pipeline config drift check"
+	echo "[audit] findings:"
+	echo "  [warn] unable to enter repository root: ${REPO_ROOT:-<unset>}"
+	exit 1
+fi
 
 EXIT_CODE=0
 FINDINGS=()
