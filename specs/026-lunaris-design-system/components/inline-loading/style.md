@@ -35,7 +35,7 @@ The Lunaris wrapper introduces no extra DOM — direct passthrough plus the `onS
 
 ## Token mapping (Carbon → Lunaris)
 
-These overrides live in `src/lib/styles/lunaris-carbon-theme.scss`. Token additions are deferred to first visual-diff drift.
+These overrides **will live in** `src/lib/styles/lunaris-carbon-theme.scss` once the first visual-diff procedure exposes drift. Phase 6 ships the chassis wrapper without explicit token overrides; the theme file is scaffold-only for InlineLoading. Carbon's defaults inherit from the global Lunaris-on-Carbon theme overlay (set up in Phase 0). Per `feedback_lunaris_spec_first.md`, the table below is the **target mapping** to apply if visual-diff fails — not the current state.
 
 | Carbon token | Lunaris value | Used by | Citation |
 | ------------ | ------------- | ------- | -------- |
@@ -55,7 +55,7 @@ InlineLoading has NO size prop — the spinner is always small (per Carbon sourc
 
 ## What the wrapper adds
 
-- TypeScript `status` enum: `'active' | 'inactive' | 'finished' | 'error'` exported as type alias for caller import.
+- TypeScript `Status` type alias (`'active' | 'inactive' | 'finished' | 'error'`) exported from a `<script module>` block so callers can `import { type Status } from '$lib/components/chassis/forms/InlineLoading.svelte'`.
 - `onSuccess?: () => void` callback prop — bridges Carbon's `dispatch("success")` event (fires after `successDelay` ms when `status` transitions to `'finished'`, per Carbon source line 39-45).
 - Default `successDelay` = 1500 ms (matches Carbon).
 - Nothing else — no class manipulation, no slot wrapping.

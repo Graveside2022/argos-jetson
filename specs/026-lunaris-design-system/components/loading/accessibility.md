@@ -36,8 +36,10 @@ Loading does not move, trap, or restore focus. The browser's natural focus order
 | State | Announcement |
 | ----- | ------------ |
 | Mount with `active=true` | "Loading" (or custom `description`) — assertive announcement. |
+| Mount with `active=false` initially | Carbon sets `aria-live="off"` from the first render (`Loading.svelte:25, 52`); the live region does NOT announce the description. The SVG `<title>` is still reachable via screen-reader cursor mode. Use case: pre-rendered SSR placeholder waiting to activate. |
 | Update of `description` while active | New description re-announced (because `aria-atomic="true"`). |
-| `active` flips to `false` | Carbon sets `aria-live="off"` — stops further announcements. SVG continues to render but spinner animation pauses. |
+| `active` flips `false` → `true` | `aria-live` flips `off` → `assertive`; the description IS announced assertively on the activation event. Use this to start a deferred loading state. |
+| `active` flips `true` → `false` | Carbon sets `aria-live="off"` — stops further announcements. SVG continues to render but spinner animation pauses. |
 | Unmount | No "loading finished" announcement — Loading is stateless w.r.t. completion. Use `<InlineLoading>` with `status="finished"` if you need success feedback. |
 
 ## Common pitfalls

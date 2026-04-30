@@ -60,7 +60,7 @@
 	{#if disabled}
 		<div class="wx-empty mono">WEATHER DISABLED</div>
 	{:else if loading}
-		<div class="wx-loading mono">
+		<div class="wx-empty mono">
 			<InlineLoading description="FETCHING METAR…" />
 		</div>
 	{:else if error}

@@ -1,7 +1,9 @@
+<script lang="ts" module>
+	export type Status = 'active' | 'inactive' | 'finished' | 'error';
+</script>
+
 <script lang="ts">
 	import { InlineLoading as CarbonInlineLoading } from 'carbon-components-svelte';
-
-	type Status = 'active' | 'inactive' | 'finished' | 'error';
 
 	interface Props {
 		status?: Status;

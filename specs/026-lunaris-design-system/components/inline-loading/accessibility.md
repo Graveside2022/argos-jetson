@@ -39,8 +39,12 @@ InlineLoading does not move, trap, or restore focus. Mounting the component does
 | State / event | Announcement |
 | ------------- | ------------ |
 | Mount with `status='active' description='Loading…'` | "Loading…" — assertive announcement, doesn't move focus. |
+| Mount with `status='inactive'` | Description (if any) announced once via the assertive live region; spinner is rendered stopped. No icon-state announcement (the inactive variant uses the same Loading SVG as `active` but with `active={false}` per `InlineLoading.svelte:75`). |
+| Mount with `status='error' description='…'` | Description announced via the assertive live region. The X icon's `<title>` (defaulting to `'error'`) is announced only when the user navigates into the icon via screen-reader cursor mode (not Tab). |
+| Mount with empty/undefined `description` | Live region renders silent. The icon's `<title>` (`iconDescription` or status-derived fallback for `'error'` / `'finished'`) is the only screen-reader-detectable text. **Pitfall** — always pass a meaningful `description` (see "Common pitfalls" below). |
 | `description` changes (e.g., `'Loading…'` → `'Saved.'`) | New description announced (assertive live region). |
 | `status` transition `active` → `finished` | If `description` also updates, the new description is announced. The checkmark icon is announced via its `<title>` only when the user navigates into it (screen-reader cursor mode, not Tab). |
+| `status` transition `active` → `error` | Same as above — description re-announced if it changes; X icon `<title>` reachable in cursor mode. |
 | `onSuccess()` fires after `successDelay` | Programmatic — announces nothing. Use the callback to dismiss the InlineLoading or chain a follow-up announcement. |
 
 ## Common pitfalls
