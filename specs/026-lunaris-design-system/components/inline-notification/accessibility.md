@@ -4,38 +4,38 @@ The Carbon InlineNotification primitive (wrapped at `src/lib/components/chassis/
 
 ## WCAG 2.2 success criteria covered
 
-| SC                                              | Level | How Carbon satisfies it                                                                                                                                  |
-| ----------------------------------------------- | ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1.1.1 Non-text Content                          | A     | Status icon carries `<title>` with `statusIconDescription` (defaults to `` `${kind} icon` `` in the chassis); close-X has `aria-label`.                  |
-| 1.3.1 Info and Relationships                    | A     | Title and subtitle in semantic `<p>` elements with structural class names; severity conveyed via `role` + visual + icon (not color alone).               |
-| 1.4.1 Use of Color                              | A     | Each kind has a distinct icon shape (Error vs Warning vs Checkmark vs Information). Color is supplementary, not the sole status indicator.               |
-| 1.4.3 Contrast (Minimum)                        | AA    | Title / subtitle text ≥ 4.5:1 against per-kind tinted background; low-contrast variant uses `--bg-1` + `--ink` ≥ 4.5:1.                                  |
-| 1.4.11 Non-text Contrast                        | AA    | Border-left strip and status icon target ≥ 3:1 against the container.                                                                                    |
-| 2.1.1 Keyboard                                  | A     | Close-X button reachable by Tab; activated by Enter or Space.                                                                                            |
-| 2.2.1 Timing Adjustable                         | A     | When `timeout > 0`, the consumer is responsible for offering a way to extend / disable the timeout (per WCAG; sticky=0 is the safer default).            |
-| 2.4.7 Focus Visible                             | AA    | Close-X carries Carbon's standard 2px focus ring using `$focus` token (mapped to `var(--accent)`).                                                       |
-| 4.1.2 Name, Role, Value                         | A     | `role="alert"` (error/warning) or `role="status"` (success/info) auto-derived; close-X has accessible name via `closeButtonDescription`.                 |
-| 4.1.3 Status Messages                           | AA    | `role="alert"` / `role="status"` ensures assistive tech announces the notification without moving focus when it appears.                                 |
+| SC                           | Level | How Carbon satisfies it                                                                                                                                          |
+| ---------------------------- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.1.1 Non-text Content       | A     | Status icon carries `<title>` with `statusIconDescription` (defaults to `` `${kind} icon` `` in the chassis); close-X has `aria-label`.                          |
+| 1.3.1 Info and Relationships | A     | Title and subtitle in semantic `<p>` elements with structural class names; severity conveyed via `role` + visual + icon (not color alone).                       |
+| 1.4.1 Use of Color           | A     | Each kind has a distinct icon shape (Error vs Warning vs Checkmark vs Information). Color is supplementary, not the sole status indicator.                       |
+| 1.4.3 Contrast (Minimum)     | AA    | Title / subtitle text ≥ 4.5:1 against per-kind tinted background; low-contrast variant uses `--bg-1` + `--ink` ≥ 4.5:1.                                          |
+| 1.4.11 Non-text Contrast     | AA    | Border-left strip and status icon target ≥ 3:1 against the container.                                                                                            |
+| 2.1.1 Keyboard               | A     | Close-X button reachable by Tab; activated by Enter or Space.                                                                                                    |
+| 2.2.1 Timing Adjustable      | A     | When `timeout > 0`, the consumer is responsible for offering a way to extend / disable the timeout (per WCAG; sticky=0 is the safer default).                    |
+| 2.4.7 Focus Visible          | AA    | Close-X carries Carbon's standard 2px focus ring using `$focus` token (mapped to `var(--accent)`).                                                               |
+| 4.1.2 Name, Role, Value      | A     | `role="alert"` (error/warning/warning-alt) or `role="status"` (success/info/info-square) auto-derived; close-X has accessible name via `closeButtonDescription`. |
+| 4.1.3 Status Messages        | AA    | `role="alert"` / `role="status"` ensures assistive tech announces the notification without moving focus when it appears.                                         |
 
 ## ARIA — Carbon owns vs consumer owes
 
-| Attribute                       | Owner    | Notes                                                                                                                                                  |
-| ------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `role`                          | Chassis  | Auto-derived: `'alert'` for `error` / `warning` / `warning-alt`; `'status'` otherwise (`InlineNotification.svelte:36-39`). Consumer can override.       |
-| `kind` (HTML attr)              | Carbon   | Set on the root for CSS hooks; not a standard ARIA attribute but harmless.                                                                             |
-| Status icon `<title>`           | Carbon   | Wired to `statusIconDescription`. Chassis defaults to `` `${kind} icon` `` when not supplied.                                                          |
-| Close-X `aria-label`            | Carbon   | Wired to `closeButtonDescription` (default `'Close notification'`).                                                                                    |
-| `title` / `subtitle` text       | Consumer | Must be plain strings (no slot). Keep titles short and verb-led; subtitles state cause + remediation.                                                  |
-| `aria-live` semantics           | Implicit | Both `role="alert"` and `role="status"` imply `aria-live` (assertive vs polite respectively); Carbon does NOT additionally set `aria-live`.            |
+| Attribute                 | Owner    | Notes                                                                                                                                             |
+| ------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `role`                    | Chassis  | Auto-derived: `'alert'` for `error` / `warning` / `warning-alt`; `'status'` otherwise (`InlineNotification.svelte:36-39`). Consumer can override. |
+| `kind` (HTML attr)        | Carbon   | Set on the root for CSS hooks; not a standard ARIA attribute but harmless.                                                                        |
+| Status icon `<title>`     | Carbon   | Wired to `statusIconDescription`. Chassis defaults to `` `${kind} icon` `` when not supplied.                                                     |
+| Close-X `aria-label`      | Carbon   | Wired to `closeButtonDescription` (default `'Close notification'`).                                                                               |
+| `title` / `subtitle` text | Consumer | Must be plain strings (no slot). Keep titles short and verb-led; subtitles state cause + remediation.                                             |
+| `aria-live` semantics     | Implicit | Both `role="alert"` and `role="status"` imply `aria-live` (assertive vs polite respectively); Carbon does NOT additionally set `aria-live`.       |
 
 ## Keyboard interactions
 
-| Key                            | Behaviour                                                                                                  |
-| ------------------------------ | ---------------------------------------------------------------------------------------------------------- |
-| `Tab`                          | Move focus to the close-X button (when `hideCloseButton={false}`). Tab past for next page focusable.       |
-| `Shift + Tab`                  | Move focus to the previous page focusable.                                                                 |
-| `Enter` / `Space` on close-X   | Dismiss the notification; fires `onClose(false)` (false because not from timeout).                         |
-| `Escape`                       | **Not handled by Carbon InlineNotification.** Unlike Modal, an inline notification does not trap focus, so Escape has no special meaning. |
+| Key                          | Behaviour                                                                                                                                 |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `Tab`                        | Move focus to the close-X button (when `hideCloseButton={false}`). Tab past for next page focusable.                                      |
+| `Shift + Tab`                | Move focus to the previous page focusable.                                                                                                |
+| `Enter` / `Space` on close-X | Dismiss the notification; fires `onClose(false)` (false because not from timeout).                                                        |
+| `Escape`                     | **Not handled by Carbon InlineNotification.** Unlike Modal, an inline notification does not trap focus, so Escape has no special meaning. |
 
 ## Focus management
 
@@ -51,10 +51,10 @@ InlineNotification does **not** trap focus and does **not** auto-focus on appear
 
 ## Screen reader behaviour
 
-| `role`            | Announcement timing  | Use case                                                                                          |
-| ----------------- | -------------------- | ------------------------------------------------------------------------------------------------- |
-| `role="alert"`    | Immediate (assertive) | Error states, validation failures, hardware disconnects — auto-derived for error/warning kinds.   |
-| `role="status"`   | Polite (when idle)    | Success confirmations, informational updates — auto-derived for success/info kinds.               |
+| `role`          | Announcement timing   | Use case                                                                                        |
+| --------------- | --------------------- | ----------------------------------------------------------------------------------------------- |
+| `role="alert"`  | Immediate (assertive) | Error states, validation failures, hardware disconnects — auto-derived for error/warning kinds. |
+| `role="status"` | Polite (when idle)    | Success confirmations, informational updates — auto-derived for success/info kinds.             |
 
 When a notification mounts, screen readers announce in order: title, then subtitle. The status icon's `<title>` is announced only when the user navigates into the icon (via screen-reader cursor mode, not Tab).
 

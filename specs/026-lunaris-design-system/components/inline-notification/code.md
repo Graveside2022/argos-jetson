@@ -13,26 +13,26 @@ Carbon ships `carbon-components-svelte@0.107.0`, which is **still Svelte 4 inter
 
 ## Public API — Props
 
-| Prop                       | Type                                                                                  | Default                          | Description                                                                                                |
-| -------------------------- | ------------------------------------------------------------------------------------- | -------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `open`                     | `boolean`                                                                             | `true` (`$bindable`)             | Controlled visibility. Two-way bindable. Set `false` to dismiss programmatically.                          |
-| `kind`                     | `'error' \| 'info' \| 'info-square' \| 'success' \| 'warning' \| 'warning-alt'`       | `'error'`                        | Severity / intent variant. Drives color, icon, and default `role`.                                         |
-| `title`                    | `string`                                                                              | `''`                             | Bold first line.                                                                                           |
-| `subtitle`                 | `string`                                                                              | `''`                             | Secondary supporting line below the title.                                                                 |
-| `lowContrast`              | `boolean`                                                                             | `false`                          | Swap tinted background for neutral; retain colored border-left + icon.                                     |
-| `timeout`                  | `number`                                                                              | `0`                              | Milliseconds before auto-dismiss. `0` = no timeout (sticky).                                               |
-| `role`                     | `string \| undefined`                                                                 | derived (`'alert'` / `'status'`) | Override the auto-resolved ARIA role.                                                                      |
-| `hideCloseButton`          | `boolean`                                                                             | `false`                          | Suppress the dismiss-X. Use only for programmatically managed notifications.                               |
-| `statusIconDescription`    | `string \| undefined`                                                                 | `` `${kind} icon` ``             | aria-label for the leading status icon.                                                                    |
-| `closeButtonDescription`   | `string`                                                                              | `'Close notification'`           | aria-label for the close-X button.                                                                         |
-| `class`                    | `string \| undefined`                                                                 | undefined                        | Extra class forwarded to Carbon's outer wrapper.                                                           |
+| Prop                     | Type                                                                            | Default                          | Description                                                                       |
+| ------------------------ | ------------------------------------------------------------------------------- | -------------------------------- | --------------------------------------------------------------------------------- |
+| `open`                   | `boolean`                                                                       | `true` (`$bindable`)             | Controlled visibility. Two-way bindable. Set `false` to dismiss programmatically. |
+| `kind`                   | `'error' \| 'info' \| 'info-square' \| 'success' \| 'warning' \| 'warning-alt'` | `'error'`                        | Severity / intent variant. Drives color, icon, and default `role`.                |
+| `title`                  | `string`                                                                        | `''`                             | Bold first line.                                                                  |
+| `subtitle`               | `string`                                                                        | `''`                             | Secondary supporting line below the title.                                        |
+| `lowContrast`            | `boolean`                                                                       | `false`                          | Swap tinted background for neutral; retain colored border-left + icon.            |
+| `timeout`                | `number`                                                                        | `0`                              | Milliseconds before auto-dismiss. `0` = no timeout (sticky).                      |
+| `role`                   | `string \| undefined`                                                           | derived (`'alert'` / `'status'`) | Override the auto-resolved ARIA role.                                             |
+| `hideCloseButton`        | `boolean`                                                                       | `false`                          | Suppress the dismiss-X. Use only for programmatically managed notifications.      |
+| `statusIconDescription`  | `string \| undefined`                                                           | `` `${kind} icon` ``             | aria-label for the leading status icon.                                           |
+| `closeButtonDescription` | `string`                                                                        | `'Close notification'`           | aria-label for the close-X button.                                                |
+| `class`                  | `string \| undefined`                                                           | undefined                        | Extra class forwarded to Carbon's outer wrapper.                                  |
 
 ## Public API — Callback props
 
 Chassis uses Svelte 5 callback props that bridge Carbon's Svelte 4 `createEventDispatcher` events.
 
-| Callback prop | Carbon source event              | Argument                                                  | Description                                                                |
-| ------------- | -------------------------------- | --------------------------------------------------------- | -------------------------------------------------------------------------- |
+| Callback prop | Carbon source event              | Argument                                                          | Description                                                                                            |
+| ------------- | -------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | `onClose`     | `dispatch("close", { timeout })` | `fromTimeout: boolean` (true if dismissed by `timeout` countdown) | Fired on dismissal (close-button click OR auto-timeout). Use the boolean to log analytics differently. |
 
 ## Slots / children
@@ -41,16 +41,16 @@ InlineNotification has **no slot / children** — title and subtitle are passed 
 
 ## Carbon → chassis API mapping
 
-| Carbon prop / event   | Chassis prop / callback                                  |
-| --------------------- | -------------------------------------------------------- |
-| `bind:open`           | `bind:open` (forwarded directly via `$bindable`)         |
-| `kind`                | `kind` (same enum)                                       |
-| `title` / `subtitle`  | `title` / `subtitle` (string props)                      |
-| `lowContrast`         | `lowContrast`                                            |
-| `timeout`             | `timeout` (ms; 0 = sticky)                               |
-| `role`                | `role` (overrides auto-derived)                          |
-| `hideCloseButton`     | `hideCloseButton`                                        |
-| `on:close`            | `onClose: (fromTimeout) => void`                         |
+| Carbon prop / event  | Chassis prop / callback                          |
+| -------------------- | ------------------------------------------------ |
+| `bind:open`          | `bind:open` (forwarded directly via `$bindable`) |
+| `kind`               | `kind` (same enum)                               |
+| `title` / `subtitle` | `title` / `subtitle` (string props)              |
+| `lowContrast`        | `lowContrast`                                    |
+| `timeout`            | `timeout` (ms; 0 = sticky)                       |
+| `role`               | `role` (overrides auto-derived)                  |
+| `hideCloseButton`    | `hideCloseButton`                                |
+| `on:close`           | `onClose: (fromTimeout) => void`                 |
 
 ## Paste-ready snippets
 
@@ -82,8 +82,7 @@ InlineNotification has **no slot / children** — title and subtitle are passed 
 	title="Saved."
 	subtitle="Frequency profile written to disk."
 	timeout={4000}
-	onClose={(fromTimeout) =>
-		console.info('saved-toast dismissed', { byTimeout: fromTimeout })}
+	onClose={(fromTimeout) => console.info('saved-toast dismissed', { byTimeout: fromTimeout })}
 />
 ```
 
@@ -117,7 +116,7 @@ InlineNotification has **no slot / children** — title and subtitle are passed 
 
 - `hideIcon` — Carbon does not support hiding the leading status icon on InlineNotification (only on ToastNotification). If you need a text-only notification, use a different component.
 - `light` (Carbon's light-theme variant) — Argos is dark-only per Lunaris spec.
-- Direct keyboard event forwarding — Carbon handles Escape-to-close internally.
+- Direct keyboard event forwarding — InlineNotification does not implement Escape-to-close; dismissal is via the close button (Tab + Enter/Space), `bind:open` from external state, or `timeout > 0` for auto-dismiss. Per Carbon source (carbon-components-svelte v0.107.0 `Notification/InlineNotification.svelte`) — no Escape handler is registered; `role="alert"` semantic requires explicit interaction.
 - Multiple action buttons — InlineNotification has no action-button slot. Use `<ActionableNotification>` (not yet wrapped) for that case.
 
 ## File budget
