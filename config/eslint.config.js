@@ -133,6 +133,27 @@ export default [
 			svelte
 		},
 		rules: {
+			// spec-026 Phase 7 finding: `...svelte.configs.recommended.rules`
+			// spreads UNDEFINED — `svelte.configs.recommended` is a flat-config
+			// ARRAY (4 items), not an object. The .rules property doesn't exist
+			// on the array itself; rules live on items[2] (35 rules @ error).
+			// Result: NONE of the svelte plugin's recommended rules are active
+			// today. Rules below are spread harmlessly (no-op). svelte-compile-
+			// time a11y_* / svelte_* warnings still fire via `svelte-check` in
+			// the CI typecheck step — that's why warnings appear in dev/CI even
+			// without eslint enforcement.
+			//
+			// Phase 8 follow-up sub-phase: properly spread svelte.configs.recommended
+			// at the top-level config array (NOT here), audit which of the 35
+			// surfaced ERROR-level rules pass on the existing codebase, downgrade
+			// pre-existing-issue rules to WARN, then enable. Done as a separate
+			// PR so any failures can be addressed in isolation.
+			//
+			// `eslint-plugin-svelte` itself has ZERO a11y rules in its plugin
+			// registry (verified `Object.keys(s.rules).filter(r =>
+			// r.includes('a11y'))` === []). a11y enforcement is svelte-compiler
+			// territory, not eslint. Phase 8 may add axe-core / lighthouse CI
+			// for runtime a11y if compile-time proves insufficient.
 			...svelte.configs.recommended.rules
 		}
 	},
