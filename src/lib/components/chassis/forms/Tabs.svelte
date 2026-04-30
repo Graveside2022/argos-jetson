@@ -39,6 +39,16 @@
 
 	const selectedIndex = $derived(Math.max(0, tabs.findIndex((t) => t.id === selectedId)));
 
+	$effect(() => {
+		if (tabs.length === 0) {
+			if (selectedId !== '') selectedId = '';
+			return;
+		}
+		if (!tabs.some((t) => t.id === selectedId)) {
+			selectedId = tabs[0].id;
+		}
+	});
+
 	function handleChange(e: CustomEvent<number>): void {
 		const next = tabs[e.detail];
 		if (next && next.id !== selectedId) {
@@ -79,7 +89,7 @@
 
 <style>
 	:global(.bx--tabs__nav-item.lunaris-has-items:not(.bx--tabs__nav-item--selected) .bx--tabs__nav-link) {
-		color: var(--warning, #d4a054);
+		color: var(--warning);
 	}
 
 	.lunaris-tab-with-badge {

@@ -1,6 +1,6 @@
 # Tabs — Usage
 
-**Status:** Phase 4 PR-A — wrapper + canary live
+**Status:** Phase 5 — shipped (DeviceSubTabs canary, single phase-close PR)
 **Last updated:** 2026-04-30
 **Implementation files:** `src/lib/components/chassis/forms/Tabs.svelte`, `src/lib/components/chassis/forms/TabsSkeleton.svelte`
 **Carbon component:** `<Tabs>` / `<Tab>` / `<TabsSkeleton>` from `carbon-components-svelte` v0.107.0+
@@ -21,22 +21,20 @@ The user's mental model must be "one panel, several lenses" — not "several pag
 - **More than ~7 peers** → tabs become a horizontal scroll list which is hostile to keyboard + screen readers; use a vertical side nav or a `<Dropdown>`-controlled view selector instead.
 - **Per-tab close affordance** (terminal-tab pattern) → Carbon `<Tabs>` is forbidden because nesting a `<button>` close-X inside `role="tab"` violates ARIA APG composition rules. See `accessibility.md` "common pitfalls" for the Argos-specific consequence (TerminalTabBar deferred to a future EditorTabBar chassis category).
 
-## Argos surface inventory (Phase 4)
+## Argos surface inventory (Phase 5)
 
-| File                                                                           | Site count | Tab cohort                                                              | Migration PR    |
-| ------------------------------------------------------------------------------ | ---------- | ----------------------------------------------------------------------- | --------------- |
-| `src/lib/components/dashboard/panels/devices/DeviceSubTabs.svelte`             | 1          | 6 device classes with live count badges + warning state for stale items | **PR-A canary** |
-| `src/lib/components/screens/parts/SpectrumControls.svelte` (mode tabs)         | 1          | 3 spectrum modes (sweep / waterfall / IQ) — static labels               | PR-B            |
-| `src/lib/components/dashboard/views/ReportsView.svelte` (category tabs)        | 1          | 3 report categories with badges                                         | PR-B            |
-| `src/lib/components/dashboard/panels/rf-propagation/RFPropagationControls.svelte` (model tabs) | 1 | 2 model groups — static labels                                | PR-B            |
+| File                                                               | Site count | Tab cohort                                                              | Migration PR        |
+| ------------------------------------------------------------------ | ---------- | ----------------------------------------------------------------------- | ------------------- |
+| `src/lib/components/dashboard/panels/devices/DeviceSubTabs.svelte` | 1          | 6 device classes with live count badges + warning state for stale items | **Phase 5 (PR #93)** |
 
-**Total Tabs cohort: 4 files / 4 sites.**
+**Total Tabs cohort: 1 file / 1 site shipped.** Phase 1 audit found no other consumer sites that fit Carbon Tabs cleanly — the codebase has zero shadcn-svelte tabs imports, zero bits-ui Tabs imports, and the remaining tab-shaped patterns (TerminalTabBar, ToolsFlyout pillar nav) are deferred (see below). Future tab use cases will adopt the chassis directly.
 
 ### Deferred (NOT migrated to Carbon Tabs)
 
-| File                                                       | Reason                                                                                                                                              |
-| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/lib/components/terminal/TerminalTabBar.svelte`        | Per-tab close-X buttons nested inside `role="tab"` are forbidden by ARIA APG. Needs a dedicated `EditorTabBar` chassis category with composite-widget pattern. Sub-phase deferred. |
+| File                                                       | Reason                                                                                                                                                                            |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/lib/components/dashboard/TerminalTabBar.svelte`       | Per-tab close-X buttons nested inside `role="tab"` are forbidden by ARIA APG. Needs a dedicated `EditorTabBar` chassis category with composite-widget pattern. Sub-phase deferred. |
+| `src/lib/components/chassis/ToolsFlyout.svelte` (pillar nav) | Bespoke focus trap + arrow-key pillar nav + kbd-hint footer; needs careful Carbon Modal integration. Already deferred to Phase 4 follow-up sub-phase D.                          |
 
 ### Decision rule applied
 

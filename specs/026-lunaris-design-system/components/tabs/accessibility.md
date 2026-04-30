@@ -66,7 +66,7 @@ These behaviors are NOT re-implemented by the wrapper. **Do not add custom keybo
 
 ARIA APG forbids nesting interactive elements (buttons, links, inputs) inside an element with `role="tab"`. The consequence: a per-tab close-X `<button>` inside a tab is non-conformant and breaks AT keyboard navigation (Arrow keys land on the tab, then Tab key gets stolen by the inner button, then arrow keys no longer cycle tabs).
 
-**Why this matters for Argos**: `src/lib/components/terminal/TerminalTabBar.svelte` wants per-tab close-X affordances (terminal-tab pattern). It **cannot** migrate to Carbon `<Tabs>` for this reason. It needs a future `EditorTabBar` chassis category implemented as a composite widget (e.g., a toolbar with each tab as a `role="tab"` PLUS a sibling `role="button"` close affordance grouped under a parent that handles focus management explicitly). This is deferred to a sub-phase after Phase 4 — see `usage.md` "Deferred" section.
+**Why this matters for Argos**: `src/lib/components/dashboard/TerminalTabBar.svelte` wants per-tab close-X affordances (terminal-tab pattern). It **cannot** migrate to Carbon `<Tabs>` for this reason. It needs a future `EditorTabBar` chassis category implemented as a composite widget (e.g., a toolbar with each tab as a `role="tab"` PLUS a sibling `role="button"` close affordance grouped under a parent that handles focus management explicitly). This is deferred to a sub-phase after Phase 5 — see `usage.md` "Deferred" section.
 
 ### Other pitfalls
 
