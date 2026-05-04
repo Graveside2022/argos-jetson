@@ -146,6 +146,8 @@
 </nav>
 
 <style>
+	@import './icon-rail.css';
+
 	.icon-rail {
 		width: var(--icon-rail-width);
 		min-width: var(--icon-rail-width);
@@ -225,6 +227,4 @@
 		background: color-mix(in srgb, var(--foreground) 10%, transparent);
 		margin: 2px 0;
 	}
-
-	@import './icon-rail.css';
 </style>
