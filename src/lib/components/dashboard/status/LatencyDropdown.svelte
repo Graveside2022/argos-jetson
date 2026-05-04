@@ -74,7 +74,7 @@
 
 	<div class="divider"></div>
 
-	{#each results as result}
+	{#each results as result (result.target)}
 		<div class="target-section">
 			<div class="target-header">
 				<span class="quality-dot {statusDotClass(result.status)}"></span>

@@ -36,7 +36,7 @@
 
 	<div class="live-frames-console p-3 font-mono text-xs">
 		{#if gsmFrames.length > 0}
-			{#each gsmFrames as frame, i}
+			{#each gsmFrames as frame, i (i)}
 				<div
 					class="mb-0.5 whitespace-pre-wrap break-all {i === gsmFrames.length - 1
 						? 'text-primary font-medium'

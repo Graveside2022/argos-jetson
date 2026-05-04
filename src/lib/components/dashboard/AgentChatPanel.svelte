@@ -70,7 +70,7 @@
 
 	<!-- Messages container -->
 	<div class="chat-messages" bind:this={chatContainerEl}>
-		{#each messages as message}
+		{#each messages as message (message.timestamp)}
 			<AgentChatMessage {message} />
 		{/each}
 

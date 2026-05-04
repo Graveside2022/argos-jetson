@@ -81,7 +81,7 @@
 				{#if data.gps.length === 0}
 					<p class="empty-text">No devices detected</p>
 				{:else}
-					{#each data.gps as device}
+					{#each data.gps as device (device.device)}
 						<div class="device-row">
 							<span class="status-dot active"></span>
 							<div class="device-info">
@@ -100,7 +100,7 @@
 				{#if data.sdr.length === 0}
 					<p class="empty-text">No devices detected</p>
 				{:else}
-					{#each data.sdr as device}
+					{#each data.sdr as device (device.serial)}
 						<div class="device-row">
 							<span class="status-dot active"></span>
 							<div class="device-info">
@@ -120,7 +120,7 @@
 				{#if data.wifi.length === 0}
 					<p class="empty-text">No devices detected</p>
 				{:else}
-					{#each data.wifi as device}
+					{#each data.wifi as device (device.interface)}
 						<div class="device-row">
 							<span class="status-dot active"></span>
 							<div class="device-info">
