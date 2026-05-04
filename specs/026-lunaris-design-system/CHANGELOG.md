@@ -144,6 +144,39 @@ Per `migration-roadmap.md`:
 
 ---
 
+## Phase 8.8 — ESLint config restructure ✅ Done 2026-05-05
+
+**Branch:** `session-2` → `dev`
+
+**Landed:**
+
+- `config/eslint.config.js` — replaced the broken `...svelte.configs.recommended.rules` spread (no-op on the flat-config array) with a top-level `...svelte.configs.recommended` spread. The 35 ERROR-level rules from `eslint-plugin-svelte`'s recommended preset are now actually enforced.
+- Argos override block consolidated to also cover `*.svelte.{ts,js}` (the recommended preset's parser entry for module-state files lacks the TypeScript sub-parser; the override re-wires `svelteParser + tsParser`).
+
+**Triage (rules with > 0 violations after enforcement):**
+
+| Rule | Violator count | Decision | Reason |
+|---|---|---|---|
+| `svelte/require-each-key` | 18 | **WARN (deferred)** | Most violators are short transient lists (status drops, console rows, hardware adapters); follow-up PR will add stable keys. |
+| `svelte/no-at-html-tags` | 9 | **WARN (deferred)** | Terminal output, status icons, and tool-category titles render trusted server-side strings; per-site XSS audit needed before re-escalating. |
+| (33 other rules) | 0 | **ERROR (kept)** | All other recommended rules pass cleanly on Argos today. |
+
+**Verification:**
+
+- ✅ `npx eslint --config config/eslint.config.js` exit 0 (was silently a no-op for the 35 recommended rules).
+- ✅ `npm run lint` exit 0 (192 pre-existing WARN-level findings, 0 errors).
+- ✅ 33/35 newly-firing svelte recommended rules have ZERO violations on the existing codebase.
+- ✅ Sentrux 2/2 rules pass; quality_signal unchanged.
+
+**Closes:**
+
+- Phase 8.8 row of `migration-roadmap.md` — last sub-phase of the deferred-cleanup umbrella.
+- "Phase 7 eslint config — leave svelte recommended-rules spread bug for Phase 8" decision-log entry.
+
+**Phase 8 is now fully complete.** Spec-026 migration closed.
+
+---
+
 ## Phase 8.7 — `bits-ui` dependency drop ✅ Done 2026-05-04
 
 **Branch:** `session-2` → `dev`
