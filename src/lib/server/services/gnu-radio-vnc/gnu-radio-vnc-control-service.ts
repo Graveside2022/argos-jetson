@@ -92,7 +92,7 @@ export async function startGnuRadioVnc(
 
 	const startupErr = await performStartup(resolved);
 	if (startupErr) {
-		logger.error({ err: startupErr }, 'GRC VNC spawn failed');
+		logger.error('GRC VNC spawn failed', { error: startupErr.message });
 		await killAllProcesses();
 		return {
 			success: false,

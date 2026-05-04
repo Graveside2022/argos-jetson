@@ -14,10 +14,11 @@ afterEach(() => {
 describe('gnu-radio-vnc-processes', () => {
 	it('spawnXtigervnc invokes spawn with display :95 and geometry 1440x900', () => {
 		const calls: Array<{ cmd: string; args: string[] }> = [];
-		_setSpawnImplForTest((cmd, args) => {
+		const mockSpawn: unknown = (cmd: string, args: string[]) => {
 			calls.push({ cmd, args: args as string[] });
-			return { pid: 4242, on: vi.fn(), once: vi.fn(), kill: vi.fn() } as never;
-		});
+			return { pid: 4242, on: vi.fn(), once: vi.fn(), kill: vi.fn() };
+		};
+		_setSpawnImplForTest(mockSpawn as Parameters<typeof _setSpawnImplForTest>[0]);
 
 		spawnXtigervnc();
 
@@ -33,10 +34,11 @@ describe('gnu-radio-vnc-processes', () => {
 
 	it('spawnGnuRadioCompanion sets DISPLAY=:95 and QT_QPA_PLATFORM=xcb env', () => {
 		const calls: Array<Record<string, unknown>> = [];
-		_setSpawnImplForTest((_cmd, _args, opts) => {
+		const mockSpawn: unknown = (_cmd: string, _args: string[], opts: Record<string, unknown>) => {
 			calls.push(opts as Record<string, unknown>);
-			return { pid: 4243, on: vi.fn(), once: vi.fn(), kill: vi.fn() } as never;
-		});
+			return { pid: 4243, on: vi.fn(), once: vi.fn(), kill: vi.fn() };
+		};
+		_setSpawnImplForTest(mockSpawn as Parameters<typeof _setSpawnImplForTest>[0]);
 
 		spawnGnuRadioCompanion();
 
@@ -47,10 +49,11 @@ describe('gnu-radio-vnc-processes', () => {
 
 	it('spawnGnuRadioCompanion appends flowgraph path as positional arg when provided', () => {
 		const calls: Array<{ args: string[] }> = [];
-		_setSpawnImplForTest((_cmd, args) => {
+		const mockSpawn: unknown = (_cmd: string, args: string[]) => {
 			calls.push({ args: args as string[] });
-			return { pid: 4244, on: vi.fn(), once: vi.fn(), kill: vi.fn() } as never;
-		});
+			return { pid: 4244, on: vi.fn(), once: vi.fn(), kill: vi.fn() };
+		};
+		_setSpawnImplForTest(mockSpawn as Parameters<typeof _setSpawnImplForTest>[0]);
 
 		spawnGnuRadioCompanion('/tmp/argos-grc-demo.grc');
 
@@ -60,10 +63,11 @@ describe('gnu-radio-vnc-processes', () => {
 
 	it('spawnWebsockify bridges 6084 → localhost:5995', () => {
 		const calls: Array<{ args: string[] }> = [];
-		_setSpawnImplForTest((_cmd, args) => {
+		const mockSpawn: unknown = (_cmd: string, args: string[]) => {
 			calls.push({ args: args as string[] });
-			return { pid: 4245, on: vi.fn(), once: vi.fn(), kill: vi.fn() } as never;
-		});
+			return { pid: 4245, on: vi.fn(), once: vi.fn(), kill: vi.fn() };
+		};
+		_setSpawnImplForTest(mockSpawn as Parameters<typeof _setSpawnImplForTest>[0]);
 
 		spawnWebsockify();
 
