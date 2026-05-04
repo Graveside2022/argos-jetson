@@ -13,6 +13,11 @@
  */
 
 import { type ChildProcess, spawn as nodeSpawn } from 'child_process';
+import { writeFileSync } from 'fs';
+import { tmpdir } from 'os';
+import { join as joinPath } from 'path';
+
+import openboxRcXml from './etc/openbox-rc.xml?raw';
 
 import { env } from '$lib/server/env';
 import { logger } from '$lib/utils/logger';
@@ -154,10 +159,22 @@ export function spawnWebsockify(): ChildProcess {
 //
 // --sm-disable skips the X session manager (headless Xvnc has none).
 // $DISPLAY env replaces the missing --display flag.
+// rc.xml ships with the build via ?raw import; we write it to /tmp at first
+// startup so openbox can mmap it. Lazy + idempotent — survives multiple starts.
+let writtenRcXmlPath: string | null = null;
+function ensureRcXmlOnDisk(): string {
+	if (writtenRcXmlPath) return writtenRcXmlPath;
+	const path = joinPath(tmpdir(), 'argos-openbox-rc.xml');
+	writeFileSync(path, openboxRcXml, 'utf8');
+	writtenRcXmlPath = path;
+	return path;
+}
+
 export function spawnWindowManager(): ChildProcess {
+	const rcXml = ensureRcXmlOnDisk();
 	const proc = spawnImpl(
 		'/usr/bin/openbox',
-		['--sm-disable', '--config-file', '/etc/xdg/openbox/rc.xml'],
+		['--sm-disable', '--config-file', rcXml],
 		{
 			stdio: 'pipe',
 			env: { ...process.env, DISPLAY: GNU_RADIO_VNC_DISPLAY }
