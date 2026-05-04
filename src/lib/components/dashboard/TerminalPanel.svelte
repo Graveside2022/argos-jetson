@@ -4,18 +4,20 @@
 	import { onMount } from 'svelte';
 
 	import { browser } from '$app/environment';
+	import EditorTabBar, { type EditorTab } from '$lib/components/chassis/EditorTabBar.svelte';
 	import {
 		activeSession,
 		closeSession,
 		createSession,
 		renameSession,
+		setActiveSession,
 		terminalPanelState,
 		terminalSessions
 	} from '$lib/stores/dashboard/terminal-store';
 	import type { ShellInfo } from '$lib/types/terminal';
 	import { fetchJSON } from '$lib/utils/fetch-json';
 
-	import TerminalTabBar from './TerminalTabBar.svelte';
+	import TerminalShellDropdown from './TerminalShellDropdown.svelte';
 	import TerminalTabContent from './TerminalTabContent.svelte';
 	import TerminalToolbar from './TerminalToolbar.svelte';
 
@@ -67,10 +69,13 @@
 		showShellDropdown = false;
 	}
 
-	function handleCloseSession(e: MouseEvent, sessionId: string) {
-		e.stopPropagation();
+	function handleCloseSession(sessionId: string) {
 		closeSession(sessionId);
 	}
+
+	const editorTabs = $derived<EditorTab[]>(
+		$terminalSessions.map((s) => ({ id: s.id, title: s.title }))
+	);
 
 	function handleTitleChange(sessionId: string, newTitle: string) {
 		renameSession(sessionId, newTitle);
@@ -103,13 +108,23 @@
 <div class="terminal-panel" class:maximized={$terminalPanelState.isMaximized}>
 	<!-- VS Code-style toolbar -->
 	<div class="terminal-toolbar">
-		<TerminalTabBar
-			{availableShells}
-			{showShellDropdown}
-			onCreateSession={handleCreateSession}
-			onCloseSession={handleCloseSession}
-			onToggleShellDropdown={() => (showShellDropdown = !showShellDropdown)}
-		/>
+		<EditorTabBar
+			tabs={editorTabs}
+			activeId={$terminalPanelState.activeTabId ?? ''}
+			onActivate={setActiveSession}
+			onClose={handleCloseSession}
+			ariaLabel="Terminal sessions"
+			class="terminal-tab-bar"
+		>
+			{#snippet trailing()}
+				<TerminalShellDropdown
+					{availableShells}
+					{showShellDropdown}
+					onCreateSession={handleCreateSession}
+					onToggleShellDropdown={() => (showShellDropdown = !showShellDropdown)}
+				/>
+			{/snippet}
+		</EditorTabBar>
 
 		<TerminalToolbar
 			{showMoreMenu}

@@ -144,6 +144,28 @@ Per `migration-roadmap.md`:
 
 ---
 
+## Phase 8.6 — `EditorTabBar` chassis ✅ Done 2026-05-04
+
+**Branch:** `session-2` → `dev`
+
+**Landed:**
+
+- `src/lib/components/chassis/EditorTabBar.svelte` — second bespoke chassis primitive (after `PanelStatus` in Phase 8.4). Implements WAI-ARIA APG **Toolbar** pattern (sibling tab/close `<button>` pairs with horizontal roving-tabindex). No Carbon source — Carbon Tabs forbids per-tab close affordance because `role="tab"` cannot host nested interactives.
+- `src/lib/components/chassis/editor-tab-bar-roving.ts` — pure roving helpers (`buildItems`, `computeNextCursor`, `clampCursor`, `tabItemIdx`, `closeItemIdx`).
+- `src/lib/components/chassis/editor-tab-bar-roving.test.ts` — 20 vitest assertions covering ordering, key dispatch, clamp invariants, and the composite ARIA contract.
+- `specs/026-lunaris-design-system/components/editor-tab-bar/{usage,style,code,accessibility}.md` — full spec docs citing APG Toolbar + Tabs URLs.
+- `src/lib/components/dashboard/TerminalPanel.svelte` — migrated to the new chassis (`activeId` / `onActivate` / `onClose` / `trailing` snippet).
+- `src/lib/components/dashboard/TerminalShellDropdown.svelte` — extracted shell-dropdown sibling so TerminalPanel stays under the 300-LOC architecture cap.
+- `tests/e2e/accessibility.spec.ts` — new test asserts (a) zero nested interactives inside `role="tab"` (regression guard), (b) exactly one `tabindex="0"` inside the toolbar (roving invariant), (c) zero axe violations at WCAG 2.1 AA scoped to the toolbar.
+
+**Retired:**
+
+- `src/lib/components/dashboard/TerminalTabBar.svelte` — 273 LOC removed. Carried the original W3C ARIA APG violation (close `<button>` nested inside `role="tab"`); replaced by the chassis above.
+
+**Closes:** Phase 8.6 row of the deferred-cleanup umbrella (last high-risk row in the Phase 8 plan).
+
+---
+
 ## Reference
 
 Full plan: `/home/jetson2/.claude/plans/create-the-plan-clearly-humble-badger.md` (approved 2026-04-28)
