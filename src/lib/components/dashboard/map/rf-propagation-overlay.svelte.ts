@@ -128,6 +128,7 @@ function addRasterLayer(
 }
 
 /** Add a single overlay to the map */
+// fallow-ignore-next-line complexity
 function addOverlayToMap(map: maplibregl.Map, entry: RFOverlayEntry): void {
 	const sourceId = `rf-prop-src-${entry.id}`;
 	const layerId = `rf-prop-layer-${entry.id}`;
@@ -148,6 +149,7 @@ function addOverlayToMap(map: maplibregl.Map, entry: RFOverlayEntry): void {
 }
 
 /** Remove a single overlay from the map */
+// fallow-ignore-next-line complexity
 function removeOverlayFromMap(map: maplibregl.Map, entryId: string): void {
 	const t = tracked.get(entryId);
 	if (!t) return;

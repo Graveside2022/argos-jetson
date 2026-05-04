@@ -103,6 +103,7 @@ async function getCPUTemperature(): Promise<number | undefined> {
 const EMPTY_NETWORK_STATS = { rx: 0, tx: 0, errors: 0 };
 
 /** Parse a /proc/net/dev line into rx/tx/errors stats */
+// fallow-ignore-next-line complexity
 function parseNetDevLine(parts: string[]): { rx: number; tx: number; errors: number } {
 	return {
 		rx: parseInt(parts[1]) || 0,

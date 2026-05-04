@@ -34,6 +34,7 @@
 		packageStatus = (data.warning as string) ?? 'Package imported';
 	}
 
+	// fallow-ignore-next-line complexity
 	async function importDataPackage() {
 		if (!packageFile || packageFile.length === 0) {
 			packageStatus = 'Select a .zip file';

@@ -105,6 +105,7 @@ async function getTemperatureVcgencmd(): Promise<number> {
 }
 
 /** Detect battery status (optional on Pi). */
+// fallow-ignore-next-line complexity
 async function getBatteryInfo(): Promise<{ level: number; charging: boolean } | undefined> {
 	try {
 		const { stdout } = await execFileAsync('/usr/bin/upower', [

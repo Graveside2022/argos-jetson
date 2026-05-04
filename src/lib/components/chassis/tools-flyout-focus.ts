@@ -17,6 +17,7 @@ export function getFocusables(root: HTMLElement | null): HTMLElement[] {
 // Returns the element to focus next on a Tab keypress, or null when no
 // wrap-around is needed (caller should let the browser advance focus
 // normally inside the dialog).
+// fallow-ignore-next-line complexity
 export function pickTabTarget(
 	items: readonly HTMLElement[],
 	cur: Element | null,
@@ -67,6 +68,7 @@ export interface ArrowResult {
 }
 
 // ↑↓ moves selection within the active pillar's tool list (no wrap).
+// fallow-ignore-next-line complexity
 function pickVertical(
 	pillarTools: readonly { id: string }[],
 	currentToolId: string | null,

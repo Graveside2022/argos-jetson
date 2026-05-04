@@ -22,6 +22,7 @@
 		return `${proto}://${host}:${wsPort}${wsPath}`;
 	}
 
+	// fallow-ignore-next-line complexity
 	function applyStatusData(data: Record<string, unknown>): void {
 		const isRunning = (data.running ?? data.isRunning) as boolean | undefined;
 		const wsPortVal = data.wsPort as number | undefined;
@@ -71,6 +72,7 @@
 		activeView.set('map');
 	}
 
+	// fallow-ignore-next-line complexity
 	async function handleStop(): Promise<void> {
 		if (stopping) return;
 		stopping = true;

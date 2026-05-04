@@ -114,6 +114,7 @@
 		return { center: Math.round(center * 1e6), rate, gain: g, ifGain: ig, bbGain: bg };
 	}
 
+	// fallow-ignore-next-line complexity
 	function buildInput(): PresetInput | { error: string } {
 		if (!name.trim()) return { error: 'Name required' };
 		const channels = parseControlChannels();

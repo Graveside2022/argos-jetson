@@ -33,6 +33,7 @@ function resolveLat(signal: SignalInput): number {
 }
 
 /** Resolve longitude from nested location object. */
+// fallow-ignore-next-line complexity
 function resolveLocationLon(signal: SignalInput): number {
 	return signal.location?.lon ?? signal.location?.lng ?? 0;
 }

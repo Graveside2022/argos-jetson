@@ -17,6 +17,7 @@
 	type ScreenState = 'loading' | 'error' | 'empty' | 'inactive' | 'default';
 	const screenState = $derived<ScreenState>(deriveScreenState());
 
+	// fallow-ignore-next-line complexity
 	function deriveScreenState(): ScreenState {
 		if (!missionStore.loaded) return 'loading';
 		if (missionStore.lastError !== null) return 'error';

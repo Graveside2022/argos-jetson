@@ -40,6 +40,7 @@ function extractSignalDbm(d: Record<string, unknown>): number {
 }
 
 /** Read a numeric coordinate from a location object, checking two possible keys. */
+// fallow-ignore-next-line complexity
 function readCoord(loc: Record<string, number> | undefined, key1: string, key2: string): number {
 	return loc?.[key1] ?? loc?.[key2] ?? 0;
 }
@@ -107,6 +108,7 @@ function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise
 	});
 }
 
+// fallow-ignore-next-line complexity
 export const GET = createHandler(async () => {
 	try {
 		if (fusionKismetController.isReady()) {

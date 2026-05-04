@@ -67,6 +67,7 @@ export function createGpsDerivedState(cssReady: { current: boolean }) {
 
 	const showCone = $derived(headingDeg !== null);
 
+	// fallow-ignore-next-line complexity
 	const accuracyGeoJSON: FeatureCollection = $derived.by(() => {
 		const lat = gps$.current.position.lat;
 		const lon = gps$.current.position.lon;

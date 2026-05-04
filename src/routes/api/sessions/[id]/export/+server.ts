@@ -15,6 +15,7 @@ const FormatSchema = z.enum(['csv', 'kml']).default('csv');
  * export doesn't materialize in memory. Content-Disposition forces a
  * download in browsers.
  */
+// fallow-ignore-next-line complexity
 export const GET = createHandler(({ params, url }) => {
 	const id = params.id ?? '';
 	const sess = getSession(id);

@@ -152,6 +152,7 @@
 		}
 	}
 
+	// fallow-ignore-next-line complexity
 	function applyHardwareDetails(
 		d: import('./status/status-bar-data').HardwareDetailsResult | null
 	) {

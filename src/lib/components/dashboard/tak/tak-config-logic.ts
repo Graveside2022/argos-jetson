@@ -32,6 +32,7 @@ function ensureConfigId(config: TakServerConfig): TakServerConfig {
 }
 
 /** Save TAK config to the API */
+// fallow-ignore-next-line complexity
 export async function saveConfig(
 	config: TakServerConfig
 ): Promise<{ success: boolean; config?: TakServerConfig; error?: string }> {

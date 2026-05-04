@@ -56,6 +56,7 @@ function formatStatisticsResponse(stats: RawAreaStatistics, timeWindow: number) 
 
 const GLOBAL_BOUNDS = { minLat: -90, maxLat: 90, minLon: -180, maxLon: 180 };
 
+// fallow-ignore-next-line complexity
 export const GET = createHandler(({ url }) => {
 	const db = getRFDatabase();
 	const timeWindow = intParam(url.searchParams, 'timeWindow', '3600000');

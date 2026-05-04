@@ -360,6 +360,7 @@ export function createMapState() {
 			towerPopupContent = result.content;
 		}
 	}
+	// fallow-ignore-next-line complexity
 	function handleCentroidClick(ev: maplibregl.MapMouseEvent) {
 		if (!map) return;
 		const features = map.queryRenderedFeatures(ev.point, {

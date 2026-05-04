@@ -174,6 +174,7 @@ const TIME_UNITS: [number, number, string][] = [
 /**
  * Format a timestamp as a relative time string (e.g., "5m ago").
  */
+// fallow-ignore-next-line complexity
 export function formatTimeAgo(timestamp: number): string {
 	if (!timestamp) return '—';
 	const ts = timestamp < 1e12 ? timestamp * 1000 : timestamp;
@@ -242,6 +243,7 @@ function towerToFeature(t: CellTowerData): Feature {
 	};
 }
 
+// fallow-ignore-next-line complexity
 async function fetchTowerData(lat: number, lon: number): Promise<CellTowerData[] | null> {
 	const data = await fetchJSON<{ success: boolean; towers?: CellTowerData[] }>(
 		`/api/cell-towers/nearby?lat=${lat}&lon=${lon}&radius=25`

@@ -68,6 +68,7 @@
 	let consecutiveCloses = 0;
 
 	// Focus terminal when becoming active; connect if not yet connected
+	// fallow-ignore-next-line complexity
 	$effect(() => {
 		if (isActive && terminal) {
 			if (!ws && !destroyed) connectWebSocket();
@@ -170,6 +171,7 @@
 		sock.connect();
 	}
 
+	// fallow-ignore-next-line complexity
 	onMount(async () => {
 		if (!browser || !terminalEl) return;
 

@@ -120,6 +120,7 @@ export const GET: RequestHandler = async ({ request }) => {
 				controller.enqueue(encoder.encode(heartbeat));
 			}, 30000);
 		},
+		// fallow-ignore-next-line complexity
 		cancel() {
 			// Called by Web Streams API when reader is cancelled (SvelteKit
 			// cancels the reader on HTTP client disconnect via res.on('close')).

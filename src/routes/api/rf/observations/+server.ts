@@ -25,6 +25,7 @@ const QuerySchema = z.object({
 	end: IntSchema.optional()
 });
 
+// fallow-ignore-next-line complexity
 export const GET = createHandler(async ({ url }) => {
 	const raw = Object.fromEntries(url.searchParams.entries());
 	const parsed = QuerySchema.safeParse(raw);

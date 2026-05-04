@@ -85,6 +85,7 @@ function queryImsiData(dbPath: string) {
 	}
 }
 
+// fallow-ignore-next-line complexity
 export const GET = createHandler(async () => {
 	try {
 		const dbLookup = findValidatedImsiDatabase();

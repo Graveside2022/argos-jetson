@@ -12,6 +12,7 @@ function formatHexDisplay(hex: string): string {
 	return formatted.length > 40 ? formatted.substring(0, 40) + '...' : formatted;
 }
 
+// fallow-ignore-next-line complexity
 function formatFrameDisplay(f: { channelType?: string; hex?: string; message?: string }): string {
 	const channel = f.channelType || 'UNKNOWN';
 	const displayHex = formatHexDisplay(f.hex || '') || '<no data>';

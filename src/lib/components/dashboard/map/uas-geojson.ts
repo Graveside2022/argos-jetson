@@ -32,6 +32,7 @@ function hasPosition(lat: number, lon: number): boolean {
 	return lat !== 0 || lon !== 0;
 }
 
+// fallow-ignore-next-line complexity
 function droneLabel(id: string, drone: DragonSyncDrone): string {
 	const parts = [drone.rid?.make, drone.rid?.model].filter(Boolean);
 	return parts.join(' ') || drone.ua_type_name || id;

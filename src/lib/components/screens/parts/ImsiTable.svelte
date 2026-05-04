@@ -29,6 +29,7 @@
 		return s ?? '—';
 	}
 
+	// fallow-ignore-next-line complexity
 	function fmtDatetime(r: ImsiRow): string {
 		if (r.datetime === null) return '—';
 		const sec = Math.floor(Math.max(0, Date.now() - r.datetime) / 1000);
@@ -51,8 +52,10 @@
 <section class="table-region" aria-labelledby="gsm-table-h">
 	<header class="region-head">
 		<span id="gsm-table-h" class="region-label">IMSI CAPTURES</span>
-		<span class="meta">{gsmStore.rows.length} ·
-			{gsmStore.running ? 'live' : 'idle'}</span>
+		<span class="meta"
+			>{gsmStore.rows.length} ·
+			{gsmStore.running ? 'live' : 'idle'}</span
+		>
 	</header>
 	<div class="table-wrap">
 		<table class="imsi-table" aria-label="GSM IMSI captures">

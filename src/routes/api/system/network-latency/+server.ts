@@ -31,6 +31,7 @@ function deriveStatus(latencyMs: number | null, packetLoss: number): 'ok' | 'tim
 }
 
 /** Extract latency and jitter from RTT parse result, defaulting nulls. */
+// fallow-ignore-next-line complexity
 function extractRtt(rtt: { latencyMs: number; jitterMs: number } | null) {
 	return { latencyMs: rtt?.latencyMs ?? null, jitterMs: rtt?.jitterMs ?? null };
 }

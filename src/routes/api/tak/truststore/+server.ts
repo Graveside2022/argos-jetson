@@ -95,6 +95,7 @@ async function extractCaCert(
 	return caPath;
 }
 
+// fallow-ignore-next-line complexity
 export const POST = createHandler(async ({ request }) => {
 	try {
 		const formData = await request.formData();

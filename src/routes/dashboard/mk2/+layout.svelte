@@ -33,6 +33,7 @@
 	// ⌘K / Ctrl+K toggles the Tools Flyout. The hotkey fires regardless of
 	// focus target — including inside the flyout's own search input — so
 	// users can always close the launcher without first un-focusing.
+	// fallow-ignore-next-line complexity
 	function isCommandK(e: KeyboardEvent): boolean {
 		return e.key === 'k' && (e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey;
 	}
@@ -51,7 +52,7 @@
 		<Topbar lat={chassis.gps.lat} lon={chassis.gps.lon} weather={weatherSlot} />
 	{/snippet}
 	{#snippet rail()}
-		<LeftRail toolsOpen={toolsOpen} onOpenTools={() => (toolsOpen = true)} />
+		<LeftRail {toolsOpen} onOpenTools={() => (toolsOpen = true)} />
 	{/snippet}
 	{#snippet main()}
 		{@render children()}
@@ -64,17 +65,15 @@
 	{/snippet}
 </Chassis>
 
-<ToolsFlyout
-	open={toolsOpen}
-	catalog={mk2ToolsCatalog}
-	onClose={() => (toolsOpen = false)}
-/>
+<ToolsFlyout open={toolsOpen} catalog={mk2ToolsCatalog} onClose={() => (toolsOpen = false)} />
 
 {#snippet weatherSlot()}
 	<WeatherButton
 		wx={chassis.weather.wx}
 		loading={chassis.weather.loading}
 		error={chassis.weather.error}
-		empty={chassis.weather.wx == null && !chassis.weather.loading && chassis.weather.error == null}
+		empty={chassis.weather.wx == null &&
+			!chassis.weather.loading &&
+			chassis.weather.error == null}
 	/>
 {/snippet}

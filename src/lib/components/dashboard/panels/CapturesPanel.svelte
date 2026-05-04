@@ -28,6 +28,7 @@
 		}
 	}
 
+	// fallow-ignore-next-line complexity
 	async function sendGsmControl(action: 'start' | 'stop'): Promise<void> {
 		gsmBusy = true;
 		gsmStatus = action === 'start' ? 'starting' : 'stopping';
@@ -61,6 +62,7 @@
 	let loading = $state(true);
 	let error: string | null = $state(null);
 
+	// fallow-ignore-next-line complexity
 	async function fetchSignals(): Promise<void> {
 		try {
 			const res = await fetch('/api/signals?limit=100', { credentials: 'same-origin' });

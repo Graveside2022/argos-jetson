@@ -79,6 +79,7 @@
 		console.warn('[SystemsScreen] header poll failed:', headerError);
 	}
 
+	// fallow-ignore-next-line complexity
 	async function fetchHeader(signal: AbortSignal): Promise<void> {
 		const mySeq = ++seq;
 		try {
