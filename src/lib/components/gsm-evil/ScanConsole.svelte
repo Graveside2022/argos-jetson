@@ -18,7 +18,7 @@
 	</div>
 	<div class="console-body scan-progress-body">
 		{#if scanProgress.length > 0}
-			{#each scanProgress as line}
+			{#each scanProgress as line, i (i)}
 				<div
 					class="console-line {line.startsWith('[ERROR]')
 						? 'error'

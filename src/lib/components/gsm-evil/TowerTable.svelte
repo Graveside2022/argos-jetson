@@ -140,7 +140,7 @@
 				<Table.Header>
 					<Table.Row>
 						<Table.Head class="w-8"></Table.Head>
-						{#each columns as item}
+						{#each columns as item (item.col)}
 							<Table.Head class="text-xs uppercase tracking-wide">
 								<Button
 									variant="ghost"
@@ -160,7 +160,7 @@
 					</Table.Row>
 				</Table.Header>
 				<Table.Body>
-					{#each sortedTowers as tower}
+					{#each sortedTowers as tower (`${tower.mccMnc}-${tower.lac}-${tower.ci}`)}
 						{@const towerId = `${tower.mccMnc}-${tower.lac}-${tower.ci}`}
 						{@const isExpanded = expandedTowers.has(towerId)}
 						<Table.Row
@@ -236,7 +236,7 @@
 											<span class="flex-1 text-blue-400">TMSI</span>
 											<span class="flex-1 text-right">Detected</span>
 										</div>
-										{#each tower.devices.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()) as device}
+										{#each tower.devices.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()) as device (device.imsi)}
 											<div
 												class="flex items-center gap-4 py-2 font-mono text-xs border-b border-border/30 last:border-b-0"
 											>

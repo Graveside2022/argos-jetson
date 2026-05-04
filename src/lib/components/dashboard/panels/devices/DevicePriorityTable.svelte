@@ -143,7 +143,7 @@
 						</td>
 						<td class="col-reason">
 							<div class="reason-tags">
-								{#each reasons as reason}
+								{#each reasons as reason (reason)}
 									<span
 										class="reason-tag"
 										class:critical={reason === 'OPEN' || reason === 'WEP'}
@@ -223,7 +223,7 @@
 		<div class="alerts-section">
 			<div class="alerts-header">KISMET ALERTS ({reconAlerts.length})</div>
 			<div class="alerts-list">
-				{#each reconAlerts.slice(0, 10) as alert}
+				{#each reconAlerts.slice(0, 10) as alert, i (i)}
 					<div class="alert-row" class:alert-high={alert.severity >= 3}>
 						<span class="alert-type">{alert.type}</span>
 						<span class="alert-text">{alert.text}</span>

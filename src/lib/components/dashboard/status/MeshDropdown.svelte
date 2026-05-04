@@ -32,7 +32,7 @@
 		<div class="empty-text">No TAK server configured</div>
 	{/if}
 
-	{#each takServers as server}
+	{#each takServers as server (server.name)}
 		<div class="server-block">
 			<div class="server-row">
 				<span
