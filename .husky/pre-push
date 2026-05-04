@@ -3,6 +3,7 @@
 #   1. Block direct pushes to protected branches (main, master).
 #   2. Full-repo typecheck (svelte-check via mem-guard wrapper).
 #   3. Full-repo ESLint scan (cached).
+#   4. Fallow audit (baseline-aware — full diff vs base branch).
 #
 # All checks run before anything leaves the local machine. CI is the
 # authoritative gate — `lint.yml` runs ESLint on every push (any branch),
@@ -24,6 +25,7 @@
 #
 # Bypass protected-branch guard: ALLOW_MAIN_PUSH=1 git push ...
 # Bypass full-repo lint:         SKIP_FULL_LINT=1 git push ...
+# Bypass fallow audit:           SKIP_FALLOW=1 git push ...
 # Skip everything:               git push --no-verify ...
 
 set -e
@@ -66,6 +68,28 @@ else
 	# two concurrent pushes can't race on RAM/CPU. Per CR feedback on PR #74.
 	if ! npm run lint; then
 		echo "[pre-push] ❌ eslint errors present — fix or bypass with SKIP_FULL_LINT=1 git push ..." >&2
+		exit 1
+	fi
+fi
+
+# 4) Fallow audit (baseline-aware — full diff vs base branch)
+# Runs the same fallow detectors as pre-commit but at the branch level (full
+# diff vs auto-detected base, typically `main`). Baseline files in repo root
+# (.fallow-{deadcode,health,dupes}-baseline.json) grandfather pre-existing
+# findings so only NEW violations introduced by the branch fail the gate.
+# Gated on presence of .fallowrc.json so repos without fallow skip cleanly.
+if [ "${SKIP_FALLOW:-0}" = "1" ]; then
+	echo "[pre-push] SKIP_FALLOW=1 — skipping fallow audit"
+elif [ -f .fallowrc.json ]; then
+	if ! command -v npx >/dev/null 2>&1; then
+		echo "[pre-push] ❌ .fallowrc.json present but \`npx\` not on PATH" >&2
+		exit 1
+	fi
+	echo "[pre-push] fallow audit (baseline-aware: NEW complexity/dupes/dead-code only)..."
+	if ! npx --no-install fallow audit --quiet --format compact; then
+		echo "[pre-push] ❌ fallow audit found NEW issues vs baseline on this branch" >&2
+		echo "[pre-push]    Inspect: npx --no-install fallow audit --format human --explain" >&2
+		echo "[pre-push]    Bypass:  SKIP_FALLOW=1 git push ..." >&2
 		exit 1
 	fi
 fi
