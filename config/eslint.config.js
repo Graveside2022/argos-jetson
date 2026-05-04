@@ -164,14 +164,36 @@ export default [
 			}
 		},
 		rules: {
-			// Phase 8.8 triage — pre-existing systemic violators downgraded to
-			// 'warn' with violator counts captured 2026-05-04. Each entry is
-			// the punch list for a future cleanup PR; re-escalate to 'error'
-			// once the count reaches zero.
-			// svelte/require-each-key: re-escalated to ERROR (default) after the
-			// 18-site cleanup landed in the follow-up PR — all `{#each}` blocks
-			// now carry stable keys.
-			'svelte/no-at-html-tags': 'warn' // 9 sites — terminal output, status icons, tool category titles render trusted server-side strings; audit each before re-escalating.
+			// svelte/require-each-key: ERROR (default from recommended preset)
+			// after the 18-site cleanup landed in the follow-up PR — all
+			// `{#each}` blocks now carry stable keys.
+			//
+			// svelte/no-at-html-tags: ERROR (default from recommended preset).
+			// 7 audited files render hard-coded SVG icon strings only; they're
+			// whitelisted via the files-pattern override below. Each
+			// whitelisted file carries a top-of-file
+			// `@audit-svelte-no-at-html-tags` HTML comment with per-file
+			// reasoning. Re-audit + remove from the list before adding any
+			// user-derived `{@html}` content.
+		}
+	},
+	{
+		// Spec-026 Phase 8.8 cleanup PR — XSS-audited `{@html}` whitelist.
+		// Each file in this list renders ONLY hard-coded SVG icon strings
+		// from $lib/data/tool-icons.ts / weather-helpers.ts / buildConeSVG()
+		// with no user input vector. See the `@audit-svelte-no-at-html-tags`
+		// comment at the top of each listed file for per-file reasoning.
+		files: [
+			'src/lib/components/dashboard/DashboardMap.svelte',
+			'src/lib/components/dashboard/TopStatusBar.svelte',
+			'src/lib/components/dashboard/panels/OnnetToolsPanel.svelte',
+			'src/lib/components/dashboard/panels/ToolsPanelHeader.svelte',
+			'src/lib/components/dashboard/shared/ToolCard.svelte',
+			'src/lib/components/dashboard/shared/ToolCategoryCard.svelte',
+			'src/lib/components/dashboard/status/CoordsDisplay.svelte'
+		],
+		rules: {
+			'svelte/no-at-html-tags': 'off'
 		}
 	},
 	{
