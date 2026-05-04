@@ -1,5 +1,5 @@
 [Unit]
-Description=Argos Development Server
+Description=Argos Dev Server (Mk II / Carbon migration WIP) on :5174
 After=network.target
 
 [Service]
@@ -7,15 +7,20 @@ Type=simple
 User=__SETUP_USER__
 Group=__SETUP_USER__
 WorkingDirectory=__PROJECT_DIR__
-EnvironmentFile=__PROJECT_DIR__/.env
+# NOTE: EnvironmentFile= intentionally omitted. systemd's parser does NOT strip
+# inline '# comment' from values, breaking Zod URL/number validation
+# (e.g. KISMET_API_URL=http://localhost:2501  # comment → URL parse error).
+# The app's src/lib/server/env.ts calls dotenv.config() at module-import time,
+# which DOES strip comments correctly. Mirrors argos-final.service.d/10-env.conf.
 Environment="NODE_ENV=development"
 Environment="NODE_OPTIONS=--max-old-space-size=2048"
+Environment="VITE_PORT=5174"
 ExecStart=__PROJECT_DIR__/scripts/dev/vite-oom-protect.sh
 Restart=on-failure
 RestartSec=10
 StandardOutput=journal
 StandardError=journal
-SyslogIdentifier=argos-logs
+SyslogIdentifier=argos-dev
 
 [Install]
 WantedBy=multi-user.target

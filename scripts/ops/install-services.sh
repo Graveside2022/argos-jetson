@@ -9,6 +9,12 @@ PROJECT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 DEPLOY_DIR="$PROJECT_DIR/deployment"
 SYSTEMD_DIR="/etc/systemd/system"
 
+# v1 fallback worktree (override with V1_PROJECT_DIR=...).
+# When this directory exists, argos-final is repointed at it via drop-in
+# 30-v1-source.conf so :5173 serves the stable pre-Mk-II UI while the dev
+# branch's WIP runs on :5174 via argos-dev.service.
+V1_PROJECT_DIR="${V1_PROJECT_DIR:-${PROJECT_DIR}-v1}"
+
 if [[ $EUID -ne 0 ]]; then
   echo "Error: Must run as root (sudo)" >&2
   exit 1
@@ -23,15 +29,37 @@ DRONEID_DIR="$(cd "$PROJECT_DIR/.." && pwd)/RemoteIDReceiver"
 
 # Node binary path — prefers the invoking user's node (nvm-aware) over /usr/bin/node.
 # Jetson runs node via nvm; RPi5 via apt. Resolving here keeps the unit portable.
-NODE_BIN="$(sudo -u "$SETUP_USER" bash -lc 'command -v node' 2>/dev/null || true)"
-if [[ -z "$NODE_BIN" ]]; then
-  NODE_BIN="/usr/bin/node"
+#
+# Detection order:
+#   1. Explicit NODE_BIN env override (escape hatch)
+#   2. NVM dir scan — picks highest installed semver from ~/.nvm/versions/node/*/bin/node.
+#      Preferred because native addons (better-sqlite3, node-pty) are compiled against
+#      the user's interactive node version (typically NVM's), not /usr/bin/node — using
+#      a different version triggers ERR_DLOPEN_FAILED with NODE_MODULE_VERSION mismatch.
+#   3. `sudo -u <user> bash -lc 'command -v node'` — works on systems where the user's
+#      shell profile sources nvm.sh, but unreliable on systems where NVM lives only in
+#      .bashrc and the non-interactive login shell skips it.
+#   4. /usr/bin/node — last resort (system-installed node).
+if [[ -z "${NODE_BIN:-}" ]]; then
+  # find + sort -V picks the highest semver. -mindepth/-maxdepth 3 matches
+  # exactly ~/.nvm/versions/node/<vN.N.N>/bin/node (don't recurse deeper, don't
+  # match the parent versions/node/ entries). Avoids `ls` parsing per SC2012.
+  NVM_NODE="$(find "$SETUP_HOME/.nvm/versions/node" -mindepth 3 -maxdepth 3 -type f -name node 2>/dev/null | sort -V | tail -1)"
+  if [[ -n "$NVM_NODE" && -x "$NVM_NODE" ]]; then
+    NODE_BIN="$NVM_NODE"
+  else
+    NODE_BIN="$(sudo -u "$SETUP_USER" bash -lc 'command -v node' 2>/dev/null || true)"
+    if [[ -z "$NODE_BIN" ]]; then
+      NODE_BIN="/usr/bin/node"
+    fi
+  fi
 fi
 
 echo "Installing Argos systemd services..."
 echo "  Project:   $PROJECT_DIR"
 echo "  User:      $SETUP_USER"
 echo "  DroneID:   $DRONEID_DIR"
+echo "  V1 dir:    $V1_PROJECT_DIR (drop-in installed only if dir exists)"
 echo ""
 
 # Install operational monitor scripts to /usr/local/bin/
@@ -85,8 +113,39 @@ for name in "${SYSTEM_SERVICES[@]}"; do
       -e "s|__SETUP_USER__|$SETUP_USER|g" \
       -e "s|__DRONEID_DIR__|$DRONEID_DIR|g" \
       -e "s|__NODE_BIN__|$NODE_BIN|g" \
+      -e "s|__V1_PROJECT_DIR__|$V1_PROJECT_DIR|g" \
       "$svc" > "$SYSTEMD_DIR/$name"
   chmod 644 "$SYSTEMD_DIR/$name"
+done
+
+# Drop-ins for system services. Each lives at deployment/<unit>.service.d/<n>-name.conf
+# and is rendered into /etc/systemd/system/<unit>.service.d/<n>-name.conf.
+# Currently: argos-final.service.d/30-v1-source.conf — repoints argos-final at the
+# v1 fallback worktree (only installed when V1_PROJECT_DIR exists on disk; install
+# the worktree via scripts/ops/install-v1-fallback.sh first).
+declare -A DROPIN_GUARDS=(
+  ["argos-final.service.d/30-v1-source.conf"]="$V1_PROJECT_DIR"
+)
+for relpath in "${!DROPIN_GUARDS[@]}"; do
+  guard="${DROPIN_GUARDS[$relpath]}"
+  src="$DEPLOY_DIR/$relpath"
+  if [[ ! -f "$src" ]]; then
+    echo "  [SKIP] drop-in $relpath (template not found)"
+    continue
+  fi
+  if [[ -n "$guard" && ! -d "$guard" ]]; then
+    echo "  [SKIP] drop-in $relpath (guard dir $guard does not exist — run install-v1-fallback.sh first)"
+    continue
+  fi
+  dest="$SYSTEMD_DIR/$relpath"
+  echo "  Installing drop-in $relpath"
+  mkdir -p "$(dirname "$dest")"
+  sed -e "s|__PROJECT_DIR__|$PROJECT_DIR|g" \
+      -e "s|__SETUP_USER__|$SETUP_USER|g" \
+      -e "s|__NODE_BIN__|$NODE_BIN|g" \
+      -e "s|__V1_PROJECT_DIR__|$V1_PROJECT_DIR|g" \
+      "$src" > "$dest"
+  chmod 644 "$dest"
 done
 
 # User-level service (argos-dev-monitor) — installed to user systemd
@@ -100,10 +159,10 @@ if [[ -f "$DEPLOY_DIR/$USER_SERVICE" ]]; then
   chown "$SETUP_USER":"$SETUP_USER" "$USER_SYSTEMD_DIR/$USER_SERVICE"
 fi
 
-# argos-dev.service — dev server (optional, not enabled by default)
+# argos-dev.service — dev server on :5174 (vite-dev with HMR for Mk II / Carbon migration WIP)
 DEV_SERVICE="argos-dev.service"
 if [[ -f "$DEPLOY_DIR/$DEV_SERVICE" ]]; then
-  echo "  Installing $DEV_SERVICE (not enabled by default)"
+  echo "  Installing $DEV_SERVICE (auto-enabled — serves dev branch on :5174)"
   sed -e "s|__PROJECT_DIR__|$PROJECT_DIR|g" \
       -e "s|__SETUP_USER__|$SETUP_USER|g" \
       "$DEPLOY_DIR/$DEV_SERVICE" > "$SYSTEMD_DIR/$DEV_SERVICE"
@@ -118,6 +177,7 @@ echo "Enabling core services..."
 systemctl enable argos-startup.service 2>/dev/null || true
 systemctl enable argos-final.service 2>/dev/null || true
 systemctl enable argos-kismet.service 2>/dev/null || true
+systemctl enable argos-dev.service 2>/dev/null || true
 # Enable monitor services only if their binaries were installed
 for bin in argos-cpu-protector argos-wifi-resilience argos-process-manager; do
   if [[ -x "/usr/local/bin/${bin}.sh" ]]; then
