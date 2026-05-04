@@ -109,7 +109,7 @@ export function spawnXtigervnc(): ChildProcess {
 	state.xvncProcess = proc;
 	proc.on('error', (err) => {
 		state.spawnError = err;
-		logger.error({ err }, 'Xtigervnc spawn error');
+		logger.error('Xtigervnc spawn error', { error: err.message });
 	});
 	return proc;
 }
@@ -126,7 +126,7 @@ export function spawnGnuRadioCompanion(flowgraph?: string): ChildProcess {
 	state.currentFlowgraph = flowgraph ?? null;
 	proc.on('error', (err) => {
 		state.spawnError = err;
-		logger.error({ err }, 'gnuradio-companion spawn error');
+		logger.error('gnuradio-companion spawn error', { error: err.message });
 	});
 	return proc;
 }
@@ -139,7 +139,7 @@ export function spawnWebsockify(): ChildProcess {
 	state.websockifyProcess = proc;
 	proc.on('error', (err) => {
 		state.spawnError = err;
-		logger.error({ err }, 'websockify spawn error');
+		logger.error('websockify spawn error', { error: err.message });
 	});
 	return proc;
 }
