@@ -114,7 +114,7 @@ const envSchema = z.object({
 	BD_PID_FILE: z.string().default('/tmp/argos-bluedragon.pid'),
 
 	// System-provided env vars (optional; consumers supply their own fallbacks).
-	// HOSTNAME → websocket-server default origin; XDG_RUNTIME_DIR → VNC runtime
+	// HOSTNAME → WebSocket allowed-origin in hooks.server.ts; XDG_RUNTIME_DIR → VNC runtime
 	// path for sparrow-wifi. Declared so the validated `env` export stays the
 	// single source of truth for `process.env` reads in src/lib/server/.
 	HOSTNAME: z.string().optional(),
