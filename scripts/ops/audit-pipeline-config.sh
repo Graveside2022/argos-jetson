@@ -162,7 +162,11 @@ check_spec_freshness() {
 #   - actions/*  (first-party, audited)
 #   - github/*   (first-party)
 #   - reusable workflows referenced via ./.github/workflows/*.yml
-ALLOWLIST_REGEX='^(actions|github)/[a-zA-Z0-9._-]+@(v[0-9]+(\.[0-9]+)*|main|master)$'
+# First-party action allowlist. Nested paths permitted (e.g.
+# `github/codeql-action/upload-sarif`) because the org-level trust boundary
+# applies to ALL paths under `github/*` and `actions/*` — sub-paths within a
+# first-party repo carry the same audit guarantees as the repo root.
+ALLOWLIST_REGEX='^(actions|github)/[a-zA-Z0-9._/-]+@(v[0-9]+(\.[0-9]+)*|main|master)$'
 check_sha_pinned_actions() {
 	local issues=0
 	while IFS= read -r line; do
@@ -180,12 +184,84 @@ check_sha_pinned_actions() {
 	[[ "$issues" -eq 0 ]] && note "all action refs SHA-pinned or first-party tagged"
 }
 
+# ── Check 5 ──────────────────────────────────────────────────────────
+# Fallow config drift: .fallowrc.json present + parseable as JSON.
+# Catches the "fallow installed but config deleted" case where pre-commit
+# silently no-ops because the config-file gate (`elif [ -f .fallowrc.json ]`)
+# falls through.
+check_fallow_config() {
+	local cfg=".fallowrc.json"
+	if [[ ! -f "$cfg" ]]; then
+		# Fallow is optional infrastructure — only fail if package.json declares
+		# it. If neither is present, this isn't drift, it's a non-fallow repo.
+		if grep -q '"fallow":' package.json 2>/dev/null; then
+			warn "package.json declares fallow but $cfg missing — gate would silently no-op"
+		fi
+		return
+	fi
+	if ! jq -e . "$cfg" >/dev/null 2>&1; then
+		warn "$cfg present but not valid JSON"
+		return
+	fi
+	# Verify the config has at least one of: health, duplicates, rules, audit
+	# (catches the "init config never customized" case where defaults run wide open)
+	if jq -e '.health or .duplicates or .rules or .audit' "$cfg" >/dev/null 2>&1; then
+		note "$cfg present, parseable, and has at least one detector configured"
+	else
+		warn "$cfg present but contains no health/duplicates/rules/audit sections"
+	fi
+}
+
+# ── Check 6 ──────────────────────────────────────────────────────────
+# Fallow baseline file freshness. The baseline-aware mode is what prevents
+# day-1 floods (244 complexity violations, 129 dupe groups, 223 dead exports
+# as of 2026-05-04 install). If a baseline drifts > 90 days, real-world
+# violations may have shifted enough to warrant a re-baseline so the gate
+# isn't grandfathering stale debt.
+check_fallow_baselines() {
+	[[ -f .fallowrc.json ]] || return  # not a fallow repo
+	local baselines=(.fallow-deadcode-baseline.json .fallow-health-baseline.json .fallow-dupes-baseline.json)
+	local now_epoch=$(date +%s)
+	for bl in "${baselines[@]}"; do
+		if [[ ! -f "$bl" ]]; then
+			warn "$bl missing — fallow audit cannot baseline-grandfather (will fail-loud)"
+			continue
+		fi
+		# stat -c %Y for GNU; falls back to unrecognized format on BSD (CI is GNU)
+		local mtime=$(stat -c %Y "$bl" 2>/dev/null || echo 0)
+		local days_old=$(( (now_epoch - mtime) / 86400 ))
+		if [[ "$days_old" -le 90 ]]; then
+			note "$bl mtime $days_old days ago (≤90)"
+		else
+			warn "$bl is $days_old days old (>90 — re-baseline due via 'fallow {dead-code,health,dupes} --save-baseline')"
+		fi
+	done
+}
+
+# ── Check 7 ──────────────────────────────────────────────────────────
+# Fallow version pin: package.json must use exact version (no caret/tilde)
+# per platform-and-deps Rule. Floating fallow versions across CI runs would
+# defeat the version-floor enforcement in .claude/hooks/fallow-gate.sh.
+check_fallow_version_pin() {
+	local pin=$(jq -r '.devDependencies.fallow // .dependencies.fallow // empty' package.json 2>/dev/null)
+	[[ -z "$pin" ]] && return  # not a fallow repo
+	# Exact pin = digits.digits.digits (optional -prerelease) with no leading ^/~
+	if [[ "$pin" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.-]+)?$ ]]; then
+		note "package.json fallow pinned exact: $pin"
+	else
+		warn "package.json fallow not exact-pinned: $pin (use --save-exact)"
+	fi
+}
+
 # ── Run all checks ────────────────────────────────────────────────────
 check_lint_staged_config
 check_commitlint_config
 check_eslint_cache_flags
 check_spec_freshness
 check_sha_pinned_actions
+check_fallow_config
+check_fallow_baselines
+check_fallow_version_pin
 
 # ── Report ────────────────────────────────────────────────────────────
 echo "[audit] findings:"
