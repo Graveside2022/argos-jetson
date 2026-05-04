@@ -212,7 +212,12 @@ CLAUDE.local.md
 # ── Claude Code ──────────────────────────────────────────────
 # CLAUDE.md is tracked — it's the primary AI context file for the project.
 # .claude/ contains local settings (API keys, permissions) — never shared.
-.claude/
+# EXCEPTION: .claude/rules/ ships with the repo — it is auto-loaded by the
+# .claude/rules/ contract (Anthropic memory docs). The /* form below lets the
+# negation re-include the rules subdirectory; git cannot re-include children
+# of a fully excluded parent.
+.claude/*
+!.claude/rules/
 
 # ── SpecifyKit ───────────────────────────────────────────────
 # Dev specs/plans generated locally, not shipped with product.
