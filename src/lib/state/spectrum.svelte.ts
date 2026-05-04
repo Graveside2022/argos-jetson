@@ -20,18 +20,12 @@
  */
 
 import { browser } from '$app/environment';
-import type {
-	SourceState,
-	SpectrumConfig,
-	SpectrumDevice,
-	SpectrumFrame
-} from '$lib/types/spectrum';
+import type { SourceState, SpectrumConfig, SpectrumFrame } from '$lib/types/spectrum';
 import { DEFAULT_HACKRF_CONFIG } from '$lib/types/spectrum';
 
 import { lsState } from './ui.svelte';
 
 const PEAK_DECAY_PER_FRAME = 0.985; // ~30 s half-life at 10 Hz
-const isDevice = (v: unknown): v is SpectrumDevice => v === 'hackrf' || v === 'b205';
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null;
 const isNum = (v: unknown): v is number => typeof v === 'number';
 
@@ -67,11 +61,6 @@ function isConfig(v: unknown): v is SpectrumConfig {
 }
 
 // Persistent — survives reload.
-export const spectrumDeviceStore = lsState<SpectrumDevice>(
-	'argos.mk2.spectrum.device',
-	'hackrf',
-	isDevice
-);
 export const spectrumConfigStore = lsState<SpectrumConfig>(
 	'argos.mk2.spectrum.config',
 	DEFAULT_HACKRF_CONFIG,

@@ -18,7 +18,7 @@ export interface LsState<T> {
 	value: T;
 }
 
-export class PersistentStorageError extends Error {
+class PersistentStorageError extends Error {
 	readonly key: string;
 	readonly operation: 'read' | 'write';
 	readonly originalError: unknown;

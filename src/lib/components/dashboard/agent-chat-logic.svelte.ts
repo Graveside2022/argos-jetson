@@ -173,7 +173,7 @@ async function consumeStream(response: Response, messageIndex: number): Promise<
 }
 
 /** Send message with specific content (used by auto-query and manual input) */
-export async function sendMessageWithContent(content: string): Promise<void> {
+async function sendMessageWithContent(content: string): Promise<void> {
 	if (isStreaming) return;
 
 	messages.push({ role: 'user', content, timestamp: new Date().toISOString() });

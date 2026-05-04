@@ -24,12 +24,12 @@ import { kismetStore } from '$lib/stores/tactical-map/kismet-store';
 /**
  * MAC address of the currently selected device (when operator clicks a device on map)
  */
-export const selectedDeviceMAC = writable<string | null>(null);
+const selectedDeviceMAC = writable<string | null>(null);
 
 /**
  * Type of interaction that triggered the last context update
  */
-export interface InteractionEvent {
+interface InteractionEvent {
 	type: 'device_selected' | 'tower_selected' | 'area_selected' | 'manual_query';
 	data: Record<string, unknown>;
 	timestamp: number;

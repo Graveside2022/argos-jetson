@@ -11,7 +11,7 @@ import { resolveThemeColor } from '$lib/utils/theme-colors';
  * Signal(d) = -12 - 33·log₁₀(d) → d = 10^((-12 - rssi) / 33)
  * Clamped to [10m, 300m] to match detection range bands.
  */
-export function rssiToMeters(rssi: number): number {
+function rssiToMeters(rssi: number): number {
 	if (rssi === 0 || rssi >= -12) return 40; // no-signal fallback
 	const d = Math.pow(10, (-12 - rssi) / 33);
 	return Math.max(10, Math.min(300, d));

@@ -10,7 +10,7 @@ import { resolveThemeColor } from '$lib/utils/theme-colors';
 
 // ── Fixed ANSI 16-color palette ──────────────────────────────────────
 // These are standard terminal emulator colors, not theme-variable targets.
-export const ANSI_COLORS = {
+const ANSI_COLORS = {
 	black: '#16181d',
 	red: '#f87171',
 	green: '#4ade80',

@@ -4,7 +4,7 @@ import type { UASState } from '$lib/stores/dragonsync/uas-store';
 import type { DragonSyncDrone, DragonSyncFpvSignal } from '$lib/types/dragonsync';
 import { hzToChannel } from '$lib/utils/fpv-channels';
 
-export type UASMarkerType = 'drone' | 'pilot' | 'home' | 'fpv';
+type UASMarkerType = 'drone' | 'pilot' | 'home' | 'fpv';
 
 interface UASFeatureProperties {
 	id: string;

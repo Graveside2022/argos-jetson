@@ -11,7 +11,7 @@ export function generateId(): string {
 }
 
 /** Friendly display names for known tmux profile scripts. */
-export const TMUX_NAMES: [string, string][] = [
+const TMUX_NAMES: [string, string][] = [
 	['tmux-0.sh', 'Tmux 0'],
 	['tmux-1.sh', 'Tmux 1'],
 	['tmux-2.sh', 'Tmux 2'],
