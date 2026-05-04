@@ -142,40 +142,34 @@ export default [
 			// at top of config so .js files like dangerfile.js are covered — see comment there.)
 		}
 	},
+	// Spec-026 Phase 8.8: spread eslint-plugin-svelte's recommended preset.
+	// `svelte.configs.recommended` is a flat-config ARRAY (4 entries: plugin
+	// registration, *.svelte parser config, *.svelte.{js,ts} parser config,
+	// shared 35-rule block). Spreading the array is the correct way to apply
+	// the preset; spreading `.rules` was a no-op because arrays don't expose a
+	// `.rules` property. Argos-specific overrides for parser sub-parser and
+	// rule downgrades follow in the next entry.
+	...svelte.configs.recommended,
 	{
-		files: ['**/*.svelte'],
+		// Argos parser override: recommended preset's parser config for
+		// `.svelte.{js,ts}` does not wire the TypeScript sub-parser. Without
+		// it, `.svelte.ts` module-state files raise "Parsing error: Unexpected
+		// token" on every type annotation. The svelte-eslint-parser README
+		// documents this exact override.
+		files: ['**/*.svelte', '**/*.svelte.ts', '**/*.svelte.js'],
 		languageOptions: {
 			parser: svelteParser,
 			parserOptions: {
 				parser: tsParser
 			}
 		},
-		plugins: {
-			svelte
-		},
 		rules: {
-			// spec-026 Phase 7 finding: `...svelte.configs.recommended.rules`
-			// spreads UNDEFINED — `svelte.configs.recommended` is a flat-config
-			// ARRAY (4 items), not an object. The .rules property doesn't exist
-			// on the array itself; rules live on items[2] (35 rules @ error).
-			// Result: NONE of the svelte plugin's recommended rules are active
-			// today. Rules below are spread harmlessly (no-op). svelte-compile-
-			// time a11y_* / svelte_* warnings still fire via `svelte-check` in
-			// the CI typecheck step — that's why warnings appear in dev/CI even
-			// without eslint enforcement.
-			//
-			// Phase 8 follow-up sub-phase: properly spread svelte.configs.recommended
-			// at the top-level config array (NOT here), audit which of the 35
-			// surfaced ERROR-level rules pass on the existing codebase, downgrade
-			// pre-existing-issue rules to WARN, then enable. Done as a separate
-			// PR so any failures can be addressed in isolation.
-			//
-			// `eslint-plugin-svelte` itself has ZERO a11y rules in its plugin
-			// registry (verified `Object.keys(s.rules).filter(r =>
-			// r.includes('a11y'))` === []). a11y enforcement is svelte-compiler
-			// territory, not eslint. Phase 8 may add axe-core / lighthouse CI
-			// for runtime a11y if compile-time proves insufficient.
-			...svelte.configs.recommended.rules
+			// Phase 8.8 triage — pre-existing systemic violators downgraded to
+			// 'warn' with violator counts captured 2026-05-04. Each entry is
+			// the punch list for a future cleanup PR; re-escalate to 'error'
+			// once the count reaches zero.
+			'svelte/require-each-key': 'warn', // 18 sites — most are short transient lists (status drops, console rows, hardware adapters); follow-up PR adds keys.
+			'svelte/no-at-html-tags': 'warn' // 9 sites — terminal output, status icons, tool category titles render trusted server-side strings; audit each before re-escalating.
 		}
 	},
 	{
