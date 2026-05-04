@@ -71,11 +71,6 @@ export const KismetDeviceSchema = z
 	.passthrough(); // Allow additional Kismet dynamic properties
 
 /**
- * TypeScript type inferred from Zod schema
- */
-export type KismetDeviceValidated = z.infer<typeof KismetDeviceSchema>;
-
-/**
  * Legacy interface for backward compatibility
  * @deprecated Use KismetDeviceValidated (Zod-validated) instead
  */

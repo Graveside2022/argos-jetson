@@ -11,16 +11,6 @@ import {
 import { logger } from '$lib/utils/logger';
 import { safeParseWithHandling } from '$lib/utils/validation-error';
 
-export interface KismetDevicesResponse {
-	devices: KismetDevice[];
-}
-
-export interface KismetControlResponse {
-	running?: boolean;
-	message?: string;
-	success?: boolean;
-}
-
 export class KismetService {
 	private statusCheckInterval: ReturnType<typeof setInterval> | null = null;
 	private deviceFetchInterval: ReturnType<typeof setInterval> | null = null;

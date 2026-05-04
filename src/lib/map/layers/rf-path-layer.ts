@@ -14,18 +14,11 @@
  * looks off in the field.
  */
 
-import type { LineLayerSpecification, SourceSpecification } from 'maplibre-gl';
+import type { LineLayerSpecification } from 'maplibre-gl';
 
 export const RF_PATH_SOURCE_ID = 'rf-path-src';
 export const RF_PATH_LAYER_ID = 'rf-path';
 export const RF_PATH_CASING_LAYER_ID = 'rf-path-casing';
-
-export const rfPathSource: SourceSpecification = {
-	type: 'geojson',
-	data: { type: 'FeatureCollection', features: [] },
-	// Required for `line-progress` paint expressions.
-	lineMetrics: true
-};
 
 /** White casing under the colored line — keeps it readable on satellite basemaps. */
 export const rfPathCasingLayer: LineLayerSpecification = {
@@ -78,13 +71,3 @@ export const rfPathLayer: LineLayerSpecification = {
 		]
 	}
 };
-
-/** Mirrors the layer visibility toggle flow used by MapLayersView. */
-export function setRfPathVisible(
-	map: { setLayoutProperty: (id: string, prop: string, value: string) => void },
-	visible: boolean
-): void {
-	const value = visible ? 'visible' : 'none';
-	map.setLayoutProperty(RF_PATH_LAYER_ID, 'visibility', value);
-	map.setLayoutProperty(RF_PATH_CASING_LAYER_ID, 'visibility', value);
-}

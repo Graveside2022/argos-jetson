@@ -5,7 +5,7 @@
 
 import { GSM_LIMITS } from '$lib/constants/limits';
 
-export class ValidationError extends Error {
+class ValidationError extends Error {
 	constructor(message: string) {
 		super(message);
 		this.name = 'ValidationError';

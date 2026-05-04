@@ -51,10 +51,3 @@ export interface SignalStats {
 		end: number;
 	};
 }
-
-export interface SignalCluster {
-	id: string;
-	position: Position;
-	signals: SignalMarker[];
-	stats: SignalStats;
-}

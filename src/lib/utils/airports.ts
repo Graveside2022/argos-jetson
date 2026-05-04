@@ -15,7 +15,7 @@ export interface NearestAirport extends Airport {
 	distanceKm: number;
 }
 
-export class AirportsFetchError extends Error {
+class AirportsFetchError extends Error {
 	constructor(
 		message: string,
 		readonly cause?: unknown
@@ -25,7 +25,7 @@ export class AirportsFetchError extends Error {
 	}
 }
 
-export class AirportsValidationError extends Error {
+class AirportsValidationError extends Error {
 	constructor(
 		message: string,
 		readonly index?: number

@@ -23,19 +23,12 @@ export const HardwareCategorySchema = z.enum([
 /**
  * Connection type schema
  */
-export const ConnectionTypeSchema = z.enum([
-	'usb',
-	'network',
-	'serial',
-	'pci',
-	'internal',
-	'virtual'
-]);
+const ConnectionTypeSchema = z.enum(['usb', 'network', 'serial', 'pci', 'internal', 'virtual']);
 
 /**
  * Hardware status schema
  */
-export const HardwareStatusSchema = z.enum(['connected', 'disconnected', 'error', 'unknown']);
+const HardwareStatusSchema = z.enum(['connected', 'disconnected', 'error', 'unknown']);
 
 /**
  * SDR Capabilities Schema
@@ -86,7 +79,7 @@ export const GPSCapabilitiesSchema = z.object({
 /**
  * Cellular Capabilities Schema
  */
-export const CellularCapabilitiesSchema = z.object({
+const CellularCapabilitiesSchema = z.object({
 	interface: z.string().min(1, 'Interface name required'),
 	supportedBands: z.array(z.string()),
 	imei: z.string().optional(),
@@ -96,7 +89,7 @@ export const CellularCapabilitiesSchema = z.object({
 /**
  * Hardware Capabilities (discriminated union)
  */
-export const HardwareCapabilitiesSchema = z.union([
+const HardwareCapabilitiesSchema = z.union([
 	SDRCapabilitiesSchema,
 	WiFiCapabilitiesSchema,
 	BluetoothCapabilitiesSchema,

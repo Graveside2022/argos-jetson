@@ -10,7 +10,7 @@ const DragonSyncRidSchema = z
 	})
 	.passthrough();
 
-export const DragonSyncDroneSchema = z
+const DragonSyncDroneSchema = z
 	.object({
 		id: z.string(),
 		id_type: z.string().default(''),
@@ -77,7 +77,7 @@ export const DragonSyncControlSchema = z.object({
 	action: z.enum(['start', 'stop']).describe('DragonSync control action')
 });
 
-export const DragonSyncFpvSignalSchema = z
+const DragonSyncFpvSignalSchema = z
 	.object({
 		uid: z.string(),
 		signal_type: z.string().default('fpv'),

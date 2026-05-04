@@ -42,8 +42,3 @@ export function hzToChannel(hz: number | null): FpvChannelInfo {
 	}
 	return { mhz, band: null, channel: null, label: `${mhz} MHz` };
 }
-
-export function fpvChannelLabel(hz: number | null): string {
-	const info = hzToChannel(hz);
-	return info.band ? `${info.mhz} MHz (${info.label})` : info.label;
-}
