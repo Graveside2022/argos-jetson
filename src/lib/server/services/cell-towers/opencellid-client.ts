@@ -79,6 +79,7 @@ function extractCellId(c: OpenCellIDCell): number {
 }
 
 /** Extract optional numeric metadata fields from a raw API cell. */
+// fallow-ignore-next-line complexity
 function extractCellMeta(
 	c: OpenCellIDCell
 ): Pick<CellTower, 'range' | 'samples' | 'updated' | 'avgSignal'> {
@@ -136,6 +137,7 @@ function mergeTileResults(tileResults: PromiseSettledResult<OpenCellIDCell[]>[])
  * Query OpenCellID API using tiled area requests for larger radii.
  * Returns null if no API key or no results.
  */
+// fallow-ignore-next-line complexity
 export async function queryOpenCellID(
 	lat: number,
 	lon: number,

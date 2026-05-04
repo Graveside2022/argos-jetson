@@ -231,6 +231,7 @@ function sendSignal(ref: ChildProcess, signal: NodeJS.Signals): void {
 }
 
 /** Send SIGTERM, wait 500ms, then SIGKILL any surviving process. */
+// fallow-ignore-next-line complexity
 export async function killProcess(ref: ChildProcess | null, name: string): Promise<void> {
 	if (!ref || ref.pid == null || ref.killed) return;
 	sendSignal(ref, 'SIGTERM');

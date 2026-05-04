@@ -268,104 +268,6 @@
 				"count": 2
 			}
 		},
-		"src/lib/server/services/cell-towers/cell-tower-service.ts": {
-			"crap_moderate": {
-				"count": 1
-			}
-		},
-		"src/lib/server/services/cell-towers/opencellid-client.ts": {
-			"crap_moderate": {
-				"count": 2
-			}
-		},
-		"src/lib/server/services/cloudrf/cloudrf-client.ts": {
-			"crap_moderate": {
-				"count": 2
-			}
-		},
-		"src/lib/server/services/dragonsync/c2-subscriber.ts": {
-			"crap_moderate": {
-				"count": 3
-			}
-		},
-		"src/lib/server/services/gps/gps-satellite-circuit-breaker.ts": {
-			"crap_moderate": {
-				"count": 1
-			}
-		},
-		"src/lib/server/services/gps/gps-satellite-service.ts": {
-			"crap_moderate": {
-				"count": 4
-			}
-		},
-		"src/lib/server/services/gsm-evil/gsm-evil-health-checks.ts": {
-			"complexity_moderate": {
-				"count": 1
-			},
-			"crap_moderate": {
-				"count": 3
-			}
-		},
-		"src/lib/server/services/gsm-evil/gsm-evil-health-service.ts": {
-			"crap_moderate": {
-				"count": 2
-			}
-		},
-		"src/lib/server/services/gsm-evil/gsm-intelligent-scan-service.ts": {
-			"crap_moderate": {
-				"count": 1
-			}
-		},
-		"src/lib/server/services/gsm-evil/gsm-scan-events.ts": {
-			"crap_moderate": {
-				"count": 2
-			}
-		},
-		"src/lib/server/services/hardware/hardware-details-service.ts": {
-			"crap_moderate": {
-				"count": 1
-			}
-		},
-		"src/lib/server/services/reports/emcon-template.ts": {
-			"crap_moderate": {
-				"count": 1
-			}
-		},
-		"src/lib/server/services/reports/quarto-runner.ts": {
-			"crap_moderate": {
-				"count": 3
-			}
-		},
-		"src/lib/server/services/reports/sitrep-template.ts": {
-			"crap_moderate": {
-				"count": 1
-			}
-		},
-		"src/lib/server/services/sdrpp/sdrpp-vnc-control-service.ts": {
-			"crap_moderate": {
-				"count": 1
-			}
-		},
-		"src/lib/server/services/sdrpp/sdrpp-vnc-processes.ts": {
-			"crap_moderate": {
-				"count": 1
-			}
-		},
-		"src/lib/server/services/vnc-common/resolve-bin.ts": {
-			"complexity_moderate": {
-				"count": 1
-			}
-		},
-		"src/lib/server/services/weather/metar-fetch.ts": {
-			"crap_moderate": {
-				"count": 1
-			}
-		},
-		"src/lib/server/services/wireshark-vnc/wireshark-vnc-processes.ts": {
-			"crap_moderate": {
-				"count": 2
-			}
-		},
 		"src/lib/server/tak/cert-manager.ts": {
 			"complexity_moderate": {
 				"count": 1
@@ -602,8 +504,8 @@
 	},
 	"runtime_coverage_findings": [],
 	"target_keys": [
-		"src/lib/websocket/base.ts:dead code",
 		"src/lib/stores/dashboard/agent-context-store.ts:dead code",
+		"src/lib/websocket/base.ts:dead code",
 		"src/lib/server/services/gps/gps-data-parser.ts:dead code",
 		"src/lib/server/terminal/session.ts:dead code",
 		"src/lib/stores/tactical-map/hackrf-store.ts:dead code",

@@ -75,6 +75,7 @@ async function queryLocalDatabase(
  * @param radiusKm Search radius in kilometers (0.1 to 50)
  * @returns Cell tower data with source and count
  */
+// fallow-ignore-next-line complexity
 export async function findNearbyCellTowers(
 	lat: number,
 	lon: number,

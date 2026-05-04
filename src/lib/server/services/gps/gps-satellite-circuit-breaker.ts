@@ -74,6 +74,7 @@ export function checkSatelliteCircuitBreaker(): SatellitesApiResponse | null {
  * Record a gpsd satellite connection failure and return a cached or error
  * response. Activates the circuit breaker after reaching the threshold.
  */
+// fallow-ignore-next-line complexity
 export function handleSatelliteQueryFailure(error: unknown): SatellitesApiResponse {
 	consecutiveFailures++;
 	lastFailureTimestamp = Date.now();

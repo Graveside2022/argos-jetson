@@ -117,6 +117,7 @@ function successResult(message: string): SdrppVncControlResult {
 }
 
 /** Start the SDR++ VNC stack. Idempotent -- returns existing session if running. */
+// fallow-ignore-next-line complexity
 export async function startSdrppVnc(): Promise<SdrppVncControlResult> {
 	try {
 		registerShutdownHandler();

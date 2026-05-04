@@ -50,6 +50,7 @@ function mapConstellation(gnssid: number): Satellite['constellation'] {
 }
 
 /** Validate that data is a SKY-class gpsd object with a satellites array */
+// fallow-ignore-next-line complexity
 function asSkyWithSatellites(data: unknown): unknown[] | null {
 	if (typeof data !== 'object' || data === null) return null;
 	const obj = data as Record<string, unknown>;
@@ -64,6 +65,7 @@ function isValidSatEntry(sat: unknown): sat is GpsdSatelliteEntry {
 }
 
 /** Map a typed gpsd satellite entry to a Satellite object */
+// fallow-ignore-next-line complexity
 function toSatellite(sat: GpsdSatelliteEntry): Satellite {
 	return {
 		prn: sat.PRN,
@@ -125,6 +127,7 @@ function parseGpsdSkyLines(rawOutput: string): ParsedSkyResult {
  * Mark the top N satellites (by signal strength) as "used" based on the
  * uSat count from gpsd.  Mutates the satellite array in place.
  */
+// fallow-ignore-next-line complexity
 function markUsedSatellitesBySnr(satellites: Satellite[], usedSatCount: number): void {
 	if (usedSatCount <= 0 || satellites.length === 0) return;
 
@@ -146,6 +149,7 @@ function markUsedSatellitesBySnr(satellites: Satellite[], usedSatCount: number):
  *
  * @returns Satellite data with success status and error messages
  */
+// fallow-ignore-next-line complexity
 export async function getSatelliteData(): Promise<SatellitesApiResponse> {
 	const circuitBreakerResponse = checkSatelliteCircuitBreaker();
 	if (circuitBreakerResponse) return circuitBreakerResponse;

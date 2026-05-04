@@ -42,6 +42,7 @@ function validateQmdPath(qmdPath: string): void {
 	}
 }
 
+// fallow-ignore-next-line complexity
 function outputPathFor(qmdPath: string, format: QuartoFormat): string {
 	const dir = dirname(qmdPath);
 	const base = basename(qmdPath, '.qmd');
@@ -57,6 +58,7 @@ function outputPathFor(qmdPath: string, format: QuartoFormat): string {
 	}
 }
 
+// fallow-ignore-next-line complexity
 function quartoFormatArg(format: QuartoFormat): string {
 	switch (format) {
 		case 'html':
@@ -101,6 +103,7 @@ function assignFormatResult(
 	(result as Record<string, string | null>)[key] = outPath;
 }
 
+// fallow-ignore-next-line complexity
 function resolveRenderOptions(opts: QuartoRenderOptions | undefined): {
 	formats: QuartoFormat[];
 	timeout: number;

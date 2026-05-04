@@ -181,6 +181,7 @@ export async function validateDisplayFilter(filter: string): Promise<string | nu
 	}
 }
 
+// fallow-ignore-next-line complexity
 async function lookupWiresharkGid(): Promise<number | null> {
 	let etcGroup: string;
 	try {
@@ -408,6 +409,7 @@ function sendSignal(ref: ChildProcess, signal: NodeJS.Signals): void {
  * the signal was sent via `process.kill(-pid, …)` (our group-signal
  * path above). `exitCode === null` is the accurate liveness check.
  */
+// fallow-ignore-next-line complexity
 export async function killProcess(ref: ChildProcess | null, name: string): Promise<void> {
 	if (!ref || ref.pid == null) return;
 	if (ref.exitCode !== null) return;

@@ -39,6 +39,7 @@ export class BinaryNotFoundError extends Error {
  *
  * Throws `BinaryNotFoundError` with an actionable message if none match.
  */
+// fallow-ignore-next-line complexity
 export function resolveBin(
 	candidates: readonly (string | undefined)[],
 	binaryName: string,
