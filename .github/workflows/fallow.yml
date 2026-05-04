@@ -67,7 +67,15 @@ jobs:
         # PARITY PERIOD: continue-on-error so SARIF still uploads even if the
         # audit finds NEW violations vs baseline. Drop on day 15 cutover.
         continue-on-error: true
-        run: npx --no-install fallow audit --format sarif > fallow.sarif
+        # Use `|| true` so a non-zero exit doesn't drop us into a partial-output
+        # state. Then guarantee a valid empty SARIF if the file ended up empty
+        # (otherwise github/codeql-action/upload-sarif fails with "Unexpected
+        # end of JSON input" on the empty file).
+        run: |
+          npx --no-install fallow audit --format sarif > fallow.sarif || true
+          if [ ! -s fallow.sarif ]; then
+            echo '{"$schema":"https://json.schemastore.org/sarif-2.1.0.json","version":"2.1.0","runs":[{"tool":{"driver":{"name":"fallow","informationUri":"https://docs.fallow.tools/"}},"results":[]}]}' > fallow.sarif
+          fi
 
       - name: 'Fallow audit — human-readable log (PR view)'
         continue-on-error: true

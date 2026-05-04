@@ -1,12 +1,12 @@
 {
-	"baselinedAt": "2026-04-22T22:02:59Z",
+	"baselinedAt": "2026-05-04T02:52:15Z",
 	"counts": {
 		"info": 0,
 		"low": 1,
-		"moderate": 11,
+		"moderate": 12,
 		"high": 18,
 		"critical": 2,
-		"total": 32
+		"total": 33
 	},
 	"advisories": [
 		{
@@ -434,6 +434,12 @@
 			"pkg": "svelte",
 			"severity": "moderate",
 			"title": "Svelte vulnerable to XSS during SSR with contenteditable `bind:innerText` and `bind:textContent`"
+		},
+		{
+			"ghsa": "GHSA-qx2v-qp2m-jg93",
+			"pkg": "postcss",
+			"severity": "moderate",
+			"title": "PostCSS has XSS via Unescaped </style> in its CSS Stringify Output"
 		},
 		{
 			"ghsa": "GHSA-r5rp-j6wh-rvv4",
