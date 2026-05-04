@@ -379,24 +379,11 @@
 		"src/lib/websocket/websocket-types.ts:WebSocketEventListener"
 	],
 	"private_type_leaks": [],
-	"unused_dependencies": [
-		"package.json:@carbon/styles",
-		"package.json:@novnc/novnc",
-		"package.json:carbon-icons-svelte"
-	],
-	"unused_dev_dependencies": [
-		"package.json:css-tree",
-		"package.json:eslint-formatter-compact",
-		"package.json:pixelmatch",
-		"package.json:shadcn",
-		"package.json:tslib"
-	],
+	"unused_dependencies": ["package.json:@novnc/novnc"],
+	"unused_dev_dependencies": ["package.json:pixelmatch"],
 	"circular_dependencies": [],
 	"unused_optional_dependencies": [],
-	"unused_enum_members": [
-		"src/lib/types/enums.ts:SystemStatus.Sweeping",
-		"src/lib/types/enums.ts:SystemStatus.Initializing"
-	],
+	"unused_enum_members": [],
 	"unused_class_members": [
 		"src/lib/hackrf/sweep-manager/buffer-manager.ts:BufferManager.processDataChunk",
 		"src/lib/hackrf/sweep-manager/buffer-manager.ts:BufferManager.updateConfig",
@@ -503,8 +490,7 @@
 		"src/lib/websocket/base.ts:BaseWebSocket.destroy"
 	],
 	"unresolved_imports": [
-		"config/vite.config.ts:./config/vite-plugin-terminal",
-		"scripts/ops/mcp-config.ts:../src/lib/server/mcp",
+		"scripts/ops/mcp-config.ts:../src/lib/server/mcp/config-generator",
 		"scripts/ops/prod-server.ts:../../build/handler.js",
 		"src/app.html:/fonts/firacode-nerd-font.css",
 		"src/app.html:/fonts/geist.css"
