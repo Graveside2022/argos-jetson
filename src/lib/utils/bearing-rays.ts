@@ -8,13 +8,9 @@ import type { Feature, FeatureCollection, LineString } from 'geojson';
 import type { Detection } from '$lib/types/detection';
 import { destinationPoint } from '$lib/utils/geo';
 
-export const DEFAULT_RAY_LENGTH_M = 200;
+const DEFAULT_RAY_LENGTH_M = 200;
 
-export function rayFeatureFor(
-	obsLat: number,
-	obsLon: number,
-	d: Detection
-): Feature<LineString> | null {
+function rayFeatureFor(obsLat: number, obsLon: number, d: Detection): Feature<LineString> | null {
 	if (d.bearingDeg === null) return null;
 	const dist = d.distanceM ?? DEFAULT_RAY_LENGTH_M;
 	const end = destinationPoint(obsLat, obsLon, d.bearingDeg, dist);
@@ -30,6 +26,7 @@ export function rayFeatureFor(
 	};
 }
 
+// fallow-ignore-next-line complexity
 export function buildBearingFC(
 	obsLat: number | null,
 	obsLon: number | null,

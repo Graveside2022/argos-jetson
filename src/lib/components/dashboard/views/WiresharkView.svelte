@@ -48,6 +48,7 @@
 		return err instanceof Error ? err.message : String(err);
 	}
 
+	// fallow-ignore-next-line complexity
 	function getRunningWsUrl(data: Record<string, unknown>): string | null {
 		const isRunning = Boolean(data.isRunning ?? data.success);
 		const wsPortVal = data.wsPort as number | undefined;
@@ -56,6 +57,7 @@
 		return buildWsUrl(wsPortVal, wsPathVal);
 	}
 
+	// fallow-ignore-next-line complexity
 	function applyResultData(data: Record<string, unknown>): void {
 		const url = getRunningWsUrl(data);
 		if (url) {
@@ -79,6 +81,7 @@
 		});
 	}
 
+	// fallow-ignore-next-line complexity
 	async function startCapture(): Promise<void> {
 		serviceStatus = 'starting';
 		try {

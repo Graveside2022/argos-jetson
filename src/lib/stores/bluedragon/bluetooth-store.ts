@@ -8,7 +8,7 @@ import type {
 	BluetoothDevice
 } from '$lib/types/bluedragon';
 
-export interface BluetoothState {
+interface BluetoothState {
 	status: BluedragonStatus;
 	pid: number | null;
 	startedAt: number | null;
@@ -37,7 +37,7 @@ export const bluetoothStore = writable<BluetoothState>({
 	devices: new Map()
 });
 
-export function applyBluetoothStatus(status: BluedragonStatusResult): void {
+function applyBluetoothStatus(status: BluedragonStatusResult): void {
 	bluetoothStore.update((s) => ({
 		...s,
 		status: status.status,
@@ -61,12 +61,8 @@ export function applyBluetoothDevices(devices: BluetoothDevice[]): void {
 	});
 }
 
-export function setBluetoothError(err: string): void {
+function setBluetoothError(err: string): void {
 	bluetoothStore.update((s) => ({ ...s, error: err }));
-}
-
-export function resetBluetoothStore(): void {
-	bluetoothStore.set({ ...INITIAL_STATE, devices: new Map() });
 }
 
 export async function fetchBluetoothStatus(): Promise<void> {
@@ -80,6 +76,7 @@ export async function fetchBluetoothStatus(): Promise<void> {
 	}
 }
 
+// fallow-ignore-next-line complexity
 export async function fetchBluetoothDevices(): Promise<void> {
 	try {
 		const res = await fetch('/api/bluedragon/devices', { credentials: 'same-origin' });

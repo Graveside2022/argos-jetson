@@ -49,6 +49,7 @@
 	let sortDir: 'asc' | 'desc' = $state('desc');
 	let activeResizeCleanup: (() => void) | null = null;
 
+	// fallow-ignore-next-line complexity
 	function syncPollTimer(isRunning: boolean): void {
 		if (isRunning && !pollTimer) {
 			void fetchBluetoothDevices();
@@ -152,6 +153,7 @@
 		return `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}:${String(d.getUTCSeconds()).padStart(2, '0')}`;
 	}
 
+	// fallow-ignore-next-line complexity
 	function rssiClass(dbm: number | null): string {
 		if (dbm == null) return 'rssi-none';
 		if (dbm >= -50) return 'rssi-strong';

@@ -9,10 +9,9 @@ import { persistedWritable } from '$lib/stores/persisted-writable';
 import type { TerminalPanelState, TerminalSession } from '$lib/types/terminal';
 import { logger } from '$lib/utils/logger';
 
-import { activeBottomTab, closeBottomPanel, setBottomPanelHeight } from './dashboard-store';
+import { activeBottomTab, closeBottomPanel } from './dashboard-store';
 import {
 	createNewSession,
-	generateId,
 	removeSplitSession,
 	resolveActiveTab,
 	TMUX_SHELLS
@@ -44,6 +43,7 @@ function restoreSessions(parsed: Record<string, unknown>): TerminalSession[] {
 }
 
 /** Build restored terminal state from parsed data and sessions. */
+// fallow-ignore-next-line complexity
 function buildRestoredState(
 	parsed: Record<string, unknown>,
 	sessions: TerminalSession[]
@@ -92,14 +92,10 @@ export const activeSession = derived(terminalPanelState, ($state) => {
 	return $state.sessions.find((s) => s.id === $state.activeTabId) ?? null;
 });
 
-export const isTerminalOpen = derived(activeBottomTab, ($tab) => $tab === 'terminal');
-
-export const terminalHeight = derived(terminalPanelState, ($state) => $state.height);
-
 export const preferredShell = derived(terminalPanelState, ($state) => $state.preferredShell);
 
 // Panel visibility functions
-export function openTerminalPanel(): void {
+function openTerminalPanel(): void {
 	terminalPanelState.update((state) => {
 		// If no sessions exist, create one
 		if (state.sessions.length === 0) {
@@ -193,14 +189,6 @@ export function updateSessionConnection(sessionId: string, isConnected: boolean)
 }
 
 // Panel sizing — delegates to shared bottom panel height
-export function setPanelHeight(height: number): void {
-	setBottomPanelHeight(height);
-	terminalPanelState.update((state) => ({
-		...state,
-		isMaximized: false // Resizing clears maximized state
-	}));
-}
-
 export function toggleMaximize(): void {
 	terminalPanelState.update((state) => ({
 		...state,
@@ -209,65 +197,12 @@ export function toggleMaximize(): void {
 }
 
 // Shell preference
-export function setPreferredShell(shell: string): void {
-	terminalPanelState.update((state) => ({
-		...state,
-		preferredShell: shell
-	}));
-}
-
 // Split pane management
-export function splitTerminal(sessionId: string): void {
-	// Create a new session for the split
-	const newSessionId = createSession();
-
-	terminalPanelState.update((s) => {
-		if (s.splits) {
-			// Already split - add to existing split (max 4 panes)
-			if (s.splits.sessionIds.length >= 4) return s;
-
-			const newSessionIds = [...s.splits.sessionIds, newSessionId];
-			const equalWidth = 100 / newSessionIds.length;
-			return {
-				...s,
-				splits: {
-					...s.splits,
-					sessionIds: newSessionIds,
-					widths: newSessionIds.map(() => equalWidth)
-				}
-			};
-		} else {
-			// Create new split
-			return {
-				...s,
-				splits: {
-					id: generateId(),
-					sessionIds: [sessionId, newSessionId],
-					widths: [50, 50]
-				}
-			};
-		}
-	});
-}
-
 export function unsplit(): void {
 	terminalPanelState.update((state) => ({
 		...state,
 		splits: null
 	}));
-}
-
-export function updateSplitWidths(widths: number[]): void {
-	terminalPanelState.update((state) => {
-		if (!state.splits) return state;
-		return {
-			...state,
-			splits: {
-				...state.splits,
-				widths
-			}
-		};
-	});
 }
 
 // Navigation helpers

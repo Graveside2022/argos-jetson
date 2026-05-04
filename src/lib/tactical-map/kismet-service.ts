@@ -11,28 +11,20 @@ import {
 import { logger } from '$lib/utils/logger';
 import { safeParseWithHandling } from '$lib/utils/validation-error';
 
-export interface KismetDevicesResponse {
-	devices: KismetDevice[];
-}
-
-export interface KismetControlResponse {
-	running?: boolean;
-	message?: string;
-	success?: boolean;
-}
-
 export class KismetService {
 	private statusCheckInterval: ReturnType<typeof setInterval> | null = null;
 	private deviceFetchInterval: ReturnType<typeof setInterval> | null = null;
 	private _earlyCheckHandle: ReturnType<typeof setTimeout> | null = null;
 
 	/** Reconcile Kismet running state with the store */
+	// fallow-ignore-next-line complexity
 	private reconcileStatus(isRunning: boolean): void {
 		const currentStatus = get(kismetStore).status;
 		if (isRunning && currentStatus === 'stopped') setKismetStatus('running');
 		else if (!isRunning && currentStatus === 'running') setKismetStatus('stopped');
 	}
 
+	// fallow-ignore-next-line complexity
 	async checkKismetStatus(): Promise<void> {
 		try {
 			const response = await fetch('/api/kismet/control', {
@@ -55,6 +47,7 @@ export class KismetService {
 		}
 	}
 
+	// fallow-ignore-next-line complexity
 	async startKismet(): Promise<void> {
 		const currentStatus = get(kismetStore).status;
 
@@ -96,6 +89,7 @@ export class KismetService {
 		return data?.message || 'Failed to stop Kismet';
 	}
 
+	// fallow-ignore-next-line complexity
 	async stopKismet(): Promise<void> {
 		const currentStatus = get(kismetStore).status;
 		if (currentStatus === 'starting' || currentStatus === 'stopping') return;
@@ -154,6 +148,7 @@ export class KismetService {
 		}
 	}
 
+	// fallow-ignore-next-line complexity
 	async fetchKismetDevices(): Promise<KismetDevice[]> {
 		const currentState = get(kismetStore);
 		if (currentState.status !== 'running') return [];

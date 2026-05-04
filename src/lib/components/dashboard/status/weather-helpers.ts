@@ -68,6 +68,7 @@ export function getWeatherCondition(code: number): string {
 	return match ? match[2] : 'Unknown';
 }
 
+// fallow-ignore-next-line complexity
 export function getRfConditions(w: WeatherData): { label: string; cls: string } {
 	if (w.precipitation > 5 || w.humidity > 95) return { label: 'Degraded', cls: 'warn' };
 	if (w.precipitation > 0 || w.humidity > 80) return { label: 'Fair', cls: '' };

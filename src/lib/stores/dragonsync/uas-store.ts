@@ -68,11 +68,11 @@ function buildNextStatusState(s: UASState, status: DragonSyncStatusResult): UASS
 	return base;
 }
 
-export function applyUASStatus(status: DragonSyncStatusResult): void {
+function applyUASStatus(status: DragonSyncStatusResult): void {
 	uasStore.update((s) => buildNextStatusState(s, status));
 }
 
-export function applyUASC2Signals(signals: DragonSyncC2Signal[]): void {
+function applyUASC2Signals(signals: DragonSyncC2Signal[]): void {
 	uasStore.update((s) => {
 		const map = new Map<string, DragonSyncC2Signal>();
 		for (const sig of signals) {
@@ -82,7 +82,7 @@ export function applyUASC2Signals(signals: DragonSyncC2Signal[]): void {
 	});
 }
 
-export function applyUASDrones(drones: DragonSyncDrone[]): void {
+function applyUASDrones(drones: DragonSyncDrone[]): void {
 	uasStore.update((s) => {
 		const map = new Map<string, DragonSyncDrone>();
 		for (const drone of drones) {
@@ -92,7 +92,7 @@ export function applyUASDrones(drones: DragonSyncDrone[]): void {
 	});
 }
 
-export function applyUASFpvSignals(signals: DragonSyncFpvSignal[]): void {
+function applyUASFpvSignals(signals: DragonSyncFpvSignal[]): void {
 	uasStore.update((s) => {
 		const map = new Map<string, DragonSyncFpvSignal>();
 		for (const sig of signals) {
@@ -102,14 +102,11 @@ export function applyUASFpvSignals(signals: DragonSyncFpvSignal[]): void {
 	});
 }
 
-export function setUASError(err: string): void {
+function setUASError(err: string): void {
 	uasStore.update((s) => ({ ...s, error: err }));
 }
 
-export function resetUASStore(): void {
-	uasStore.set({ ...INITIAL_STATE, drones: new Map(), fpvSignals: new Map() });
-}
-
+// fallow-ignore-next-line complexity
 export async function fetchUASStatus(): Promise<void> {
 	try {
 		const res = await fetch('/api/dragonsync/status', { credentials: 'same-origin' });
@@ -174,6 +171,7 @@ export async function fetchUASFpvSignals(): Promise<void> {
  * GET /api/dragonsync/c2 — Argos-side cache fed by the c2-subscriber child
  * process which SUBs tcp://127.0.0.1:4227 (argos-c2-scanner XPUB).
  */
+// fallow-ignore-next-line complexity
 export async function fetchUASC2Signals(): Promise<void> {
 	try {
 		const res = await fetch('/api/dragonsync/c2');

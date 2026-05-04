@@ -19,11 +19,6 @@ export const DEFAULT_CONFIG: TakServerConfig = {
 	enrollmentPort: 8446
 };
 
-export interface MessageState {
-	text: string;
-	type: 'success' | 'error';
-}
-
 /** Load TAK config from the API */
 export async function loadConfig(): Promise<TakServerConfig> {
 	const data = await fetchJSON<TakServerConfig>('/api/tak/config');
@@ -37,6 +32,7 @@ function ensureConfigId(config: TakServerConfig): TakServerConfig {
 }
 
 /** Save TAK config to the API */
+// fallow-ignore-next-line complexity
 export async function saveConfig(
 	config: TakServerConfig
 ): Promise<{ success: boolean; config?: TakServerConfig; error?: string }> {

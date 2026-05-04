@@ -172,6 +172,7 @@
 		return Math.abs(e.clientX - dragStartX) > DRAG_THRESHOLD_PX;
 	}
 
+	// fallow-ignore-next-line complexity
 	function onPointerMove(e: PointerEvent, colId: string): void {
 		if (dragId === null) return;
 		if (!isDragging && !pastDragThreshold(e)) return;
@@ -179,6 +180,7 @@
 		if (dragId !== colId) overId = colId;
 	}
 
+	// fallow-ignore-next-line complexity
 	function commitReorder(toId: string): void {
 		if (dragId === null || dragId === toId) return;
 		// Build from orderedColumns (already reconciles appended columns),

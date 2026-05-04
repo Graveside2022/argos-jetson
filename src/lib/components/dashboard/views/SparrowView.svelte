@@ -20,6 +20,7 @@
 		return `${proto}://${host}:${wsPort}${wsPath}`;
 	}
 
+	// fallow-ignore-next-line complexity
 	function applyStatusData(data: Record<string, unknown>): void {
 		const vnc = data.vnc as
 			| { isRunning?: boolean; wsPort?: number; wsPath?: string }

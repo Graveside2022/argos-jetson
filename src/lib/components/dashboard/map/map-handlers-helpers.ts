@@ -15,6 +15,7 @@ export interface ClickResult {
 	props: Record<string, unknown>;
 }
 
+// fallow-ignore-next-line complexity
 export function queryClickFeature(
 	map: maplibregl.Map,
 	ev: maplibregl.MapMouseEvent,

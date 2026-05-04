@@ -34,7 +34,7 @@ export function latLonToMGRS(lat: number, lon: number): string {
  * Format MGRS for display with proper spacing
  * Converts "32UMA5188543428" to "32U MA 51885 43428"
  */
-export function formatMGRS(mgrsString: string): string {
+function formatMGRS(mgrsString: string): string {
 	// Remove any existing spaces first
 	const clean = mgrsString.replace(/\s+/g, '');
 

@@ -11,15 +11,10 @@
  * device markers authored on top remain legible.
  */
 
-import type { HeatmapLayerSpecification, SourceSpecification } from 'maplibre-gl';
+import type { HeatmapLayerSpecification } from 'maplibre-gl';
 
 export const RF_HEATMAP_SOURCE_ID = 'rf-heatmap-src';
 export const RF_HEATMAP_LAYER_ID = 'rf-heatmap';
-
-export const rfHeatmapSource: SourceSpecification = {
-	type: 'geojson',
-	data: { type: 'FeatureCollection', features: [] }
-};
 
 export const rfHeatmapLayer: HeatmapLayerSpecification = {
 	id: RF_HEATMAP_LAYER_ID,
@@ -71,11 +66,3 @@ export const rfHeatmapLayer: HeatmapLayerSpecification = {
 		'heatmap-opacity': 0.7
 	}
 };
-
-/** Toggle the heatmap layer visibility in-place on the live map. */
-export function setRfHeatmapVisible(
-	map: { setLayoutProperty: (id: string, prop: string, value: string) => void },
-	visible: boolean
-): void {
-	map.setLayoutProperty(RF_HEATMAP_LAYER_ID, 'visibility', visible ? 'visible' : 'none');
-}

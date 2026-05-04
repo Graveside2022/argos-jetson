@@ -26,6 +26,11 @@ function matchesSearch(hw: DetectedHardware, lower: string): boolean {
 	);
 }
 
+/**
+ * @internal — class is exported only so the {@link globalHardwareRegistry}
+ * singleton at the bottom of this file can construct + type-annotate. External
+ * consumers should import the singleton, not the class.
+ */
 export class HardwareRegistry {
 	private hardware: Map<string, DetectedHardware> = new Map();
 

@@ -131,6 +131,7 @@
 	}
 
 	/** Build the start-failure toast: prefer a HackRF conflict message, then server error, then generic. */
+	// fallow-ignore-next-line complexity
 	function buildStartFailureMessage(tool: ToolDefinition, data: Record<string, unknown>): string {
 		if (typeof data.conflictingService === 'string' && data.conflictingService.length > 0) {
 			return `HackRF is in use by ${data.conflictingService}. Stop it first.`;

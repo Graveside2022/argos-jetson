@@ -57,41 +57,6 @@ export const setDeviceAffiliation = (mac: string, affiliation: Affiliation) => {
 	});
 };
 
-export const addKismetDevice = (device: KismetDevice) => {
-	kismetStore.update((state) => {
-		const newDevices = new Map(state.devices);
-		newDevices.set(device.mac, device);
-		return {
-			...state,
-			devices: newDevices,
-			deviceCount: newDevices.size
-		};
-	});
-};
-
-export const updateKismetDevice = (mac: string, updates: Partial<KismetDevice>) => {
-	kismetStore.update((state) => {
-		const newDevices = new Map(state.devices);
-		const existingDevice = newDevices.get(mac);
-		if (existingDevice) {
-			newDevices.set(mac, { ...existingDevice, ...updates });
-		}
-		return { ...state, devices: newDevices };
-	});
-};
-
-export const removeKismetDevice = (mac: string) => {
-	kismetStore.update((state) => {
-		const newDevices = new Map(state.devices);
-		newDevices.delete(mac);
-		return {
-			...state,
-			devices: newDevices,
-			deviceCount: newDevices.size
-		};
-	});
-};
-
 export const clearAllKismetDevices = () => {
 	kismetStore.update((state) => ({
 		...state,
@@ -104,22 +69,6 @@ export const clearAllKismetDevices = () => {
 			byChannel: new Map()
 		}
 	}));
-};
-
-export const addKismetDeviceMarker = (mac: string, marker: LeafletMarker) => {
-	kismetStore.update((state) => {
-		const newMarkers = new Map(state.deviceMarkers);
-		newMarkers.set(`kismet_${mac}`, marker);
-		return { ...state, deviceMarkers: newMarkers };
-	});
-};
-
-export const removeKismetDeviceMarker = (mac: string) => {
-	kismetStore.update((state) => {
-		const newMarkers = new Map(state.deviceMarkers);
-		newMarkers.delete(`kismet_${mac}`);
-		return { ...state, deviceMarkers: newMarkers };
-	});
 };
 
 /** Increment a counter in a Map. */
@@ -174,12 +123,5 @@ export const batchUpdateDevices = (
 		devices: newDevices,
 		deviceCount: newDevices.size,
 		distributions: buildDistributions(incomingDevices)
-	}));
-};
-
-export const updateDistributions = (devices: Map<string, KismetDevice>) => {
-	kismetStore.update((state) => ({
-		...state,
-		distributions: buildDistributions([...devices.values()])
 	}));
 };

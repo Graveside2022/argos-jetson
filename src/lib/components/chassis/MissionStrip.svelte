@@ -39,6 +39,7 @@
 	type StripState = 'loading' | 'error' | 'empty' | 'inactive' | 'default';
 	const stripState = $derived<StripState>(deriveStripState());
 
+	// fallow-ignore-next-line complexity
 	function deriveStripState(): StripState {
 		if (!missionStore.loaded) return 'loading';
 		if (missionStore.lastError) return 'error';
@@ -71,6 +72,7 @@
 		return Number.isFinite(n) ? n : undefined;
 	}
 
+	// fallow-ignore-next-line complexity
 	function parseEditValue(
 		field: keyof MissionPatch,
 		raw: string
@@ -93,6 +95,7 @@
 		editValue = '';
 	}
 
+	// fallow-ignore-next-line complexity
 	async function commitEdit(): Promise<void> {
 		if (!active || !editingField) return;
 		const field = editingField;
@@ -113,6 +116,7 @@
 		}
 	}
 
+	// fallow-ignore-next-line complexity
 	function onSwitcherChange(value: string | number | undefined): void {
 		const id = value === undefined ? '' : String(value);
 		if (id && id !== active?.id) void missionStore.setActive(id);

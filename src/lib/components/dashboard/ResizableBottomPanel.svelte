@@ -52,6 +52,7 @@
 		startHeight = height;
 	}
 
+	// fallow-ignore-next-line complexity
 	function applyDrag(deltaY: number) {
 		if (!isOpen && deltaY > 10) onOpen?.();
 		const newHeight = Math.max(

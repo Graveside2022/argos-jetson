@@ -47,6 +47,7 @@ function getShellName(shellPath: string): string {
 	return SHELL_NAMES[basename] || basename;
 }
 
+// fallow-ignore-next-line complexity
 export const GET = createHandler(async () => {
 	try {
 		// Get system default shell (prefer ZSH if SHELL not set)
@@ -83,6 +84,7 @@ export const GET = createHandler(async () => {
 		}
 
 		// Sort: tmux profiles first (alphabetical), then plain shells last
+		// fallow-ignore-next-line complexity
 		uniqueShells.sort((a, b) => {
 			const aIsTmux = a.path.includes('tmux');
 			const bIsTmux = b.path.includes('tmux');

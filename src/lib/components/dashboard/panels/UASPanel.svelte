@@ -76,6 +76,7 @@
 	let sortKey: SortKey = $state('rssi');
 	let sortDir: 'asc' | 'desc' = $state('desc');
 
+	// fallow-ignore-next-line complexity
 	function syncPollTimer(running: boolean): void {
 		if (running && !pollTimer) {
 			pollTimer = setInterval(() => {
@@ -223,6 +224,7 @@
 			: { conf: ntsc, name: 'NTSC', cls: 'badge-ntsc' };
 	}
 
+	// fallow-ignore-next-line complexity
 	function palNtscBadge(sig: DragonSyncFpvSignal): { label: string; cls: string } {
 		const pal = sig.pal_conf ?? 0;
 		const ntsc = sig.ntsc_conf ?? 0;

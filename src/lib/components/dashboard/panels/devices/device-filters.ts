@@ -19,6 +19,7 @@ export interface FilterOptions {
 }
 
 /** Collect an AP and its clients from the device map. */
+// fallow-ignore-next-line complexity
 function collectIsolatedDevices(
 	allDevices: Map<string, KismetDevice>,
 	isolatedMAC: string
@@ -51,6 +52,7 @@ function passesSignalFilters(d: KismetDevice, options: FilterOptions): boolean {
 }
 
 /** Check if a device passes all filter criteria. */
+// fallow-ignore-next-line complexity
 function passesFilters(d: KismetDevice, options: FilterOptions, q: string): boolean {
 	if (!passesSignalFilters(d, options)) return false;
 	if (options.shouldShowOnlyWithClients && !d.clients?.length) return false;

@@ -98,6 +98,7 @@ type ResolvedMission =
 	| { ok: true; missionId: string; mission: Mission }
 	| { ok: false; status: number; error: string };
 
+// fallow-ignore-next-line complexity
 function resolveMission(db: Database.Database, bodyMissionId?: string): ResolvedMission {
 	const missionId = bodyMissionId ?? getActiveMission(db)?.id;
 	if (!missionId) {

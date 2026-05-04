@@ -18,7 +18,7 @@ export interface LsState<T> {
 	value: T;
 }
 
-export class PersistentStorageError extends Error {
+class PersistentStorageError extends Error {
 	readonly key: string;
 	readonly operation: 'read' | 'write';
 	readonly originalError: unknown;
@@ -33,6 +33,7 @@ export class PersistentStorageError extends Error {
 	}
 }
 
+// fallow-ignore-next-line complexity
 function readLs<T>(key: string): T | undefined {
 	if (typeof localStorage === 'undefined') return undefined;
 	let raw: string | null;

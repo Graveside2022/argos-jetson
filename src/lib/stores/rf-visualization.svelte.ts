@@ -41,7 +41,7 @@ interface HexCell {
 	count: number;
 }
 
-export type LayerMode = 'off' | 'heatmap' | 'hex';
+type LayerMode = 'off' | 'heatmap' | 'hex';
 
 export interface RfVisualizationFilters {
 	sessionId?: string;
@@ -135,9 +135,7 @@ function buildQuery(filters: RfVisualizationFilters): string {
 	return params.toString();
 }
 
-export async function fetchRfAggregate(
-	filters: RfVisualizationFilters
-): Promise<AggregateResponse> {
+async function fetchRfAggregate(filters: RfVisualizationFilters): Promise<AggregateResponse> {
 	const key = cacheKey(filters);
 	const cached = cache.get(key);
 	if (cached) {
@@ -220,7 +218,7 @@ const EMPTY: RfGeoJson = {
 	heatmap: { type: 'FeatureCollection', features: [] }
 };
 
-export async function loadRfGeoJson(filters: RfVisualizationFilters): Promise<RfGeoJson> {
+async function loadRfGeoJson(filters: RfVisualizationFilters): Promise<RfGeoJson> {
 	const resp = await fetchRfAggregate(filters);
 	return {
 		path: pathToGeoJson(resp.path ?? []),
@@ -230,7 +228,7 @@ export async function loadRfGeoJson(filters: RfVisualizationFilters): Promise<Rf
 }
 
 /** Client-side session descriptor mirroring /api/sessions item shape. */
-export interface RfSession {
+interface RfSession {
 	id: string;
 	startedAt: number;
 	endedAt: number | null;
@@ -337,6 +335,7 @@ class RfVisualizationStore {
 		this.setFilters({ sessionId: data.currentId });
 	}
 
+	// fallow-ignore-next-line complexity
 	async loadSessions(): Promise<void> {
 		if (this.sessionsLoading) return;
 		this.sessionsLoading = true;

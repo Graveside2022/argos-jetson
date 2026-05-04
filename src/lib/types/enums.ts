@@ -3,9 +3,7 @@ export const enum SystemStatus {
 	Running = 'running',
 	Idle = 'idle',
 	Error = 'error',
-	Sweeping = 'sweeping',
-	Stopping = 'stopping',
-	Initializing = 'initializing'
+	Stopping = 'stopping'
 }
 
 export const enum KismetEvent {

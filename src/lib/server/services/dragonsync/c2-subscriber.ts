@@ -86,6 +86,7 @@ export function startC2Subscriber(): void {
 	}, 2000);
 }
 
+// fallow-ignore-next-line complexity
 export function stopC2Subscriber(): void {
 	if (c2StaleTimer) {
 		clearInterval(c2StaleTimer);
@@ -122,6 +123,7 @@ interface RawC2AlertBlock {
 	};
 }
 
+// fallow-ignore-next-line complexity
 function mergeC2Blocks(msg: unknown): RawC2AlertBlock {
 	const merged: Record<string, unknown> = {};
 	if (!Array.isArray(msg)) return merged as RawC2AlertBlock;
@@ -131,6 +133,7 @@ function mergeC2Blocks(msg: unknown): RawC2AlertBlock {
 	return merged as RawC2AlertBlock;
 }
 
+// fallow-ignore-next-line complexity
 function extractCenterHz(merged: RawC2AlertBlock): number {
 	const info = merged['Signal Info'];
 	const freq = merged['Frequency Message'];

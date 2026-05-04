@@ -36,11 +36,11 @@ const B205GainSchema = z.object({
 	bandwidth: z.number().positive().optional().describe('Analog filter bandwidth (Hz)')
 });
 
-export const GainConfigSchema = z.discriminatedUnion('kind', [HackRFGainSchema, B205GainSchema]);
+const GainConfigSchema = z.discriminatedUnion('kind', [HackRFGainSchema, B205GainSchema]);
 
 // ─── Sweep config — per-source `start()` payload ──────────────────────────
 
-export const SpectrumConfigSchema = z
+const SpectrumConfigSchema = z
 	.object({
 		startFreq: z
 			.number()
@@ -75,12 +75,3 @@ export const StartSpectrumRequestSchema = z.object({
 	device: DeviceTypeSchema.optional(),
 	config: SpectrumConfigSchema
 });
-
-export const StopSpectrumRequestSchema = z.object({
-	device: DeviceTypeSchema.optional()
-});
-
-export type SpectrumConfigInput = z.infer<typeof SpectrumConfigSchema>;
-export type StartSpectrumRequest = z.infer<typeof StartSpectrumRequestSchema>;
-export type StopSpectrumRequest = z.infer<typeof StopSpectrumRequestSchema>;
-export type GainConfigInput = z.infer<typeof GainConfigSchema>;

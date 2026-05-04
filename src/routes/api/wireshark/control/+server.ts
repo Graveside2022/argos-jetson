@@ -36,7 +36,7 @@ const _ifaceSchema = z
 // keep it permissive but bounded.
 const _filterSchema = z.string().max(512);
 
-export const _WiresharkVncControlSchema = z.discriminatedUnion('action', [
+const _WiresharkVncControlSchema = z.discriminatedUnion('action', [
 	z.object({
 		action: z.literal('start'),
 		iface: _ifaceSchema.optional(),

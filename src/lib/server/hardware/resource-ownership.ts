@@ -44,10 +44,7 @@ const KNOWN_TOOL_NAMES: ReadonlySet<string> = new Set([
  * refresh tick instead of being overwritten by the scanned process/
  * container name. See KNOWN_TOOL_NAMES for rationale.
  */
-export function shouldPreserveExplicitOwner(
-	state: ResourceState,
-	ownerName: string | null
-): boolean {
+function shouldPreserveExplicitOwner(state: ResourceState, ownerName: string | null): boolean {
 	return (
 		ownerName !== null &&
 		state.owner !== null &&
@@ -57,14 +54,14 @@ export function shouldPreserveExplicitOwner(
 }
 
 /** Mark the device as held; preserve existing connectedSince if set. */
-export function markOwned(state: ResourceState, ownerName: string): void {
+function markOwned(state: ResourceState, ownerName: string): void {
 	state.owner = ownerName;
 	state.isAvailable = false;
 	if (!state.connectedSince) state.connectedSince = Date.now();
 }
 
 /** Clear all ownership fields on the device. */
-export function markFree(state: ResourceState): void {
+function markFree(state: ResourceState): void {
 	state.owner = null;
 	state.isAvailable = true;
 	state.connectedSince = null;

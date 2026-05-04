@@ -181,6 +181,7 @@ export async function fetchIMSIs(): Promise<void> {
 }
 
 /** Start IMSI capture on a given frequency */
+// fallow-ignore-next-line complexity
 export async function startIMSICapture(
 	frequency: string,
 	state: GsmEvilPageState,

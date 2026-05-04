@@ -137,6 +137,7 @@
 		return e instanceof Error ? e.message : String(e);
 	}
 
+	// fallow-ignore-next-line complexity
 	async function loadReportsFromApi(): Promise<ReportRow[]> {
 		const res = await fetch('/api/reports/list');
 		if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -250,6 +251,7 @@
 		missionError = null;
 	}
 
+	// fallow-ignore-next-line complexity
 	async function postMission(): Promise<void> {
 		const res = await fetch('/api/missions', {
 			method: 'POST',

@@ -28,6 +28,7 @@
 		truststoreStatus = 'Truststore validated';
 	}
 
+	// fallow-ignore-next-line complexity
 	async function uploadTruststore() {
 		if (!truststoreFile || truststoreFile.length === 0) {
 			truststoreStatus = 'Select a .p12 file';

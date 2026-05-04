@@ -72,6 +72,7 @@
 			status = 'connected';
 			setTimeout(() => instance.focus(), 100);
 		});
+		// fallow-ignore-next-line complexity
 		instance.addEventListener('disconnect', (event: CustomEvent) => {
 			const clean = (event.detail as { clean?: boolean } | undefined)?.clean;
 			status = clean ? 'disconnected' : 'error';

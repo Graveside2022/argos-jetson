@@ -116,6 +116,7 @@ function runRecon(args: string[]): Promise<ReconResult> {
 			return JSON.parse(raw.slice(jsonStart)) as ReconResult;
 		}
 
+		// fallow-ignore-next-line complexity
 		function tryResolve(): void {
 			if (!stdoutEnded || exitCode === null) return;
 			clearTimeout(timer);

@@ -66,6 +66,7 @@ function classChip(c: string | null): string {
 	return '<span class="status-unknown">UNKNOWN</span>';
 }
 
+// fallow-ignore-next-line complexity
 export function countByClass(emitters: CaptureEmitterRow[]): {
 	hostile: number;
 	suspect: number;

@@ -24,7 +24,7 @@ export const DeviceTypeSchema = z.enum(['hackrf', 'b205', 'auto']).default('hack
  * 2. { start: number, end: number }
  * 3. Plain number (center frequency)
  */
-export const FrequencyRangeSchema = z.union([
+const FrequencyRangeSchema = z.union([
 	// Format 1: start/stop/step
 	z
 		.object({

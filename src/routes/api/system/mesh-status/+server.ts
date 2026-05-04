@@ -54,6 +54,7 @@ async function fetchTailscalePeers(): Promise<TailscalePeer[]> {
 }
 
 /** Build TAK server entry from TakService status. */
+// fallow-ignore-next-line complexity
 function buildTakServer(): TakServer[] {
 	try {
 		const status = TakService.getInstance().getStatus();

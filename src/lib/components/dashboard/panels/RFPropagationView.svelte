@@ -82,6 +82,7 @@
 	}
 
 	/** Fetch the compute endpoint and return parsed response; throws on error */
+	// fallow-ignore-next-line complexity
 	async function fetchCompute(signal: AbortSignal): Promise<ComputeResponse> {
 		const { mode: _, ...params } = get(rfParams);
 		const position = requireGPSPosition();

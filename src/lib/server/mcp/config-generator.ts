@@ -78,22 +78,14 @@ function getMCPServerPath(serverFile: string): string {
 }
 
 /** Generate MCP server definition */
-export function generateMCPServer(serverId: string, serverFile: string): MCPServerDefinition {
+function generateMCPServer(serverId: string, serverFile: string): MCPServerDefinition {
 	return { id: serverId, ...mcpCommand(getMCPServerPath(serverFile)), env: mcpEnv() };
-}
-
-/** Generate MCP server definition for legacy monolithic server (backward compat) */
-export function generateArgosMCPServer(): MCPServerDefinition {
-	const file = IS_DEV
-		? 'src/lib/server/mcp/dynamic-server.ts'
-		: 'build/server/mcp/dynamic-server.js';
-	return { id: 'argos-tools', ...mcpCommand(join(process.cwd(), file)), env: mcpEnv() };
 }
 
 /**
  * Generate MCP configuration for Context B (Host Claude CLI)
  */
-export async function generateContextBConfig(): Promise<MCPConfiguration> {
+async function generateContextBConfig(): Promise<MCPConfiguration> {
 	const mcpServers: Record<string, MCPServerDefinition> = {};
 
 	// Add all modular servers
@@ -115,6 +107,9 @@ async function writeMCPConfig(mcpConfig: MCPConfiguration, path: string): Promis
 /**
  * Install MCP configuration for Context B (Host)
  * Writes to .mcp.json in the project root (where Claude Code reads it)
+ *
+ * @internal — invoked by `scripts/ops/mcp-install.ts`. Fallow flags this as
+ * unused because scripts/ are outside its dead-code entry-point graph.
  */
 export async function installContextBConfig(): Promise<string> {
 	const mcpConfig = await generateContextBConfig();
@@ -134,39 +129,13 @@ export async function installContextBConfig(): Promise<string> {
 
 /**
  * Generate MCP configuration content (for display/testing)
+ *
+ * @internal — invoked by `scripts/ops/mcp-config.ts`. Fallow flags this as
+ * unused because scripts/ are outside its dead-code entry-point graph.
  */
 export async function generateMCPConfigContent(): Promise<string> {
 	const config = await generateContextBConfig();
 	return JSON.stringify(config, null, 2);
-}
-
-/**
- * Update existing MCP configuration
- * Merges Argos servers with existing servers
- */
-export async function updateExistingConfig(configPath: string): Promise<void> {
-	try {
-		// Read existing config
-		const { readFile } = await import('fs/promises');
-		const existingContent = await readFile(configPath, 'utf-8');
-		const existingConfig: MCPConfiguration = JSON.parse(existingContent);
-
-		// Add/update all Argos servers
-		for (const server of MCP_SERVERS) {
-			const serverDef = generateMCPServer(server.id, server.serverFile);
-			existingConfig.mcpServers[server.id] = serverDef;
-		}
-
-		// Write back
-		await writeMCPConfig(existingConfig, configPath);
-
-		logger.info('MCP config updated with all Argos MCP servers');
-	} catch (_error) {
-		// If file doesn't exist, create new one
-		logger.info('MCP config creating new configuration');
-		const config = await generateContextBConfig();
-		await writeMCPConfig(config, configPath);
-	}
 }
 
 /**

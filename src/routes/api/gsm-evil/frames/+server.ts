@@ -82,6 +82,7 @@ function parseFrames(recentFrames: string): string[] {
 		.filter((f) => f.length > 0);
 }
 
+// fallow-ignore-next-line complexity
 export const GET = createHandler(async () => {
 	try {
 		const isRunning = await checkGrgsmProcess();

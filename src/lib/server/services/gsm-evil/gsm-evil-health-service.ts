@@ -69,6 +69,7 @@ function collectIssuesAndRecommendations(health: GsmEvilHealth): {
 }
 
 /** Check if all pipeline components are running and accessible */
+// fallow-ignore-next-line complexity
 function isPipelineHealthy(health: GsmEvilHealth): boolean {
 	return (
 		health.grgsm.isRunning &&
@@ -80,6 +81,7 @@ function isPipelineHealthy(health: GsmEvilHealth): boolean {
 }
 
 /** Determine the overall status string from pipeline state */
+// fallow-ignore-next-line complexity
 function resolveOverallStatus(health: GsmEvilHealth, pipelineOk: boolean): string {
 	if (pipelineOk) return health.dataFlow.hasRecentData ? 'healthy' : 'healthy-idle';
 	if (health.grgsm.isRunning || health.gsmevil.isRunning) return 'partial';

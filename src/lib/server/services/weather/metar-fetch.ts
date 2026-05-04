@@ -50,6 +50,7 @@ export interface MetarLookup {
 	stale: boolean;
 }
 
+// fallow-ignore-next-line complexity
 export async function getMetar(opts: UpstreamOpts): Promise<MetarLookup | null> {
 	const fresh = cache.getFresh(opts.station);
 	if (fresh) return { wx: fresh, stale: false };

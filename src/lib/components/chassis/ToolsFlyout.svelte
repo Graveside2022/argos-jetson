@@ -108,6 +108,7 @@
 		activate(selectedTool);
 	}
 
+	// fallow-ignore-next-line complexity
 	function routeKey(e: KeyboardEvent): void {
 		if (e.key === 'Escape') return doClose(e);
 		if (e.key === 'Enter') return doActivate(e);

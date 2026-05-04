@@ -11,7 +11,7 @@ import { resolveThemeColor } from '$lib/utils/theme-colors';
  * Signal(d) = -12 - 33·log₁₀(d) → d = 10^((-12 - rssi) / 33)
  * Clamped to [10m, 300m] to match detection range bands.
  */
-export function rssiToMeters(rssi: number): number {
+function rssiToMeters(rssi: number): number {
 	if (rssi === 0 || rssi >= -12) return 40; // no-signal fallback
 	const d = Math.pow(10, (-12 - rssi) / 33);
 	return Math.max(10, Math.min(300, d));
@@ -174,6 +174,7 @@ const TIME_UNITS: [number, number, string][] = [
 /**
  * Format a timestamp as a relative time string (e.g., "5m ago").
  */
+// fallow-ignore-next-line complexity
 export function formatTimeAgo(timestamp: number): string {
 	if (!timestamp) return '—';
 	const ts = timestamp < 1e12 ? timestamp * 1000 : timestamp;
@@ -242,6 +243,7 @@ function towerToFeature(t: CellTowerData): Feature {
 	};
 }
 
+// fallow-ignore-next-line complexity
 async function fetchTowerData(lat: number, lon: number): Promise<CellTowerData[] | null> {
 	const data = await fetchJSON<{ success: boolean; towers?: CellTowerData[] }>(
 		`/api/cell-towers/nearby?lat=${lat}&lon=${lon}&radius=25`

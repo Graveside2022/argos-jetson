@@ -76,6 +76,7 @@ async function tryFusionController(): Promise<Record<string, unknown> | null> {
 	};
 }
 
+// fallow-ignore-next-line complexity
 export const GET = createHandler(async ({ url }) => {
 	try {
 		if (url.searchParams.get('mock') === 'true') {

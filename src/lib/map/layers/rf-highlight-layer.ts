@@ -19,11 +19,7 @@
  * highlight augments the centroid rather than hiding it.
  */
 
-import type {
-	CircleLayerSpecification,
-	LineLayerSpecification,
-	SourceSpecification
-} from 'maplibre-gl';
+import type { CircleLayerSpecification, LineLayerSpecification } from 'maplibre-gl';
 
 export const RF_HIGHLIGHT_RAYS_SOURCE_ID = 'rf-highlight-rays-src';
 export const RF_HIGHLIGHT_RINGS_SOURCE_ID = 'rf-highlight-rings-src';
@@ -33,16 +29,6 @@ export const RF_HIGHLIGHT_RINGS_OUTER_LAYER_ID = 'rf-highlight-rings-outer';
 
 const HIGHLIGHT_ACCENT = 'rgba(212, 160, 84, 0.85)';
 const HIGHLIGHT_ACCENT_FAINT = 'rgba(212, 160, 84, 0.45)';
-
-export const rfHighlightRaysSource: SourceSpecification = {
-	type: 'geojson',
-	data: { type: 'FeatureCollection', features: [] }
-};
-
-export const rfHighlightRingsSource: SourceSpecification = {
-	type: 'geojson',
-	data: { type: 'FeatureCollection', features: [] }
-};
 
 export const rfHighlightRaysLayer: LineLayerSpecification = {
 	id: RF_HIGHLIGHT_RAYS_LAYER_ID,

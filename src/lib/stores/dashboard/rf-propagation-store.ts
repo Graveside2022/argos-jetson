@@ -68,7 +68,7 @@ export function updateRFParam<K extends keyof RFPropagationParams>(
 
 // ── Computation state ───────────────────────────────────────────────
 
-export type ComputeState = 'idle' | 'computing' | 'error' | 'done';
+type ComputeState = 'idle' | 'computing' | 'error' | 'done';
 
 export const computeState = writable<ComputeState>('idle');
 export const computeError = writable<string | null>(null);

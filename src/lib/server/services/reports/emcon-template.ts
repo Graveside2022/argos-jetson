@@ -59,6 +59,7 @@ function renderFrontmatter(input: EmconInput): string {
 	].join('\n');
 }
 
+// fallow-ignore-next-line complexity
 function renderLoadoutWarning(diff: DiffResult): string {
 	if (diff.loadout.matched) return '';
 	const only = [

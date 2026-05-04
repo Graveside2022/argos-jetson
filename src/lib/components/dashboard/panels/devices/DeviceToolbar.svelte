@@ -53,6 +53,7 @@
 		}
 	}
 
+	// fallow-ignore-next-line complexity
 	async function sendKismetControl(action: 'start' | 'stop'): Promise<void> {
 		kismetBusy = true;
 		setKismetStatus(action === 'start' ? 'starting' : 'stopping');

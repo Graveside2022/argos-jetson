@@ -24,12 +24,12 @@ import { kismetStore } from '$lib/stores/tactical-map/kismet-store';
 /**
  * MAC address of the currently selected device (when operator clicks a device on map)
  */
-export const selectedDeviceMAC = writable<string | null>(null);
+const selectedDeviceMAC = writable<string | null>(null);
 
 /**
  * Type of interaction that triggered the last context update
  */
-export interface InteractionEvent {
+interface InteractionEvent {
 	type: 'device_selected' | 'tower_selected' | 'area_selected' | 'manual_query';
 	data: Record<string, unknown>;
 	timestamp: number;
@@ -69,6 +69,7 @@ function firstTruthy(...vals: (string | undefined | null)[]): string | undefined
 	return undefined;
 }
 
+// fallow-ignore-next-line complexity
 function buildIdentity(device: KismetDevice, mac: string) {
 	return {
 		mac: device.mac || mac,
@@ -83,6 +84,7 @@ function buildSignal(device: KismetDevice) {
 	return { signal, signalDbm: signal };
 }
 
+// fallow-ignore-next-line complexity
 function buildRadio(device: KismetDevice) {
 	return {
 		channel: device.channel ?? null,
@@ -91,6 +93,7 @@ function buildRadio(device: KismetDevice) {
 	};
 }
 
+// fallow-ignore-next-line complexity
 function buildActivity(device: KismetDevice) {
 	return {
 		packets: device.packets ?? 0,

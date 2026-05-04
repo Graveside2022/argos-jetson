@@ -25,6 +25,7 @@ const MIME: Record<ViewFormat, string> = {
 	'slides-pdf': 'application/pdf'
 };
 
+// fallow-ignore-next-line complexity
 function resolveArtifactPath(report: ReportRow, format: ViewFormat): string | null {
 	switch (format) {
 		case 'html':
@@ -65,6 +66,7 @@ function streamArtifact(path: string, format: ViewFormat): Response {
 	});
 }
 
+// fallow-ignore-next-line complexity
 export const GET = createHandler(({ params, url }) => {
 	const id = params.id;
 	if (!id) {

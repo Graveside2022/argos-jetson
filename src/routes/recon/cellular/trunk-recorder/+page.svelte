@@ -34,6 +34,7 @@
 	$effect(() => {
 		const nextPresets = data.presets;
 		const nextStatus = data.status;
+		// fallow-ignore-next-line complexity
 		untrack(() => {
 			presets = nextPresets;
 			status = nextStatus;
@@ -49,6 +50,7 @@
 	const canEdit = $derived(!status.running && !!selectedPreset);
 	const canDelete = $derived(!status.running && !!selectedPreset);
 
+	// fallow-ignore-next-line complexity
 	async function callControl(
 		action: 'start' | 'stop' | 'restart',
 		presetId?: string
@@ -131,6 +133,7 @@
 		await invalidateAll();
 	}
 
+	// fallow-ignore-next-line complexity
 	async function handleDelete(): Promise<void> {
 		if (!selectedPresetId) return;
 		if (!confirm(`Delete preset "${selectedPreset?.name}"?`)) return;

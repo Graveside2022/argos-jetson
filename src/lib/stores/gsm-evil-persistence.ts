@@ -38,7 +38,7 @@ export function loadFromStorage(set: StoreSet): void {
 }
 
 /** Build a saveable state object with transient keys removed. */
-export function buildSaveableState(state: GSMEvilState): string {
+function buildSaveableState(state: GSMEvilState): string {
 	const stateToSave: Record<string, unknown> = {
 		...state,
 		lastScanTime: new Date().toISOString(),
@@ -49,7 +49,7 @@ export function buildSaveableState(state: GSMEvilState): string {
 }
 
 /** Handle localStorage write errors. */
-export function handlePersistError(error: unknown): void {
+function handlePersistError(error: unknown): void {
 	if (error instanceof DOMException && error.name === 'QuotaExceededError') {
 		logger.warn('localStorage quota exceeded, clearing old data');
 		localStorage.removeItem(STORAGE_KEY);
@@ -70,7 +70,7 @@ export function persistState(state: GSMEvilState): void {
 /** Debounce timer for persistence — 2s trailing edge */
 export let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
-export function schedulePersist(state: GSMEvilState): void {
+function schedulePersist(state: GSMEvilState): void {
 	if (debounceTimer) clearTimeout(debounceTimer);
 	debounceTimer = setTimeout(() => {
 		debounceTimer = null;

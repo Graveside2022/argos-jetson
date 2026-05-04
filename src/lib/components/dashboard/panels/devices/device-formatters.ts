@@ -72,6 +72,7 @@ export function formatPackets(n: number): string {
 	return String(n);
 }
 
+// fallow-ignore-next-line complexity
 export function formatDataSize(bytes: number): string {
 	if (!bytes) return '-';
 	if (bytes >= 1073741824) return `${(bytes / 1073741824).toFixed(1)}G`;

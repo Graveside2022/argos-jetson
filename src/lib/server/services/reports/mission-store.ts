@@ -1,7 +1,7 @@
 /**
  * Mission / capture / report public API.
  *
- * Module of pure functions following the `network-repository` pattern:
+ * Module of pure functions following the repository pattern:
  * every function takes the `db` handle as its first argument. The raw
  * prepared-statement cache and row mappers now live in
  * `$lib/server/db/mission-repository` — nothing in this file touches

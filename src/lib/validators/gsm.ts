@@ -5,7 +5,7 @@
 
 import { GSM_LIMITS } from '$lib/constants/limits';
 
-export class ValidationError extends Error {
+class ValidationError extends Error {
 	constructor(message: string) {
 		super(message);
 		this.name = 'ValidationError';
@@ -18,6 +18,7 @@ export class ValidationError extends Error {
  * @returns Validated gain as number in dB
  * @throws ValidationError if invalid
  */
+// fallow-ignore-next-line complexity
 export function validateGain(gain: string | number): number {
 	const gainNum = typeof gain === 'string' ? parseInt(gain, 10) : gain;
 

@@ -3,7 +3,7 @@
  * Manages navigation state, expanded categories, and tool runtime status
  */
 
-import { derived, get, writable } from 'svelte/store';
+import { derived, writable } from 'svelte/store';
 
 import { findByPath, toolHierarchy } from '$lib/data/tool-hierarchy';
 import { persistedWritable } from '$lib/stores/persisted-writable';
@@ -20,14 +20,9 @@ export const toolNavigationPath = persistedWritable<string[]>('toolNavigationPat
 });
 
 // Which categories are expanded (for collapsible sections)
-export const expandedCategories = persistedWritable<Set<string>>('expandedCategories', new Set(), {
-	serialize: (set) => JSON.stringify([...set]),
-	deserialize: (raw) => new Set(JSON.parse(raw))
-});
-
 // Tool runtime states (overrides the static installed status)
 // Maps tool ID to current status
-export const toolStates = writable<Map<string, ToolStatus>>(new Map());
+const toolStates = writable<Map<string, ToolStatus>>(new Map());
 
 // Derived: current category being viewed
 export const currentCategory = derived(toolNavigationPath, ($path) => {
@@ -79,28 +74,6 @@ export function navigateBack() {
 }
 
 /**
- * Navigate to the root level
- */
-export function navigateToRoot() {
-	toolNavigationPath.set([]);
-}
-
-/**
- * Toggle a category's expanded/collapsed state
- */
-export function toggleCategory(categoryId: string) {
-	expandedCategories.update((set) => {
-		const newSet = new Set(set);
-		if (newSet.has(categoryId)) {
-			newSet.delete(categoryId);
-		} else {
-			newSet.add(categoryId);
-		}
-		return newSet;
-	});
-}
-
-/**
  * Update a tool's runtime status
  */
 export function setToolStatus(toolId: string, status: ToolStatus) {
@@ -109,11 +82,4 @@ export function setToolStatus(toolId: string, status: ToolStatus) {
 		newMap.set(toolId, status);
 		return newMap;
 	});
-}
-
-/**
- * Get a tool's current status (from runtime state or static definition)
- */
-export function getToolStatus(toolId: string): ToolStatus {
-	return get(toolStates).get(toolId) || 'stopped';
 }

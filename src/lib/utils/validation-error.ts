@@ -21,7 +21,7 @@ export type ValidationContext = 'user-action' | 'background' | 'api' | 'websocke
 /**
  * Formatted validation error for logging
  */
-export interface FormattedValidationError {
+interface FormattedValidationError {
 	field: string;
 	message: string;
 	constraint: string;
@@ -80,7 +80,7 @@ function formatZodIssue(issue: ZodIssue): FormattedValidationError {
  * Log validation error to console with full diagnostic details
  * Per FR-005: Includes error message, field path, input data, stack trace
  */
-export function logValidationError(
+function logValidationError(
 	error: ZodError,
 	context: ValidationContext,
 	inputData?: unknown
@@ -106,7 +106,7 @@ export function logValidationError(
  * Get user-friendly error message for UI display
  * Per FR-006: Plain language, no stack traces, actionable guidance
  */
-export function getUserFriendlyMessage(error: ZodError): string {
+function getUserFriendlyMessage(error: ZodError): string {
 	if (error.issues.length === 0) {
 		return 'Validation failed';
 	}

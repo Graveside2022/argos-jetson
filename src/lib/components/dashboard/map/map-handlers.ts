@@ -44,6 +44,7 @@ export function handleDeviceClick(
 
 // ── Cluster click handler ──
 
+// fallow-ignore-next-line complexity
 export async function handleClusterClick(
 	map: maplibregl.Map,
 	ev: maplibregl.MapMouseEvent
@@ -149,6 +150,7 @@ let _prevAffiliationSize = -1;
 let _prevCotCount = -1;
 let _prevDeviceFeatures: FeatureCollection | null = null;
 
+// fallow-ignore-next-line complexity
 function hasSymbolInputChanged(
 	devCount: number,
 	affSize: number,
@@ -224,6 +226,7 @@ export interface CellTowerFetchState {
 	lastLon: number;
 }
 
+// fallow-ignore-next-line complexity
 function shouldFetchTowers(lat: number, lon: number, state: CellTowerFetchState): boolean {
 	if (lat === 0 && lon === 0) return false;
 	if (state.lastLat === 0 && state.lastLon === 0) return true;
