@@ -147,7 +147,7 @@ export async function checkBluetoothAdapter(): Promise<BluetoothAdapterStatus> {
  * Best-effort software recovery: unblock rfkill then ask BlueZ to power on.
  * Returns true if the adapter is powered after the attempt.
  */
-export async function tryPowerOnBluetooth(): Promise<boolean> {
+async function tryPowerOnBluetooth(): Promise<boolean> {
 	await runRfkill(['unblock', 'bluetooth']);
 	await runBluetoothctl(['power', 'on'], 5000);
 	const status = await checkBluetoothAdapter();

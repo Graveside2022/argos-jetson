@@ -120,21 +120,12 @@ export async function scanAllHardware(): Promise<HardwareScanResult> {
 }
 
 /**
- * Detect specific hardware by ID
- */
-export async function detectHardwareById(id: string): Promise<DetectedHardware | null> {
-	// First check if already in registry
-	const existing = globalHardwareRegistry.get(id);
-	if (existing) return existing;
-
-	// Run full scan and look for the hardware
-	const scanResult = await scanAllHardware();
-	return scanResult.detected.find((hw) => hw.id === id) || null;
-}
-
-/**
  * Continuous hardware monitoring
  * Scans for hardware changes at regular intervals
+ *
+ * @internal — class is exported only so the {@link globalHardwareMonitor}
+ * singleton at the bottom of this file can construct + type-annotate. External
+ * consumers should import the singleton, not the class.
  */
 export class HardwareMonitor {
 	private interval: NodeJS.Timeout | null = null;

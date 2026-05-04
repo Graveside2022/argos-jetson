@@ -17,7 +17,7 @@ import { HardwareDevice, type ResourceState } from './types';
 
 type StateMap = Map<HardwareDevice, ResourceState>;
 
-export async function refreshHackrf(state: StateMap): Promise<void> {
+async function refreshHackrf(state: StateMap): Promise<void> {
 	const current = state.get(HardwareDevice.HACKRF);
 	if (!current) return;
 	current.isDetected = await hackrfMgr.detectHackRF();
@@ -27,7 +27,7 @@ export async function refreshHackrf(state: StateMap): Promise<void> {
 	state.set(HardwareDevice.HACKRF, current);
 }
 
-export async function refreshAlfa(state: StateMap): Promise<void> {
+async function refreshAlfa(state: StateMap): Promise<void> {
 	const current = state.get(HardwareDevice.ALFA);
 	if (!current) return;
 	current.isDetected = !!(await alfaMgr.detectAdapter());
@@ -42,7 +42,7 @@ function serviceOwnerOrNull(services: { isActive: boolean; name: string }[]): st
 	return activeSvc ? activeSvc.name.replace(/\.service$/, '') : null;
 }
 
-export async function refreshB205(state: StateMap): Promise<void> {
+async function refreshB205(state: StateMap): Promise<void> {
 	const current = state.get(HardwareDevice.B205);
 	if (!current) return;
 	current.isDetected = await b205Mgr.detectB205();

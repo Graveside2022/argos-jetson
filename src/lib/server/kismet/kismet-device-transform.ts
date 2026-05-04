@@ -31,7 +31,7 @@ export interface KismetRawDevice {
 }
 
 /** Determine device type from Kismet data */
-export function getDeviceType(device: KismetRawDevice): 'AP' | 'Client' | 'Bridge' | 'Unknown' {
+function getDeviceType(device: KismetRawDevice): 'AP' | 'Client' | 'Bridge' | 'Unknown' {
 	const type = device['kismet.device.base.type'];
 	if (type === 'Wi-Fi AP') return 'AP';
 	if (type === 'Wi-Fi Client') return 'Client';
@@ -43,14 +43,14 @@ export function getDeviceType(device: KismetRawDevice): 'AP' | 'Client' | 'Bridg
 const CRYPT_KEYS = ['Open', 'WEP', 'WPA', 'WPA2', 'WPA3'] as const;
 
 /** Extract encryption types from Kismet device data */
-export function getEncryptionTypes(device: KismetRawDevice): string[] {
+function getEncryptionTypes(device: KismetRawDevice): string[] {
 	const crypt = device['kismet.device.base.crypt'];
 	if (!crypt) return [];
 	return CRYPT_KEYS.filter((key) => crypt[key]);
 }
 
 /** Extract device location from Kismet data */
-export function getDeviceLocation(device: KismetRawDevice): KismetDevice['location'] | undefined {
+function getDeviceLocation(device: KismetRawDevice): KismetDevice['location'] | undefined {
 	const location = device['kismet.device.base.location'];
 	if (!location) return undefined;
 
