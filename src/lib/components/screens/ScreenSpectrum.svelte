@@ -13,6 +13,9 @@
 <script lang="ts">
 	import { onDestroy, onMount } from 'svelte';
 
+	import SpectrumSweepBar, {
+		type SpectrumMode
+	} from '$lib/components/mk2/spectrum/SpectrumSweepBar.svelte';
 	import { spectrumRuntime } from '$lib/state/spectrum.svelte';
 	import type {
 		ConnectedPayload,
@@ -24,6 +27,8 @@
 	import Spectrum from './parts/Spectrum.svelte';
 	import SpectrumControls from './parts/SpectrumControls.svelte';
 	import Waterfall from './parts/Waterfall.svelte';
+
+	let displayMode = $state<SpectrumMode>('peak');
 
 	let source: EventSource | null = null;
 
@@ -81,29 +86,42 @@
 </script>
 
 <section class="screen-spectrum">
-	<div class="left">
-		<div class="graph">
-			<Spectrum frame={spectrumRuntime.lastFrame} peakHold={spectrumRuntime.peakHold} />
+	<SpectrumSweepBar
+		mode={displayMode}
+		onModeChange={(next) => (displayMode = next)}
+	/>
+	<div class="content">
+		<div class="left">
+			<div class="graph">
+				<Spectrum frame={spectrumRuntime.lastFrame} peakHold={spectrumRuntime.peakHold} />
+			</div>
+			<div class="waterfall">
+				<Waterfall frame={spectrumRuntime.lastFrame} />
+			</div>
 		</div>
-		<div class="waterfall">
-			<Waterfall frame={spectrumRuntime.lastFrame} />
-		</div>
+		<aside class="right">
+			<SpectrumControls />
+		</aside>
 	</div>
-	<aside class="right">
-		<SpectrumControls />
-	</aside>
 </section>
 
 <style>
 	.screen-spectrum {
 		flex: 1;
 		min-height: 0;
-		display: grid;
-		grid-template-columns: 1fr 280px;
+		display: flex;
+		flex-direction: column;
 		gap: 12px;
 		padding: 12px;
 		font-family: var(--mk2-f-mono);
 		color: var(--mk2-ink);
+	}
+	.content {
+		flex: 1;
+		min-height: 0;
+		display: grid;
+		grid-template-columns: 1fr 280px;
+		gap: 12px;
 	}
 	.left {
 		display: grid;

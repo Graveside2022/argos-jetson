@@ -35,7 +35,8 @@ export const mk2ToolsCatalog: readonly Mk2Tool[] = [
 		description: 'RF spectrum sweep — heatmap on map',
 		icon: Radio,
 		pillar: 'OFFNET',
-		action: { kind: 'route', href: '/dashboard/mk2/map' }
+		action: { kind: 'route', href: '/dashboard/mk2/map' },
+		docsUrl: 'https://github.com/greatscottgadgets/hackrf'
 	},
 	{
 		id: 'kismet',
@@ -43,7 +44,8 @@ export const mk2ToolsCatalog: readonly Mk2Tool[] = [
 		description: 'Wi-Fi device discovery + signal capture',
 		icon: Wifi,
 		pillar: 'OFFNET',
-		action: { kind: 'route', href: '/dashboard/mk2/kismet' }
+		action: { kind: 'route', href: '/dashboard/mk2/kismet' },
+		docsUrl: 'https://www.kismetwireless.net/docs/readme/intro/'
 	},
 	{
 		id: 'gsm-evil',
@@ -51,7 +53,8 @@ export const mk2ToolsCatalog: readonly Mk2Tool[] = [
 		description: 'GSM L3 IMSI capture + cell info',
 		icon: Radar,
 		pillar: 'OFFNET',
-		action: { kind: 'route', href: '/dashboard/mk2/gsm' }
+		action: { kind: 'route', href: '/dashboard/mk2/gsm' },
+		docsUrl: 'https://github.com/ninjhacks/gsmevil2'
 	},
 	{
 		id: 'dragonsync-uas',
@@ -59,7 +62,8 @@ export const mk2ToolsCatalog: readonly Mk2Tool[] = [
 		description: 'Drone / UAS RF detection — UAS map layer',
 		icon: Activity,
 		pillar: 'OFFNET',
-		action: { kind: 'route', href: '/dashboard/mk2/map' }
+		action: { kind: 'route', href: '/dashboard/mk2/map' },
+		docsUrl: 'https://github.com/alphafox02/DragonSync'
 	},
 	{
 		id: 'bluetooth-discovery',
@@ -67,7 +71,8 @@ export const mk2ToolsCatalog: readonly Mk2Tool[] = [
 		description: 'BLE / classic device capture — drawer tab',
 		icon: Bluetooth,
 		pillar: 'OFFNET',
-		action: { kind: 'drawer', tab: 'bluetooth' }
+		action: { kind: 'drawer', tab: 'bluetooth' },
+		docsUrl: 'https://github.com/alphafox02/blue-dragon'
 	},
 	{
 		id: 'spectrum-analyzer',
@@ -76,6 +81,7 @@ export const mk2ToolsCatalog: readonly Mk2Tool[] = [
 		icon: Activity,
 		pillar: 'OFFNET',
 		action: { kind: 'route', href: '/dashboard/mk2/spectrum' }
+		// Internal Argos surface — no external upstream
 	},
 	{
 		id: 'openwebrx-plus',
@@ -83,7 +89,8 @@ export const mk2ToolsCatalog: readonly Mk2Tool[] = [
 		description: 'Multi-band SDR receiver — separate tenant',
 		icon: Radio,
 		pillar: 'OFFNET',
-		action: { kind: 'external', url: '/openwebrx-plus/' }
+		action: { kind: 'external', url: '/openwebrx-plus/' },
+		docsUrl: 'https://github.com/luarvique/openwebrx-plus'
 	},
 
 	// ───── ONNET ────────────────────────────────────────────────────────────
@@ -93,7 +100,8 @@ export const mk2ToolsCatalog: readonly Mk2Tool[] = [
 		description: 'Packet capture + dissector — noVNC tenant',
 		icon: Network,
 		pillar: 'ONNET',
-		action: { kind: 'external', url: '/wireshark/vnc/' }
+		action: { kind: 'external', url: '/wireshark/vnc/' },
+		docsUrl: 'https://www.wireshark.org/docs/'
 	},
 	{
 		id: 'wifi-scan',
@@ -102,6 +110,7 @@ export const mk2ToolsCatalog: readonly Mk2Tool[] = [
 		icon: Wifi,
 		pillar: 'ONNET',
 		action: { kind: 'drawer', tab: 'wifi' }
+		// Internal Argos surface — no external upstream
 	},
 	{
 		id: 'system-info',
@@ -110,6 +119,7 @@ export const mk2ToolsCatalog: readonly Mk2Tool[] = [
 		icon: MonitorCog,
 		pillar: 'ONNET',
 		action: { kind: 'route', href: '/dashboard/mk2/systems' }
+		// Internal Argos surface — no external upstream
 	},
 
 	// ───── OSINT ────────────────────────────────────────────────────────────
@@ -120,6 +130,7 @@ export const mk2ToolsCatalog: readonly Mk2Tool[] = [
 		icon: LayoutDashboard,
 		pillar: 'OSINT',
 		action: { kind: 'route', href: '/dashboard/mk2/overview' }
+		// Internal Argos surface — no external upstream
 	},
 	{
 		id: 'mission-map',
@@ -128,6 +139,7 @@ export const mk2ToolsCatalog: readonly Mk2Tool[] = [
 		icon: MapIcon,
 		pillar: 'OSINT',
 		action: { kind: 'route', href: '/dashboard/mk2/map' }
+		// Internal Argos surface — no external upstream
 	},
 	{
 		id: 'rf-captures',
@@ -136,6 +148,7 @@ export const mk2ToolsCatalog: readonly Mk2Tool[] = [
 		icon: FileSearch,
 		pillar: 'OSINT',
 		action: { kind: 'drawer', tab: 'captures' }
+		// Internal Argos surface — no external upstream
 	},
 	{
 		id: 'cell-tower-db',
@@ -143,7 +156,8 @@ export const mk2ToolsCatalog: readonly Mk2Tool[] = [
 		description: '5.1M-row tower lookup — query tooling pending',
 		icon: Database,
 		pillar: 'OSINT',
-		action: { kind: 'unwired' }
+		action: { kind: 'unwired' },
+		docsUrl: 'https://wiki.opencellid.org/'
 	},
 	{
 		id: 'tak-server',
@@ -151,6 +165,7 @@ export const mk2ToolsCatalog: readonly Mk2Tool[] = [
 		description: 'Cursor-on-Target broadcaster — UI pending',
 		icon: Wrench,
 		pillar: 'OSINT',
-		action: { kind: 'unwired' }
+		action: { kind: 'unwired' },
+		docsUrl: 'https://docs.tak.gov/api/takserver'
 	}
 ] as const;

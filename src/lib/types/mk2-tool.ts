@@ -29,4 +29,13 @@ export interface Mk2Tool {
 	icon: Component<IconProps>;
 	pillar: Mk2ToolPillar;
 	action: Mk2ToolAction;
+	/**
+	 * Canonical official documentation URL for this tool.
+	 *
+	 * Preferred order: project's own docs site → vendor docs page →
+	 * GitHub `/docs` directory → repo root README. Internal Argos surfaces
+	 * (mission overview, system info, mission map, etc.) leave this
+	 * undefined because there is no external upstream.
+	 */
+	docsUrl?: string;
 }

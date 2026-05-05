@@ -14,6 +14,7 @@
 
 <script lang="ts">
 	import { DataTable as CarbonDataTable } from 'carbon-components-svelte';
+	import type { Snippet } from 'svelte';
 
 	interface Props {
 		headers: DataTableHeader[];
@@ -32,6 +33,7 @@
 		class?: string;
 		onClickRow?: (row: DataTableRow) => void;
 		onSelectRow?: (selected: string[]) => void;
+		cell?: Snippet<[{ row: DataTableRow; cell: { key: string; value: unknown } }]>;
 	}
 
 	let {
@@ -50,7 +52,8 @@
 		nonExpandableRowIds,
 		class: extraClass = '',
 		onClickRow,
-		onSelectRow
+		onSelectRow,
+		cell
 	}: Props = $props();
 
 	function handleClickRow(e: CustomEvent<{ row: DataTableRow }>): void {
@@ -78,4 +81,12 @@
 	{nonExpandableRowIds}
 	class={extraClass}
 	on:click:row={handleClickRow}
-/>
+>
+	<svelte:fragment slot="cell" let:row let:cell={cellInfo}>
+		{#if cell}
+			{@render cell({ row, cell: cellInfo })}
+		{:else}
+			{cellInfo.value ?? ''}
+		{/if}
+	</svelte:fragment>
+</CarbonDataTable>

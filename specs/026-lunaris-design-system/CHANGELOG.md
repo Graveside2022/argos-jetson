@@ -228,6 +228,86 @@ Per `migration-roadmap.md`:
 
 ---
 
+## Phase 9 — UI v2 design parity (Carbon-first) ✅ Done 2026-05-05
+
+**Branch:** `session-2` → `dev`
+**Plan:** `/home/jetson2/.claude/plans/yes-proceed-distributed-island.md`
+
+Phase 9 closes the ~50% UI v2 design-parity gap between live `:5174` and the React 18 + Babel-standalone mock in `docs/UI/Argos (1).zip`. Carbon Design System acts as the primitive layer of truth — every gap maps first to a Carbon primitive verified via context7 against `carbon-components-svelte@0.107.0`, falling back to a bespoke chassis only when Carbon ships nothing.
+
+### 9.1 — Carbon chassis additions (PR #110)
+
+8 new `chassis/forms/*.svelte` Carbon wrappers + 28 spec docs: `DataTable`, `Tile`, `ClickableTile`, `Tag`, `ProgressBar`, `ContentSwitcher`, `StructuredList`, `Accordion`. Phase 9.4 patch added a `cell` snippet prop to `DataTable`.
+
+### 9.2 — Bespoke chassis additions
+
+- `chassis/forms/RfRangeReadout.svelte` — compact label/mono-value/unit display. **Architecture decision:** replaces the originally-planned `RfSliderGroup`. Sliders are the wrong primitive for HackRF discrete-step gain (LNA `[0,8,16,24,32,40]`); the design's `RangeField` is a read-only display, not an interactive slider.
+- `chassis/DockShell.svelte` — 4-way dock-target zones (left/right/top/bottom/hidden) for Workflows panel. CSS-grid layout, two snippets (`primary` + `secondary`). Drag UX deferred to v2 once user testing confirms it's wanted.
+
+8 spec docs total.
+
+### 9.3 — AGENTS Mission Control screen
+
+Replaces the `spec-024 PR7` literal stub at `routes/dashboard/mk2/agents/+page.svelte` with a full mission-control surface: `MissionControlBar`, `SessionFilterTabs`, `SessionViewToggle`, `SessionCard`, `SessionGrid`, `SessionDetailPanel`, `WorkflowsPanel`. Adds `tmuxSessionsStore` (5s polling + mock-fallback) + `workflowsStore` and `src/lib/types/agents.ts`.
+
+**Backend deferred:** `/api/agent/sessions/*` and `/api/workflows/*` blocked on workflow execution semantics decision (tmux send-keys vs. spawn vs. external runner).
+
+### 9.4 — OVERVIEW reflow (sources panel + event stream band + event detail modal)
+
+`SourcesPanel`, `EventStreamBand`, `EventDetailModal` + `sourcesStore` + reflowed grid layout (`SENSORS | DETECTIONS | SOURCES` middle row + `EVENT STREAM` band below + Modal at root). Added `cell` snippet to `DataTable` chassis (benefits 9.4–9.6 consumers).
+
+### 9.5 — TOOLS catalog full hierarchy + NOT-INSTALLED state
+
+- `src/lib/data/tools-catalog.ts` — verbatim port of `docs/UI/Argos (1).zip` `tools-data.jsx`: 3 pillars × 24 categories × 97 tools with `installed`/`view`/`docs` fields + `buildToolIndex()` + `countTools()`.
+- `src/lib/components/chassis/ToolsHierarchyFlyout.svelte` — Carbon `Accordion` + `ContentSwitcher` (pillar tabs) + `Tag` chips for INSTALLED/NOT-INSTALLED/VIEW. Cross-pillar search.
+
+**Coexists with existing `ToolsFlyout.svelte`** — old flat flyout (`Mk2Tool[]`) stays wired; future PR swaps consumer wiring after hierarchical UX validation.
+
+**Backend deferred:** `/api/tools/manifest` (per-tool `which`/`dpkg` probing) skipped for v1.
+
+### 9.6 — SPECTRUM SweepBar + parity audit (KISMET / GSM / SYSTEMS / MAP)
+
+- `src/lib/components/mk2/spectrum/SpectrumSweepBar.svelte` — CTL-01 design row composing 6× `RfRangeReadout` + `ContentSwitcher` PEAK/AVG/LIVE + action buttons. Validates the 9.2 chassis primitives in a real consumer.
+- `ScreenSpectrum.svelte` — re-flowed to flex-column with sweep bar at top.
+- `specs/026-lunaris-design-system/phase-9.6-parity-audit.md` — feature-by-feature audit. KISMET (HIGH gaps: 4-pane rebuild) + GSM (HIGH gaps: CTL/MTR/CON rows) split into 9.6.2 / 9.6.3 (own sub-phases). SYSTEMS = 9.6.4 (verify). MAP dropped (no design source).
+
+### 9.7 — Audit verdict: substantially shipped
+
+All three 9.7 plan items already exist in the live codebase:
+
+- `/api/missions/*` CRUD — full GET/POST/PATCH/DELETE + activate, SQLite-backed via `mission-repository.ts`.
+- Weather popover — `WeatherButton.svelte` + `WeatherPanel.svelte` (spec-024 PR1 T011) with VFR/MVFR/IFR/LIFR color mapping + METAR cache.
+- Sparkline plumbing — `OverviewSensors.svelte` wires real telemetry from `/api/rf/stream`, `/api/kismet/devices`, `/api/gps/satellites`, `/api/system/metrics` via rolling buffers.
+
+**Deferred item logged:** MissionStrip cell-schema reconciliation with design's posture-driven model (live=sitrep with operator/target/link-budget; design=posture/elapsed/team). Reconciliation needs schema migration + backend rewrite — recommend separate spec.
+
+### 9.8 — Close-out
+
+- Sentrux: `quality_signal=6734` (unchanged from Phase 9.1 baseline), 2/2 rules pass, 0 violations.
+- This CHANGELOG entry.
+- `migration-roadmap.md` updated.
+
+### Verification
+
+- ✅ `svelte-autofixer` `issues:[]` on every new/modified `.svelte` file.
+- ✅ `npm run lint` exit 0 on all new surfaces.
+- ✅ `npx svelte-check` 0 errors (143 warnings, all pre-existing).
+- ✅ Sentrux `quality_signal=6734`, 2/2 rules pass, 0 violations.
+
+### Deferred (follow-up sub-phases)
+
+- 9.3 backend (`/api/agent/sessions/*`, `/api/workflows/*`) — pending workflow execution semantics decision.
+- 9.5 backend (`/api/tools/manifest`) — installed-state heuristic per-tool detection.
+- 9.6.2 KISMET 4-pane rebuild (CTL-01 tool bar + FLT-02 filter rail + RSSI sparkline + LOCK CHANNEL + status-dot column).
+- 9.6.3 GSM rebuild (CTL-01 transport + MTR-02 metrics row + CON-05 console band + 4-row split).
+- 9.6.4 SYSTEMS verification (sortable proc table + service action icons + disk-usage progress bars).
+- MissionStrip cell-schema reconciliation.
+
+**Closes:** Phase 9 row of `migration-roadmap.md`. Spec-026 substantially complete; remaining work is per-screen parity follow-ups under 9.6.2–9.6.4.
+
+---
+
 ## Reference
 
 Full plan: `/home/jetson2/.claude/plans/create-the-plan-clearly-humble-badger.md` (approved 2026-04-28)
+Phase 9 plan: `/home/jetson2/.claude/plans/yes-proceed-distributed-island.md` (approved 2026-05-04)
