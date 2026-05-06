@@ -47,16 +47,13 @@ export type SessionFilter = (typeof SESSION_FILTERS)[number];
 export const SESSION_VIEW_MODES = ['grid', 'list', 'split'] as const;
 export type SessionViewMode = (typeof SESSION_VIEW_MODES)[number];
 
-export type SessionAction = 'attach' | 'detach' | 'kill' | 'rename';
-
-export interface SessionActionRequest {
-	action: SessionAction;
-	name?: string;
-}
-
-export function filterSessions(sessions: readonly TmuxSession[], filter: SessionFilter): TmuxSession[] {
+export function filterSessions(
+	sessions: readonly TmuxSession[],
+	filter: SessionFilter
+): TmuxSession[] {
 	if (filter === 'ALL') return [...sessions];
 	if (filter === 'ACTIVE') return sessions.filter((s) => s.state === 'active');
-	if (filter === 'IDLE') return sessions.filter((s) => s.state === 'idle' || s.state === 'paused');
+	if (filter === 'IDLE')
+		return sessions.filter((s) => s.state === 'idle' || s.state === 'paused');
 	return sessions.filter((s) => s.state === 'dead');
 }

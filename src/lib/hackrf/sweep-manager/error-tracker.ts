@@ -9,9 +9,11 @@ import {
 } from './error-analysis';
 import { RecoveryManager } from './error-recovery';
 
+// DeviceState consumed by error-recovery.ts via error-analysis import chain
+// fallow-ignore-next-line unused-type
 export type { DeviceState, ErrorAnalysis, RecoveryConfig };
 
-export interface ErrorState {
+interface ErrorState {
 	consecutiveErrors: number;
 	maxConsecutiveErrors: number;
 	frequencyErrors: Map<number, number>;

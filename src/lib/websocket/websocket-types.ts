@@ -19,12 +19,16 @@ export interface BaseWebSocketConfig {
 	protocols?: string | string[];
 }
 
+// Re-exported via websocket/base.ts as part of the public WebSocket API surface
+// fallow-ignore-next-line unused-type
 export type WebSocketEventListener = (event: WebSocketEvent) => void;
 
 export type ResolvedConfig = Required<Omit<BaseWebSocketConfig, 'protocols'>> & {
 	protocols?: string | string[];
 };
 
+// Re-exported by websocket/base.ts; fallow sees no direct external consumer
+// fallow-ignore-next-line unused-export
 export const CONFIG_DEFAULTS: Omit<ResolvedConfig, 'url'> = {
 	reconnectInterval: 1000,
 	maxReconnectAttempts: -1,
@@ -34,12 +38,16 @@ export const CONFIG_DEFAULTS: Omit<ResolvedConfig, 'url'> = {
 };
 
 /** Apply defaults to WebSocket config. */
+// Re-exported by websocket/base.ts; fallow sees no direct external consumer
+// fallow-ignore-next-line unused-export
 export function resolveConfig(config: BaseWebSocketConfig): ResolvedConfig {
 	return { ...CONFIG_DEFAULTS, ...config } as ResolvedConfig;
 }
 
 /** Create a WebSocket instance, handling browser vs Node.js environments. */
+// Re-exported by websocket/base.ts; fallow sees no direct external consumer
 // fallow-ignore-next-line complexity
+// fallow-ignore-next-line unused-export
 export function createWebSocket(url: string, protocols?: string | string[]): WebSocket {
 	if (typeof window !== 'undefined' && window.WebSocket) {
 		return new WebSocket(url, protocols);
