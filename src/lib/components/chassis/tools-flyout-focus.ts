@@ -4,7 +4,24 @@
 
 import { goto } from '$app/navigation';
 import { drawerActiveStore, drawerOpenStore } from '$lib/state/ui.svelte';
+import { pinnedToolsStore } from '$lib/stores/dashboard/pinned-tools-store.svelte';
 import type { Mk2Tool, Mk2ToolPillar } from '$lib/types/mk2-tool';
+
+// Routes already represented by the FIXED rail slots — pinning these would
+// duplicate them on the rail. Mirrors the FIXED list in LeftRail.svelte.
+const FIXED_ROUTE_IDS = new Set(['agents', 'overview', 'map']);
+
+function isFixedRouteTool(action: Mk2Tool['action']): boolean {
+	if (action.kind !== 'route') return false;
+	const last = action.href.split('/').filter(Boolean).pop() ?? '';
+	return FIXED_ROUTE_IDS.has(last);
+}
+
+function shouldPinOnActivate(tool: Mk2Tool): boolean {
+	const kind = tool.action.kind;
+	if (kind === 'drawer' || kind === 'unwired') return false;
+	return !isFixedRouteTool(tool.action);
+}
 
 const FOCUSABLE_SELECTOR =
 	'button:not(:disabled), [href], input:not(:disabled), [tabindex]:not([tabindex="-1"])';
@@ -32,6 +49,12 @@ export function pickTabTarget(
 
 export function activateTool(tool: Mk2Tool): void {
 	const action = tool.action;
+	// Auto-pin to LeftRail so the tool gets its own numbered slot. Drawer-
+	// only and unwired tools (and tools that route to a fixed rail slot)
+	// are filtered out by `shouldPinOnActivate`.
+	if (shouldPinOnActivate(tool)) {
+		pinnedToolsStore.pin(tool.id);
+	}
 	if (action.kind === 'route') {
 		void goto(action.href);
 		return;
@@ -42,7 +65,8 @@ export function activateTool(tool: Mk2Tool): void {
 		return;
 	}
 	if (action.kind === 'external') {
-		window.open(action.url, '_blank', 'noopener');
+		void goto(`/dashboard/mk2/embed/${encodeURIComponent(tool.id)}`);
+		return;
 	}
 	// `unwired` falls through with no side effect.
 }
@@ -58,7 +82,7 @@ export function isArrowKey(k: string): k is ArrowKey {
 export function actionLabel(t: Mk2Tool): string {
 	if (t.action.kind === 'route') return 'OPEN VIEW';
 	if (t.action.kind === 'drawer') return 'OPEN DRAWER';
-	if (t.action.kind === 'external') return 'OPEN EXTERNAL ↗';
+	if (t.action.kind === 'external') return 'OPEN VIEW';
 	return 'PENDING';
 }
 

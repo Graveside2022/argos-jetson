@@ -150,3 +150,43 @@ Deferred cleanup bundle. **Engineering reasoning**: 6 deferred chassis sub-phase
 8. **eslint config restructure** — fix flat-config recommended spread, audit failures, escalate a11y rules to ERROR. Separate PR. ~1 day.
 
 Branch pattern: `feature/spec-026-carbon-phase-8-{tooltip-icon,popover,skeleton,panel-status,tools-flyout,editor-tab-bar,bits-ui-drop,eslint-restructure}`. Total effort: 5-9 days. Closes the entire spec-026 migration.
+
+---
+
+### Phase 9 — UI v2 design parity (Carbon-first) ✅ Done 2026-05-05
+
+UI v2 design-parity migration. Closes the ~50% gap between live `:5174` and the React 18 + Babel-standalone mock in `docs/UI/Argos (1).zip`. Carbon = primitive layer of truth; bespoke chassis only when Carbon ships nothing.
+
+| Sub | Surface | Status |
+|---|---|---|
+| **9.1** | Carbon chassis additions — 8 wrappers (DataTable, Tile, ClickableTile, Tag, ProgressBar, ContentSwitcher, StructuredList, Accordion) + 28 specs | ✅ PR #110 |
+| **9.2** | Bespoke chassis — `RfRangeReadout` + `DockShell` + 8 specs | ✅ |
+| **9.3** | AGENTS Mission Control — full screen rebuild + tmuxSessions + workflows stores | ✅ UI; backend deferred |
+| **9.4** | OVERVIEW reflow — `SourcesPanel` + `EventStreamBand` + `EventDetailModal` + DataTable cell-snippet patch | ✅ |
+| **9.5** | TOOLS — `tools-catalog.ts` (97 tools) + `ToolsHierarchyFlyout.svelte` | ✅ UI; coexists with old flyout |
+| **9.6** | SPECTRUM `SpectrumSweepBar` + parity audit (KISMET/GSM/SYSTEMS/MAP) | ✅ partial; 9.6.2/9.6.3/9.6.4 split out |
+| **9.7** | Mission CRUD / Weather / Sparkline | ✅ already-shipped audit verdict |
+| **9.8** | Sentrux + CHANGELOG + this row | ✅ |
+
+**Architecture decisions logged:**
+
+1. **RfSliderGroup → RfRangeReadout** — Carbon Slider is wrong primitive for HackRF discrete-step gain (LNA `[0,8,16,24,32,40]`). Existing SpectrumControls already correctly uses `Dropdown`/`NumberInput`.
+2. **DockShell stateless v1** — consumer owns dock state. Drag UX deferred.
+3. **WorkflowsPanel bypasses chassis Accordion** — items-array API doesn't fit dynamic per-category bodies. Uses Carbon directly.
+4. **DataTable `cell` snippet patch** — extends 9.1 chassis with optional per-cell renderer.
+5. **ToolsHierarchyFlyout coexists with ToolsFlyout** — old flat flyout stays wired; future PR swaps consumer wiring.
+6. **Stores ship with mock-fallback** — UI functional dev-end-to-end before backend lands.
+
+**Deferred (own future sub-phases):**
+
+- **9.3 backend** (`/api/agent/sessions/*`, `/api/workflows/*`) — pending workflow-execution semantics decision.
+- **9.5 backend** (`/api/tools/manifest`) — per-tool installed-state heuristic.
+- **9.6.2 KISMET** 4-pane rebuild. ~1-2 days.
+- **9.6.3 GSM** rebuild. ~1-2 days.
+- **9.6.4 SYSTEMS** verification. ~half day.
+- **MissionStrip cell-schema reconciliation** — recommend separate spec.
+- **MAP** — no design source; dropped from 9.6 scope.
+
+**Verification:** Sentrux quality_signal=6734 (carry from PR #110 baseline), 2/2 rules pass, 0 violations. svelte-check 0 errors across new/modified files. ESLint clean.
+
+Full Phase 9 details in `CHANGELOG.md` Phase 9 section. Phase 9 plan: `/home/jetson2/.claude/plans/yes-proceed-distributed-island.md`.

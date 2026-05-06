@@ -392,4 +392,13 @@
 		color: var(--mk2-accent);
 		font-weight: 600;
 	}
+
+	/* When no sort is applied, collapse the indicator span so it doesn't
+	   reserve 10px on the right edge — that misaligned numeric body cells
+	   (which right-align cleanly to padding-right: 12px) by 10px versus
+	   the header label ("RSSI" sat 22px from right edge while body data
+	   sat 12px from right edge). Layout shift on first sort is acceptable. */
+	:global(.lunaris-drawer-table .dwt-sort-ind:empty) {
+		display: none;
+	}
 </style>

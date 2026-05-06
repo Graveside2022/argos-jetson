@@ -28,8 +28,33 @@
 				onclick={() => onActivate(tool)}
 			>
 				{actionLabel(tool)}
-				<span class="kbd">⏎</span>
 			</button>
+			{#if tool.docsUrl}
+				<a
+					class="btn docs"
+					href={tool.docsUrl}
+					target="_blank"
+					rel="noopener noreferrer"
+					title="Open the upstream project's official documentation in a new tab"
+				>
+					OFFICIAL DOCS
+					<svg
+						class="ext-icon"
+						width="11"
+						height="11"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2.5"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						aria-hidden="true"
+					>
+						<path d="M7 17 17 7" />
+						<path d="M7 7h10v10" />
+					</svg>
+				</a>
+			{/if}
 		</div>
 	{:else}
 		<div class="empty">
@@ -95,16 +120,23 @@
 		color: var(--mk2-bg);
 		border-color: var(--mk2-accent);
 	}
+	.btn.docs {
+		background: var(--mk2-amber, #d4a054);
+		color: #1a1a1a;
+		border-color: var(--mk2-amber, #d4a054);
+		text-decoration: none;
+		font-weight: 500;
+	}
+	.btn.docs:hover {
+		filter: brightness(1.1);
+		border-color: var(--mk2-amber, #d4a054);
+	}
+	.ext-icon {
+		opacity: 0.85;
+	}
 	.btn:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
-	}
-	.kbd {
-		padding: 1px 6px;
-		background: var(--mk2-bg);
-		border: 1px solid var(--mk2-line);
-		color: inherit;
-		font-size: var(--mk2-fs-1);
 	}
 	.empty {
 		display: flex;

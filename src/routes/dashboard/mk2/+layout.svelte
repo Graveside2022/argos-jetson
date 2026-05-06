@@ -20,6 +20,8 @@
 	import WeatherButton from '$lib/components/chassis/WeatherButton.svelte';
 	import { mk2ToolsCatalog } from '$lib/data/mk2-tools-catalog';
 	import { createChassisState } from '$lib/state/chassis.svelte';
+	import { pinnedToolsStore } from '$lib/stores/dashboard/pinned-tools-store.svelte';
+	import type { Mk2Tool } from '$lib/types/mk2-tool';
 
 	interface Props {
 		children: Snippet;
@@ -29,6 +31,22 @@
 	const chassis = createChassisState();
 
 	let toolsOpen = $state(false);
+
+	// Resolve pinned tool ids → full pinned-rail entries by looking up the
+	// Mk2 catalog. External tools route to their iframe-embed URL; everything
+	// else uses the canonical /dashboard/mk2/${id} path.
+	function pinnedHref(tool: Mk2Tool): string {
+		if (tool.action.kind === 'external') return `/dashboard/mk2/embed/${tool.id}`;
+		if (tool.action.kind === 'route') return tool.action.href;
+		return `/dashboard/mk2/${tool.id}`;
+	}
+
+	const pinned = $derived(
+		pinnedToolsStore.ids
+			.map((id) => mk2ToolsCatalog.find((t) => t.id === id))
+			.filter((t): t is Mk2Tool => t !== undefined)
+			.map((t) => ({ id: t.id, label: t.name, icon: t.icon, href: pinnedHref(t) }))
+	);
 
 	// ⌘K / Ctrl+K toggles the Tools Flyout. The hotkey fires regardless of
 	// focus target — including inside the flyout's own search input — so
@@ -52,7 +70,12 @@
 		<Topbar lat={chassis.gps.lat} lon={chassis.gps.lon} weather={weatherSlot} />
 	{/snippet}
 	{#snippet rail()}
-		<LeftRail {toolsOpen} onOpenTools={() => (toolsOpen = true)} />
+		<LeftRail
+			{pinned}
+			{toolsOpen}
+			onOpenTools={() => (toolsOpen = true)}
+			onUnpin={(id) => pinnedToolsStore.unpin(id)}
+		/>
 	{/snippet}
 	{#snippet main()}
 		{@render children()}
