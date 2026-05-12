@@ -44,7 +44,10 @@ export class ProcessManager {
 	 * non-standard cwd setups (CI runners, dev shells from elsewhere).
 	 */
 	private resolveScriptPath(): string {
-		return process.env.ARGOS_AUTO_SWEEP_SCRIPT ?? join(process.cwd(), 'scripts/sweep/auto_sweep.sh');
+		return (
+			process.env.ARGOS_AUTO_SWEEP_SCRIPT ??
+			join(process.cwd(), 'scripts/sweep/auto_sweep.sh')
+		);
 	}
 
 	private registerProcess(sweepProcess: ChildProcess): ProcessState {
