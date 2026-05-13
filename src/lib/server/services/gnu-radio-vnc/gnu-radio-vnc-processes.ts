@@ -17,12 +17,11 @@ import { writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { join as joinPath } from 'path';
 
-import openboxRcXml from './etc/openbox-rc.xml?raw';
-
 import { env } from '$lib/server/env';
 import { logger } from '$lib/utils/logger';
 
 import { resolveBin } from '../vnc-common/resolve-bin';
+import openboxRcXml from './etc/openbox-rc.xml?raw';
 import {
 	GNU_RADIO_DEPTH,
 	GNU_RADIO_GEOMETRY,

@@ -19,6 +19,7 @@
 	import TakConfigView from '$lib/components/dashboard/tak/TakConfigView.svelte';
 	import TerminalPanel from '$lib/components/dashboard/TerminalPanel.svelte';
 	import BluehoodView from '$lib/components/dashboard/views/BluehoodView.svelte';
+	import GnuRadioView from '$lib/components/dashboard/views/GnuRadioView.svelte';
 	import KismetView from '$lib/components/dashboard/views/KismetView.svelte';
 	import LogsAnalyticsView from '$lib/components/dashboard/views/LogsAnalyticsView.svelte';
 	import NovaSDRView from '$lib/components/dashboard/views/NovaSDRView.svelte';
@@ -33,7 +34,6 @@
 	import UASScanView from '$lib/components/dashboard/views/UASScanView.svelte';
 	import WebTAKView from '$lib/components/dashboard/views/WebTAKView.svelte';
 	import WigleToTAKView from '$lib/components/dashboard/views/WigleToTAKView.svelte';
-	import GnuRadioView from '$lib/components/dashboard/views/GnuRadioView.svelte';
 	import WiresharkView from '$lib/components/dashboard/views/WiresharkView.svelte';
 	import {
 		activeBottomTab,
