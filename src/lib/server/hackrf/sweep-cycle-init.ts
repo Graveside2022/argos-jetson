@@ -140,7 +140,7 @@ async function initializeCycleAndRun(
 	await delay(2000);
 
 	logger.info(
-		'[SEARCH] Using auto_sweep.sh for device detection (supports HackRF and USRP B205 mini)...'
+		'[SEARCH] Using auto_sweep.sh for HackRF detection (B205 spectrum is handled by /api/spectrum/start with device:b205, see b205-source.ts)...'
 	);
 
 	ctx.frequencyCycler.initializeCycling({
@@ -234,7 +234,7 @@ export async function runNextFrequency(ctx: CycleRuntimeContext): Promise<void> 
 }
 
 /** Switch to the next frequency in the cycle and restart sweep. */
-export async function cycleToNextFrequency(ctx: CycleRuntimeContext): Promise<void> {
+async function cycleToNextFrequency(ctx: CycleRuntimeContext): Promise<void> {
 	const cycleState = ctx.frequencyCycler.getCycleState();
 	if (!cycleState.isCycling || !ctx.state.isRunning) return;
 	await ctx.frequencyCycler.cycleToNext(async (nextFreq) => {

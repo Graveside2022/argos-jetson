@@ -23,7 +23,7 @@ export type ThemePalette =
 
 export type RailPosition = 'left' | 'right' | 'top' | 'bottom';
 
-export interface ThemeState {
+interface ThemeState {
 	palette: ThemePalette;
 	railPosition: RailPosition;
 }

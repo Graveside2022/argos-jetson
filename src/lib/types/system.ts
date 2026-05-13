@@ -6,6 +6,7 @@
 export interface SystemInfo {
 	hostname: string;
 	kernel?: string;
+	distro?: string;
 	loadAvg?: [number, number, number];
 	ip: string;
 	tailscaleIp: string | null;

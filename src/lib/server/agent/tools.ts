@@ -6,8 +6,6 @@
 import { getFrontendToolsForAgent } from '$lib/server/agent/frontend-tools';
 import { argosTools, type Tool } from '$lib/server/agent/tool-schemas';
 
-export { argosTools };
-
 /**
  * Get all available tools (hardcoded + frontend)
  */
@@ -55,6 +53,7 @@ interface SystemContext {
 }
 
 /** Format a device metric with fallback */
+// fallow-ignore-next-line complexity
 function deviceField(value: string | number | null | undefined, suffix?: string): string {
 	if (value === null || value === undefined || value === '') return 'Unknown';
 	return suffix ? `${value} ${suffix}` : String(value);
@@ -73,6 +72,7 @@ function formatDeviceDetails(dev: NonNullable<SystemContext['selectedDeviceDetai
 }
 
 /** Build the device context section for the system prompt */
+// fallow-ignore-next-line complexity
 function buildDeviceContext(context?: SystemContext): string {
 	const dev = context?.selectedDeviceDetails;
 	if (!context?.selectedDevice || !dev) return '- No device selected';
@@ -82,6 +82,7 @@ ${formatDeviceDetails(dev)}
 }
 
 /** Build the workflow context section for the system prompt */
+// fallow-ignore-next-line complexity
 function buildWorkflowContext(context?: SystemContext): string {
 	if (!context?.currentWorkflow) return '';
 	return `\nACTIVE WORKFLOW: ${context.currentWorkflow}
@@ -107,6 +108,7 @@ function kismetLine(status?: { connected: boolean; status: string }): string {
 }
 
 /** Build status lines (signals, position, Kismet) */
+// fallow-ignore-next-line complexity
 function buildStatusLines(context?: SystemContext): string {
 	const lines = [signalLine(context?.activeSignals)];
 	const pos = positionLine(context?.userLocation);

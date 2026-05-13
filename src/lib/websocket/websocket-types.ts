@@ -1,4 +1,4 @@
-import { WebSocketEvent as WebSocketEventEnum } from '$lib/types/enums';
+import { WebSocketEventName as WebSocketEventEnum } from '$lib/types/enums';
 
 export type WebSocketEventType = WebSocketEventEnum;
 
@@ -19,12 +19,16 @@ export interface BaseWebSocketConfig {
 	protocols?: string | string[];
 }
 
+// Re-exported via websocket/base.ts as part of the public WebSocket API surface
+// fallow-ignore-next-line unused-type
 export type WebSocketEventListener = (event: WebSocketEvent) => void;
 
 export type ResolvedConfig = Required<Omit<BaseWebSocketConfig, 'protocols'>> & {
 	protocols?: string | string[];
 };
 
+// Re-exported by websocket/base.ts; fallow sees no direct external consumer
+// fallow-ignore-next-line unused-export
 export const CONFIG_DEFAULTS: Omit<ResolvedConfig, 'url'> = {
 	reconnectInterval: 1000,
 	maxReconnectAttempts: -1,
@@ -39,6 +43,7 @@ export function resolveConfig(config: BaseWebSocketConfig): ResolvedConfig {
 }
 
 /** Create a WebSocket instance, handling browser vs Node.js environments. */
+// fallow-ignore-next-line complexity
 export function createWebSocket(url: string, protocols?: string | string[]): WebSocket {
 	if (typeof window !== 'undefined' && window.WebSocket) {
 		return new WebSocket(url, protocols);

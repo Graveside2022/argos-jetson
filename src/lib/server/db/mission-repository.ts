@@ -24,7 +24,9 @@ import type {
 	ReportType
 } from '$lib/server/services/reports/types';
 
-export type Stmts = {
+import { createStmtsCache } from './repo-helpers';
+
+type Stmts = {
 	insertMission: Database.Statement;
 	getMission: Database.Statement;
 	listMissions: Database.Statement;
@@ -47,8 +49,6 @@ export type Stmts = {
 	getReport: Database.Statement;
 	deleteReport: Database.Statement;
 };
-
-const stmtsCache = new WeakMap<Database.Database, Stmts>();
 
 function prepareStatements(db: Database.Database): Stmts {
 	return {
@@ -121,14 +121,7 @@ function prepareStatements(db: Database.Database): Stmts {
 	};
 }
 
-export function stmts(db: Database.Database): Stmts {
-	let s = stmtsCache.get(db);
-	if (!s) {
-		s = prepareStatements(db);
-		stmtsCache.set(db, s);
-	}
-	return s;
-}
+export const stmts = createStmtsCache(prepareStatements);
 
 export function slugify(input: string): string {
 	return input

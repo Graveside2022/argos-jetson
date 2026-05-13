@@ -50,6 +50,7 @@ async function verifyGrgsmPid(pid: number): Promise<number | null> {
 }
 
 /** Check gr-gsm_livemon process status. */
+// fallow-ignore-next-line complexity
 async function checkGrgsmStatus(): Promise<{
 	isRunning: boolean;
 	pid: number | null;

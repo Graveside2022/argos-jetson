@@ -14,12 +14,12 @@ import { buildAccuracyGeoJSON, buildDetectionRangeGeoJSON } from './map-geojson'
 import { buildRangeBands } from './map-handlers';
 
 /** Whether a heading value is a valid finite number */
-export function isValidHeading(h: number | null | undefined): h is number {
+function isValidHeading(h: number | null | undefined): h is number {
 	return h !== null && h !== undefined && !isNaN(h);
 }
 
 /** Whether the speed indicates the device is moving */
-export function isMoving(spd: number | null | undefined): boolean {
+function isMoving(spd: number | null | undefined): boolean {
 	return spd !== null && spd !== undefined && spd > 0.5;
 }
 
@@ -67,6 +67,7 @@ export function createGpsDerivedState(cssReady: { current: boolean }) {
 
 	const showCone = $derived(headingDeg !== null);
 
+	// fallow-ignore-next-line complexity
 	const accuracyGeoJSON: FeatureCollection = $derived.by(() => {
 		const lat = gps$.current.position.lat;
 		const lon = gps$.current.position.lon;

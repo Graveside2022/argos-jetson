@@ -19,6 +19,9 @@ export interface JsonSchemaProperty {
 
 /**
  * MCP Tool Definition (Anthropic format)
+ *
+ * @internal — kept for future dynamic-server registration. Not yet wired
+ * to a consumer; deletion would lose the contract for tool publishing.
  */
 export interface MCPTool {
 	name: string;
@@ -32,6 +35,9 @@ export interface MCPTool {
 
 /**
  * MCP Resource Definition
+ *
+ * @internal — paired with MCPTool above; reserved for the resource-publishing
+ * surface of the dynamic MCP server.
  */
 export interface MCPResource {
 	uri: string;
@@ -42,6 +48,9 @@ export interface MCPResource {
 
 /**
  * MCP Server Configuration
+ *
+ * @internal — describes capability flags for a dynamic MCP server; not
+ * consumed externally yet but defines the registration contract.
  */
 export interface MCPServerConfig {
 	name: string;
@@ -56,6 +65,8 @@ export interface MCPServerConfig {
 
 /**
  * MCP Tool Execution Result
+ *
+ * @internal — return shape for dynamic MCP tool handlers; reserved.
  */
 export interface MCPToolResult {
 	content: Array<{
@@ -95,5 +106,8 @@ export type RegistryChangeEvent =
 
 /**
  * Registry change listener
+ *
+ * @internal — listener signature for the dynamic MCP registry; consumed
+ * via reflection paths fallow can't trace.
  */
 export type RegistryChangeListener = (event: RegistryChangeEvent, id: string) => void;

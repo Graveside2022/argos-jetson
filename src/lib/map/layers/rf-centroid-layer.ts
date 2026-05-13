@@ -11,16 +11,11 @@
  * feature property so we can recolor per WPA2/WPA3/Open/etc.
  */
 
-import type { CircleLayerSpecification, SourceSpecification } from 'maplibre-gl';
+import type { CircleLayerSpecification } from 'maplibre-gl';
 
 export const RF_CENTROID_SOURCE_ID = 'rf-centroid-src';
 export const RF_CENTROID_LAYER_ID = 'rf-centroid';
 export const RF_CENTROID_HALO_LAYER_ID = 'rf-centroid-halo';
-
-export const rfCentroidSource: SourceSpecification = {
-	type: 'geojson',
-	data: { type: 'FeatureCollection', features: [] }
-};
 
 /**
  * White halo under the colored dot so it reads on satellite and dark
@@ -78,12 +73,3 @@ export const rfCentroidLayer: CircleLayerSpecification = {
 		'circle-opacity': 0.95
 	}
 };
-
-export function setRfCentroidVisible(
-	map: { setLayoutProperty: (id: string, prop: string, value: string) => void },
-	visible: boolean
-): void {
-	const value = visible ? 'visible' : 'none';
-	map.setLayoutProperty(RF_CENTROID_LAYER_ID, 'visibility', value);
-	map.setLayoutProperty(RF_CENTROID_HALO_LAYER_ID, 'visibility', value);
-}

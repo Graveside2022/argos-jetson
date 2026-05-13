@@ -3,9 +3,7 @@ export const enum SystemStatus {
 	Running = 'running',
 	Idle = 'idle',
 	Error = 'error',
-	Sweeping = 'sweeping',
-	Stopping = 'stopping',
-	Initializing = 'initializing'
+	Stopping = 'stopping'
 }
 
 export const enum KismetEvent {
@@ -29,7 +27,7 @@ export const enum SignalSource {
 	Other = 'other'
 }
 
-export const enum WebSocketEvent {
+export const enum WebSocketEventName {
 	Open = 'open',
 	Close = 'close',
 	Error = 'error',

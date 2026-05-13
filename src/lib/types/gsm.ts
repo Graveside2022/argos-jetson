@@ -32,9 +32,3 @@ export interface FrequencyTestResult {
 	lac?: string;
 	ci?: string;
 }
-
-export interface ScanProgress {
-	current: number;
-	total: number;
-	completed: number;
-}

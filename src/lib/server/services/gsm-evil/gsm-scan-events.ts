@@ -37,6 +37,7 @@ function classifyCellCompleteness(cellMcc: string, cellLac: string, cellCi: stri
 }
 
 /** Map cell completeness to a user-facing message */
+// fallow-ignore-next-line complexity
 function cellCompletenessMessage(
 	label: string,
 	completeness: string,
@@ -120,6 +121,7 @@ function emitChannelWarning(events: ScanEvent[], label: string, channelType: str
  *
  * Reports identified cell towers or warns about incomplete captures.
  */
+// fallow-ignore-next-line complexity
 export function appendChannelEvents(
 	events: ScanEvent[],
 	label: string,

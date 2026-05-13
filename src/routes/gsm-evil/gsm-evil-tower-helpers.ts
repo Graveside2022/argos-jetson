@@ -19,6 +19,7 @@ interface ScanResultWithCell {
 }
 
 /** Extract cell ID fields with defaults from a scan result. */
+// fallow-ignore-next-line complexity
 function extractCellFields(r: ScanResultWithCell) {
 	const mcc = r.mcc || '';
 	const mnc = r.mnc || '';

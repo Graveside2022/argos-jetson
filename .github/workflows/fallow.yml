@@ -1,0 +1,94 @@
+name: 'Fallow: Code Quality Audit (parity period)'
+
+# Server-side fallow audit — baseline-aware code-intelligence gate.
+# Runs `fallow audit` against the diff vs the auto-detected base branch and
+# prints the findings as a PR-visible log. (The SARIF→GitHub-Code-Scanning
+# upload was removed 2026-05-12 — it registered a `fallow` code-scanning tool
+# whose check sat `queued` indefinitely on PR heads; CodeQL default setup owns
+# code scanning now.)
+#
+# PARITY PERIOD (2026-05-04 → 2026-05-18): the audit step is marked
+# continue-on-error so the job doesn't block PRs while we measure divergence
+# vs ESLint complexity + sonarjs cognitive.
+# CUTOVER (2026-05-18, Phase 3): remove `continue-on-error` AND drop ESLint's
+# `complexity` rule + the `eslint-plugin-sonarjs` plugin in the same PR.
+#
+# Backstops the local pre-commit + pre-push fallow gates when `--no-verify`
+# bypasses husky locally. Same baseline files (.fallow-{deadcode,health,dupes}-baseline.json)
+# checked into the repo root so server- and client-side gates agree.
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: ['**']
+
+# Least-privilege permissions — checkout only. (The SARIF→Code-Scanning upload
+# was removed: it registered a `fallow` code-scanning tool whose check would
+# sit `queued` indefinitely on PR heads; the workflow-job check below
+# — "Fallow audit (…)" — is the real gate. Code Scanning itself is intended to
+# be owned by CodeQL default setup, which is a Settings → Code-security UI
+# toggle that is still PENDING — see docs/ci-cd-pipeline-spec.md §4.4.1. Until
+# it's enabled the repo simply has no Code-Scanning analysis, which is the
+# same state it was in before this workflow ever uploaded SARIF.)
+permissions:
+  contents: read
+
+concurrency:
+  group: fallow-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fallow-audit:
+    name: 'Fallow audit (complexity + dupes + dead-code, baseline-aware)'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 'Checkout code'
+        # actions/checkout v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          # Full history so fallow can resolve the base branch for diff-aware audit
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: 'Setup Node.js'
+        # actions/setup-node v4.4.0
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: 'Install dependencies'
+        run: npm ci
+
+      - name: 'svelte-kit sync (regenerate .svelte-kit/tsconfig.json)'
+        # SvelteKit auto-generates tsconfig.json from the route tree. Without
+        # this, fallow's resolver falls back to plain Node resolution and
+        # misses the $lib/ alias, causing false-positive dead-exports.
+        run: npx svelte-kit sync
+
+      - name: 'Fallow audit — human-readable log (PR view)'
+        # PARITY PERIOD (until 2026-05-18): continue-on-error so the job doesn't
+        # block PRs while divergence vs ESLint complexity + sonarjs is measured.
+        # CUTOVER (Phase 3): drop `continue-on-error` here AND drop ESLint's
+        # `complexity` rule + the `eslint-plugin-sonarjs` plugin in the same PR.
+        continue-on-error: true
+        run: npx --no-install fallow audit --format compact
+
+      - name: 'Archive baseline files (debug aid)'
+        # Non-blocking diagnostic upload so a failed audit can be reproduced
+        # locally with the same baseline state CI used.
+        if: always()
+        # actions/upload-artifact v4 (first-party, version-tagged OK)
+        uses: actions/upload-artifact@v4
+        with:
+          name: fallow-baselines
+          path: |
+            .fallow-deadcode-baseline.json
+            .fallow-health-baseline.json
+            .fallow-dupes-baseline.json
+            .fallowrc.json
+          retention-days: 7
+          if-no-files-found: warn

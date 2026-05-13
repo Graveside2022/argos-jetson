@@ -3,9 +3,20 @@
 # Primary purpose: exclude vendored third-party code from review so the
 # signal stays focused on code we actually own and maintain.
 #
-# Docs: https://docs.coderabbit.ai/reference/yaml-template
+# Project-specific reviewer rules live in AGENTS.md at repo root —
+# auto-detected by CR via knowledge_base.code_guidelines.filePatterns
+# default (`**/AGENTS.md`). This file extends with path-scoped
+# instructions, the no-Gemini hard-fail merge check, and tone.
+#
+# Docs:
+#   - https://docs.coderabbit.ai/reference/yaml-template
+#   - https://docs.coderabbit.ai/getting-started/configure-coderabbit
+#   - https://agents.md/ (AGENTS.md spec)
 language: en
 early_access: false
+
+# 250-char cap per schema. Keep terse — operator-style, no fluff.
+tone_instructions: Operator-grade EW comms. Direct, terse, no hedging. Cite official docs in suggestions. Match the project conventions in AGENTS.md and CLAUDE.md before suggesting alternatives.
 
 reviews:
   profile: chill
@@ -48,8 +59,197 @@ reviews:
       - main
       - dev
 
+  # GitHub Checks integration. Argos pre-push fallow audit + Jetson CI
+  # regularly exceed CR's default 90s timeout, causing the github-checks
+  # tool to silently abort. 900_000 ms = 15 min, the upstream maximum.
+  # See https://docs.coderabbit.ai/tools/github-checks
+  tools:
+    github-checks:
+      enabled: true
+      timeout_ms: 900000
+
+  # Path-scoped review rules. Each `instructions` field max 20,000 chars
+  # per schema. AGENTS.md carries the global conventions; these blocks
+  # surface domain-specific reminders that should fire on the relevant
+  # diffs only.
+  path_instructions:
+    - path: src/lib/server/db/**
+      instructions: |
+        Server-side database code. Argos uses better-sqlite3 with WAL mode
+        and a hand-rolled repository pattern under src/lib/server/db/ — do
+        NOT suggest Prisma, Drizzle, Knex, or any other ORM. Migrations
+        live in scripts/db-migrate.ts. Native addon (better-sqlite3) MUST
+        stay in dependencies (not devDependencies); the adapter-node
+        externalization rule means devDeps get bundled and break native
+        modules with "ReferenceError: __filename is not defined".
+
+        Never suggest injecting synthetic / mock data into rf_signals.db
+        or any production DB. Real capture data only — see AGENTS.md
+        rule 2. For test fixtures use :memory: SQLite or a throwaway
+        DB in /tmp/.
+
+        Ask for tests when behavioral logic changes (test files in
+        tests/integration/ exercise the real DB; tests/unit/ for pure
+        helpers). Type-only relocations under src/lib/server/** are
+        carved out of the tests-required gate by dangerfile.js — that
+        carve-out is mechanical, no human override.
+
+    - path: tests/**
+      instructions: |
+        Vitest only — no Jest, no Mocha. Tests on RPi5 run with
+        maxWorkers=1, pool=forks (vitest.config.ts). Tests must be
+        IO-deterministic, not parallel-coupled.
+
+        Never invoke vitest directly (`npx vitest`, `vitest --watch`).
+        Always use `npm run test:unit`, `npm run test:integration`, etc.
+        — these wrap scripts/ops/mem-guard.sh which provides the lockfile
+        and RAM-aware NODE_OPTIONS tiering required to avoid OOM.
+
+        Reject tests that hit live hardware (HackRF, GPS, USB) in
+        tests/unit/. Hardware-dependent tests go in tests/integration/
+        with explicit gating.
+
+        Architecture fitness tests live in tests/architecture/ and use
+        ArchUnitTS (`projectFiles().shouldNot().dependOnFiles()...`).
+        Don't suggest replacing them with linter rules — the three-tier
+        defense (sentrux + eslint-plugin-boundaries + ArchUnitTS) is
+        intentional.
+
+    - path: deployment/*.service
+      instructions: |
+        Systemd unit files for argos-final and related services.
+        NEVER suggest adding `NoNewPrivileges=true` — the control
+        endpoints shell out to `sudo /usr/bin/systemctl start <unit>`
+        and that flag blocks sudo's setuid, breaking every control call
+        with an invisible 500. Privilege is scoped via narrow NOPASSWD
+        rules in /etc/sudoers.d/argos. See AGENTS.md rule 4 + memory
+        feedback_no_new_privileges.md.
+
+        Other systemd hardening (ProtectSystem, PrivateTmp,
+        RestrictAddressFamilies, etc.) is fine to suggest case-by-case
+        — but verify against the actual ExecStart command first.
+
+    - path: package.json
+      instructions: |
+        Never suggest `npm install <X>` without explicit user
+        authorization noted in the PR body. Research/recommendation
+        is fine; actually adding a dependency requires the user to
+        type "install X" or "add it" verbatim. The install-docs-gate
+        hook enforces this on the agent side; CR enforces at review
+        time.
+
+        Native addons (better-sqlite3, node-pty) MUST stay in
+        `dependencies`, NOT `devDependencies`. @sveltejs/adapter-node
+        only externalizes dependencies at build time; native addons in
+        devDeps get bundled into the ESM server chunk and break with
+        ReferenceError.
+
+        Pin EXACT versions (no ^ or ~ on production deps where
+        reproducibility matters).
+
+    - path: .claude/**
+      instructions: |
+        Claude Code agent configs and hooks. Review for: JSON validity
+        (settings.json must parse), hook matcher specificity (avoid
+        overly broad `*` matches that fire on unrelated tools), shell
+        quoting in hook commands, env var leakage, and consistency with
+        the project's hook taxonomy in .claude/rules/ and CLAUDE.md.
+
+        Flag any hook that constructs Bash commands from JSON tool_input
+        without proper quoting (command-injection risk). Flag hooks that
+        write to user-controlled paths without sanitization.
+
+        Path conventions: PreToolUse hooks fire BEFORE a tool runs
+        (carrot); PostToolUse fires AFTER (intermediate reminder); Stop
+        fires at turn-end (stick). New hooks should declare which layer
+        of that carrot/stick model they belong to in the leading
+        comment.
+
+    - path: scripts/claude-hooks/**
+      instructions: |
+        Shell hooks invoked by Claude Code via .claude/settings.json.
+        Review for: `set -euo pipefail` at the top, robust JSON parsing
+        (jq -e with defensive defaults like `// ""`), command-injection
+        risk via `eval` / `bash -c` with unvalidated input, and exit-code
+        semantics (advisory hooks return 0 even on logic skip; blocking
+        hooks return non-zero only on policy violation).
+
+        Every hook MUST have a leading comment block documenting:
+        which event it binds to (PreToolUse / PostToolUse / Stop /
+        SessionStart), the matcher, what input it expects on stdin,
+        what it returns on stdout, and the bypass env var (if any).
+        Flag hooks that omit any of those.
+
+        Reference: feedback_parallel_work_hook_enforcement.md
+        and feedback_pre_bg_dispatch_hook.md document the canonical
+        carrot/stick model.
+
+    - path: scripts/ops/**
+      instructions: |
+        Operational shell scripts (worktree management, dev-server
+        provisioning, mem-guard wrapper, db migrate). Review for:
+        missing `set -euo pipefail`, unsafe `rm -rf` patterns,
+        missing dry-run modes on destructive ops, and proper
+        worktree-vs-main-checkout context detection
+        (`git rev-parse --git-common-dir`).
+
+        Scripts that fan out across all worktrees (e.g.
+        worktree-refresh.sh) MUST be idempotent and never touch a
+        dirty tree; the `.needs-rebase` marker is the agreed contract
+        for "skipped, deal with it later" — see memory
+        feedback_worktree_conflict_strategy.md.
+
+    - path: .husky/**
+      instructions: |
+        Git hooks that gate every commit/push. Review for: skip-flag
+        clarity (every gate MUST have a documented `SKIP_*=1` bypass
+        env var visible in the gate's failure message), step-numbering
+        consistency (the L1 freshness gate is step 1b at
+        .husky/pre-push — don't renumber without updating memory
+        feedback_branch_freshness_gate.md), and ordering of cheap-vs-
+        expensive gates (cheap ones run first to fail fast).
+
+        Reject changes that disable a gate without an explicit user-
+        approved memo in the PR body. Reject changes that introduce
+        a gate without a SKIP_* bypass — gate without bypass is a
+        future emergency-merge blocker.
+
+    - path: .github/workflows/**
+      instructions: |
+        GitHub Actions workflows. Review for: minimum-required
+        `permissions:` block (default of `permissions: read-all`
+        plus narrow elevations beats `permissions: write-all`),
+        pinned action versions (use SHA or `@v<N>` major-version
+        pins, never `@main` / `@master`), and scheduled jobs with
+        clear cron cadence justification in a comment block.
+
+        For workflows that mutate repo state (auto-merge stall
+        buster, dependabot auto-approve, etc.), require an explicit
+        idempotency note and an explanation of the racing-with-
+        another-bot story in the leading comment block.
+
+# Hard-fail merge checks per schema. mode = "error" blocks the merge.
+# Each `instructions` field max 10,000 chars per schema.
+pre_merge_checks:
+  custom_checks:
+    - name: Reject Gemini Code Assist references
+      mode: error
+      instructions: |
+        Argos has explicitly excluded Gemini Code Assist from the project
+        toolchain (per memory feedback_no_gemini_code_assist.md). Hard-fail
+        the PR if any added/modified line in this PR contains the literal
+        substring "Gemini Code Assist" or proposes integrating it as a
+        reviewer, sidecar, alternative, or comparison entry.
+
+        Allowed: removing references to it. Disallowed: adding new ones in
+        any form (code, comments, docs, README, CR config, scripts, CI,
+        tool comparisons).
+
 chat:
   auto_reply: true
 
 knowledge_base:
   opt_out: false
+  # code_guidelines defaults already include **/AGENTS.md, **/CLAUDE.md,
+  # **/AGENT.md, .cursor/rules/*, .clinerules/*, .rules/*, etc. — no
+  # explicit opt-in needed for our AGENTS.md to be picked up.

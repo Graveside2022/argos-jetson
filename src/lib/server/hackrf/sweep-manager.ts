@@ -6,7 +6,6 @@ import { FrequencyCycler } from '$lib/hackrf/sweep-manager/frequency-cycler';
 import { ProcessManager } from '$lib/hackrf/sweep-manager/process-manager';
 import {
 	type CyclingHealth,
-	forceCleanupExistingProcesses,
 	performHealthCheck,
 	performRecovery
 } from '$lib/hackrf/sweep-manager/sweep-health-checker';
@@ -15,7 +14,7 @@ import { HardwareDevice } from '$lib/server/hardware/types';
 import { SystemStatus } from '$lib/types/enums';
 import { logger } from '$lib/utils/logger';
 
-import { sweepArgsFromCenter, testHackrfAvailability } from './sweep-coordinator';
+import { sweepArgsFromCenter } from './sweep-coordinator';
 import { runNextFrequency, startCycle } from './sweep-cycle-init';
 import {
 	type NarrowBandSweepParams,
@@ -35,7 +34,7 @@ import {
 	emitSweepEvent,
 	performStartupValidation
 } from './sweep-manager-lifecycle';
-import type { HackRFHealth, SweepArgs, SweepConfig, SweepMutableState, SweepStatus } from './types';
+import type { SweepArgs, SweepMutableState, SweepStatus } from './types';
 
 /** Manages HackRF sweep operations using modular service architecture. */
 export class SweepManager extends EventEmitter {
@@ -65,6 +64,13 @@ export class SweepManager extends EventEmitter {
 	private healthMonitorInterval: ReturnType<typeof setInterval>;
 	private sseEmitter: ((event: string, data: unknown) => void) | null = null;
 	private activeCaptureId: string | null = null;
+	/**
+	 * Per-cycle overrides applied to every `hackrf_sweep` invocation in the
+	 * current cycle. Set by callers (e.g. HackRFSpectrumSource) before
+	 * calling `startCycle`; merged into `sweepArgsFromCenter()` at process
+	 * spawn time. Cleared on `stopSweep` so subsequent cycles default again.
+	 */
+	private sweepArgsOverride: Partial<SweepArgs> | null = null;
 
 	constructor() {
 		super();
@@ -131,14 +137,6 @@ export class SweepManager extends EventEmitter {
 		return buildCycleInitContext(this._deps(), () => this.errorTracker.resetErrorTracking());
 	}
 
-	async startSweep(config: SweepConfig): Promise<void> {
-		if (this.mutableState.status.state === SystemStatus.Running)
-			throw new Error('Sweep already in progress');
-		const frequencies = config.frequencies || [{ value: config.centerFrequency, unit: 'Hz' }];
-		const success = await startCycle(this._cycleInit(), frequencies, config.cycleTime || 10000);
-		if (!success) throw new Error('Failed to start sweep');
-	}
-
 	async startCycle(
 		frequencies: Array<{ value: number; unit: string }>,
 		cycleTime: number
@@ -162,6 +160,7 @@ export class SweepManager extends EventEmitter {
 		await this.processManager.stopProcess(processState);
 		this.bufferManager.clearBuffer();
 		this.errorTracker.resetErrorTracking();
+		this.sweepArgsOverride = null;
 		this.mutableState.status = { state: SystemStatus.Idle };
 		this._emitEvent('status', this.mutableState.status);
 		this._emitEvent('status_change', { status: 'stopped' });
@@ -186,31 +185,27 @@ export class SweepManager extends EventEmitter {
 		logger.warn('[ALERT] Emergency stop completed');
 	}
 
-	async forceCleanup(): Promise<void> {
-		await forceCleanupExistingProcesses(this.processManager);
-		this.mutableState.status = { state: SystemStatus.Idle };
-	}
-
 	getStatus(): SweepStatus {
 		return { ...this.mutableState.status };
-	}
-
-	async checkHealth(): Promise<HackRFHealth> {
-		const check = await testHackrfAvailability();
-		return {
-			connected: check.available,
-			deviceInfo: check.deviceInfo,
-			error: check.available ? undefined : check.reason,
-			lastUpdate: Date.now()
-		};
 	}
 
 	private async _runNextFrequency(): Promise<void> {
 		await runNextFrequency(buildCycleRuntimeContext(this._deps()));
 	}
 
+	/**
+	 * Set per-cycle sweep argument overrides. Pass `null` to clear.
+	 * Caller-supplied overrides win over the coordinator's defaults but
+	 * must still satisfy `hackrf_sweep` CLI bounds (validated by
+	 * `buildHackrfArgs`). Active until the next `stopSweep` call.
+	 */
+	setSweepArgsOverride(override: Partial<SweepArgs> | null): void {
+		this.sweepArgsOverride = override;
+	}
+
 	private async _startSweepProcess(frequency: { value: number; unit: string }): Promise<void> {
-		await this._startSweepProcessWithArgs(sweepArgsFromCenter(frequency), frequency);
+		const override = this.sweepArgsOverride ?? undefined;
+		await this._startSweepProcessWithArgs(sweepArgsFromCenter(frequency, override), frequency);
 	}
 
 	private async _startSweepProcessWithArgs(

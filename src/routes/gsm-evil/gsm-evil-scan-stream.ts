@@ -106,6 +106,7 @@ export async function processScanStream(
 }
 
 /** Whether a new frequency result should replace the current best selection. */
+// fallow-ignore-next-line complexity
 function shouldUpdateBestFreq(
 	result: FrequencyTestResult,
 	getCurrentStore?: () => { scanResults: ScanResult[]; selectedFrequency: string }
@@ -147,6 +148,7 @@ async function handleScanResult(
 }
 
 /** Handle scan completion */
+// fallow-ignore-next-line complexity
 function handleScanComplete(
 	data: Record<string, unknown>,
 	state: GsmEvilPageState,

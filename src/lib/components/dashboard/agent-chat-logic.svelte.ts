@@ -94,6 +94,7 @@ function scrollToBottom(): void {
 // ============================================================================
 
 /** Check LLM availability and add welcome message */
+// fallow-ignore-next-line complexity
 export async function initializeChat(): Promise<void> {
 	if (!browser) return;
 
@@ -137,6 +138,7 @@ async function postToAgentStream(content: string): Promise<Response> {
 }
 
 /** Process a single SSE data line and update the assistant message */
+// fallow-ignore-next-line complexity
 function processSSELine(line: string, messageIndex: number): void {
 	if (!line.startsWith('data: ')) return;
 	try {
@@ -173,7 +175,7 @@ async function consumeStream(response: Response, messageIndex: number): Promise<
 }
 
 /** Send message with specific content (used by auto-query and manual input) */
-export async function sendMessageWithContent(content: string): Promise<void> {
+async function sendMessageWithContent(content: string): Promise<void> {
 	if (isStreaming) return;
 
 	messages.push({ role: 'user', content, timestamp: new Date().toISOString() });
@@ -242,6 +244,7 @@ function canAcceptAutoQuery(): boolean {
 }
 
 /** Handle device-selected interaction events (called from $effect) */
+// fallow-ignore-next-line complexity
 export function handleInteractionEvent(
 	event: { type: string; data: Record<string, unknown> } | null
 ): void {

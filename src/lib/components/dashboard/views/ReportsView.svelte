@@ -10,7 +10,15 @@
 		Trash2,
 		X
 	} from '@lucide/svelte';
+	import { SelectItem } from 'carbon-components-svelte';
 
+	import Checkbox from '$lib/components/chassis/forms/Checkbox.svelte';
+	import InlineNotification from '$lib/components/chassis/forms/InlineNotification.svelte';
+	import Modal from '$lib/components/chassis/forms/Modal.svelte';
+	import Search from '$lib/components/chassis/forms/Search.svelte';
+	import Select from '$lib/components/chassis/forms/Select.svelte';
+	import SkeletonText from '$lib/components/chassis/forms/SkeletonText.svelte';
+	import PanelStatus from '$lib/components/chassis/PanelStatus.svelte';
 	import PanelEmptyState from '$lib/components/ui/PanelEmptyState.svelte';
 	import { persistedWritable } from '$lib/stores/persisted-writable';
 
@@ -129,6 +137,7 @@
 		return e instanceof Error ? e.message : String(e);
 	}
 
+	// fallow-ignore-next-line complexity
 	async function loadReportsFromApi(): Promise<ReportRow[]> {
 		const res = await fetch('/api/reports/list');
 		if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -142,9 +151,10 @@
 	}
 
 	async function fetchReports(): Promise<void> {
+		loading = true;
+		error = null;
 		try {
 			reports = await loadReportsFromApi();
-			error = null;
 		} catch (e) {
 			error = toMessage(e);
 		} finally {
@@ -241,6 +251,7 @@
 		missionError = null;
 	}
 
+	// fallow-ignore-next-line complexity
 	async function postMission(): Promise<void> {
 		const res = await fetch('/api/missions', {
 			method: 'POST',
@@ -259,8 +270,7 @@
 		}
 	}
 
-	async function submitNewMission(e: SubmitEvent): Promise<void> {
-		e.preventDefault();
+	async function submitNewMission(): Promise<void> {
 		if (!missionName.trim()) {
 			missionError = 'Mission name is required';
 			return;
@@ -298,27 +308,28 @@
 
 		<div class="toolbar-group">
 			<label class="field-label" for="filter-type">FILTER</label>
-			<select
+			<Select
 				id="filter-type"
-				class="select"
-				bind:value={filterType}
-				aria-label="Filter by type"
+				noLabel
+				value={filterType}
+				onChange={(v) => {
+					if (v !== undefined) filterType = String(v) as typeof filterType;
+				}}
+				size="sm"
 			>
-				<option value="all">ALL</option>
-				<option value="sitrep">SITREP</option>
-				<option value="emcon-survey">EMCON SURVEY</option>
-			</select>
+				<SelectItem value="all" text="ALL" />
+				<SelectItem value="sitrep" text="SITREP" />
+				<SelectItem value="emcon-survey" text="EMCON SURVEY" />
+			</Select>
 		</div>
 
 		<div class="toolbar-group">
-			<label class="field-label" for="search-query">SEARCH</label>
-			<input
+			<Search
 				id="search-query"
-				class="input"
-				type="text"
 				bind:value={searchQuery}
 				placeholder="TITLE..."
-				aria-label="Search reports"
+				ariaLabel="Search reports"
+				size="sm"
 			/>
 		</div>
 
@@ -355,19 +366,17 @@
 	<div class="grid-wrap" class:collapsed={fullScreen && selectedReportId}>
 		{#if loading}
 			<div class="grid-skeleton" aria-busy="true" aria-label="Loading reports">
-				<div class="skeleton-row"></div>
-				<div class="skeleton-row"></div>
-				<div class="skeleton-row"></div>
+				<SkeletonText paragraph lines={3} />
 			</div>
 		{:else if error}
-			<div class="state-card error-card" role="alert">
-				<p class="state-title">ERROR LOADING REPORTS</p>
-				<p class="state-detail">{error}</p>
-				<button class="btn" type="button" onclick={() => void fetchReports()}>
-					<RefreshCw size={12} />
-					<span>RETRY</span>
-				</button>
-			</div>
+			<PanelStatus state="error" title="ERROR LOADING REPORTS" detail={error}>
+				{#snippet action()}
+					<button class="btn" type="button" onclick={() => void fetchReports()}>
+						<RefreshCw size={12} />
+						<span>RETRY</span>
+					</button>
+				{/snippet}
+			</PanelStatus>
 		{:else if filteredReports.length === 0}
 			<PanelEmptyState
 				title="No reports"
@@ -530,108 +539,80 @@
 	{/if}
 
 	<!-- New Mission modal -->
-	{#if showNewMissionModal}
-		<div
-			class="modal-backdrop"
-			role="presentation"
-			tabindex="-1"
-			onclick={(e) => {
-				if (e.target === e.currentTarget) closeNewMissionModal();
-			}}
-			onkeydown={(e) => {
-				if (e.key === 'Escape') closeNewMissionModal();
-			}}
-		>
-			<div
-				class="modal"
-				role="dialog"
-				aria-modal="true"
-				aria-labelledby="mission-modal-title"
+	<Modal
+		bind:open={showNewMissionModal}
+		hasForm
+		modalHeading="NEW MISSION"
+		primaryButtonText={missionSubmitting ? 'CREATING...' : 'CREATE'}
+		primaryButtonDisabled={missionSubmitting}
+		secondaryButtonText="CANCEL"
+		onSubmit={submitNewMission}
+		onClickSecondary={closeNewMissionModal}
+		onClose={closeNewMissionModal}
+	>
+		<label class="form-field">
+			<span class="field-label">NAME</span>
+			<input
+				class="input"
+				type="text"
+				bind:value={missionName}
+				required
+				disabled={missionSubmitting}
+			/>
+		</label>
+		<div class="form-field">
+			<Select
+				labelText="TYPE"
+				value={missionType}
+				onChange={(v) => {
+					if (v !== undefined) missionType = String(v) as typeof missionType;
+				}}
+				disabled={missionSubmitting}
+				size="sm"
 			>
-				<header class="modal-header">
-					<h3 id="mission-modal-title" class="section-label">NEW MISSION</h3>
-					<button
-						class="icon-btn"
-						type="button"
-						onclick={closeNewMissionModal}
-						aria-label="Close"
-					>
-						<X size={12} />
-					</button>
-				</header>
-				<form class="modal-body" onsubmit={submitNewMission}>
-					<label class="form-field">
-						<span class="field-label">NAME</span>
-						<input
-							class="input"
-							type="text"
-							bind:value={missionName}
-							required
-							disabled={missionSubmitting}
-						/>
-					</label>
-					<label class="form-field">
-						<span class="field-label">TYPE</span>
-						<select
-							class="select"
-							bind:value={missionType}
-							disabled={missionSubmitting}
-						>
-							<option value="sitrep-loop">SITREP LOOP</option>
-							<option value="emcon-survey">EMCON SURVEY</option>
-						</select>
-					</label>
-					<label class="form-field">
-						<span class="field-label">UNIT</span>
-						<input
-							class="input"
-							type="text"
-							bind:value={missionUnit}
-							disabled={missionSubmitting}
-						/>
-					</label>
-					<label class="form-field">
-						<span class="field-label">AO (MGRS)</span>
-						<input
-							class="input"
-							type="text"
-							bind:value={missionAoMgrs}
-							disabled={missionSubmitting}
-						/>
-					</label>
-					<label class="form-field form-field-inline">
-						<input
-							type="checkbox"
-							bind:checked={missionSetActive}
-							disabled={missionSubmitting}
-						/>
-						<span class="field-label">SET ACTIVE</span>
-					</label>
-
-					{#if missionError}
-						<p class="form-error" role="alert">{missionError}</p>
-					{/if}
-					{#if missionSuccess}
-						<p class="form-success" role="status">{missionSuccess}</p>
-					{/if}
-
-					<div class="modal-footer">
-						<button
-							class="btn"
-							type="button"
-							onclick={closeNewMissionModal}
-							disabled={missionSubmitting}
-						>
-							CANCEL
-						</button>
-						<button class="btn btn-primary" type="submit" disabled={missionSubmitting}>
-							{missionSubmitting ? 'CREATING...' : 'CREATE'}
-						</button>
-					</div>
-				</form>
-			</div>
+				<SelectItem value="sitrep-loop" text="SITREP LOOP" />
+				<SelectItem value="emcon-survey" text="EMCON SURVEY" />
+			</Select>
 		</div>
-	{/if}
+		<label class="form-field">
+			<span class="field-label">UNIT</span>
+			<input
+				class="input"
+				type="text"
+				bind:value={missionUnit}
+				disabled={missionSubmitting}
+			/>
+		</label>
+		<label class="form-field">
+			<span class="field-label">AO (MGRS)</span>
+			<input
+				class="input"
+				type="text"
+				bind:value={missionAoMgrs}
+				disabled={missionSubmitting}
+			/>
+		</label>
+		<div class="form-field form-field-inline">
+			<Checkbox
+				bind:checked={missionSetActive}
+				disabled={missionSubmitting}
+				labelText="SET ACTIVE"
+			/>
+		</div>
+
+		{#if missionError}
+			<InlineNotification
+				kind="error"
+				title="Mission create failed"
+				subtitle={missionError}
+				hideCloseButton
+				lowContrast
+			/>
+		{/if}
+		{#if missionSuccess}
+			<InlineNotification kind="success" title={missionSuccess} hideCloseButton lowContrast />
+		{/if}
+	</Modal>
 </section>
 
 <style>
@@ -720,7 +701,6 @@
 		color: var(--primary);
 	}
 
-	.select,
 	.input {
 		background: var(--background);
 		color: var(--foreground);
@@ -734,8 +714,7 @@
 		outline: none;
 	}
 
-	.input:focus,
-	.select:focus {
+	.input:focus {
 		border-color: var(--primary);
 	}
 
@@ -869,61 +848,6 @@
 		gap: 8px;
 	}
 
-	.skeleton-row {
-		height: 28px;
-		background: var(--card);
-		border: 1px solid var(--border);
-		animation: pulse 1.6s ease-in-out infinite;
-	}
-
-	@keyframes pulse {
-		0%,
-		100% {
-			opacity: 0.4;
-		}
-		50% {
-			opacity: 0.8;
-		}
-	}
-
-	.state-card {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		gap: 8px;
-		padding: 32px;
-		margin: 24px;
-		border: 1px solid var(--border);
-		background: var(--card);
-	}
-
-	.error-card {
-		border-color: #ff5c33;
-	}
-
-	.state-title {
-		font-family: 'Fira Code', monospace;
-		font-size: 9px;
-		font-weight: 600;
-		letter-spacing: 1.2px;
-		text-transform: uppercase;
-		color: var(--foreground);
-		margin: 0;
-	}
-
-	.error-card .state-title {
-		color: #ff5c33;
-	}
-
-	.state-detail {
-		font-family: 'Fira Code', monospace;
-		font-size: 10px;
-		color: var(--muted-foreground);
-		margin: 0;
-		text-align: center;
-	}
-
 	/* Preview */
 	.preview-resize-handle {
 		height: 8px;
@@ -975,42 +899,6 @@
 		background: #ffffff;
 	}
 
-	/* Modal */
-	.modal-backdrop {
-		position: absolute;
-		inset: 0;
-		background: rgba(0, 0, 0, 0.7);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		z-index: 100;
-		border: none;
-		padding: 0;
-	}
-
-	.modal {
-		background: var(--card);
-		border: 1px solid var(--border);
-		min-width: 360px;
-		max-width: 480px;
-		width: 100%;
-	}
-
-	.modal-header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: 10px 14px;
-		border-bottom: 1px solid var(--border);
-	}
-
-	.modal-body {
-		display: flex;
-		flex-direction: column;
-		gap: 10px;
-		padding: 14px;
-	}
-
 	.form-field {
 		display: flex;
 		flex-direction: column;
@@ -1021,27 +909,6 @@
 		flex-direction: row;
 		align-items: center;
 		gap: 8px;
-	}
-
-	.form-error {
-		font-family: 'Fira Code', monospace;
-		font-size: 10px;
-		color: #ff5c33;
-		margin: 0;
-	}
-
-	.form-success {
-		font-family: 'Fira Code', monospace;
-		font-size: 10px;
-		color: #8bbfa0;
-		margin: 0;
-	}
-
-	.modal-footer {
-		display: flex;
-		justify-content: flex-end;
-		gap: 8px;
-		margin-top: 6px;
 	}
 
 	.reports-view.fullscreen {

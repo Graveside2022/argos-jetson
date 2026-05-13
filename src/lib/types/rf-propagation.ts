@@ -178,32 +178,6 @@ export interface P2PResult {
 
 // ── Route ───────────────────────────────────────────────────────────
 
-/** Input parameters for a route computation */
-export interface RouteRequest {
-	/** Transmitter latitude */
-	txLat: number;
-	/** Transmitter longitude */
-	txLon: number;
-	/** RF frequency in MHz */
-	frequency: number;
-	/** Antenna polarization */
-	polarization: number;
-	/** Transmitter height above ground in meters */
-	txHeight: number;
-	/** Receiver height above ground in meters */
-	rxHeight: number;
-	/** Route waypoints as [lat, lon] pairs */
-	waypoints: [number, number][];
-}
-
-/** Result of a route computation */
-export interface RouteResult {
-	/** Loss at each waypoint */
-	segments: RouteSegment[];
-	/** Total route distance in meters */
-	totalDistanceM: number;
-}
-
 /** One segment of a route result */
 export interface RouteSegment {
 	/** Waypoint latitude */
@@ -221,11 +195,3 @@ export interface RouteSegment {
 }
 
 // ── Status ──────────────────────────────────────────────────────────
-
-/** CloudRF engine status */
-export interface CloudRFStatus {
-	/** Whether the CloudRF API is reachable and key is valid */
-	available: boolean;
-	/** Engine identifier */
-	engine: 'cloudrf';
-}

@@ -100,6 +100,7 @@
 		}
 	}
 
+	// fallow-ignore-next-line complexity
 	function flyToDevice(device: KismetDevice) {
 		const loc = device.location;
 		if (loc?.lat && loc.lon && dashboardMap) dashboardMap.flyTo(loc.lat, loc.lon, 17);

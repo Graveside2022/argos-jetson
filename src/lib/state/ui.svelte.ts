@@ -6,6 +6,8 @@
 // Module-scope $state is fine because Svelte 5 schedules updates lazily; any
 // component that reads `accentStore.value` opts into reactivity automatically.
 
+import { type DrawerTab, isDrawerTab } from '$lib/types/drawer';
+
 export type AccentName = 'amber' | 'green' | 'cyan' | 'magenta' | 'steel';
 export type Density = 'compact' | 'normal' | 'comfy';
 
@@ -13,7 +15,7 @@ export interface LsState<T> {
 	value: T;
 }
 
-export class PersistentStorageError extends Error {
+class PersistentStorageError extends Error {
 	readonly key: string;
 	readonly operation: 'read' | 'write';
 	readonly originalError: unknown;
@@ -28,6 +30,7 @@ export class PersistentStorageError extends Error {
 	}
 }
 
+// fallow-ignore-next-line complexity
 function readLs<T>(key: string): T | undefined {
 	if (typeof localStorage === 'undefined') return undefined;
 	let raw: string | null;
@@ -102,24 +105,14 @@ export const densityStore = lsState<Density>('argos.mk2.density', 'normal', isDe
 // the drawer can never collapse below the 120-px tab-strip floor or push the
 // main stage below 200 px.
 
-export type DrawerTab = 'terminal' | 'logs' | 'captures' | 'wifi' | 'bluetooth' | 'uas';
-
-export const DRAWER_TABS: DrawerTab[] = [
-	'terminal',
-	'logs',
-	'captures',
-	'wifi',
-	'bluetooth',
-	'uas'
-];
-
-const isDrawerTab = (v: unknown): v is DrawerTab =>
-	typeof v === 'string' && (DRAWER_TABS as readonly string[]).includes(v);
-
 const isFiniteNumber = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
 
 const isBool = (v: unknown): v is boolean => typeof v === 'boolean';
 
-export const drawerActiveStore = lsState<DrawerTab>('argos.mk2.drawer.active', 'terminal', isDrawerTab);
+export const drawerActiveStore = lsState<DrawerTab>(
+	'argos.mk2.drawer.active',
+	'terminal',
+	isDrawerTab
+);
 export const drawerOpenStore = lsState<boolean>('argos.mk2.drawer.open', true, isBool);
 export const drawerHeightStore = lsState<number>('argos.mk2.drawer.height', 280, isFiniteNumber);

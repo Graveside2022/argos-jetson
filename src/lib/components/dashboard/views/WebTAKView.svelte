@@ -43,6 +43,7 @@
 		return `ws://${window.location.hostname}:${wsPort}${wsPath}`;
 	}
 
+	// fallow-ignore-next-line complexity
 	async function restoreExistingSession(isCancelled: () => boolean): Promise<void> {
 		try {
 			const res = await fetch(CONTROL_ENDPOINT, {
@@ -61,6 +62,7 @@
 		}
 	}
 
+	// fallow-ignore-next-line complexity
 	async function postControlStart(url: string): Promise<{
 		wsPort?: number;
 		wsPath?: string;

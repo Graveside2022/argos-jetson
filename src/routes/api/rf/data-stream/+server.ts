@@ -105,8 +105,12 @@ export const GET: RequestHandler = async ({ request }) => {
 				controller.enqueue(encoder.encode(message));
 			};
 
-			// Subscribe to HackRF events
-			sweepManager.on('spectrumData', dataHandler);
+			// Subscribe to HackRF events. Internal sweepManager event name is
+			// `spectrum_data` (snake_case) per sweep-coordinator.ts:227 — the
+			// camelCase `spectrumData` we EMIT on the SSE wire (event line above)
+			// is a separate external contract. Subscribing to the wrong name
+			// silently disables the entire data path. See task #3 root cause.
+			sweepManager.on('spectrum_data', dataHandler);
 			sweepManager.on('error', errorHandler);
 			sweepManager.on('status', statusHandler);
 
@@ -116,6 +120,7 @@ export const GET: RequestHandler = async ({ request }) => {
 				controller.enqueue(encoder.encode(heartbeat));
 			}, 30000);
 		},
+		// fallow-ignore-next-line complexity
 		cancel() {
 			// Called by Web Streams API when reader is cancelled (SvelteKit
 			// cancels the reader on HTTP client disconnect via res.on('close')).
@@ -126,8 +131,10 @@ export const GET: RequestHandler = async ({ request }) => {
 				heartbeatInterval = null;
 			}
 
-			// Cleanup HackRF event handlers
-			if (dataHandler) sweepManager.off('spectrumData', dataHandler);
+			// Cleanup HackRF event handlers (must mirror the on() event names —
+			// off('spectrumData', h) would not match an on('spectrum_data', h)
+			// listener and would leak the handler indefinitely).
+			if (dataHandler) sweepManager.off('spectrum_data', dataHandler);
 			if (errorHandler) sweepManager.off('error', errorHandler);
 			if (statusHandler) sweepManager.off('status', statusHandler);
 

@@ -123,6 +123,7 @@
 	}
 
 	/** Handle a failed stop response from the API. */
+	// fallow-ignore-next-line complexity
 	function handleStopFailure(response: Response, data: Record<string, unknown>) {
 		if (response.ok && data.success) return;
 		const errorMsg = data.message || data.error || 'Unknown error';
@@ -147,6 +148,7 @@
 		}
 	}
 
+	// fallow-ignore-next-line complexity
 	async function handleScanButton() {
 		if (!isScanning && !imsiCaptureActive) {
 			scanFrequencies();

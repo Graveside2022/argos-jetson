@@ -41,72 +41,6 @@ export const KismetDeviceSchema = z.object({
 });
 
 /**
- * Service Health Response Schema
- */
-export const ServiceHealthResponseSchema = z.object({
-	service: z.string().min(1, 'Service name required'),
-	status: z.enum(['running', 'stopped', 'error']),
-	uptime: z.number().nonnegative().optional(),
-	message: z.string().optional(),
-	metrics: z.record(z.number()).optional()
-});
-
-/**
- * GPS State Response Schema
- */
-export const GPSStateResponseSchema = z.object({
-	hasFix: z.boolean(),
-	latitude: z.number().min(-90, 'Latitude must be >= -90').max(90, 'Latitude must be <= 90'),
-	longitude: z
-		.number()
-		.min(-180, 'Longitude must be >= -180')
-		.max(180, 'Longitude must be <= 180'),
-	altitude: z.number().optional(),
-	accuracy: z.number().nonnegative('Accuracy must be non-negative').optional(),
-	speed: z.number().nonnegative('Speed must be non-negative').optional(),
-	heading: z.number().min(0).max(360, 'Heading must be 0-360 degrees').optional(),
-	satellites: z.number().int().nonnegative('Satellite count must be non-negative').optional(),
-	timestamp: z.number().positive('Timestamp must be positive')
-});
-
-/**
- * HackRF Status Response Schema
- */
-export const HackRFStatusResponseSchema = z.object({
-	isConnected: z.boolean(),
-	isSweeping: z.boolean(),
-	device: z
-		.object({
-			serial: z.string().min(1, 'Serial number required'),
-			boardId: z.number().int().nonnegative('Board ID must be non-negative'),
-			firmwareVersion: z.string().min(1, 'Firmware version required')
-		})
-		.optional(),
-	config: z
-		.object({
-			startFreq: z.number().positive('Start frequency must be positive'),
-			endFreq: z.number().positive('End frequency must be positive'),
-			binWidth: z.number().positive('Bin width must be positive'),
-			fftSize: z.number().int().positive('FFT size must be positive')
-		})
-		.optional()
-});
-
-/**
- * GPS API Response Schema (from /api/gps/position)
- * Used by kismet.service.ts getGPSPosition()
- */
-export const GPSAPIResponseSchema = z.object({
-	success: z.boolean(),
-	data: z
-		.object({
-			latitude: z.number().min(-90).max(90),
-			longitude: z.number().min(-180).max(180)
-		})
-		.optional()
-});
-
-/**
  * Simplified Kismet Device Schema (from KismetProxy.getDevices())
  * Used by kismet.service.ts transformKismetDevices()
  */
@@ -135,7 +69,7 @@ export const SimplifiedKismetDeviceSchema = z.object({
  * Kismet Dot11 WiFi-specific Device Data
  * Nested within raw Kismet device response
  */
-export const KismetDot11Schema = z.object({
+const KismetDot11Schema = z.object({
 	'dot11.device.last_beaconed_ssid': z.string().optional(),
 	'dot11.device.advertised_ssid_map': z
 		.object({
@@ -148,7 +82,7 @@ export const KismetDot11Schema = z.object({
  * Kismet Common Location Data
  * Used within kismet.device.base.location field
  */
-export const KismetLocationSchema = z.object({
+const KismetLocationSchema = z.object({
 	'kismet.common.location.lat': z.number().optional(),
 	'kismet.common.location.lon': z.number().optional()
 });
@@ -157,7 +91,7 @@ export const KismetLocationSchema = z.object({
  * Kismet Signal Data
  * Used within kismet.device.base.signal field
  */
-export const KismetSignalSchema = z.object({
+const KismetSignalSchema = z.object({
 	'kismet.common.signal.last_signal': z.number().optional(),
 	'kismet.common.signal.max_signal': z.number().optional()
 });

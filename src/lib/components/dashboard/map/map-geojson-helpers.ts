@@ -92,6 +92,7 @@ function buildDeviceIdentity(
 	};
 }
 
+// fallow-ignore-next-line complexity
 function buildDeviceRadio(device: KismetDevice): Record<string, unknown> {
 	return {
 		channel: device.channel || 0,

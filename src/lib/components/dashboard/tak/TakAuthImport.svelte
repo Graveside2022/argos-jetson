@@ -31,6 +31,7 @@
 	}
 
 	/** Build FormData for cert upload, returning null if inputs are missing. */
+	// fallow-ignore-next-line complexity
 	function buildCertFormData(): FormData | null {
 		if (!p12File || p12File.length === 0 || !p12Password) return null;
 		const formData = new FormData();

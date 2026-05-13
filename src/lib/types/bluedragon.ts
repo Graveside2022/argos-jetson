@@ -74,21 +74,3 @@ export interface BluedragonStatusResult {
 	profile: BluedragonProfile | null;
 	options?: BluedragonOptions | null;
 }
-
-export interface BluedragonControlRequest {
-	action: 'start' | 'stop';
-	profile?: BluedragonProfile;
-	options?: BluedragonOptions | null;
-}
-
-export interface BluetoothDeviceUpdateMessage {
-	type: 'bluetooth_device_update';
-	data: { op: 'upsert' | 'remove'; device: BluetoothDevice };
-	timestamp: number;
-}
-
-export interface BluetoothStatusUpdateMessage {
-	type: 'bluetooth_status_update';
-	data: BluedragonStatusResult;
-	timestamp: number;
-}

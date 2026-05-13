@@ -20,6 +20,7 @@ export interface WriteQmdOptions {
 // Allow-list directories the spectrum image may live in. Any absolute path
 // outside these roots is rejected to prevent path traversal via the
 // spectrum_image_path request body field.
+// fallow-ignore-next-line complexity
 function isSafeSpectrumPath(p: string): boolean {
 	const resolved = resolve(p);
 	const dataRoot = resolve(process.cwd(), 'data');

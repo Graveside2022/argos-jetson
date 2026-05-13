@@ -10,18 +10,6 @@
 
 import { z } from 'zod';
 
-/**
- * GPS Coordinates Schema - Validates latitude/longitude for API requests
- *
- * Validation rules:
- * - lat: -90 to 90 degrees
- * - lon: -180 to 180 degrees
- */
-export const GPSCoordinatesSchema = z.object({
-	lat: z.number().min(-90).max(90),
-	lon: z.number().min(-180).max(180)
-});
-
 /** Check if direct lat + lon/lng coordinates are present */
 function hasDirectCoords(data: { lat?: number; lon?: number; lng?: number }): boolean {
 	return data.lat !== undefined && (data.lon !== undefined || data.lng !== undefined);
@@ -56,7 +44,7 @@ function hasCoordinates(data: {
  * - source: optional string (normalized to SignalSource enum)
  * - metadata: optional object with signal characteristics
  */
-export const SignalInputSchema = z
+const SignalInputSchema = z
 	.object({
 		id: z.string().min(1).optional(),
 		// Direct coordinate properties

@@ -60,24 +60,9 @@ jobs:
         # --cache makes re-runs on unchanged files near-instant.
         run: npx eslint . --config config/eslint.config.js --cache --cache-location .eslintcache --cache-strategy content
 
-  commitlint:
-    name: 'Conventional Commits gate'
-    # PRs only — backstops husky commit-msg when `--no-verify` was used locally
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-
-    steps:
-      - name: 'Checkout code'
-        # actions/checkout v4.2.2 — full history needed for commit range
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-
-      - name: 'Commitlint — Conventional Commits'
-        # wagoid/commitlint-github-action v6.2.1
-        uses: wagoid/commitlint-github-action@b948419dd99f3fd78a6548d48f94e3df7f6bf3ed
+  # NOTE: commitlint job removed 2026-04-29 — was duplicate of dedicated
+  # commitlint.yml workflow. Single-source-of-truth canon (PR-CI-2 audit).
+  # commitlint.yml remains the canonical Conventional Commits gate.
 
   gitleaks:
     name: 'Secret scan (gitleaks)'

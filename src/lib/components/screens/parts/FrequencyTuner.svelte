@@ -8,13 +8,11 @@
 	// initial tuner ships with the actual API contract. Status badge
 	// shows running/stopped from /api/gsm-evil/status.
 
+	import InlineNotification from '$lib/components/chassis/forms/InlineNotification.svelte';
+	import NumberInput from '$lib/components/chassis/forms/NumberInput.svelte';
 	import { gsmStore } from '$lib/state/gsm.svelte';
 
-	let entered = $state('947.2');
-
-	function isValidMHz(s: string): boolean {
-		return /^\d+(\.\d+)?$/.test(s);
-	}
+	let entered = $state<number | null>(947.2);
 
 	// Some /api/gsm-evil/status responses include the unit suffix in
 	// the frequency field (e.g. "948.6 MHz"); some don't. Strip it once
@@ -26,7 +24,7 @@
 	}
 
 	function onStart(): void {
-		if (isValidMHz(entered)) void gsmStore.startScanner(entered);
+		if (entered != null) void gsmStore.startScanner(entered.toString());
 	}
 
 	function onStop(): void {
@@ -35,19 +33,19 @@
 </script>
 
 <div class="tuner" role="group" aria-label="GSM frequency tuner">
-	<label class="freq-input">
-		<span class="label">FREQ</span>
-		<input
-			type="text"
-			bind:value={entered}
-			inputmode="decimal"
-			pattern="\d+(\.\d+)?"
-			aria-label="Frequency MHz"
-			placeholder="947.2"
-		/>
-		<span class="unit">MHz</span>
-	</label>
-	<button type="button" class="ctl-btn" disabled={!isValidMHz(entered)} onclick={onStart}>
+	<NumberInput
+		labelText="FREQ (MHz)"
+		bind:value={entered}
+		min={0}
+		max={6000}
+		step={0.1}
+		allowDecimal
+		placeholder="947.2"
+		size="sm"
+		hideSteppers
+		disableWheel
+	/>
+	<button type="button" class="ctl-btn" disabled={entered == null} onclick={onStart}>
 		START
 	</button>
 	<button type="button" class="ctl-btn" onclick={onStop}>STOP</button>
@@ -55,8 +53,11 @@
 		{gsmStore.running ? 'RUNNING' : 'STOPPED'}
 		{#if gsmStore.frequencyMHz}· {stripUnit(gsmStore.frequencyMHz)} MHz{/if}
 	</span>
-	{#if gsmStore.lastError}<span class="err" role="alert">{gsmStore.lastError}</span>{/if}
 </div>
+
+{#if gsmStore.lastError}
+	<InlineNotification kind="error" title={gsmStore.lastError} hideCloseButton lowContrast />
+{/if}
 
 <style>
 	.tuner {
@@ -68,34 +69,6 @@
 		background: var(--card);
 		font-family: 'Fira Code', monospace;
 		font-size: 11px;
-	}
-	.freq-input {
-		display: inline-flex;
-		align-items: center;
-		gap: 6px;
-	}
-	.label {
-		font-size: 9px;
-		text-transform: uppercase;
-		letter-spacing: 0.12em;
-		color: var(--muted-foreground);
-	}
-	.freq-input input {
-		width: 90px;
-		background: transparent;
-		border: 1px solid var(--mk2-line, var(--border));
-		color: var(--mk2-ink, var(--foreground));
-		padding: 4px 6px;
-		font: inherit;
-		font-variant-numeric: tabular-nums;
-	}
-	.freq-input input:focus-visible {
-		outline: 1px solid var(--mk2-accent, var(--primary));
-		outline-offset: 1px;
-	}
-	.unit {
-		font-size: 9px;
-		color: var(--muted-foreground);
 	}
 	.ctl-btn {
 		padding: 4px 10px;
@@ -124,9 +97,5 @@
 	}
 	.status[data-running='true'] {
 		color: var(--mk2-accent, var(--primary));
-	}
-	.err {
-		color: var(--mk2-err, #ff5c33);
-		font-size: 10px;
 	}
 </style>

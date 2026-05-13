@@ -1,11 +1,16 @@
 <script lang="ts">
 	import '../app.css';
+	// spec 026 Phase 1 — Lunaris-on-Carbon theme overlay (currently a stub
+	// with no @carbon/styles imports; subsequent commits add per-component
+	// imports). Wired now that sass-embedded is installed (Vite v7 SCSS
+	// preprocessor requirement).
+	import '$lib/styles/lunaris-carbon-theme.scss';
 
 	import type { Snippet } from 'svelte';
 	import { onMount } from 'svelte';
-	import { Toaster } from 'svelte-sonner';
 
 	import { page } from '$app/state';
+	import ToastRegion from '$lib/components/chassis/ToastRegion.svelte';
 	import { accentStore, densityStore } from '$lib/state/ui.svelte';
 	import { markCSSLoaded } from '$lib/utils/css-loader';
 
@@ -65,13 +70,7 @@
 	/>
 </svelte:head>
 
-<Toaster
-	theme="dark"
-	position="bottom-right"
-	toastOptions={{
-		style: 'background: var(--card); color: var(--card-foreground); border: 1px solid var(--border); font-family: "Fira Code", monospace; font-size: 11px;'
-	}}
-/>
+<ToastRegion />
 
 <main class="page-loading">
 	{@render children()}

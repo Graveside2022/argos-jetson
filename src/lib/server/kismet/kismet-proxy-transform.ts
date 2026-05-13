@@ -49,7 +49,7 @@ function stripDevicePrefix(kismetType: string): string {
  * Map Kismet device type to display label.
  * Passes through ALL types Kismet reports — strips common prefixes for cleaner display.
  */
-export function mapDeviceType(kismetType: string | undefined): KismetDevice['type'] {
+function mapDeviceType(kismetType: string | undefined): KismetDevice['type'] {
 	if (!kismetType) return 'Unknown';
 	return stripDevicePrefix(kismetType);
 }
@@ -97,7 +97,7 @@ function parseEncryptionFlags(value: number): string[] {
 }
 
 /** Parse encryption number/string to array of encryption types */
-export function parseEncryptionNumber(encryptionValue: number | string | undefined): string[] {
+function parseEncryptionNumber(encryptionValue: number | string | undefined): string[] {
 	if (!encryptionValue) return ['Open'];
 	if (typeof encryptionValue === 'string') return parseEncryptionString(encryptionValue);
 	return parseEncryptionFlags(encryptionValue);
@@ -117,9 +117,7 @@ function parseLocationObject(location: Record<string, number>): KismetDevice['lo
 }
 
 /** Extract location data from raw device */
-export function extractLocationFromRaw(
-	raw: KismetDeviceResponse
-): KismetDevice['location'] | undefined {
+function extractLocationFromRaw(raw: KismetDeviceResponse): KismetDevice['location'] | undefined {
 	const location = raw['kismet.device.base.location'] as
 		| Record<string, number>
 		| number
@@ -131,7 +129,7 @@ export function extractLocationFromRaw(
 }
 
 /** Convert Kismet timestamp (seconds) to milliseconds */
-export function convertTimestamp(timestamp: number | undefined): number {
+function convertTimestamp(timestamp: number | undefined): number {
 	if (!timestamp || timestamp === 0) return Date.now();
 	return timestamp * 1000;
 }

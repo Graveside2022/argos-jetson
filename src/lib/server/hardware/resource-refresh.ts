@@ -17,21 +17,21 @@ import { HardwareDevice, type ResourceState } from './types';
 
 type StateMap = Map<HardwareDevice, ResourceState>;
 
-export async function refreshHackrf(state: StateMap): Promise<void> {
+async function refreshHackrf(state: StateMap): Promise<void> {
 	const current = state.get(HardwareDevice.HACKRF);
 	if (!current) return;
 	current.isDetected = await hackrfMgr.detectHackRF();
-	const processes = await hackrfMgr.getBlockingProcesses();
+	const processes = await hackrfMgr.getHackrfBlockingProcesses();
 	const containers = await hackrfMgr.getContainerStatus(true);
 	applyOwnership(current, resolveHackrfOwner(processes, containers));
 	state.set(HardwareDevice.HACKRF, current);
 }
 
-export async function refreshAlfa(state: StateMap): Promise<void> {
+async function refreshAlfa(state: StateMap): Promise<void> {
 	const current = state.get(HardwareDevice.ALFA);
 	if (!current) return;
 	current.isDetected = !!(await alfaMgr.detectAdapter());
-	const processes = await alfaMgr.getBlockingProcesses();
+	const processes = await alfaMgr.getAlfaBlockingProcesses();
 	const owner = processes.length > 0 ? processes[0].name : null;
 	applyOwnership(current, owner);
 	state.set(HardwareDevice.ALFA, current);
@@ -42,11 +42,11 @@ function serviceOwnerOrNull(services: { isActive: boolean; name: string }[]): st
 	return activeSvc ? activeSvc.name.replace(/\.service$/, '') : null;
 }
 
-export async function refreshB205(state: StateMap): Promise<void> {
+async function refreshB205(state: StateMap): Promise<void> {
 	const current = state.get(HardwareDevice.B205);
 	if (!current) return;
 	current.isDetected = await b205Mgr.detectB205();
-	const processes = await b205Mgr.getBlockingProcesses();
+	const processes = await b205Mgr.getB205BlockingProcesses();
 	const services = await b205Mgr.getServiceStatus();
 	const procOwner = processes.length > 0 ? processes[0].name : null;
 	const owner = procOwner ?? serviceOwnerOrNull(services);
@@ -82,16 +82,16 @@ export async function dispatchRefresh(state: StateMap, device: HardwareDevice): 
 
 export async function killDeviceHolders(device: HardwareDevice): Promise<void> {
 	if (device === HardwareDevice.HACKRF) {
-		await hackrfMgr.killBlockingProcesses();
+		await hackrfMgr.killHackrfBlockingProcesses();
 		await hackrfMgr.stopContainers();
 		return;
 	}
 	if (device === HardwareDevice.ALFA) {
-		await alfaMgr.killBlockingProcesses();
+		await alfaMgr.killAlfaBlockingProcesses();
 		return;
 	}
 	if (device === HardwareDevice.B205) {
 		await b205Mgr.stopServices();
-		await b205Mgr.killBlockingProcesses();
+		await b205Mgr.killB205BlockingProcesses();
 	}
 }

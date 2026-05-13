@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { persistedWritable } from '$lib/stores/persisted-writable';
 
 /** Accepted visibility modes — the Zod schema is the single source of truth. */
-export const VisibilityModeSchema = z.enum(['dynamic', 'all', 'manual']);
+const VisibilityModeSchema = z.enum(['dynamic', 'all', 'manual']);
 export type VisibilityMode = z.infer<typeof VisibilityModeSchema>;
 
 /** Signal strength threshold for "Dynamic Filter" mode (dBm). Devices weaker than this are hidden. */

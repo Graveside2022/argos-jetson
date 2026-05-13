@@ -41,7 +41,7 @@ const NON_DATA_PATTERNS = [
 /**
  * Check if line is non-data (debug, info, error messages)
  */
-export function isNonDataLine(line: string): boolean {
+function isNonDataLine(line: string): boolean {
 	return NON_DATA_PATTERNS.some((pattern) => pattern.test(line));
 }
 
@@ -175,7 +175,7 @@ function tryParseSpectrumData(parts: string[]): SpectrumData | null {
  * Parse spectrum data from HackRF output line.
  * Handles both real hackrf_sweep format (with date/time) and simplified format.
  */
-export function parseSpectrumData(line: string): SpectrumData | null {
+function parseSpectrumData(line: string): SpectrumData | null {
 	try {
 		const parts = line.split(',').map((part) => part.trim());
 		if (parts.length < 7) return null;

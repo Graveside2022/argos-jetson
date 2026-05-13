@@ -220,7 +220,7 @@ function parseFreeOutput(stdout: string): {
 }
 
 /** Check system memory usage via /usr/bin/free */
-export function checkSystemMemory(): Promise<{
+function checkSystemMemory(): Promise<{
 	availablePercent: number;
 	totalMB: number;
 	availableMB: number;

@@ -10,6 +10,8 @@
 
 import type { Feature, FeatureCollection, LineString, Point } from 'geojson';
 
+import type { DeviceEllipse } from '$lib/types/rf-ellipse';
+
 import { LiveRefreshController } from './rf-live-refresh';
 
 /** Path layer vertex arg from the server. */
@@ -39,9 +41,9 @@ interface HexCell {
 	count: number;
 }
 
-export type LayerMode = 'off' | 'heatmap' | 'hex';
+type LayerMode = 'off' | 'heatmap' | 'hex';
 
-export interface RfVisualizationFilters {
+interface RfVisualizationFilters {
 	sessionId?: string;
 	deviceIds?: string[];
 	bbox?: [minLon: number, minLat: number, maxLon: number, maxLat: number];
@@ -133,9 +135,7 @@ function buildQuery(filters: RfVisualizationFilters): string {
 	return params.toString();
 }
 
-export async function fetchRfAggregate(
-	filters: RfVisualizationFilters
-): Promise<AggregateResponse> {
+async function fetchRfAggregate(filters: RfVisualizationFilters): Promise<AggregateResponse> {
 	const key = cacheKey(filters);
 	const cached = cache.get(key);
 	if (cached) {
@@ -206,7 +206,7 @@ function hexCellsToGeoJson(cells: HexCell[]): FeatureCollection<Point> {
 	};
 }
 
-export interface RfGeoJson {
+interface RfGeoJson {
 	path: FeatureCollection<LineString>;
 	centroids: FeatureCollection<Point>;
 	heatmap: FeatureCollection<Point>;
@@ -218,7 +218,7 @@ const EMPTY: RfGeoJson = {
 	heatmap: { type: 'FeatureCollection', features: [] }
 };
 
-export async function loadRfGeoJson(filters: RfVisualizationFilters): Promise<RfGeoJson> {
+async function loadRfGeoJson(filters: RfVisualizationFilters): Promise<RfGeoJson> {
 	const resp = await fetchRfAggregate(filters);
 	return {
 		path: pathToGeoJson(resp.path ?? []),
@@ -228,7 +228,7 @@ export async function loadRfGeoJson(filters: RfVisualizationFilters): Promise<Rf
 }
 
 /** Client-side session descriptor mirroring /api/sessions item shape. */
-export interface RfSession {
+interface RfSession {
 	id: string;
 	startedAt: number;
 	endedAt: number | null;
@@ -249,13 +249,9 @@ interface ObservationPoint {
 	timestamp: number;
 }
 
-export interface DeviceEllipse {
-	centerLat: number;
-	centerLon: number;
-	semiMajorM: number;
-	semiMinorM: number;
-	rotationDeg: number;
-}
+// DeviceEllipse consumed by server/db/device-ellipse.ts, utils/ellipse-geometry.ts, and device-ellipse.test.ts
+// fallow-ignore-next-line unused-type
+export type { DeviceEllipse } from '$lib/types/rf-ellipse';
 
 interface ObservationsResponse {
 	observations: ObservationPoint[];
@@ -341,6 +337,7 @@ class RfVisualizationStore {
 		this.setFilters({ sessionId: data.currentId });
 	}
 
+	// fallow-ignore-next-line complexity
 	async loadSessions(): Promise<void> {
 		if (this.sessionsLoading) return;
 		this.sessionsLoading = true;

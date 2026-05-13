@@ -26,7 +26,7 @@ function scrollToBottom(selector: string) {
 }
 
 /** Fetch tower location from the API */
-export async function fetchTowerLocation(
+async function fetchTowerLocation(
 	mcc: string,
 	mnc: string,
 	lac: string,
@@ -181,6 +181,7 @@ export async function fetchIMSIs(): Promise<void> {
 }
 
 /** Start IMSI capture on a given frequency */
+// fallow-ignore-next-line complexity
 export async function startIMSICapture(
 	frequency: string,
 	state: GsmEvilPageState,

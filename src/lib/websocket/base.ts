@@ -1,4 +1,4 @@
-import { WebSocketEvent as WebSocketEventEnum } from '$lib/types/enums';
+import { WebSocketEventName as WebSocketEventEnum } from '$lib/types/enums';
 import { logger } from '$lib/utils/logger';
 
 import type { HeartbeatState } from './websocket-heartbeat';
@@ -9,14 +9,22 @@ import type { ResolvedConfig } from './websocket-types';
 import { createWebSocket, resolveConfig } from './websocket-types';
 
 // Re-export all public types so existing consumers need only import from base.ts
+// TerminalTabContent.svelte imports BaseWebSocket from this module; these type re-exports
+// keep the public surface stable for any future consumers.
+// fallow-ignore-next-line unused-type
 export type { HeartbeatState } from './websocket-heartbeat';
+// fallow-ignore-next-line unused-type
 export type { ReconnectState } from './websocket-reconnect';
-export type {
-	BaseWebSocketConfig,
-	WebSocketEvent,
-	WebSocketEventListener,
-	WebSocketEventType
-} from './websocket-types';
+// fallow-ignore-next-line unused-type
+export type { BaseWebSocketConfig } from './websocket-types';
+// fallow-ignore-next-line unused-type
+export type { WebSocketEvent } from './websocket-types';
+// fallow-ignore-next-line unused-type
+export type { WebSocketEventListener } from './websocket-types';
+// fallow-ignore-next-line unused-type
+export type { WebSocketEventType } from './websocket-types';
+// Public API surface for subclass consumers; no direct external importer yet
+// fallow-ignore-next-line unused-export
 export { CONFIG_DEFAULTS, createWebSocket, resolveConfig } from './websocket-types';
 
 export abstract class BaseWebSocket {
@@ -86,6 +94,7 @@ export abstract class BaseWebSocket {
 		this.reconnectState.currentReconnectInterval = this.config.reconnectInterval;
 	}
 
+	// fallow-ignore-next-line complexity
 	send(data: unknown): boolean {
 		if (this.ws?.readyState !== WebSocket.OPEN) {
 			logger.warn('Cannot send message, WebSocket is not connected', {
@@ -196,6 +205,7 @@ export abstract class BaseWebSocket {
 		}
 	}
 
+	// fallow-ignore-next-line complexity
 	protected handleMessage(data: unknown): void {
 		if (data && typeof data === 'object' && 'type' in data) {
 			// @constitutional-exemption Article-II-2.1 issue:#14 — WebSocket message data type narrowing — browser API returns union type

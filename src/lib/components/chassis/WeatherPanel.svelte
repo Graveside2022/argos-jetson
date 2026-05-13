@@ -1,4 +1,5 @@
 <script lang="ts">
+	import InlineLoading from '$lib/components/chassis/forms/InlineLoading.svelte';
 	import type { FlightCategory, WeatherReport } from '$lib/types/weather';
 
 	// spec-024 PR1 T011 — popover body for WeatherButton.
@@ -59,7 +60,9 @@
 	{#if disabled}
 		<div class="wx-empty mono">WEATHER DISABLED</div>
 	{:else if loading}
-		<div class="wx-empty mono">FETCHING METAR…</div>
+		<div class="wx-empty mono">
+			<InlineLoading description="FETCHING METAR…" />
+		</div>
 	{:else if error}
 		<div class="wx-empty mono error">METAR FAILED · {error}</div>
 	{:else if empty}

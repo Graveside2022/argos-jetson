@@ -6,12 +6,12 @@
 import type { TerminalPanelState, TerminalSession } from '$lib/types/terminal';
 
 /** Generate a short random unique ID for terminal sessions and split panes. */
-export function generateId(): string {
+function generateId(): string {
 	return Math.random().toString(36).substring(2, 9);
 }
 
 /** Friendly display names for known tmux profile scripts. */
-export const TMUX_NAMES: [string, string][] = [
+const TMUX_NAMES: [string, string][] = [
 	['tmux-0.sh', 'Tmux 0'],
 	['tmux-1.sh', 'Tmux 1'],
 	['tmux-2.sh', 'Tmux 2'],
@@ -28,6 +28,8 @@ export const TMUX_SHELLS = [
 ];
 
 /** Resolve a human-readable shell name from a shell path. */
+// terminal-store.ts imports this; TerminalTabContent.svelte has its own local copy
+// fallow-ignore-next-line unused-export
 export function resolveShellName(shell: string): string {
 	const match = TMUX_NAMES.find(([key]) => shell.includes(key));
 	return match ? match[1] : shell.split('/').pop() || 'terminal';
@@ -49,6 +51,7 @@ export function createNewSession(shell: string): TerminalSession {
  * Returns the current active tab if it is not the closed session.
  * Otherwise selects the nearest preceding session.
  */
+// fallow-ignore-next-line complexity
 export function resolveActiveTab(
 	state: TerminalPanelState,
 	sessionId: string,

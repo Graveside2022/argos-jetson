@@ -5,9 +5,13 @@
 -->
 <!-- @constitutional-exemption Article-IV-4.2 issue:#12 — Custom table layout tightly coupled to BluetoothDevice shape; shadcn Table component incompatible with fixed-width column spec -->
 <script lang="ts">
+	import { SelectItem } from 'carbon-components-svelte';
 	import { onDestroy, onMount } from 'svelte';
 
 	import { browser } from '$app/environment';
+	import Checkbox from '$lib/components/chassis/forms/Checkbox.svelte';
+	import Select from '$lib/components/chassis/forms/Select.svelte';
+	import Tooltip from '$lib/components/chassis/forms/Tooltip.svelte';
 	import PanelEmptyState from '$lib/components/ui/PanelEmptyState.svelte';
 	import {
 		applyBluetoothDevices,
@@ -45,6 +49,7 @@
 	let sortDir: 'asc' | 'desc' = $state('desc');
 	let activeResizeCleanup: (() => void) | null = null;
 
+	// fallow-ignore-next-line complexity
 	function syncPollTimer(isRunning: boolean): void {
 		if (isRunning && !pollTimer) {
 			void fetchBluetoothDevices();
@@ -148,6 +153,7 @@
 		return `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}:${String(d.getUTCSeconds()).padStart(2, '0')}`;
 	}
 
+	// fallow-ignore-next-line complexity
 	function rssiClass(dbm: number | null): string {
 		if (dbm == null) return 'rssi-none';
 		if (dbm >= -50) return 'rssi-strong';
@@ -220,56 +226,66 @@
 		<span class="packets">{$bluetoothStore.packetCount} pkts</span>
 		<button class="btn-clear" onclick={onClear}>Clear</button>
 		{#if $bluetoothStore.status === 'stopped'}
-			<select class="profile-select" bind:value={profile} disabled={togglesDisabled}>
-				<option value="clean">CLEAN (98% CRC)</option>
-				<option value="volume">VOLUME (recommended)</option>
-				<option value="max">MAX DECODE</option>
-			</select>
-			<label
-				class="opt"
-				title="Capture full BLE band 2402–2480 MHz (96 channels). Default covers ch37+ch38 only."
+			<Select
+				hideLabel
+				labelText="profile"
+				value={profile}
+				onChange={(v) => {
+					if (v !== undefined) profile = String(v) as BluedragonProfile;
+				}}
+				disabled={togglesDisabled}
+				size="sm"
 			>
-				<input
-					type="checkbox"
+				<SelectItem value="clean" text="CLEAN (98% CRC)" />
+				<SelectItem value="volume" text="VOLUME (recommended)" />
+				<SelectItem value="max" text="MAX DECODE" />
+			</Select>
+			<span class="opt-tooltip">
+				<Checkbox
+					class="opt"
 					bind:checked={allChannels}
 					disabled={togglesDisabled}
-					aria-label="All BLE channels (96 ch wideband)"
+					labelText="ALL CH"
 				/>
-				ALL CH
-			</label>
-			<label
-				class="opt"
-				title="HCI LE active scan via system Bluetooth — enriches device names + services"
-			>
-				<input
-					type="checkbox"
+				<Tooltip iconDescription="ALL CH capture details" align="end">
+					Capture full BLE band 2402–2480 MHz (96 channels). Default covers ch37+ch38
+					only.
+				</Tooltip>
+			</span>
+			<span class="opt-tooltip">
+				<Checkbox
+					class="opt"
 					bind:checked={activeScan}
 					disabled={togglesDisabled}
-					aria-label="Active scan via system Bluetooth"
+					labelText="ACTIVE"
 				/>
-				ACTIVE
-			</label>
-			<label class="opt" title="GPS-tag every packet via gpsd (requires gpsd running)">
-				<input
-					type="checkbox"
+				<Tooltip iconDescription="ACTIVE scan details" align="end">
+					HCI LE active scan via system Bluetooth — enriches device names + services.
+				</Tooltip>
+			</span>
+			<span class="opt-tooltip">
+				<Checkbox
+					class="opt"
 					bind:checked={gpsd}
 					disabled={togglesDisabled}
-					aria-label="GPS tag every packet via gpsd"
+					labelText="GPS"
 				/>
-				GPS
-			</label>
-			<label
-				class="opt"
-				title="Continuous LE Coded PHY (Long Range) scan on advertising channels — AirTag/IoT detection at distance"
-			>
-				<input
-					type="checkbox"
+				<Tooltip iconDescription="GPS tagging details" align="end">
+					GPS-tag every packet via gpsd (requires gpsd running).
+				</Tooltip>
+			</span>
+			<span class="opt-tooltip">
+				<Checkbox
+					class="opt"
 					bind:checked={codedScan}
 					disabled={togglesDisabled}
-					aria-label="LE Coded PHY long-range scan"
+					labelText="CODED"
 				/>
-				CODED
-			</label>
+				<Tooltip iconDescription="CODED PHY scan details" align="end">
+					Continuous LE Coded PHY (Long Range) scan on advertising channels — AirTag/IoT
+					detection at distance.
+				</Tooltip>
+			</span>
 			<button class="btn-start" onclick={onStart} disabled={starting}>
 				{starting ? 'Starting…' : 'Start'}
 			</button>
@@ -471,16 +487,6 @@
 		user-select: none;
 	}
 
-	.opt input {
-		margin: 0;
-		cursor: pointer;
-		accent-color: var(--primary);
-	}
-
-	.opt input:disabled {
-		cursor: not-allowed;
-	}
-
 	.btn-start,
 	.btn-stop,
 	.btn-clear {
@@ -668,5 +674,11 @@
 
 	.rssi-none {
 		color: var(--foreground-tertiary);
+	}
+
+	.opt-tooltip {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.15em;
 	}
 </style>

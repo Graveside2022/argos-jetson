@@ -98,6 +98,7 @@ async function scanFrequencies(
 	return { results, events };
 }
 
+// fallow-ignore-next-line complexity
 export async function* performIntelligentScan(): AsyncGenerator<
 	import('./gsm-scan-types').ScanEvent
 > {

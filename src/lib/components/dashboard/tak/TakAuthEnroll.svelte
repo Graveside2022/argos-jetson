@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { toast } from 'svelte-sonner';
-
+	import NumberInput from '$lib/components/chassis/forms/NumberInput.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
+	import { toast } from '$lib/stores/toast.svelte';
 	import type { TakServerConfig } from '$lib/types/tak';
 
 	interface Props {
@@ -86,15 +86,17 @@
 			class="h-8 text-xs"
 		/>
 	</label>
-	<label class="flex flex-col gap-1 text-[11px] font-medium text-muted-foreground">
-		Enrollment Port
-		<Input
-			type="number"
-			bind:value={config.enrollmentPort}
-			placeholder="8446"
-			class="h-8 text-xs"
-		/>
-	</label>
+	<NumberInput
+		labelText="Enrollment Port"
+		bind:value={config.enrollmentPort}
+		placeholder="8446"
+		min={1}
+		max={65535}
+		step={1}
+		size="sm"
+		hideSteppers
+		disableWheel
+	/>
 	<div class="flex items-center gap-2">
 		<button
 			onclick={enrollCertificate}

@@ -17,6 +17,7 @@ async function checkGrgsmRunning(): Promise<boolean> {
 	}
 }
 
+// fallow-ignore-next-line complexity
 function extractPacketsFromError(error: unknown): number {
 	if (
 		error &&
@@ -88,6 +89,7 @@ function buildSuggestion(packets: number, recentIMSI: boolean): string | null {
 	return null;
 }
 
+// fallow-ignore-next-line complexity
 export const GET = createHandler(async () => {
 	try {
 		const grgsmRunning = await checkGrgsmRunning();

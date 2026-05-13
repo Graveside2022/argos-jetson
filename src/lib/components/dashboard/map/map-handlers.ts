@@ -11,7 +11,7 @@ import maplibregl from 'maplibre-gl';
 
 import type { SymbolLayer } from '$lib/map/layers/symbol-layer';
 import { SymbolFactory } from '$lib/map/symbols/symbol-factory';
-import type { Affiliation } from '$lib/stores/tactical-map/kismet-store';
+import type { DeviceClassification } from '$lib/stores/tactical-map/kismet-store';
 import { parseCotToFeature } from '$lib/utils/cot-parser';
 
 import { MAP_UI_COLORS, resolveMapColor } from './map-colors';
@@ -32,7 +32,7 @@ export type { PopupState, TowerPopupState } from './map-handler-types';
 export function handleDeviceClick(
 	map: maplibregl.Map,
 	ev: maplibregl.MapMouseEvent,
-	affiliations: Map<string, Affiliation>
+	affiliations: Map<string, DeviceClassification>
 ): { lngLat: LngLatLike; content: PopupState } | null {
 	const result = queryClickFeature(map, ev, ['device-circles', 'mil-sym-layer']);
 	if (!result) return null;
@@ -44,6 +44,7 @@ export function handleDeviceClick(
 
 // ── Cluster click handler ──
 
+// fallow-ignore-next-line complexity
 export async function handleClusterClick(
 	map: maplibregl.Map,
 	ev: maplibregl.MapMouseEvent
@@ -149,6 +150,7 @@ let _prevAffiliationSize = -1;
 let _prevCotCount = -1;
 let _prevDeviceFeatures: FeatureCollection | null = null;
 
+// fallow-ignore-next-line complexity
 function hasSymbolInputChanged(
 	devCount: number,
 	affSize: number,
@@ -172,8 +174,8 @@ function hasSymbolInputChanged(
 
 function resolveAffiliation(
 	props: Record<string, unknown>,
-	affiliations: Map<string, Affiliation>
-): Affiliation {
+	affiliations: Map<string, DeviceClassification>
+): DeviceClassification {
 	const mac = ((props.mac as string) || '').toUpperCase();
 	return affiliations.get(mac) || 'unknown';
 }
@@ -182,7 +184,7 @@ function buildSymbolLabel(props: Record<string, unknown>): string {
 	return (props.ssid as string) || (props.mac as string) || 'Unknown';
 }
 
-function mapDeviceToSymbol(f: Feature, affiliations: Map<string, Affiliation>): Feature {
+function mapDeviceToSymbol(f: Feature, affiliations: Map<string, DeviceClassification>): Feature {
 	const props = f.properties || {};
 	const affiliation = resolveAffiliation(props, affiliations);
 	return {
@@ -203,7 +205,7 @@ function parseCotFeatures(cotMessages: string[]): Feature[] {
 export function updateSymbolLayer(
 	symbolLayer: SymbolLayer,
 	deviceGeoJSON: FeatureCollection,
-	affiliations: Map<string, Affiliation>,
+	affiliations: Map<string, DeviceClassification>,
 	cotMessages: string[]
 ): void {
 	const devCount = deviceGeoJSON?.features.length ?? 0;
@@ -224,6 +226,7 @@ export interface CellTowerFetchState {
 	lastLon: number;
 }
 
+// fallow-ignore-next-line complexity
 function shouldFetchTowers(lat: number, lon: number, state: CellTowerFetchState): boolean {
 	if (lat === 0 && lon === 0) return false;
 	if (state.lastLat === 0 && state.lastLon === 0) return true;

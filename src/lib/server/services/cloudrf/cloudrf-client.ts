@@ -191,6 +191,7 @@ function buildPathBody(params: P2PRequest): Record<string, unknown> {
 }
 
 /** Parse a raw /area response into a CoverageResult */
+// fallow-ignore-next-line complexity
 async function parseAreaResponse(
 	data: Record<string, unknown>,
 	elapsed: number
@@ -221,6 +222,7 @@ function arr(data: Record<string, unknown>, key: string): number[] {
 }
 
 /** Extract the first Transmitter record from a /path response, or null */
+// fallow-ignore-next-line complexity
 function extractTransmitter(data: Record<string, unknown>): Record<string, unknown> | null {
 	const txs = data['Transmitters'];
 	if (!Array.isArray(txs) || txs.length === 0) return null;

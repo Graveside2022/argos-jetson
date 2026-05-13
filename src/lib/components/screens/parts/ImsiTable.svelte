@@ -8,6 +8,7 @@
 
 	import { gsmStore } from '$lib/state/gsm.svelte';
 	import type { ImsiRow, ImsiSortKey } from '$lib/types/imsi-row';
+	import { fmtNullable, fmtRelativeTime } from '$lib/utils/format-helpers';
 
 	interface ColumnDef {
 		key: ImsiSortKey;
@@ -25,17 +26,8 @@
 		{ key: 'datetime', label: 'SEEN', num: true }
 	];
 
-	function fmtNullable(s: string | null): string {
-		return s ?? '—';
-	}
-
 	function fmtDatetime(r: ImsiRow): string {
-		if (r.datetime === null) return '—';
-		const sec = Math.floor(Math.max(0, Date.now() - r.datetime) / 1000);
-		if (sec < 60) return `${sec}s`;
-		if (sec < 3600) return `${Math.floor(sec / 60)}m`;
-		if (sec < 86400) return `${Math.floor(sec / 3600)}h`;
-		return `${Math.floor(sec / 86400)}d`;
+		return fmtRelativeTime(r.datetime, { showDays: true });
 	}
 
 	function arrowFor(key: ImsiSortKey): string {
@@ -51,8 +43,10 @@
 <section class="table-region" aria-labelledby="gsm-table-h">
 	<header class="region-head">
 		<span id="gsm-table-h" class="region-label">IMSI CAPTURES</span>
-		<span class="meta">{gsmStore.rows.length} ·
-			{gsmStore.running ? 'live' : 'idle'}</span>
+		<span class="meta"
+			>{gsmStore.rows.length} ·
+			{gsmStore.running ? 'live' : 'idle'}</span
+		>
 	</header>
 	<div class="table-wrap">
 		<table class="imsi-table" aria-label="GSM IMSI captures">

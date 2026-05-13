@@ -1,0 +1,97 @@
+{
+	"$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json",
+	"duplicates": {
+		"mode": "semantic",
+		"minTokens": 50,
+		"minLines": 5,
+		"ignore": [
+			"**/__generated__/**",
+			"**/generated/**",
+			"**/.svelte-kit/**",
+			"**/build/**",
+			"**/dist/**",
+			"**/*.test.ts",
+			"**/*.spec.ts",
+			"tests/**",
+			"src/lib/data/*-catalog.ts"
+		]
+	},
+	"health": {
+		"maxCyclomatic": 5,
+		"maxCognitive": 5,
+		"maxCrap": 30.0
+	},
+	"rules": {
+		"unused-files": "error",
+		"unused-exports": "error",
+		"unused-types": "error",
+		"unused-dependencies": "error",
+		"unused-dev-dependencies": "warn",
+		"unused-optional-dependencies": "warn",
+		"unused-enum-members": "error",
+		"unused-class-members": "error",
+		"unresolved-imports": "error",
+		"unlisted-dependencies": "error",
+		"duplicate-exports": "error",
+		"type-only-dependencies": "warn",
+		"test-only-dependencies": "warn",
+		"circular-dependencies": "error",
+		"boundary-violation": "off",
+		"stale-suppressions": "warn"
+	},
+	"ignorePatterns": [
+		".svelte-kit/**",
+		"build/**",
+		"dist/**",
+		"coverage/**",
+		"node_modules/**",
+		"tests/visual/**",
+		"specs/**/*.md",
+		"graphify-out/**",
+		".trunk/**",
+		"tactical/**",
+		"static/**",
+		"_extensions/**",
+		"scripts/lib/jest-mock-svelte/**",
+		"**/*.min.js",
+		"**/*.bundle.js",
+		"**/*.chunk.js",
+		"**/vendor/**",
+		"docs/carbon-design-system/**",
+		"docs/carbon-website/**",
+		"docs/argos-v2-mockup/**",
+		"docs/export_pen_files/**"
+	],
+	"entry": ["dangerfile.js", "scripts/ops/prod-server.ts"],
+	"dynamicallyLoaded": [
+		"src/lib/server/db/migrations/**/*.ts",
+		"src/lib/server/db/migrations/**/*.sql"
+	],
+	"ignoreDependencies": [
+		"@novnc/novnc",
+		"@internationalized/date",
+		"@sveltejs/adapter-node",
+		"pixelmatch"
+	],
+	"overrides": [
+		{
+			"files": [
+				"src/lib/server/services/sdrpp/sdrpp-vnc-processes.ts",
+				"src/lib/server/services/sparrow/sparrow-vnc-processes.ts",
+				"src/lib/server/services/webtak-vnc/webtak-vnc-processes.ts",
+				"src/lib/server/services/wireshark-vnc/wireshark-vnc-processes.ts",
+				"src/lib/server/services/vnc-common/spawn-helpers.ts",
+				"src/lib/server/services/weather/metar-cache.ts",
+				"src/lib/server/services/weather/metar-parse.ts"
+			],
+			"rules": {
+				"duplicate-exports": "off"
+			}
+		}
+	],
+	"audit": {
+		"deadCodeBaseline": ".fallow-deadcode-baseline.json",
+		"healthBaseline": ".fallow-health-baseline.json",
+		"dupesBaseline": ".fallow-dupes-baseline.json"
+	}
+}

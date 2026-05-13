@@ -1,9 +1,8 @@
 <!-- @constitutional-exemption Article-IV-4.2 issue:#12 — Band filter chips, back button use custom 24x20px sizing incompatible with shadcn Button -->
 <script lang="ts">
-	import { toast } from 'svelte-sonner';
-
-	import Input from '$lib/components/ui/input/input.svelte';
+	import Search from '$lib/components/chassis/forms/Search.svelte';
 	import { kismetStore, setKismetStatus } from '$lib/stores/tactical-map/kismet-store';
+	import { toast } from '$lib/stores/toast.svelte';
 	import { signalBands } from '$lib/utils/signal-utils';
 
 	interface Props {
@@ -54,6 +53,7 @@
 		}
 	}
 
+	// fallow-ignore-next-line complexity
 	async function sendKismetControl(action: 'start' | 'stop'): Promise<void> {
 		kismetBusy = true;
 		setKismetStatus(action === 'start' ? 'starting' : 'stopping');
@@ -109,12 +109,12 @@
 
 	<div class="toolbar-separator"></div>
 
-	<Input
-		class="toolbar-search h-7 text-xs"
-		type="text"
+	<Search
 		placeholder="Search MAC, SSID, manufacturer..."
+		ariaLabel="Search devices"
 		value={searchQuery}
-		oninput={(e) => onSearchChange(e.currentTarget.value)}
+		onInput={(value: string) => onSearchChange(value)}
+		size="sm"
 	/>
 
 	<div class="toolbar-separator"></div>

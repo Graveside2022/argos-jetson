@@ -1,0 +1,50 @@
+# Sentrux architectural rules for Argos
+# See: https://github.com/sentrux/sentrux
+#
+# Day-0 baseline (2026-04-27, sentrux 0.5.7):
+#   quality_signal = 5401 / 10000
+#   bottleneck     = acyclicity (raw=2 SCCs, score=3333)
+#
+# Post-PR-#48 state (2026-04-27, after both SCC kills + 4 layer-fix PRs):
+#   quality_signal = 6730 / 10000
+#   acyclicity     = MAXED (raw=0, score=10000)
+#   bottleneck     = modularity (Newman Q=0.219, score=4795)
+#   files = 1626   import_edges = 1758   LOC = 394500
+#
+# ─── Free-tier truncation rule (verified in source) ─────────────────────────
+# Sentrux Free tier caps check_rules at 3 simultaneous rules total
+# (constraints + layers + boundaries combined). See:
+#   sentrux-core/src/app/mcp_server/handlers.rs:299-344
+# Truncation order: constraints first → layers next → boundaries last.
+# In v0.5.7, having 1 constraint + 6 layers + 4 boundaries = 11 rules,
+# only the first 3 evaluated; all boundaries silently dropped.
+#
+# Layer ordering + 4 client→server hard boundaries are now enforced by
+# eslint-plugin-boundaries v6 (uncapped, fires every commit) — see
+# config/eslint.config.js. ArchUnitTS tests in tests/architecture/ provide
+# the comprehensive third tier.
+#
+# This file's job in Free tier is therefore minimal: hold the
+# acyclicity floor + components→server sentinel boundary.
+
+[constraints]
+max_cycles = 0 # Hard floor — both Day-0 SCCs killed in PR #46 + #47.
+# Any new SCC introduced by a PR fails check_rules.
+no_god_files = false # Argos has fat stores; ratchet to true after store splits land.
+
+# ─── Layer ordering moved to eslint-plugin-boundaries ───────────────────────
+# See config/eslint.config.js settings.boundaries/elements + rules.boundaries/
+# dependencies. Routes(0) → components(1) → state(2) → server(3) → utils(4) →
+# types(5). Sentrux v0.5.7 free-tier 3-rule cap can't host these without
+# silently dropping the 4 client→server hard boundaries.
+
+# ─── Client→server hard boundary kept here as a sentinel ────────────────────
+# Single-rule sentinel: the most critical boundary. ESLint enforces all 4
+# (components/stores/state → server + routes → tests) at lint time. Sentrux
+# carries the components→server rule as a redundant catch-net visible in
+# session_end delta reports.
+
+[[boundaries]]
+from = "src/lib/components/**"
+to = "src/lib/server/**"
+reason = "Components must call /api endpoints, never import server modules directly"

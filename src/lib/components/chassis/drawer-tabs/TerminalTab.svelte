@@ -35,8 +35,8 @@
 	<div class="empty">
 		<div class="empty-title">Terminal not available in production build</div>
 		<div class="empty-body">
-			The interactive terminal is provided by <code>vite-plugin-terminal</code>, which
-			only loads under <code>npm run dev</code>. Production servers (running
+			The interactive terminal is provided by <code>vite-plugin-terminal</code>, which only
+			loads under <code>npm run dev</code>. Production servers (running
 			<code>node build</code>) ship without the
 			<code>/terminal-ws</code> WebSocket.
 		</div>
@@ -80,7 +80,7 @@
 
 	.empty-body {
 		max-width: 520px;
-		font-size: var(--mk2-fs-3);
+		font-size: var(--mk2-fs-drawer-body);
 		line-height: 1.6;
 		color: var(--mk2-ink-3);
 	}

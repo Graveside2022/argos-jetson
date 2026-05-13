@@ -1,18 +1,35 @@
 #!/usr/bin/env sh
 # Pre-push chain (heavy-gate tier — runs once per `git push`):
-#   1. Block direct pushes to protected branches (main, master).
-#   2. Full-repo typecheck (svelte-check via mem-guard wrapper).
-#   3. Full-repo ESLint scan (cached).
-#   4. test:unit:related:upstream — scoped to files changed vs upstream.
+#   1.  Block direct pushes to protected branches (main, master).
+#   1b. Branch-freshness gate — block if HEAD is too far behind origin/dev, or
+#       if a post-merge fan-out marked this worktree .needs-rebase (conflict-
+#       avoidance layer L1; see scripts/claude-hooks/worktree-refresh.sh).
+#   2.  Full-repo typecheck (svelte-check via mem-guard wrapper).
+#   3.  Full-repo ESLint scan (cached).
+#   4.  Fallow audit (baseline-aware — full diff vs base branch).
 #
-# All checks run before anything leaves the local machine. CI is the third
-# layer (.github/workflows/ci.yml + lint.yml).
+# All checks run before anything leaves the local machine. CI is the
+# authoritative gate — `lint.yml` runs ESLint on every push (any branch),
+# `commitlint.yml` runs on every PR, `ci.yml` runs typecheck + test:unit +
+# build on PRs targeting main. Pre-push is local DX preflight, not the
+# merge gate.
 #
-# All three checks share scripts/ops/mem-guard.sh's flock so two concurrent
+# Vitest deliberately NOT run in pre-push (audit canon, 2026-04-29):
+#   Husky docs scope hooks to "simple issues"; pre-commit framework docs
+#   scope to lint/format; vuejs/core, vercel/next.js, sveltejs/svelte,
+#   sveltejs/kit, and carbon-components-svelte all run zero tests in any
+#   git hook. Trunk-Based Development (Hammant): pre-push script ≡ CI
+#   script, not pre-push duplicates CI. Vitest still runs as
+#   `ci.yml::Run Automated Tests` on every PR, same merge-blocking signal.
+#   See _research/prepush-vitest-evidence.md for receipts.
+#
+# Both checks share scripts/ops/mem-guard.sh's flock so two concurrent
 # pre-push runs (e.g. double-click `git push` in a UI) can't race on RAM/CPU.
 #
 # Bypass protected-branch guard: ALLOW_MAIN_PUSH=1 git push ...
+# Bypass freshness gate:         SKIP_FRESHNESS=1 git push ...
 # Bypass full-repo lint:         SKIP_FULL_LINT=1 git push ...
+# Bypass fallow audit:           SKIP_FALLOW=1 git push ...
 # Skip everything:               git push --no-verify ...
 
 set -e
@@ -39,28 +56,158 @@ else
 	done
 fi
 
+# 1b) Branch-freshness gate (conflict-avoidance layer L1).
+#     With many parallel aoe worktrees, a feature branch that's drifted far
+#     behind `dev` will conflict at merge time and won't pick up sibling work.
+#     This blocks the push if HEAD is too far behind origin/dev, or if the
+#     post-merge fan-out (scripts/claude-hooks/worktree-refresh.sh) flagged
+#     this worktree dirty during a rebase attempt (.needs-rebase marker).
+#     Skip: SKIP_FRESHNESS=1 git push ...   Threshold: FRESHNESS_MAX_BEHIND (default 25).
+if [ "${SKIP_FRESHNESS:-0}" = "1" ]; then
+	echo "[pre-push] SKIP_FRESHNESS=1 — skipping branch-freshness gate"
+else
+	_cur_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+	case "$_cur_branch" in
+		main|master|dev|HEAD|"") : ;;  # nothing to check
+		*)
+			_repo_top=$(git rev-parse --show-toplevel 2>/dev/null || echo ".")
+			git fetch origin dev --quiet 2>/dev/null || true
+			if [ -f "$_repo_top/.needs-rebase" ]; then
+				echo "[pre-push] ❌ this worktree was marked .needs-rebase by the post-merge fan-out" >&2
+				echo "[pre-push]    Run: git rebase origin/dev   (then 'rm .needs-rebase' if it lingers)" >&2
+				echo "[pre-push]    Bypass: SKIP_FRESHNESS=1 git push ..." >&2
+				exit 1
+			fi
+			if git rev-parse --verify --quiet origin/dev >/dev/null 2>&1; then
+				_behind=$(git rev-list --count HEAD..origin/dev 2>/dev/null || echo 0)
+				_max=${FRESHNESS_MAX_BEHIND:-25}
+				if [ "$_behind" -gt "$_max" ]; then
+					echo "[pre-push] ❌ branch '$_cur_branch' is $_behind commits behind origin/dev (limit $_max)" >&2
+					echo "[pre-push]    Rebase before pushing:  git fetch origin && git rebase origin/dev" >&2
+					echo "[pre-push]    Raise the limit:        FRESHNESS_MAX_BEHIND=N git push ..." >&2
+					echo "[pre-push]    Bypass entirely:        SKIP_FRESHNESS=1 git push ..." >&2
+					exit 1
+				fi
+			fi
+			;;
+	esac
+fi
+
 # 2) Typecheck (svelte-check via mem-guard wrapper in package.json)
 # npm run typecheck is already wrapped in mem-guard via its package.json
 # script definition — wrapping it again here would cause a nested-lock failure.
 echo "[pre-push] typecheck (svelte-check)..."
 npm run typecheck
 
+# 2b) Prettier format:check — catches drift that ci.yml's format:check step
+#     also enforces. Without this gate the bundle ships unformatted to dev,
+#     and the dev → main rollup PR fails ci.yml. Discovered 2026-05-06 when
+#     PR #110 (8000 LOC) merged unformatted because pre-push had no format
+#     gate. Skip: SKIP_FORMAT_CHECK=1 git push ...
+if [ "${SKIP_FORMAT_CHECK:-0}" = "1" ]; then
+	echo "[pre-push] SKIP_FORMAT_CHECK=1 — skipping prettier format:check"
+else
+	echo "[pre-push] prettier format:check..."
+	if ! npm run format:check; then
+		echo "[pre-push] ❌ prettier drift — fix with: npm run format" >&2
+		echo "[pre-push]    Bypass: SKIP_FORMAT_CHECK=1 git push ..." >&2
+		exit 1
+	fi
+fi
+
 # 3) Full-repo ESLint scan (cached, blocking on any error)
 if [ "${SKIP_FULL_LINT:-0}" = "1" ]; then
 	echo "[pre-push] SKIP_FULL_LINT=1 — skipping full-repo eslint scan"
 else
 	echo "[pre-push] full-repo eslint scan (cached, cognitive complexity ≤5)..."
-	if ! npx eslint . --config config/eslint.config.js --cache --cache-location .eslintcache --cache-strategy content; then
+	# npm run lint wraps eslint via scripts/ops/mem-guard.sh (per package.json
+	# `lint` script, post PR-CI-1). This shares the flock with typecheck so
+	# two concurrent pushes can't race on RAM/CPU. Per CR feedback on PR #74.
+	if ! npm run lint; then
 		echo "[pre-push] ❌ eslint errors present — fix or bypass with SKIP_FULL_LINT=1 git push ..." >&2
 		exit 1
 	fi
 fi
 
-# 4) test:unit:related:upstream — scoped to the diff being pushed
-# Full 523-test suite runs in CI only — pre-push scopes to files changed vs the
-# upstream tracking branch. Catches breakage in the actual diff without paying
-# ~120 s on pushes that touch a handful of files. CI is the safety net.
-echo "[pre-push] test:unit:related:upstream (scoped to the diff being pushed)..."
-npm run test:unit:related:upstream
+# 4) Fallow audit (baseline-aware — full diff vs base branch)
+# Runs the same fallow detectors as pre-commit but at the branch level (full
+# diff vs auto-detected base, typically `main`). Baseline files in repo root
+# (.fallow-{deadcode,health,dupes}-baseline.json) grandfather pre-existing
+# findings so only NEW violations introduced by the branch fail the gate.
+# Gated on presence of .fallowrc.json so repos without fallow skip cleanly.
+#
+# Wrapped in index snapshot/restore — see .husky/pre-commit step 1c for the
+# fallow audit upstream-bug rationale.
+if [ "${SKIP_FALLOW:-0}" = "1" ]; then
+	echo "[pre-push] SKIP_FALLOW=1 — skipping fallow audit"
+elif [ -f .fallowrc.json ]; then
+	if ! command -v npx >/dev/null 2>&1; then
+		echo "[pre-push] ❌ .fallowrc.json present but \`npx\` not on PATH" >&2
+		exit 1
+	fi
+	echo "[pre-push] fallow audit (baseline-aware: NEW complexity/dupes/dead-code only)..."
+	# Scope to commits being pushed — `--changed-since @{u}` tells fallow to look
+	# at files changed since the upstream tracking ref (= the commits THIS push
+	# delivers). Without this flag, fallow auto-detects base = typically `main`,
+	# and any direct push of `dev` would flag the entire dev backlog as new
+	# findings (dev has weeks of commits ahead of main).
+	#
+	# Pair with `--gate all` to skip fallow's base-snapshot attribution pass —
+	# that pass tries to materialize the base ref into a tempdir worktree and
+	# leaks index entries into .git/index (upstream bug, see snapshot/restore
+	# wrap below). With `--gate all`, fallow fails on every finding in the
+	# changed file set; per-detector baselines configured in .fallowrc.json
+	# `audit` section still grandfather pre-existing findings, so only NEW
+	# violations vs baseline fail.
+	#
+	# Fallback: if @{u} doesn't resolve (brand-new branch with no upstream),
+	# omit --changed-since and let fallow auto-detect. First-push of a feature
+	# branch hits this path; the diff vs auto-detected base is correct.
+	_fallow_changed_since=""
+	if git rev-parse --abbrev-ref --symbolic-full-name '@{u}' >/dev/null 2>&1; then
+		_fallow_changed_since="--changed-since @{u}"
+	fi
+	# Use git rev-parse --git-dir so this works in worktrees (.git is a file there).
+	_fallow_gitidx="$(git rev-parse --git-dir)/index"
+	_fallow_idx_bak="$(mktemp /tmp/fallow-idx-bak.XXXXXX)"
+	cp "$_fallow_gitidx" "$_fallow_idx_bak"
+	_fallow_rc=0
+	# shellcheck disable=SC2086
+	npx --no-install fallow audit $_fallow_changed_since --quiet --format compact || _fallow_rc=$?
+	cp "$_fallow_idx_bak" "$_fallow_gitidx"
+	rm -f "$_fallow_idx_bak"
+	if [ "$_fallow_rc" -ne 0 ]; then
+		echo "[pre-push] ❌ fallow audit found NEW issues vs baseline on this branch" >&2
+		echo "[pre-push]    Inspect: npx --no-install fallow audit --format human --explain" >&2
+		echo "[pre-push]    Bypass:  SKIP_FALLOW=1 git push ..." >&2
+		exit 1
+	fi
+fi
+
+# 5) Daily-PR LOC advisory — non-blocking warning when bundle exceeds Danger
+#    2000-LOC PR-shape cap. Push proceeds (WIP recovery needs the remote ref);
+#    the warning prompts the operator to split BEFORE opening the PR.
+#    See ~/.claude/projects/-home-jetson2-code-Argos/memory/feedback_no_admin_bypass_daily_loc_cap.md
+#    Skip: SKIP_LOC_ADVISORY=1 git push ...
+if [ "${SKIP_LOC_ADVISORY:-0}" != "1" ] && git rev-parse --abbrev-ref --symbolic-full-name 'origin/dev' >/dev/null 2>&1; then
+	_loc_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+	case "$_loc_branch" in
+		session-*|feature/*|chore/*|fix/*|docs/*)
+			_loc_stat=$(git diff --shortstat origin/dev...HEAD 2>/dev/null || echo "")
+			_loc_ins=$(echo "$_loc_stat" | grep -oE '[0-9]+ insertion' | grep -oE '[0-9]+' || echo 0)
+			_loc_del=$(echo "$_loc_stat" | grep -oE '[0-9]+ deletion' | grep -oE '[0-9]+' || echo 0)
+			_loc_total=$((_loc_ins + _loc_del))
+			if [ "$_loc_total" -gt 2000 ]; then
+				echo "" >&2
+				echo "[pre-push] ⚠️  DAILY-PR LOC ADVISORY: branch $_loc_branch is $_loc_total LOC vs origin/dev" >&2
+				echo "[pre-push]    Danger PR-shape cap = 2000 LOC. A PR opened with this diff will FAIL the required check." >&2
+				echo "[pre-push]    Admin-bypass on feature → dev is FORBIDDEN. Split before opening the PR." >&2
+				echo "[pre-push]    Protocol: feedback_no_admin_bypass_daily_loc_cap.md" >&2
+				echo "[pre-push]    Skip this advisory: SKIP_LOC_ADVISORY=1 git push ..." >&2
+				echo "" >&2
+			fi
+			;;
+	esac
+fi
 
 echo "[pre-push] ✓ all checks passed"

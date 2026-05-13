@@ -1,0 +1,245 @@
+import { EventEmitter } from 'node:events';
+
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { HardwareDevice } from '$lib/server/hardware/types';
+
+// Mock sweepManager BEFORE importing HackRFSpectrumSource — the source
+// captures the singleton at import time.
+const mockSweepManager = Object.assign(new EventEmitter(), {
+	startCycle: vi.fn().mockResolvedValue(true),
+	stopSweep: vi.fn().mockResolvedValue(undefined),
+	setSweepArgsOverride: vi.fn()
+});
+
+vi.mock('$lib/server/hackrf/sweep-manager', () => ({
+	sweepManager: mockSweepManager
+}));
+
+const { HackRFSpectrumSource, buildSweepArgsOverride } = await import('./hackrf-source');
+
+import type { SpectrumConfig, SpectrumFrame } from './types';
+
+const baseConfig: SpectrumConfig = {
+	startFreq: 88_000_000,
+	endFreq: 108_000_000,
+	binWidth: 100_000,
+	gain: { kind: 'hackrf', amp: 0, lna: 16, vga: 20 }
+};
+
+describe('HackRFSpectrumSource', () => {
+	beforeEach(() => {
+		mockSweepManager.startCycle.mockClear();
+		mockSweepManager.stopSweep.mockClear();
+		mockSweepManager.setSweepArgsOverride.mockClear();
+		mockSweepManager.removeAllListeners();
+	});
+
+	afterEach(() => {
+		mockSweepManager.removeAllListeners();
+	});
+
+	it('exposes HACKRF as device', () => {
+		const src = new HackRFSpectrumSource();
+		expect(src.device).toBe(HardwareDevice.HACKRF);
+	});
+
+	it('start() forwards center MHz + cycleTimeMs to sweepManager.startCycle', async () => {
+		const src = new HackRFSpectrumSource();
+		await src.start(baseConfig);
+
+		expect(mockSweepManager.startCycle).toHaveBeenCalledTimes(1);
+		const [freqs, cycleMs] = mockSweepManager.startCycle.mock.calls[0];
+		expect(freqs).toEqual([{ value: 98, unit: 'MHz' }]); // (88+108)/2 = 98 MHz
+		expect(cycleMs).toBe(10_000);
+	});
+
+	it("translates 'spectrum_data' event into 'frame' SpectrumFrame", async () => {
+		const src = new HackRFSpectrumSource();
+		await src.start(baseConfig);
+
+		const received: SpectrumFrame[] = [];
+		src.on('frame', (f) => received.push(f));
+
+		// Input mirrors the real SpectrumData shape that buffer-parser.ts:148
+		// emits: frequencies in MHz, timestamp as Date. The source must
+		// convert at the boundary so SpectrumFrame stays Hz + ms epoch.
+		mockSweepManager.emit('spectrum_data', {
+			frequency: 98,
+			timestamp: new Date(1234),
+			data: {
+				powerValues: [-50, -45, -40, -35],
+				startFreq: 96,
+				endFreq: 100,
+				timestamp: new Date(1234)
+			}
+		});
+
+		expect(received).toHaveLength(1);
+		const frame = received[0];
+		expect(frame.device).toBe(HardwareDevice.HACKRF);
+		expect(frame.startFreq).toBe(96_000_000);
+		expect(frame.endFreq).toBe(100_000_000);
+		expect(frame.binWidth).toBe(1_000_000); // (100-96 MHz) / 4 bins → 1 MHz in Hz
+		expect(frame.power).toEqual([-50, -45, -40, -35]);
+		expect(frame.timestamp).toBe(1234);
+	});
+
+	it('coerces missing data.timestamp via payload.timestamp fallback (number ms)', async () => {
+		const src = new HackRFSpectrumSource();
+		await src.start(baseConfig);
+
+		const received: SpectrumFrame[] = [];
+		src.on('frame', (f) => received.push(f));
+
+		mockSweepManager.emit('spectrum_data', {
+			frequency: 98,
+			timestamp: 5678,
+			data: {
+				powerValues: [-50, -45],
+				startFreq: 96,
+				endFreq: 100
+			}
+		});
+
+		expect(received).toHaveLength(1);
+		expect(received[0].timestamp).toBe(5678);
+	});
+
+	it('coerces all-undefined timestamp paths to Date.now() (number ms)', async () => {
+		const src = new HackRFSpectrumSource();
+		await src.start(baseConfig);
+
+		const received: SpectrumFrame[] = [];
+		src.on('frame', (f) => received.push(f));
+
+		const before = Date.now();
+		mockSweepManager.emit('spectrum_data', {
+			data: {
+				powerValues: [-50, -45],
+				startFreq: 96,
+				endFreq: 100
+			}
+		});
+		const after = Date.now();
+
+		expect(received).toHaveLength(1);
+		expect(typeof received[0].timestamp).toBe('number');
+		expect(received[0].timestamp).toBeGreaterThanOrEqual(before);
+		expect(received[0].timestamp).toBeLessThanOrEqual(after);
+	});
+
+	it('drops malformed events (missing powerValues / freq bounds)', async () => {
+		const src = new HackRFSpectrumSource();
+		await src.start(baseConfig);
+
+		const received: SpectrumFrame[] = [];
+		src.on('frame', (f) => received.push(f));
+
+		mockSweepManager.emit('spectrum_data', { data: {} });
+		mockSweepManager.emit('spectrum_data', { data: { powerValues: [] } });
+		mockSweepManager.emit('spectrum_data', {
+			data: { powerValues: [1], startFreq: 100, endFreq: undefined }
+		});
+
+		expect(received).toHaveLength(0);
+	});
+
+	it('stop() calls sweepManager.stopSweep and detaches listener', async () => {
+		const src = new HackRFSpectrumSource();
+		await src.start(baseConfig);
+
+		expect(mockSweepManager.listenerCount('spectrum_data')).toBe(1);
+
+		await src.stop();
+
+		expect(mockSweepManager.stopSweep).toHaveBeenCalledTimes(1);
+		expect(mockSweepManager.listenerCount('spectrum_data')).toBe(0);
+	});
+
+	it("getStatus() reports state 'streaming' after start, 'idle' after stop", async () => {
+		const src = new HackRFSpectrumSource();
+		expect(src.getStatus().state).toBe('idle');
+
+		await src.start(baseConfig);
+		expect(src.getStatus().state).toBe('streaming');
+		expect(src.getStatus().config).toEqual(baseConfig);
+
+		await src.stop();
+		expect(src.getStatus().state).toBe('idle');
+	});
+
+	it("transitions to 'error' when sweepManager.startCycle returns false", async () => {
+		mockSweepManager.startCycle.mockResolvedValueOnce(false);
+		const src = new HackRFSpectrumSource();
+
+		await expect(src.start(baseConfig)).rejects.toThrow(/returned false/);
+		expect(src.getStatus().state).toBe('error');
+	});
+
+	it('plumbs SpectrumConfig through sweepManager.setSweepArgsOverride before startCycle (bug C2)', async () => {
+		const src = new HackRFSpectrumSource();
+		await src.start({
+			...baseConfig,
+			binWidth: 50_000,
+			gain: { kind: 'hackrf', amp: 0, lna: 32, vga: 24 }
+		});
+
+		expect(mockSweepManager.setSweepArgsOverride).toHaveBeenCalledTimes(1);
+		expect(mockSweepManager.setSweepArgsOverride).toHaveBeenCalledWith({
+			binWidthHz: 50_000,
+			lnaGain: '32',
+			vgaGain: '24'
+		});
+		// setSweepArgsOverride must fire BEFORE startCycle so the args land
+		// before the first hackrf_sweep spawn.
+		const overrideOrder = mockSweepManager.setSweepArgsOverride.mock.invocationCallOrder[0];
+		const startCycleOrder = mockSweepManager.startCycle.mock.invocationCallOrder[0];
+		expect(overrideOrder).toBeLessThan(startCycleOrder);
+	});
+
+	it('clears sweepArgsOverride on startCycle failure', async () => {
+		mockSweepManager.startCycle.mockResolvedValueOnce(false);
+		const src = new HackRFSpectrumSource();
+
+		await expect(src.start(baseConfig)).rejects.toThrow();
+		// Two calls: 1) override built from config, 2) null to clear after failure.
+		expect(mockSweepManager.setSweepArgsOverride).toHaveBeenCalledTimes(2);
+		expect(mockSweepManager.setSweepArgsOverride).toHaveBeenLastCalledWith(null);
+	});
+});
+
+describe('buildSweepArgsOverride (bug C2)', () => {
+	it('forwards binWidth Hz directly', () => {
+		const o = buildSweepArgsOverride({
+			startFreq: 88_000_000,
+			endFreq: 108_000_000,
+			binWidth: 25_000,
+			gain: { kind: 'hackrf', amp: 0, lna: 0, vga: 0 }
+		});
+		expect(o.binWidthHz).toBe(25_000);
+	});
+
+	it('stringifies HackRF lna/vga so SweepArgs CLI mapping accepts them', () => {
+		const o = buildSweepArgsOverride({
+			startFreq: 88_000_000,
+			endFreq: 108_000_000,
+			binWidth: 100_000,
+			gain: { kind: 'hackrf', amp: 1, lna: 40, vga: 62 }
+		});
+		expect(o.lnaGain).toBe('40');
+		expect(o.vgaGain).toBe('62');
+	});
+
+	it('omits hackrf-specific gain fields for B205 configs', () => {
+		const o = buildSweepArgsOverride({
+			startFreq: 88_000_000,
+			endFreq: 108_000_000,
+			binWidth: 100_000,
+			gain: { kind: 'b205', rxGain: 30 }
+		});
+		expect(o.lnaGain).toBeUndefined();
+		expect(o.vgaGain).toBeUndefined();
+		expect(o.binWidthHz).toBe(100_000);
+	});
+});

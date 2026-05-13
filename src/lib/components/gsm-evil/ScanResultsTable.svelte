@@ -68,7 +68,7 @@
 					</Table.Row>
 				</Table.Header>
 				<Table.Body>
-					{#each scanResults.sort((a, b) => (b.frameCount || 0) - (a.frameCount || 0)) as result}
+					{#each scanResults.sort((a, b) => (b.frameCount || 0) - (a.frameCount || 0)) as result (result.frequency)}
 						<Table.Row
 							class={selectedFrequency === result.frequency
 								? 'bg-green-500/10 border-l-2 border-l-green-400'

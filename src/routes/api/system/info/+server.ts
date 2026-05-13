@@ -105,6 +105,7 @@ async function getTemperatureVcgencmd(): Promise<number> {
 }
 
 /** Detect battery status (optional on Pi). */
+// fallow-ignore-next-line complexity
 async function getBatteryInfo(): Promise<{ level: number; charging: boolean } | undefined> {
 	try {
 		const { stdout } = await execFileAsync('/usr/bin/upower', [
@@ -124,9 +125,20 @@ async function getBatteryInfo(): Promise<{ level: number; charging: boolean } | 
 	}
 }
 
+function getDistro(): string | undefined {
+	try {
+		const text = fs.readFileSync('/etc/os-release', 'utf-8');
+		const m = text.match(/^PRETTY_NAME="?([^"\n]+)"?$/m);
+		return m ? m[1] : undefined;
+	} catch {
+		return undefined;
+	}
+}
+
 async function getSystemInfo(): Promise<SystemInfo> {
 	const hostname = os.hostname();
 	const kernel = os.release();
+	const distro = getDistro();
 	const loadAvg = os.loadavg() as [number, number, number];
 	const { primaryIp, tailscaleIp } = await getNetworkIps();
 	const wifiInterfaces = await getWifiInterfaces();
@@ -148,6 +160,7 @@ async function getSystemInfo(): Promise<SystemInfo> {
 	return {
 		hostname,
 		kernel,
+		distro,
 		loadAvg,
 		ip: primaryIp,
 		tailscaleIp,

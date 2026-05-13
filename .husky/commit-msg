@@ -1,6 +1,8 @@
 #!/usr/bin/env sh
 # Conventional Commits enforcement.
-# Subject must be: type(scope)?!?: description
+# Single-source from commitlint.config.mjs via `npx commitlint --edit`.
+# Replaced the prior hand-rolled regex (which duplicated the config) on
+# 2026-04-29 per docs/ci-cd-pipeline-spec.md §3.3.
 #
 # Bypass: SKIP_COMMIT_MSG=1 git commit ...  OR  git commit --no-verify ...
 
@@ -16,25 +18,16 @@ MSG_FILE=$1
 
 MSG_HEAD=$(grep -vE '^(#|$)' "$MSG_FILE" | head -1)
 
+# Skip generated commit messages git produces during merge / revert / fixup
 case "$MSG_HEAD" in
 	"Merge "*|"Revert "*|"fixup!"*|"squash!"*|"amend!"*|"WIP"*|"Initial commit"*)
 		exit 0
 		;;
 esac
 
-# Pattern enforces commitlint defaults: type-enum lowercase, scope-case lowercase,
-# subject-case starts-lowercase, subject-full-stop never, min 2 chars.
-PATTERN='^(feat|fix|chore|docs|refactor|test|perf|ci|build|style|revert)(\([a-z0-9][a-z0-9._/-]*\))?!?: [a-z].*[^.]$'
-
-if ! echo "$MSG_HEAD" | grep -qE "$PATTERN"; then
-	echo "[commit-msg] ❌ subject does not match Conventional Commits format" >&2
-	echo "[commit-msg]   got:    $MSG_HEAD" >&2
-	echo "[commit-msg]   expect: type(scope)?: subject  (lowercase first char, no trailing period)" >&2
-	echo "[commit-msg]   example: feat(kismet): add fusion controller" >&2
-	echo "[commit-msg]   types:  feat | fix | chore | docs | refactor | test | perf | ci | build | style | revert" >&2
-	echo "[commit-msg] bypass: SKIP_COMMIT_MSG=1 git commit ..." >&2
-	exit 1
-fi
+# Delegate to commitlint — single source of truth from commitlint.config.mjs.
+# --no-install ensures we use the local install (no surprise network fetch).
+npx --no-install commitlint --edit "$MSG_FILE"
 
 LEN=$(printf '%s' "$MSG_HEAD" | wc -c)
 if [ "$LEN" -gt 72 ]; then

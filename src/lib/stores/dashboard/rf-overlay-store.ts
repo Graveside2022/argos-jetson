@@ -44,26 +44,9 @@ export function addOverlay(entry: Omit<RFOverlayEntry, 'id' | 'createdAt'>): str
 	return id;
 }
 
-/** Remove a specific overlay by ID */
-export function removeOverlay(id: string): void {
-	overlayEntries.update((entries) => entries.filter((e) => e.id !== id));
-}
-
 /** Clear all overlays */
 export function clearOverlays(): void {
 	overlayEntries.set([]);
-}
-
-/** Toggle overlay visibility */
-export function toggleOverlayVisibility(id: string): void {
-	overlayEntries.update((entries) =>
-		entries.map((e) => (e.id === id ? { ...e, visible: !e.visible } : e))
-	);
-}
-
-/** Update overlay opacity */
-export function setOverlayOpacity(id: string, opacity: number): void {
-	overlayEntries.update((entries) => entries.map((e) => (e.id === id ? { ...e, opacity } : e)));
 }
 
 /** Update opacity on ALL overlay entries (used by the global opacity slider) */
@@ -73,17 +56,11 @@ export function setAllOverlaysOpacity(opacity: number): void {
 
 // ── Display settings ────────────────────────────────────────────────
 
-export type OverlayMode = 'single' | 'multi';
+type OverlayMode = 'single' | 'multi';
 
 export const overlayMode = persistedWritable<OverlayMode>('rfOverlayMode', 'single');
 
 export const globalOpacity = persistedWritable<number>('rfOverlayOpacity', 0.7, {
 	serialize: (v) => String(v),
 	deserialize: (raw) => Math.max(0.1, Math.min(1, parseFloat(raw) || 0.7))
-});
-
-/** Loss threshold for binary coloring (dB). Values above threshold = red, below = green */
-export const lossThreshold = persistedWritable<number | null>('rfLossThreshold', null, {
-	serialize: (v) => (v === null ? 'null' : String(v)),
-	deserialize: (raw) => (raw === 'null' ? null : parseFloat(raw) || null)
 });

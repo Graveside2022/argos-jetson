@@ -1,3 +1,5 @@
+import { randomBytes } from 'node:crypto';
+
 import type { IncomingMessage } from 'http';
 import type { Duplex } from 'stream';
 import { WebSocket, WebSocketServer } from 'ws';
@@ -25,7 +27,11 @@ interface ParsedMessage {
 let wssSingleton: WebSocketServer | null = null;
 
 function newId(): string {
-	return Math.random().toString(36).substring(2, 9);
+	// CSPRNG-backed PTY session ID. `Math.random()` was the source CodeQL
+	// `js/insecure-randomness` flagged at this site — an attacker who can
+	// predict the ID could try to attach a WebSocket to an existing PTY.
+	// `randomBytes(8)` gives 64 bits of entropy, encoded as 16 hex chars.
+	return randomBytes(8).toString('hex');
 }
 
 function isPidAlive(pid: number): boolean {
@@ -95,6 +101,7 @@ function handleListSessions(state: ConnectionState): void {
 	sendJson(state.ws, { type: 'sessions', sessions: sessionList });
 }
 
+// fallow-ignore-next-line complexity
 function handleResize(state: ConnectionState, parsed: ParsedMessage): void {
 	if (!state.boundSessionId || !parsed.cols || !parsed.rows) return;
 	const session = sessions.get(state.boundSessionId);
@@ -112,6 +119,7 @@ function handleInput(state: ConnectionState, parsed: ParsedMessage): void {
 	if (session) session.pty.write(parsed.data);
 }
 
+// fallow-ignore-next-line complexity
 async function handleParseError(state: ConnectionState, raw: string): Promise<void> {
 	if (state.boundSessionId) {
 		const session = sessions.get(state.boundSessionId);

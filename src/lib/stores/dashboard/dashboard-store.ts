@@ -2,6 +2,7 @@ import { derived, writable } from 'svelte/store';
 
 import { browser } from '$app/environment';
 import { persistedWritable } from '$lib/stores/persisted-writable';
+import { type ActiveView, VALID_VIEWS } from '$lib/types/dashboard-view';
 
 /** Which panel is open in the icon rail (null by default — user must explicitly open) */
 export const activePanel = writable<string | null>(null);
@@ -76,67 +77,6 @@ export function setBottomPanelHeight(height: number): void {
 	const maxHeight = browser ? window.innerHeight * MAX_BOTTOM_HEIGHT_PERCENT : 600;
 	bottomPanelHeight.set(Math.max(MIN_BOTTOM_HEIGHT, Math.min(maxHeight, height)));
 }
-
-/**
- * What the main content area shows.
- * 'map' = default map view (State 1 or 2)
- * 'kismet' | 'gsm-evil' | 'hackrf' | etc. = full-screen tool view (State 3)
- */
-export type ActiveView =
-	| 'map'
-	| 'kismet'
-	| 'openwebrx'
-	| 'novasdr'
-	| 'bettercap'
-	| 'hackrf'
-	| 'gsm-evil'
-	| 'rtl-433'
-	| 'btle'
-	| 'droneid'
-	| 'pagermon'
-	| 'rf-emitter'
-	| 'wifite'
-	| 'wigletotak'
-	| 'bluehood'
-	| 'sightline'
-	| 'spiderfoot'
-	| 'webtak'
-	| 'tak-config'
-	| 'globalprotect'
-	| 'logs-analytics'
-	| 'sparrow-wifi'
-	| 'sdrpp'
-	| 'trunk-recorder'
-	| 'uas-scan'
-	| 'wireshark';
-
-const VALID_VIEWS: ReadonlySet<string> = new Set<ActiveView>([
-	'map',
-	'kismet',
-	'openwebrx',
-	'novasdr',
-	'bettercap',
-	'hackrf',
-	'gsm-evil',
-	'rtl-433',
-	'btle',
-	'droneid',
-	'pagermon',
-	'rf-emitter',
-	'wifite',
-	'wigletotak',
-	'bluehood',
-	'sightline',
-	'spiderfoot',
-	'webtak',
-	'tak-config',
-	'globalprotect',
-	'logs-analytics',
-	'sparrow-wifi',
-	'sdrpp',
-	'uas-scan',
-	'wireshark'
-]);
 
 export const activeView = persistedWritable<ActiveView>('activeView', 'map', {
 	deserialize: (raw) => (VALID_VIEWS.has(raw) ? (raw as ActiveView) : 'map')

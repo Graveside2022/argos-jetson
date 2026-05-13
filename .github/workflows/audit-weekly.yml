@@ -1,0 +1,105 @@
+name: 'Audit: Weekly Pipeline Drift Re-audit'
+
+# L4 layer of the 4-layer self-auditing pipeline. Runs the L3 drift script
+# weekly + opens a GitHub issue if drift detected. Per the approved plan
+# (/home/jetson2/.claude/plans/based-off-all-this-starry-cloud.md):
+# weekly cadence (not monthly per Plan-agent feedback), 06:17 UTC Mondays.
+#
+# Times are interpreted as UTC by GitHub Actions (https://docs.github.com/
+# en/actions/writing-workflows/choosing-when-your-workflow-runs/
+# events-that-trigger-workflows). Cron `17 6 * * 1` = Mondays 06:17 UTC;
+# the :17 minute jitter avoids the top-of-hour load surge (per scheduled-
+# tasks docs guidance).
+#
+# This is a NON-Claude fallback: the L3 script alone is sufficient to file
+# an issue when drift is detected. A Claude-driven deeper audit can be
+# wired later via the claude-code-action repository action; until then,
+# the mechanical fallback is the canonical L4.
+
+on:
+  schedule:
+    - cron: '17 6 * * 1' # Mondays 06:17 UTC
+  workflow_dispatch: # manual trigger anytime
+
+permissions:
+  contents: read
+  issues: write # to open drift-detected issues
+
+concurrency:
+  group: audit-weekly-${{ github.ref }}
+  cancel-in-progress: false # never cancel a weekly audit; let it complete
+
+jobs:
+  weekly-drift:
+    name: 'Weekly drift re-audit'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: 'Checkout code'
+        # actions/checkout v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+
+      - name: 'Run audit-pipeline-config.sh (re-audit)'
+        id: audit
+        # Capture audit output verbatim. Continue on failure so the issue-filing
+        # step always runs.
+        continue-on-error: true
+        run: |
+          set +e
+          ./scripts/ops/audit-pipeline-config.sh > /tmp/audit-output.txt 2>&1
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
+          cat /tmp/audit-output.txt
+          # Unique multiline delimiter — `EOF` would collide with any audit
+          # output that contained `EOF` on its own line. Per GitHub Actions
+          # workflow-command docs (https://docs.github.com/en/actions/
+          # writing-workflows/choosing-what-your-workflow-does/workflow-
+          # commands#multiline-strings) the delimiter just needs to be
+          # absent from the content. CR feedback on PR #77.
+          DELIM="AUDIT_$(uuidgen 2>/dev/null || python3 -c 'import secrets;print(secrets.token_hex(8))')"
+          {
+            echo "audit_output<<${DELIM}"
+            cat /tmp/audit-output.txt
+            echo "${DELIM}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: 'File drift issue if drift detected'
+        if: steps.audit.outputs.exit_code != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          AUDIT_OUTPUT: ${{ steps.audit.outputs.audit_output }}
+        run: |
+          ISO=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+          TITLE="Pipeline drift detected — weekly audit ${ISO}"
+          BODY=$(cat <<EOF
+          The L4 weekly drift re-audit detected divergence between actual
+          pipeline config and \`docs/ci-cd-pipeline-spec.md\`.
+
+          Triggered by: \`audit-weekly.yml\` (cron \`17 6 * * 1\`)
+          Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+          ## audit-pipeline-config.sh output
+
+          \`\`\`
+          ${AUDIT_OUTPUT}
+          \`\`\`
+
+          ## Next steps
+
+          1. Read \`docs/ci-cd-pipeline-spec.md\` to understand what each
+             warning means.
+          2. Decide whether to fix the drift (open a chore PR) OR amend the
+             spec doc (if the drift represents intended evolution).
+          3. Update the spec doc's \`last_validated\` frontmatter date once
+             addressed.
+
+          Per the approved plan
+          \`/home/jetson2/.claude/plans/based-off-all-this-starry-cloud.md\`
+          this issue is filed by the L4 layer of the self-auditing pipeline.
+          EOF
+          )
+          gh issue create \
+            --title "$TITLE" \
+            --label "ci,audit,drift" \
+            --body "$BODY"

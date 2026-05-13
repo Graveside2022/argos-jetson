@@ -28,17 +28,47 @@ export interface CyclingHealthUpdate {
 	processHealth?: string;
 }
 
-export function sweepArgsFromCenter(frequency: { value: number; unit: string }): SweepArgs {
+export function sweepArgsFromCenter(
+	frequency: { value: number; unit: string },
+	override?: Partial<SweepArgs>
+): SweepArgs {
 	const centerMHz = convertToMHz(frequency.value, frequency.unit);
-	return { startMHz: centerMHz - 10, endMHz: centerMHz + 10, binWidthHz: 20000 };
+	// 100 kHz bin width is the minimum that produces stdout reliably on
+	// /usr/bin/hackrf_sweep across our hardware (verified on Jetson Orin
+	// AGX with HackRF One r9 + libhackrf 0.6, FW 2024.02.1). Finer widths
+	// (20 kHz, 50 kHz) accumulate output in the kernel pipe buffer for
+	// >20 s before flushing — sweeps appear hung. Coarser widths
+	// (≥ 500 kHz) work too.
+	const base: SweepArgs = {
+		startMHz: centerMHz - 10,
+		endMHz: centerMHz + 10,
+		binWidthHz: 100_000
+	};
+	if (!override) return base;
+	return {
+		startMHz: override.startMHz ?? base.startMHz,
+		endMHz: override.endMHz ?? base.endMHz,
+		binWidthHz: override.binWidthHz ?? base.binWidthHz,
+		lnaGain: override.lnaGain,
+		vgaGain: override.vgaGain
+	};
 }
 
-function buildHackrfArgs(sweepArgs: SweepArgs): string[] {
+export function buildHackrfArgs(sweepArgs: SweepArgs): string[] {
 	const { startMHz, endMHz, binWidthHz } = sweepArgs;
 	const centerFreqMHz = (startMHz + endMHz) / 2;
 	const gains = selectGains(centerFreqMHz);
 	const lnaGain = sweepArgs.lnaGain ?? gains.lnaGain;
 	const vgaGain = sweepArgs.vgaGain ?? gains.vgaGain;
+	// Flag set per official hackrf_sweep CLI:
+	// https://hackrf.readthedocs.io/en/latest/hackrf_tools.html#hackrf-sweep
+	// Older code added `-P estimate -n` targeting a python_hackrf bridge
+	// (sweep_bridge.py) — those flags are NOT valid on the standard
+	// `/usr/bin/hackrf_sweep` binary and cause it to exit immediately
+	// with `invalid option -- 'P'`. The python_hackrf bridge isn't
+	// installed on production Argos hosts; this code path is the only
+	// real sweep path. Keep the flag set strictly to what hackrf_sweep
+	// actually accepts.
 	return [
 		'-f',
 		`${Math.floor(startMHz)}:${Math.ceil(endMHz)}`,
@@ -47,10 +77,7 @@ function buildHackrfArgs(sweepArgs: SweepArgs): string[] {
 		'-l',
 		lnaGain,
 		'-w',
-		String(binWidthHz),
-		'-P',
-		'estimate',
-		'-n'
+		String(binWidthHz)
 	];
 }
 
@@ -296,5 +323,3 @@ export async function handleSweepError(
 		await stopSweep();
 	}
 }
-
-export { testHackrfAvailability } from './hackrf-availability';

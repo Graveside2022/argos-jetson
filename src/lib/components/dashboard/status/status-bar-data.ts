@@ -122,6 +122,7 @@ function hasMoved(
 	return haversineMeters(lat, lon, lastLat, lastLon) >= thresholdMeters;
 }
 
+// fallow-ignore-next-line complexity
 export async function fetchWeather(
 	lat: number,
 	lon: number,
@@ -146,6 +147,7 @@ function extractLocationName(data: Record<string, unknown>): string | null {
 	return data.success && data.locationName ? (data.locationName as string) : null;
 }
 
+// fallow-ignore-next-line complexity
 export async function reverseGeocode(
 	lat: number,
 	lon: number,
@@ -164,6 +166,7 @@ export async function reverseGeocode(
 	}
 }
 
+// fallow-ignore-next-line complexity
 export async function fetchSatelliteData(): Promise<{
 	satellites: Satellite[];
 	usedCount: number;

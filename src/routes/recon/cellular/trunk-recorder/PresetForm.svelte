@@ -1,4 +1,10 @@
 <script lang="ts">
+	import { SelectItem } from 'carbon-components-svelte';
+	import { untrack } from 'svelte';
+
+	import InlineNotification from '$lib/components/chassis/forms/InlineNotification.svelte';
+	import NumberInput from '$lib/components/chassis/forms/NumberInput.svelte';
+	import Select from '$lib/components/chassis/forms/Select.svelte';
 	import type {
 		Preset,
 		PresetInput,
@@ -16,73 +22,63 @@
 	// Convert existing preset to form state. Control channels come in Hz and
 	// display as MHz for operator ergonomics. We keep MHz in state, convert to
 	// Hz only at submit — avoids floating-point drift on round-trips.
-	function hzToMhzString(hz: number): string {
-		return (hz / 1e6).toFixed(6).replace(/0+$/, '').replace(/\.$/, '');
-	}
-
-	let name = $state(preset?.name ?? '');
-	let systemType = $state<SystemType>(preset?.systemType ?? 'p25');
-	let systemLabel = $state(preset?.systemLabel ?? '');
-	let controlChannelsMhz = $state<string[]>(preset?.controlChannels.map(hzToMhzString) ?? ['']);
-	let talkgroupsCsv = $state(preset?.talkgroupsCsv ?? '');
-	let centerMhz = $state(preset ? hzToMhzString(preset.sourceConfig.center) : '856');
-	let rateHz = $state(String(preset?.sourceConfig.rate ?? 8_000_000));
-	let gain = $state(String(preset?.sourceConfig.gain ?? 40));
-	let ifGain = $state(String(preset?.sourceConfig.ifGain ?? 32));
-	let bbGain = $state(String(preset?.sourceConfig.bbGain ?? 16));
+	// Capture preset once at component init; form state must NOT re-initialize
+	// when preset prop mutates mid-edit (would clobber operator input).
+	const initial = untrack(() => preset);
+	let name = $state(initial?.name ?? '');
+	let systemType = $state<SystemType>(initial?.systemType ?? 'p25');
+	let systemLabel = $state(initial?.systemLabel ?? '');
+	let controlChannelsMhz = $state<(number | null)[]>(
+		initial?.controlChannels.map((hz) => hz / 1e6) ?? [null]
+	);
+	let talkgroupsCsv = $state(initial?.talkgroupsCsv ?? '');
+	let centerMhz = $state<number | null>(initial ? initial.sourceConfig.center / 1e6 : 856);
+	let rateHz = $state<number | null>(initial?.sourceConfig.rate ?? 8_000_000);
+	let gain = $state<number | null>(initial?.sourceConfig.gain ?? 40);
+	let ifGain = $state<number | null>(initial?.sourceConfig.ifGain ?? 32);
+	let bbGain = $state<number | null>(initial?.sourceConfig.bbGain ?? 16);
 
 	let advancedOpen = $state(false);
 	let submitting = $state(false);
 	let errorMessage = $state<string | null>(null);
 
 	function addControlChannel(): void {
-		controlChannelsMhz = [...controlChannelsMhz, ''];
+		controlChannelsMhz = [...controlChannelsMhz, null];
 	}
 
 	function removeControlChannel(index: number): void {
 		controlChannelsMhz = controlChannelsMhz.filter((_, i) => i !== index);
-		if (controlChannelsMhz.length === 0) controlChannelsMhz = [''];
+		if (controlChannelsMhz.length === 0) controlChannelsMhz = [null];
 	}
 
-	function updateControlChannel(index: number, value: string): void {
+	function updateControlChannel(index: number, value: number | null): void {
 		controlChannelsMhz = controlChannelsMhz.map((v, i) => (i === index ? value : v));
 	}
 
-	function parseMhzToHz(raw: string): number | null {
-		const n = Number.parseFloat(raw);
-		if (!Number.isFinite(n) || n <= 0) return null;
-		return Math.round(n * 1e6);
+	function parseChannelMhz(mhz: number | null): number | { error: string } | null {
+		if (mhz == null) return null;
+		if (mhz <= 0) return { error: `Invalid control channel MHz: ${mhz}` };
+		return Math.round(mhz * 1e6);
 	}
 
-	function parseOneControlChannel(mhz: string): number | null | { error: string } {
-		if (!mhz.trim()) return null;
-		const hz = parseMhzToHz(mhz);
-		if (hz === null) return { error: `Invalid control channel MHz: ${mhz}` };
-		return hz;
-	}
-
-	function tryAddChannel(channels: number[], mhz: string): { error: string } | null {
-		const parsed = parseOneControlChannel(mhz);
-		if (parsed === null) return null;
-		if (typeof parsed !== 'number') return parsed;
-		channels.push(parsed);
+	function pushChannel(
+		channels: number[],
+		r: number | { error: string } | null
+	): { error: string } | null {
+		if (r === null) return null;
+		if (typeof r !== 'number') return r;
+		channels.push(r);
 		return null;
 	}
 
 	function parseControlChannels(): number[] | { error: string } {
 		const channels: number[] = [];
 		for (const mhz of controlChannelsMhz) {
-			const err = tryAddChannel(channels, mhz);
+			const err = pushChannel(channels, parseChannelMhz(mhz));
 			if (err) return err;
 		}
 		if (channels.length === 0) return { error: 'At least one control channel required' };
 		return channels;
-	}
-
-	function parseIntegerField(raw: string, label: string): number | { error: string } {
-		const n = Number.parseInt(raw, 10);
-		if (!Number.isFinite(n)) return { error: `Invalid ${label}` };
-		return n;
 	}
 
 	type SourceNumbers = {
@@ -93,26 +89,32 @@
 		bbGain: number;
 	};
 
-	function parseSourceConfig(): SourceNumbers | { error: string } {
-		const center = parseMhzToHz(centerMhz);
-		if (center === null) return { error: `Invalid center MHz: ${centerMhz}` };
-		const specs: Array<{ raw: string; label: string }> = [
-			{ raw: rateHz, label: 'sample rate' },
-			{ raw: gain, label: 'gain' },
-			{ raw: ifGain, label: 'IF gain' },
-			{ raw: bbGain, label: 'BB gain' }
-		];
-		const parsed: number[] = [];
-		for (const s of specs) {
-			const v = parseIntegerField(s.raw, s.label);
-			if (typeof v !== 'number') return v;
-			parsed.push(v);
-		}
-		if (parsed[0] <= 0) return { error: 'Invalid sample rate' };
-		const [rate, gainN, ifGainN, bbGainN] = parsed;
-		return { center, rate, gain: gainN, ifGain: ifGainN, bbGain: bbGainN };
+	function requirePositive(v: number | null, label: string): number | { error: string } {
+		if (v == null || v <= 0) return { error: `Invalid ${label}` };
+		return v;
 	}
 
+	function requireNonNull(v: number | null, label: string): number | { error: string } {
+		if (v == null) return { error: `Invalid ${label}` };
+		return v;
+	}
+
+	function parseSourceConfig(): SourceNumbers | { error: string } {
+		const validations = [
+			requirePositive(centerMhz, 'center MHz'),
+			requirePositive(rateHz, 'sample rate'),
+			requireNonNull(gain, 'gain'),
+			requireNonNull(ifGain, 'IF gain'),
+			requireNonNull(bbGain, 'BB gain')
+		];
+		for (const v of validations) {
+			if (typeof v !== 'number') return v;
+		}
+		const [center, rate, g, ig, bg] = validations as number[];
+		return { center: Math.round(center * 1e6), rate, gain: g, ifGain: ig, bbGain: bg };
+	}
+
+	// fallow-ignore-next-line complexity
 	function buildInput(): PresetInput | { error: string } {
 		if (!name.trim()) return { error: 'Name required' };
 		const channels = parseControlChannels();
@@ -157,13 +159,10 @@
 		<input type="text" bind:value={name} required maxlength="80" />
 	</label>
 
-	<label>
-		<span>System type</span>
-		<select bind:value={systemType}>
-			<option value="p25">P25 (Phase 1 / Phase 2)</option>
-			<option value="smartnet">Motorola SmartNet / SmartZone</option>
-		</select>
-	</label>
+	<Select labelText="System type" bind:value={systemType} size="sm">
+		<SelectItem value="p25" text="P25 (Phase 1 / Phase 2)" />
+		<SelectItem value="smartnet" text="Motorola SmartNet / SmartZone" />
+	</Select>
 
 	<label>
 		<span>System label (rdio-scanner display)</span>
@@ -174,13 +173,19 @@
 		<legend>Control channels (MHz)</legend>
 		{#each controlChannelsMhz as mhz, index (index)}
 			<div class="channel-row">
-				<input
-					type="text"
+				<NumberInput
+					labelText="Channel {index + 1}"
+					hideLabel
 					value={mhz}
-					oninput={(e) =>
-						updateControlChannel(index, (e.currentTarget as HTMLInputElement).value)}
+					min={0}
+					max={6000}
+					step={0.0125}
+					allowDecimal
 					placeholder="851.0125"
-					inputmode="decimal"
+					size="sm"
+					hideSteppers
+					disableWheel
+					onChange={(v) => updateControlChannel(index, v)}
 				/>
 				<button
 					type="button"
@@ -208,26 +213,57 @@
 	<details bind:open={advancedOpen}>
 		<summary>Advanced — SDR source</summary>
 		<div class="advanced-grid">
-			<label>
-				<span>Center (MHz)</span>
-				<input type="text" bind:value={centerMhz} inputmode="decimal" />
-			</label>
-			<label>
-				<span>Sample rate (Hz)</span>
-				<input type="text" bind:value={rateHz} inputmode="numeric" />
-			</label>
-			<label>
-				<span>RF gain</span>
-				<input type="text" bind:value={gain} inputmode="numeric" />
-			</label>
-			<label>
-				<span>IF gain</span>
-				<input type="text" bind:value={ifGain} inputmode="numeric" />
-			</label>
-			<label>
-				<span>BB gain</span>
-				<input type="text" bind:value={bbGain} inputmode="numeric" />
-			</label>
+			<NumberInput
+				labelText="Center (MHz)"
+				bind:value={centerMhz}
+				min={0}
+				max={6000}
+				step={0.1}
+				allowDecimal
+				size="sm"
+				hideSteppers
+				disableWheel
+			/>
+			<NumberInput
+				labelText="Sample rate (Hz)"
+				bind:value={rateHz}
+				min={1}
+				max={20_000_000}
+				step={1}
+				size="sm"
+				hideSteppers
+				disableWheel
+			/>
+			<NumberInput
+				labelText="RF gain"
+				bind:value={gain}
+				min={0}
+				max={62}
+				step={1}
+				size="sm"
+				hideSteppers
+				disableWheel
+			/>
+			<NumberInput
+				labelText="IF gain"
+				bind:value={ifGain}
+				min={0}
+				max={47}
+				step={1}
+				size="sm"
+				hideSteppers
+				disableWheel
+			/>
+			<NumberInput
+				labelText="BB gain"
+				bind:value={bbGain}
+				min={0}
+				max={62}
+				step={1}
+				size="sm"
+				hideSteppers
+				disableWheel
+			/>
 			<label>
 				<span>SDR device</span>
 				<input type="text" value="hackrf=0" readonly />
@@ -236,7 +272,13 @@
 	</details>
 
 	{#if errorMessage}
-		<div class="error" role="alert">{errorMessage}</div>
+		<InlineNotification
+			kind="error"
+			title="Preset save failed"
+			subtitle={errorMessage}
+			hideCloseButton
+			lowContrast
+		/>
 	{/if}
 
 	<div class="actions">
@@ -280,7 +322,6 @@
 		color: var(--muted-foreground, #9ca3af);
 	}
 	.preset-form input[type='text'],
-	.preset-form select,
 	.preset-form textarea {
 		background: var(--background);
 		color: var(--foreground);
@@ -307,12 +348,11 @@
 		padding: 0 0.25rem;
 	}
 	.channel-row {
-		display: flex;
+		display: grid;
+		grid-template-columns: 1fr auto;
 		gap: 0.25rem;
 		margin-bottom: 0.25rem;
-	}
-	.channel-row input {
-		flex: 1;
+		align-items: end;
 	}
 	details > summary {
 		cursor: pointer;
@@ -327,11 +367,6 @@
 		grid-template-columns: repeat(2, 1fr);
 		gap: 0.5rem;
 		padding-top: 0.5rem;
-	}
-	.error {
-		padding: 0.4rem 0.5rem;
-		background: rgba(196, 91, 74, 0.15);
-		color: #ff5c33;
 	}
 	.actions {
 		display: flex;

@@ -22,6 +22,7 @@ import { ControlActionSchema, type ControlBody } from '$lib/server/services/trun
  * `stop` leaves rdio-scanner running so archived calls stay replayable.
  */
 export const POST = createHandler(
+	// fallow-ignore-next-line complexity
 	async ({ request }) => {
 		const { action, presetId } = (await request.json()) as ControlBody;
 

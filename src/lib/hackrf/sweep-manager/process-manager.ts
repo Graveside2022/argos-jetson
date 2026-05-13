@@ -1,7 +1,6 @@
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 
-import { type ChildProcess, execFile, spawn } from 'child_process';
+import { type ChildProcess, spawn } from 'child_process';
 
 import { logger } from '$lib/utils/logger';
 
@@ -35,10 +34,20 @@ export class ProcessManager {
 		};
 	}
 
+	/**
+	 * Resolve the auto_sweep.sh path. Mirrors the spectrum/b205-source.ts
+	 * pattern (process.cwd() + repo-relative path) — `__dirname`-based
+	 * resolution breaks in `npm run build` because Vite never copies the
+	 * shell script into `build/server/chunks/`. argos-final's systemd unit
+	 * pins WorkingDirectory to /home/jetson2/code/Argos, so process.cwd()
+	 * is reliable in prod. ARGOS_AUTO_SWEEP_SCRIPT env override exists for
+	 * non-standard cwd setups (CI runners, dev shells from elsewhere).
+	 */
 	private resolveScriptPath(): string {
-		const __filename = fileURLToPath(import.meta.url);
-		const __dirname = dirname(__filename);
-		return join(__dirname, 'auto_sweep.sh');
+		return (
+			process.env.ARGOS_AUTO_SWEEP_SCRIPT ??
+			join(process.cwd(), 'scripts/sweep/auto_sweep.sh')
+		);
 	}
 
 	private registerProcess(sweepProcess: ChildProcess): ProcessState {
@@ -63,6 +72,8 @@ export class ProcessManager {
 	/**
 	 * Spawn a new HackRF sweep process - REAL HARDWARE ONLY
 	 */
+	// Called via src/lib/server/hackrf/sweep-coordinator.ts:150
+	// fallow-ignore-next-line unused-class-member
 	async spawnSweepProcess(
 		args: string[],
 		config: ProcessConfig = {
@@ -122,6 +133,8 @@ export class ProcessManager {
 	/**
 	 * Set event handlers for process monitoring
 	 */
+	// Called via src/lib/server/hackrf/sweep-coordinator.ts:142
+	// fallow-ignore-next-line unused-class-member
 	setEventHandlers(handlers: {
 		onStdout?: (data: Buffer) => void;
 		onStderr?: (data: Buffer) => void;
@@ -177,54 +190,6 @@ export class ProcessManager {
 		}
 	}
 
-	private parseHackrfInfoError(error: Error & { code?: string | number | null }): {
-		available: boolean;
-		reason: string;
-	} {
-		const reason =
-			error.code === 124 ? 'Device check timeout' : `Device check failed: ${error.message}`;
-		return { available: false, reason };
-	}
-
-	private parseHackrfInfoOutput(
-		stdout: string,
-		stderr: string
-	): { available: boolean; reason: string; deviceInfo?: string } {
-		if (stderr.includes('Resource busy')) {
-			return { available: false, reason: 'Device busy' };
-		}
-		if (stderr.includes('No HackRF boards found')) {
-			return { available: false, reason: 'No HackRF found' };
-		}
-		if (stdout.includes('Serial number')) {
-			const deviceInfo = stdout
-				.split('\n')
-				.filter((line) => line.trim())
-				.join(', ');
-			return { available: true, reason: 'HackRF detected', deviceInfo };
-		}
-		return { available: false, reason: 'Unknown error' };
-	}
-
-	/**
-	 * Test HackRF device availability
-	 */
-	async testHackrfAvailability(): Promise<{
-		available: boolean;
-		reason: string;
-		deviceInfo?: string;
-	}> {
-		return new Promise((resolve) => {
-			execFile('/usr/bin/timeout', ['3', 'hackrf_info'], (error, stdout, stderr) => {
-				if (error) {
-					resolve(this.parseHackrfInfoError(error));
-				} else {
-					resolve(this.parseHackrfInfoOutput(stdout, stderr));
-				}
-			});
-		});
-	}
-
 	/**
 	 * Force kill process immediately
 	 */
@@ -235,6 +200,8 @@ export class ProcessManager {
 	/**
 	 * Clean up resources
 	 */
+	// Called via sweep-coordinator.ts:279, sweep-cycle-init.ts:104, sweep-manager-lifecycle.ts:36
+	// fallow-ignore-next-line unused-class-member
 	async cleanup(): Promise<void> {
 		await this.forceCleanupAll();
 	}

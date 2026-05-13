@@ -1,0 +1,15 @@
+{
+	"runtime_coverage_findings": [],
+	"target_keys": [
+		"src/lib/stores/dashboard/agent-context-store.ts:dead code",
+		"src/lib/websocket/base.ts:dead code",
+		"src/lib/server/services/gps/gps-data-parser.ts:dead code",
+		"src/lib/server/terminal/session.ts:dead code",
+		"src/lib/stores/tactical-map/hackrf-store.ts:dead code",
+		"src/lib/components/dashboard/panels/devices/device-filters.ts:untested risk",
+		"src/lib/server/services/reports/peak-hold-font.ts:dead code",
+		"src/lib/server/services/bluedragon/pcap-stream-parser.ts:high impact",
+		"src/lib/components/dashboard/panels/devices/device-formatters.ts:high impact",
+		"src/lib/state/kismet.svelte.ts:untested risk"
+	]
+}

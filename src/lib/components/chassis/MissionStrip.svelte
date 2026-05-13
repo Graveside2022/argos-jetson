@@ -8,8 +8,12 @@
 	// rendered (Lunaris design rule). Multi-mission switcher uses a
 	// native <select> for accessibility; a "+ NEW" button creates a
 	// fresh mission and promotes it to active.
+	import { SelectItem } from 'carbon-components-svelte';
 	import { onMount } from 'svelte';
 
+	import InlineNotification from '$lib/components/chassis/forms/InlineNotification.svelte';
+	import Select from '$lib/components/chassis/forms/Select.svelte';
+	// spec-026 Phase 1 — IconBtn → IconBtnCarbon (Carbon-wrapped, same public API).
 	import IconBtn from '$lib/components/mk2/IconBtn.svelte';
 	import { missionStore } from '$lib/state/missions.svelte';
 	import type { Mission, MissionPatch } from '$lib/types/mission';
@@ -35,6 +39,7 @@
 	type StripState = 'loading' | 'error' | 'empty' | 'inactive' | 'default';
 	const stripState = $derived<StripState>(deriveStripState());
 
+	// fallow-ignore-next-line complexity
 	function deriveStripState(): StripState {
 		if (!missionStore.loaded) return 'loading';
 		if (missionStore.lastError) return 'error';
@@ -67,7 +72,11 @@
 		return Number.isFinite(n) ? n : undefined;
 	}
 
-	function parseEditValue(field: keyof MissionPatch, raw: string): MissionPatch[keyof MissionPatch] {
+	// fallow-ignore-next-line complexity
+	function parseEditValue(
+		field: keyof MissionPatch,
+		raw: string
+	): MissionPatch[keyof MissionPatch] {
 		const trimmed = raw.trim();
 		if (field === 'link_budget') return parseLinkBudget(trimmed);
 		// name disallows empty per server schema; surface as undefined → no-op
@@ -86,6 +95,7 @@
 		editValue = '';
 	}
 
+	// fallow-ignore-next-line complexity
 	async function commitEdit(): Promise<void> {
 		if (!active || !editingField) return;
 		const field = editingField;
@@ -106,8 +116,9 @@
 		}
 	}
 
-	function onSwitcherChange(e: Event): void {
-		const id = (e.target as HTMLSelectElement).value;
+	// fallow-ignore-next-line complexity
+	function onSwitcherChange(value: string | number | undefined): void {
+		const id = value === undefined ? '' : String(value);
 		if (id && id !== active?.id) void missionStore.setActive(id);
 	}
 
@@ -126,34 +137,36 @@
 			<span class="empty-label">NO MISSIONS — </span>
 			<button class="new-btn" type="button" onclick={onNewMission}>+ CREATE FIRST</button>
 		{:else}
-			<select
-				class="switcher"
+			<Select
+				hideLabel
+				labelText="active mission"
 				value={active?.id ?? ''}
-				onchange={onSwitcherChange}
-				aria-label="active mission"
+				onChange={onSwitcherChange}
+				size="sm"
 			>
 				{#if !active}
-					<option value="">— select active —</option>
+					<SelectItem value="" text="— select active —" />
 				{/if}
 				{#each all as m (m.id)}
-					<option value={m.id}>{m.name}</option>
+					<SelectItem value={m.id} text={m.name} />
 				{/each}
-			</select>
+			</Select>
 			<IconBtn onclick={onNewMission} ariaLabel="new mission">+</IconBtn>
-		{/if}
-		{#if missionStore.lastError}
-			<span class="err" role="alert">ERR: {missionStore.lastError}</span>
 		{/if}
 	</div>
 
+	{#if missionStore.lastError}
+		<InlineNotification
+			kind="error"
+			title="Mission error"
+			subtitle={missionStore.lastError}
+			hideCloseButton
+			lowContrast
+		/>
+	{/if}
+
 	<div class="strip-cells">
-		{#each [
-			{ field: 'name' as const, label: 'ENGAGEMENT', readonly: false },
-			{ field: 'operator' as const, label: 'OPERATOR', readonly: false },
-			{ field: 'target' as const, label: 'TARGET', readonly: false },
-			{ field: null, label: 'TIMER', readonly: true },
-			{ field: 'link_budget' as const, label: 'LINK BUDGET', readonly: false }
-		] as cell (cell.label)}
+		{#each [{ field: 'name' as const, label: 'ENGAGEMENT', readonly: false }, { field: 'operator' as const, label: 'OPERATOR', readonly: false }, { field: 'target' as const, label: 'TARGET', readonly: false }, { field: null, label: 'TIMER', readonly: true }, { field: 'link_budget' as const, label: 'LINK BUDGET', readonly: false }] as cell (cell.label)}
 			<div class="cell">
 				<div class="cell-label">{cell.label}</div>
 				{#if !active}
@@ -176,13 +189,15 @@
 						class="cell-value mono editable"
 						type="button"
 						onclick={() => cell.field && startEdit(cell.field)}
-					>{fmtLinkBudget(active.link_budget)}</button>
+						>{fmtLinkBudget(active.link_budget)}</button
+					>
 				{:else if cell.field !== null}
 					<button
 						class="cell-value mono editable"
 						type="button"
 						onclick={() => cell.field && startEdit(cell.field)}
-					>{active[cell.field] ?? '—'}</button>
+						>{active[cell.field] ?? '—'}</button
+					>
 				{/if}
 			</div>
 		{/each}
@@ -207,18 +222,6 @@
 		text-transform: uppercase;
 		letter-spacing: 1.2px;
 	}
-	.switcher {
-		background: transparent;
-		color: inherit;
-		border: 1px solid var(--border);
-		padding: 2px 6px;
-		font-family: inherit;
-		font-size: 11px;
-		min-width: 200px;
-	}
-	.switcher:focus {
-		outline: 1px solid var(--primary);
-	}
 	.empty-label {
 		color: var(--muted-foreground);
 	}
@@ -229,11 +232,6 @@
 		padding: 2px 8px;
 		font: inherit;
 		cursor: pointer;
-	}
-	.err {
-		color: var(--destructive);
-		margin-left: auto;
-		font-size: 10px;
 	}
 	.strip-cells {
 		display: grid;

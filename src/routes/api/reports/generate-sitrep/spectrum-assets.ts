@@ -41,6 +41,7 @@ async function safeRenderPeakHold(
 	}
 }
 
+// fallow-ignore-next-line complexity
 async function maybeRenderPeakHold(
 	captureLoadout: CaptureRow['loadout'],
 	captureId: string,

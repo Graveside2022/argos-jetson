@@ -5,8 +5,6 @@ import { env } from '$lib/server/env';
 import { queryOpenCellID } from '$lib/server/services/cell-towers/opencellid-client';
 import { logger } from '$lib/utils/logger';
 
-export type { CellTower };
-
 export interface CellTowerResult {
 	success: boolean;
 	source?: 'database' | 'opencellid-api';
@@ -77,6 +75,7 @@ async function queryLocalDatabase(
  * @param radiusKm Search radius in kilometers (0.1 to 50)
  * @returns Cell tower data with source and count
  */
+// fallow-ignore-next-line complexity
 export async function findNearbyCellTowers(
 	lat: number,
 	lon: number,

@@ -133,7 +133,7 @@
 						<th onclick={() => handleSort('data')} class="sortable col-data"
 							>DATA{si('data')}</th
 						>
-						{#each extraColumns as col}
+						{#each extraColumns as col (col.label)}
 							<th class="col-extra">{col.label}</th>
 						{/each}
 						<th class="col-extra">DETAILS</th>
@@ -176,7 +176,7 @@
 									>{formatDataSize(target.bytes_data || 0)}</span
 								>
 							</td>
-							{#each extraColumns as col}
+							{#each extraColumns as col (col.label)}
 								<td class="col-extra">
 									<span class="mono-value">{col.render(target)}</span>
 								</td>
@@ -229,7 +229,7 @@
 		<div class="alerts-section">
 			<div class="alerts-header">KISMET ALERTS ({alerts.length})</div>
 			<div class="alerts-list">
-				{#each alerts.slice(0, 10) as alert}
+				{#each alerts.slice(0, 10) as alert, i (i)}
 					<div class="alert-row" class:alert-high={alert.severity >= 3}>
 						<span class="alert-type">{alert.type}</span>
 						<span class="alert-text">{alert.text}</span>

@@ -26,7 +26,7 @@ export function spawnGrgsm(freq: string, gain: number, stderrLog: string): strin
 }
 
 /** Read last N lines from stderr log, or empty string on failure */
-export async function readStderrTail(stderrLog: string): Promise<string> {
+async function readStderrTail(stderrLog: string): Promise<string> {
 	try {
 		const logContent = await readFile(stderrLog, 'utf-8');
 		return logContent.split('\n').slice(-10).join('\n').trim();

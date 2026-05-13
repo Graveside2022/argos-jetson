@@ -11,9 +11,10 @@
 import { z } from 'zod';
 
 /**
- * Device Type Schema - Validates SDR device type (HackRF only)
+ * Device Type Schema - Validates SDR device type. PR9b adds 'b205' alongside
+ * 'hackrf'; 'auto' picks the first wired SDR (current resolver returns hackrf).
  */
-export const DeviceTypeSchema = z.enum(['hackrf', 'auto']).default('hackrf');
+export const DeviceTypeSchema = z.enum(['hackrf', 'b205', 'auto']).default('hackrf');
 
 /**
  * Frequency Range Schema - Validates frequency range objects
@@ -23,7 +24,7 @@ export const DeviceTypeSchema = z.enum(['hackrf', 'auto']).default('hackrf');
  * 2. { start: number, end: number }
  * 3. Plain number (center frequency)
  */
-export const FrequencyRangeSchema = z.union([
+const FrequencyRangeSchema = z.union([
 	// Format 1: start/stop/step
 	z
 		.object({

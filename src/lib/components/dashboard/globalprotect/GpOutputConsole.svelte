@@ -23,7 +23,7 @@
 				>No output — connect to see openconnect logs</span
 			>
 		{:else}
-			{#each $gpOutput as line}
+			{#each $gpOutput as line, i (i)}
 				<div
 					class:text-green-400={line.toLowerCase().includes('connected')}
 					class:text-red-400={line.toLowerCase().includes('error') ||

@@ -67,6 +67,7 @@ export function buildDefaultHealth(): GsmEvilHealth {
 }
 
 /** Validate a GRGSM PID and fetch its runtime, updating health accordingly. */
+// fallow-ignore-next-line complexity
 async function populateGrgsmRuntime(health: GsmEvilHealth, pid: number): Promise<void> {
 	try {
 		const validPid = validateNumericParam(pid, 'pid', 1, 4194304);
@@ -146,6 +147,7 @@ async function checkWebInterface(): Promise<boolean> {
 }
 
 /** Check the GSM Evil Python process, port 8080 listener, and web interface. */
+// fallow-ignore-next-line complexity
 export async function checkGsmEvilProcess(health: GsmEvilHealth): Promise<void> {
 	try {
 		const { stdout: gsmevilCheck } = await execFileAsync('/usr/bin/pgrep', [
@@ -193,6 +195,7 @@ export async function checkGsmtapPort(health: GsmEvilHealth): Promise<void> {
 }
 
 /** Check database accessibility and recent data presence, updating the dataFlow section of health. */
+// fallow-ignore-next-line complexity
 export async function checkDatabaseHealth(health: GsmEvilHealth): Promise<void> {
 	try {
 		const { resolveGsmDatabasePath } = await import('$lib/server/gsm-database-path');

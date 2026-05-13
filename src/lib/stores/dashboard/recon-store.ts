@@ -61,43 +61,27 @@ export interface ReconAlert {
 	[key: string]: unknown;
 }
 
-export interface ReconData {
+interface ReconData {
 	targets: ReconTarget[];
 	alerts: ReconAlert[];
 	summary: Record<string, unknown>;
 	timestamp: string;
 }
 
-export type ReconStatus = 'idle' | 'loading' | 'ready' | 'error';
+type ReconStatus = 'idle' | 'loading' | 'ready' | 'error';
 
 // ── Store state ──────────────────────────────────────────────────────
 
 const EMPTY: ReconData = { targets: [], alerts: [], summary: {}, timestamp: '' };
 
-export const reconData = writable<ReconData>(EMPTY);
+const reconData = writable<ReconData>(EMPTY);
 export const reconStatus = writable<ReconStatus>('idle');
-export const reconError = writable<string | null>(null);
+const reconError = writable<string | null>(null);
 
 // ── Derived views ────────────────────────────────────────────────────
 
 export const reconTargets = derived(reconData, ($d) => $d.targets);
 export const reconAlerts = derived(reconData, ($d) => $d.alerts);
-
-const RECON_PRIORITY_CHECKS: Array<(t: ReconTarget) => boolean> = [
-	(t) => !t.encryption,
-	(t) => t.encryption === 'Open',
-	(t) => !!t.encryption?.includes('WEP'),
-	(t) => !!t.encryption?.includes('TKIP'),
-	(t) => !!t.wps_enabled,
-	(t) => !!t.cloaked,
-	(t) => !t.ssid,
-	(t) => t.ssid === 'Hidden',
-	(t) => (t.num_clients ?? 0) > 3
-];
-
-export const priorityTargets = derived(reconData, ($d) =>
-	$d.targets.filter((t) => RECON_PRIORITY_CHECKS.some((check) => check(t)))
-);
 
 export const weakSecurityTargets = derived(reconData, ($d) =>
 	$d.targets.filter(
@@ -123,28 +107,6 @@ export const busyAPs = derived(reconData, ($d) =>
 
 export const gpsTracked = derived(reconData, ($d) =>
 	$d.targets.filter((t) => t.gps_bounds != null)
-);
-
-export const beaconDuplicates = derived(reconData, ($d) => {
-	const fpMap = new Map<string, ReconTarget[]>();
-	for (const t of $d.targets) {
-		if (t.beacon_fingerprint) {
-			const group = fpMap.get(t.beacon_fingerprint) ?? [];
-			group.push(t);
-			fpMap.set(t.beacon_fingerprint, group);
-		}
-	}
-	return [...fpMap.entries()].filter(([, targets]) => targets.length > 1);
-});
-
-export const retryAnalysis = derived(reconData, ($d) =>
-	$d.targets
-		.filter((t) => (t.retry_bytes ?? 0) > 0 || (t.packets_error ?? 0) > 0)
-		.sort((a, b) => (b.retry_bytes ?? 0) - (a.retry_bytes ?? 0))
-);
-
-export const multiFreqDevices = derived(reconData, ($d) =>
-	$d.targets.filter((t) => t.freq_map_khz && Object.keys(t.freq_map_khz).length > 1)
 );
 
 // ── Actions ──────────────────────────────────────────────────────────
@@ -180,6 +142,7 @@ function buildReconUrl(params?: ReconParams): string {
 	return `/api/kismet/recon${qs ? `?${qs}` : ''}`;
 }
 
+// fallow-ignore-next-line complexity
 function parseReconResponse(data: Record<string, unknown>): ReconData {
 	return {
 		targets: (data.targets as ReconTarget[]) ?? [],

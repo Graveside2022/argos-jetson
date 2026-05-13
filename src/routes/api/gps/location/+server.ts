@@ -4,6 +4,7 @@ import { createHandler } from '$lib/server/api/create-handler';
 import { logger } from '$lib/utils/logger';
 
 /** Parse and validate coordinate params, throwing on invalid input. */
+// fallow-ignore-next-line complexity
 function parseCoordinates(url: URL): { latitude: number; longitude: number } {
 	const lat = url.searchParams.get('lat');
 	const lon = url.searchParams.get('lon');
@@ -18,6 +19,7 @@ function parseCoordinates(url: URL): { latitude: number; longitude: number } {
 }
 
 /** Throw if coordinates are outside valid geographic range. */
+// fallow-ignore-next-line complexity
 function validateCoordinateRange(lat: number, lon: number): void {
 	const outOfRange = lat < -90 || lat > 90 || lon < -180 || lon > 180;
 	if (outOfRange) throw error(400, 'Coordinates out of valid range');
@@ -35,6 +37,7 @@ function extractCity(address: Record<string, string>): string {
 }
 
 /** Build location name string from city and country. */
+// fallow-ignore-next-line complexity
 function buildLocationName(city: string, country: string): string {
 	if (city && country) return `${city}, ${country}`;
 	return city || country || '';

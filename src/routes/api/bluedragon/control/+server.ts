@@ -5,7 +5,7 @@ import { createHandler } from '$lib/server/api/create-handler';
 import { startBluedragon, stopBluedragon } from '$lib/server/services/bluedragon/process-manager';
 import { safeParseWithHandling } from '$lib/utils/validation-error';
 
-export const _BluedragonOptionsSchema = z
+const _BluedragonOptionsSchema = z
 	.object({
 		allChannels: z.boolean().optional(),
 		activeScan: z.boolean().optional(),

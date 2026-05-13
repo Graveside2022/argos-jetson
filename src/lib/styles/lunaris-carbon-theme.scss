@@ -1,0 +1,31 @@
+// Lunaris-on-Carbon theme overlay.
+//
+// Phase 0 (this file): scaffold ONLY — no @carbon/styles imports yet,
+// zero CSS bytes added to the bundle, no visual change.
+//
+// Phase 1+ (per spec 026): each component spec adds its targeted
+// `@use '@carbon/styles/scss/components/<name>'` import here, plus
+// the Sass variable overrides that translate Carbon tokens to Lunaris
+// CSS custom properties from src/app.css.
+//
+// See `specs/026-lunaris-design-system/tokens.md` for the full token map.
+// See `specs/026-lunaris-design-system/spec.md` for architecture.
+//
+// Override pattern (Phase 1+):
+//
+//   @use '@carbon/styles/scss/themes';
+//   @use '@carbon/styles/scss/theme' with (
+//     $theme: themes.$g100,
+//     $layer-01: var(--bg-2),
+//     $text-primary: var(--ink),
+//     $body-font-family: ('Geist', ui-sans-serif, system-ui, sans-serif),
+//     $font-family-mono: ('Geist Mono', ui-monospace, ...),
+//   );
+//   @use '@carbon/styles/scss/components/data-table';
+//
+// During Phase 0 nothing is imported. The file exists so Phase 1 can
+// iterate without re-bootstrapping; @use is the canonical bridge per
+// Carbon's documented SCSS theming.
+//
+// Authority citations live in
+// `specs/026-lunaris-design-system/authorities.md`.

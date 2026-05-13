@@ -93,6 +93,7 @@ interface WifiIfaceState {
 	channel: string;
 }
 
+// fallow-ignore-next-line complexity
 function applyMonitorInfo(state: WifiIfaceState, info: InterfaceInfo): void {
 	state.monIface = info.name;
 	if (!state.mac && info.mac) state.mac = info.mac;

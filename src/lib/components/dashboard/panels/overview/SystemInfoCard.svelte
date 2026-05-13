@@ -1,4 +1,5 @@
 <script lang="ts">
+	import InlineLoading from '$lib/components/chassis/forms/InlineLoading.svelte';
 	import type { SystemInfo } from '$lib/types/system';
 
 	import { formatBytes, formatUptime } from './types';
@@ -161,7 +162,7 @@
 {:else}
 	<section class="metric-section">
 		<h3 class="section-label">SYSTEM</h3>
-		<span class="loading">Loading...</span>
+		<InlineLoading description="Loading..." />
 	</section>
 {/if}
 
@@ -308,11 +309,5 @@
 	.speed-test-btn:hover {
 		background: var(--surface-hover, #2a2a2a);
 		color: var(--foreground);
-	}
-
-	.loading {
-		font-size: 11px;
-		color: var(--muted-foreground);
-		font-style: italic;
 	}
 </style>
