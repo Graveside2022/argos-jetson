@@ -166,6 +166,19 @@ for link in node_modules .env; do
 	fi
 done
 
+# Tessl tile cache: share the main checkout's downloaded tiles instead of
+# letting each worktree redownload them. tessl.json + .tessl/RULES.md are
+# checked into git (so the worktree already has them); only .tessl/tiles/
+# is gitignored and gets symlinked here. Without this, `query_library_docs`
+# from a worktree finds no local tiles and falls back to slow network fetch
+# (or fails if offline).
+tessl_tiles_src="$main_root/.tessl/tiles"
+if [[ -d "$tessl_tiles_src" ]]; then
+	mkdir -p "$worktree_dir/.tessl"
+	ln -sfn "$tessl_tiles_src" "$worktree_dir/.tessl/tiles"
+	echo "→ symlinked .tessl/tiles"
+fi
+
 # Generate this worktree's own .svelte-kit (NOT a symlink — see above).
 if [[ -f "$worktree_dir/package.json" ]] && command -v npx >/dev/null 2>&1; then
 	echo "→ svelte-kit sync (generating this worktree's own .svelte-kit)"
