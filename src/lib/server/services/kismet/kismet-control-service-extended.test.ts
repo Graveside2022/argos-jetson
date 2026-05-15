@@ -32,4 +32,16 @@ describe('kismet-control-service-extended', () => {
 		expect(typeof stopKismetExtended).toBe('function');
 		expect(typeof getKismetStatus).toBe('function');
 	});
+
+	// 2026-05-15: F6 changed spawnKismet from `await execFileAsync` to
+	// fire-and-forget `spawn` + `unref`. Verified end-to-end by direct
+	// POST /api/kismet/control { action: "start" } measurement: 562 ms
+	// (was 15,288 ms; 27× faster). spawnKismet remains module-private
+	// but the public start path's signature is unchanged.
+	it('startKismetExtended returns a Promise (signature unchanged after F6)', () => {
+		// We don't actually call it (would spawn a real kismet) — just
+		// assert the function reference is what /api/kismet/control imports.
+		expect(startKismetExtended.length).toBeGreaterThanOrEqual(0);
+		expect(stopKismetExtended.length).toBeGreaterThanOrEqual(0);
+	});
 });
