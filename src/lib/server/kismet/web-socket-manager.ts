@@ -11,8 +11,7 @@ import { WebSocket } from 'ws';
 import { env } from '$lib/server/env';
 import { logger } from '$lib/utils/logger';
 
-import type { PollerState } from './kismet-poller';
-import { pollKismetDevices } from './kismet-poller';
+import { type PollerState, pollKismetDevices } from './kismet-poller';
 import type { KismetDevice, WebSocketMessage } from './types';
 
 // Client message interface
@@ -87,6 +86,16 @@ export class WebSocketManager extends EventEmitter {
 		if (this.pollingInterval) clearInterval(this.pollingInterval);
 		void this.poll();
 		this.pollingInterval = setInterval(() => void this.poll(), this.POLL_INTERVAL);
+	}
+
+	/**
+	 * Read-only accessor for the singleton's poller state, exposed so
+	 * /api/kismet/start can call resetPollerBackoff() after a successful
+	 * Start action — without it, the WSManager's setInterval would still
+	 * be skipping for up to 5 min after kismet starts.
+	 */
+	getPollerState(): PollerState {
+		return this.pollerState;
 	}
 
 	/** Delegate polling to the kismet-poller module */
