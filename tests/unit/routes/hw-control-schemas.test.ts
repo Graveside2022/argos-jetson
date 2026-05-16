@@ -52,9 +52,9 @@ describe('WebtakVncControlSchema', () => {
 		expect(parsed.success).toBe(true);
 	});
 
-	it('rejects start without url (discriminatedUnion constraint)', () => {
+	it('accepts start without url — url is optional, falls back to WEBTAK_DEFAULT_URL', () => {
 		const parsed = WebtakVncControlSchema.safeParse({ action: 'start' });
-		expect(parsed.success).toBe(false);
+		expect(parsed.success).toBe(true);
 	});
 });
 

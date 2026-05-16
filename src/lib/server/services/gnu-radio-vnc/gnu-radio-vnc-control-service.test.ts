@@ -24,6 +24,10 @@ beforeEach(() => {
 			on: vi.fn(),
 			once: vi.fn(),
 			kill: vi.fn(),
+			// spawnGrcMaximizer() spawns a detached bash poller and calls
+			// proc.unref() so it doesn't block process exit — the mock must
+			// provide it or performStartup throws and startGnuRadioVnc fails.
+			unref: vi.fn(),
 			stdout: { on: vi.fn() },
 			stderr: { on: vi.fn() }
 		};
