@@ -56,6 +56,10 @@ package/
 
 # ── Logs ─────────────────────────────────────────────────────
 logs/
+# `logs/` above targets runtime log directories. Source code never holds
+# runtime logs — re-include any `logs/` directory under src/ so route
+# folders like src/routes/api/system/logs/ are not silently dropped.
+!src/**/logs/
 *.log
 *.debug
 
