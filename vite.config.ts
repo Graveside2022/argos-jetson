@@ -57,7 +57,7 @@ export default defineConfig(({ mode }) => {
 			include: ['leaflet', 'cytoscape', 'mgrs']
 		},
 		ssr: {
-			noExternal: ['mgrs', 'mode-watcher']
+			noExternal: ['mgrs']
 		},
 		define: {
 			global: 'globalThis'
