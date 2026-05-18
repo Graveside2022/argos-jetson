@@ -29,8 +29,12 @@
 				if (location.pathname.startsWith('/dashboard/v3')) {
 					var v3 = JSON.parse(localStorage.getItem('argos-v3-theme') || '{}');
 					document.documentElement.dataset.ui = 'v3';
-					if (v3.mode) document.documentElement.dataset.mode = v3.mode;
-					if (v3.palette) document.documentElement.dataset.palette = v3.palette;
+					if (v3.mode === 'dark' || v3.mode === 'light') {
+						document.documentElement.dataset.mode = v3.mode;
+					}
+					if (typeof v3.palette === 'string' && v3.palette.length <= 32) {
+						document.documentElement.dataset.palette = v3.palette;
+					}
 				}
 			} catch (e) {
 				/* dark class already set on <html> */

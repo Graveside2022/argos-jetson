@@ -8,6 +8,8 @@
 // builds the dark/light toggle + accent picker UI on top of the setMode /
 // setPalette mutators.
 
+import { V3ThemeSchema } from '$lib/schemas/stores';
+
 const STORAGE_KEY = 'argos-v3-theme';
 
 export type V3Mode = 'dark' | 'light';
@@ -22,12 +24,10 @@ const DEFAULTS: V3ThemeState = {
 	palette: 'blue'
 };
 
-/** Coerce an untrusted parsed object into a valid V3ThemeState. */
-function coerceTheme(parsed: Partial<V3ThemeState>): V3ThemeState {
-	return {
-		mode: parsed.mode === 'light' ? 'light' : 'dark',
-		palette: typeof parsed.palette === 'string' ? parsed.palette : DEFAULTS.palette
-	};
+/** Validate an untrusted parsed value against V3ThemeSchema; DEFAULTS on failure. */
+function coerceTheme(parsed: unknown): V3ThemeState {
+	const result = V3ThemeSchema.safeParse(parsed);
+	return result.success ? result.data : { ...DEFAULTS };
 }
 
 /** Read persisted V3 theme prefs from localStorage; defaults on any failure. */
@@ -36,7 +36,7 @@ function readPersisted(): V3ThemeState {
 	try {
 		const raw = localStorage.getItem(STORAGE_KEY);
 		if (!raw) return { ...DEFAULTS };
-		return coerceTheme(JSON.parse(raw) as Partial<V3ThemeState>);
+		return coerceTheme(JSON.parse(raw));
 	} catch {
 		return { ...DEFAULTS };
 	}
@@ -86,7 +86,8 @@ class V3ThemeStore {
 
 	/** Set the accent palette, then apply + persist. C2 wires this to the picker. */
 	setPalette(palette: string): void {
-		this.palette = palette;
+		const result = V3ThemeSchema.shape.palette.safeParse(palette);
+		this.palette = result.success ? result.data : DEFAULTS.palette;
 		this.apply();
 		this.persist();
 	}
