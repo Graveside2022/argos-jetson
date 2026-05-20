@@ -22,6 +22,22 @@
  *      matching test delta.
  *   4. Migration-drift — warn when migrations and schema.sql drift
  *      out of sync.
+ *   5. Lockfile sync — fail when package.json is modified but
+ *      package-lock.json is not; warn on the reverse. Catches the
+ *      "forgot to commit the lockfile" class of bug. Source pattern:
+ *      https://danger.systems/js/tutorials/dependencies.
+ *   6. Native-addon dependency guard — fail if better-sqlite3 or
+ *      node-pty (Argos's native modules) move into devDependencies.
+ *      @sveltejs/adapter-node only externalizes `dependencies`; native
+ *      addons in devDeps get bundled and break at server startup with
+ *      `ReferenceError: __filename is not defined`. Per AGENTS.md.
+ *   7. New-dependency visibility — when ANY dependency is added or
+ *      removed in this PR, post a `message()` listing the entries.
+ *      Aligns with Argos's "no npm install without approval" rule.
+ *   8. PR description quality — warn when PR body is empty or under
+ *      100 chars. The PR description is the first thing reviewers
+ *      see on GitHub; commit messages alone don't surface in the
+ *      summary view.
  *
  * Industry-norm references: the canonical Danger.js example at
  * https://danger.systems/js/index uses 600 LOC warn() with no hard
@@ -477,3 +493,121 @@ if (schemaTouched && !migrationTouched) {
 		'schema.sql changed but no new migration file was added. Fresh clones will be fine; existing databases need a migration.'
 	);
 }
+
+// ── 5. Lockfile sync (package.json ↔ package-lock.json) ───────────────────
+/**
+ * Pattern from https://danger.systems/js/tutorials/dependencies.
+ * Fails when package.json changed but package-lock.json didn't — `npm ci`
+ * on CI would fail or install drift. Warns on the reverse (usually
+ * intentional via `npm audit fix` / dedupe but worth a sanity check).
+ */
+function checkLockfileSync() {
+	const pkgChanged = changed.includes('package.json');
+	const lockChanged = changed.includes('package-lock.json');
+	if (pkgChanged && !lockChanged) {
+		fail(
+			'package.json was modified but package-lock.json was not. Run `npm install` locally and commit the updated lockfile — otherwise `npm ci` on CI will fail or install different transitive versions than were tested.'
+		);
+		return;
+	}
+	if (!pkgChanged && lockChanged) {
+		warn(
+			'package-lock.json changed without a corresponding package.json change. Usually intentional (`npm audit fix`, dedupe) but worth a reviewer sanity check.'
+		);
+	}
+}
+checkLockfileSync();
+
+// ── 6. Native-addon dependency guard ──────────────────────────────────────
+/**
+ * Argos-specific (per AGENTS.md): @sveltejs/adapter-node only externalizes
+ * `dependencies`. Native addons (better-sqlite3, node-pty) MUST be in
+ * `dependencies`, NOT `devDependencies`, or the production bundle breaks
+ * with `ReferenceError: __filename is not defined` at server startup.
+ *
+ * Uses JSONDiffForFile per the official tutorial pattern.
+ */
+const NATIVE_ADDONS = ['better-sqlite3', 'node-pty'];
+
+async function getNativeAddonLeakages() {
+	try {
+		const diff = await danger.git.JSONDiffForFile('package.json');
+		const addedDev = diff?.devDependencies?.added ?? [];
+		return NATIVE_ADDONS.filter((mod) => addedDev.includes(mod));
+	} catch {
+		return null;
+	}
+}
+
+schedule(async () => {
+	if (!changed.includes('package.json')) return;
+	const leaked = await getNativeAddonLeakages();
+	if (leaked === null) {
+		warn(
+			'Native-addon dependency guard skipped: could not read JSONDiffForFile(package.json). Reviewer: verify manually.'
+		);
+		return;
+	}
+	if (leaked.length === 0) return;
+	fail(
+		`Native addons must stay in \`dependencies\` (NOT \`devDependencies\`) per AGENTS.md. Detected in devDependencies: ${leaked.join(', ')}. @sveltejs/adapter-node only externalizes \`dependencies\`; native addons in devDeps get bundled into the ESM server chunk and break at server startup with \`ReferenceError: __filename is not defined\`.`
+	);
+});
+
+// ── 7. New-dependency visibility comment ─────────────────────────────────
+/**
+ * When ANY dependency is added or removed in this PR, post a `message()`
+ * listing the entries for reviewer audit. Aligns with the Argos rule
+ * "no npm install without approval" — if a new dep slipped in, this rule
+ * makes it visible in the PR comment. Informational only (no fail/warn).
+ *
+ * Pattern from https://danger.systems/js/tutorials/dependencies.
+ */
+function summarizeDepDiff(diff) {
+	const buckets = [
+		['New dependencies', diff?.dependencies?.added ?? []],
+		['New devDependencies', diff?.devDependencies?.added ?? []],
+		['Removed dependencies', diff?.dependencies?.removed ?? []],
+		['Removed devDependencies', diff?.devDependencies?.removed ?? []]
+	];
+	return buckets
+		.filter(([, items]) => items.length > 0)
+		.map(([label, items]) => `**${label}**: ${items.map((d) => `\`${d}\``).join(', ')}`);
+}
+
+schedule(async () => {
+	if (!changed.includes('package.json')) return;
+	let diff;
+	try {
+		diff = await danger.git.JSONDiffForFile('package.json');
+	} catch {
+		return;
+	}
+	const lines = summarizeDepDiff(diff);
+	if (lines.length === 0) return;
+	message(
+		`Dependency changes in this PR:\n\n${lines.join('\n')}\n\nReviewer: verify per Argos's "no npm install without approval" rule. If the author didn't explicitly request the install, the dep should not be in this PR.`
+	);
+});
+
+// ── 8. PR description body quality ───────────────────────────────────────
+/**
+ * Encourages a non-empty PR description with enough context to review
+ * effectively. The PR body is what reviewers see first on GitHub;
+ * commit messages don't surface in the summary view.
+ */
+function checkPrBodyQuality() {
+	const body = danger.github?.pr?.body?.trim() ?? '';
+	if (body.length === 0) {
+		warn(
+			'PR description is empty. Add a Summary + Test plan so reviewers know what changed and how it was verified.'
+		);
+		return;
+	}
+	if (body.length < 100) {
+		warn(
+			`PR description is short (${body.length} chars). Consider adding: (1) a one-paragraph Summary, (2) a Test plan checklist, (3) any cited docs / issues. See prior PR templates for examples.`
+		);
+	}
+}
+checkPrBodyQuality();
