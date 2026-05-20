@@ -1,70 +1,108 @@
 # CLAUDE.md
 
-<!-- SKIP AUTO-UPDATE -->
+Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Project rules clean-slate as of 2026-05-20. Only three rule surfaces are active in this repo: the **Karpathy coding guidelines** below, **RTK shell-output compression**, and **CodeGraph MCP**. All prior surfaces (legacy `.claude/rules/*.md`, `AGENTS.md`, `.tessl/RULES.md`, codebase overview, commands, graphify, narrate/parallel-work directives, sentrux/ci/danger/spec-kit/Lunaris conventions) have been retired and moved to `*-retired-2026-05-20.*` paths under git history.
 
-<!-- MANUAL ADDITIONS START -->
+**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
 
-## Codebase Overview
+## 1. Think Before Coding
 
-SvelteKit SDR & Network Analysis Console for Army EW training on RPi 5 (Kali, native — no Docker for the main app). Wraps native CLI tools (`hackrf_sweep`, `gpsd`, `kismet`, `grgsm_livemon`) into a real-time web dashboard with WebSocket push, MapLibre GL mapping, and MIL-STD-2525C symbology.
+**Don't assume. Don't hide confusion. Surface tradeoffs.**
 
-**Stack**: SvelteKit 2 + Svelte 5 runes, TypeScript strict, Tailwind CSS v4, better-sqlite3 (WAL), MapLibre GL, ws, node-pty
-**Structure**: 36 API domains (118 routes, 107 via `createHandler`), 23 Zod-validated stores, 10 UI component families, 7 always-on MCP servers
-**Active port**: branch `install/jetson-port` runs on NVIDIA Jetson AGX Orin (Ubuntu 22.04 aarch64) — see `jetson-port-notes.md`.
+Before implementing:
 
-## Project rules + conventions
+- State your assumptions explicitly. If uncertain, ask.
+- If multiple interpretations exist, present them - don't pick silently.
+- If a simpler approach exists, say so. Push back when warranted.
+- If something is unclear, stop. Name what's confusing. Ask.
 
-Loaded automatically via the `.claude/rules/` contract ([Anthropic memory docs](https://code.claude.com/docs/en/memory#organize-rules-with-claude/rules/)). Files without `paths:` frontmatter load every session at the same priority as this CLAUDE.md; files with `paths:` lazy-load only when Claude reads matching files.
+## 2. Simplicity First
 
-**Always-load (no `paths:` frontmatter):**
+**Minimum code that solves the problem. Nothing speculative.**
 
-- `.claude/rules/workflow.md` — Rules 1-10 (chrome-devtools, claude-mem, Svelte MCP+LSP, octocode, context7, sentrux, ci/cd canon, explain-as-you-go, parallel-during-bg-waits, batched-commit cadence)
-- `.claude/rules/mcp-and-plugins.md` — active MCP servers, installed plugins, Jetson chrome-devtools wiring, Svelte MCP+LSP sequence
-- `.claude/rules/platform-and-deps.md` — RPi 5 / Jetson Orin constraints, git workflow, dependency rules
+- No features beyond what was asked.
+- No abstractions for single-use code.
+- No "flexibility" or "configurability" that wasn't requested.
+- No error handling for impossible scenarios.
+- If you write 200 lines and it could be 50, rewrite it.
 
-**Path-scoped (`paths:` frontmatter):**
+Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
 
-- `.claude/rules/architecture.md` — `src/**`, `tests/**`, `scripts/**`, `config/**`, `deployment/**` — server patterns, data flow, source layout, code conventions
-- `.claude/rules/design-system.md` — `**/*.svelte`, `src/lib/components/**`, `src/lib/styles/**`, `src/app.css`, `specs/026-lunaris-design-system/**` — Carbon + Lunaris + Geist
-- `.claude/rules/tactical.md` — `tactical/**` — kill chain framework pointer
+## 3. Surgical Changes
 
-Use `/memory` to inspect what is currently loaded.
+**Touch only what you must. Clean up only your own mess.**
 
-## Commands
+When editing existing code:
 
-```bash
-# Dev server (tmux + OOM protection — never run multiple svelte-check concurrently)
-npm run dev              # tmux session, oom_score_adj=-500
-npm run dev:simple       # direct vite, lower memory limit
-npm run dev:clean        # kill + restart
-npm run dev:logs         # tail dev output
+- Don't "improve" adjacent code, comments, or formatting.
+- Don't refactor things that aren't broken.
+- Match existing style, even if you'd do it differently.
+- If you notice unrelated dead code, mention it - don't delete it.
 
-# Build / check
-npm run build            # production build (catches errors tsc alone misses)
-npm run typecheck        # svelte-check + tsc (~650 MB RAM — single instance only)
-npm run lint             # ESLint with config/eslint.config.js
-npm run lint:fix         # auto-fix
+When your changes create orphans:
 
-# Tests
-npx vitest run <file>    # single test file
-npm run test:unit        # unit (src/ + tests/unit/)
-npm run test:integration # tests/integration/
-npm run test:security    # tests/security/
-npm run test:e2e         # Playwright (config/playwright.config.ts)
-npm run test:all         # unit + integration + visual + performance
+- Remove imports/variables/functions that YOUR changes made unused.
+- Don't remove pre-existing dead code unless asked.
 
-# DB
-npm run db:migrate       # SQLite migrations
-npm run db:rollback      # rollback last
+The test: Every changed line should trace directly to the user's request.
 
-# File-scoped pre-commit verification
-npx tsc --noEmit src/lib/FILE.ts
-npx eslint src/lib/FILE.ts --config config/eslint.config.js
-npx vitest run src/lib/FILE.test.ts
+## 4. Goal-Driven Execution
+
+**Define success criteria. Loop until verified.**
+
+Transform tasks into verifiable goals:
+
+- "Add validation" → "Write tests for invalid inputs, then make them pass"
+- "Fix the bug" → "Write a test that reproduces it, then make it pass"
+- "Refactor X" → "Ensure tests pass before and after"
+
+For multi-step tasks, state a brief plan:
+
+```text
+1. [Step] → verify: [check]
+2. [Step] → verify: [check]
+3. [Step] → verify: [check]
 ```
 
-## graphify
+Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
 
-Knowledge graph at `graphify-out/`. Read `graphify-out/GRAPH_REPORT.md` for god nodes + community structure before architecture questions. Navigate `graphify-out/wiki/index.md` if it exists, instead of raw files. After modifying code files, run `graphify update .` to keep the graph current (AST-only, no API cost).
+---
+
+**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
+
+## RTK shell-output compression
+
+`rtk` (Rust Token Killer, `~/.cargo/bin/rtk` v0.34.3) is a CLI proxy that filters and summarizes verbose tool output before it enters the LLM context window. Config at `~/.config/rtk/{config.toml, filters.toml}`. Global usage rules auto-loaded via `~/.claude/CLAUDE.md` → `@RTK.md`. PreToolUse hook `rtk hook claude` transparently rewrites supported commands (`git`, `gh`, `ls`, `tree`, `grep`, `find`, `log`, `docker`, `kubectl`, `psql`, `pnpm`, `aws`, `dotnet`, `wget`, etc.) into `rtk <cmd>` form. Use `rtk gain` to inspect savings; `rtk proxy <cmd>` to bypass for debug.
+
+## CodeGraph
+
+This project has a CodeGraph MCP server (`codegraph_*` tools) configured. CodeGraph is a tree-sitter-parsed knowledge graph of every symbol, edge, and file. Reads are sub-millisecond and return structural information grep cannot.
+
+### When to prefer codegraph over native search
+
+Use codegraph for **structural** questions — what calls what, what would break, where is X defined, what is X's signature. Use native grep/read only for **literal text** queries (string contents, comments, log messages) or after you already have a specific file open.
+
+| Question                                                       | Tool                                         |
+| -------------------------------------------------------------- | -------------------------------------------- |
+| "How does X work? / trace X / explain a system / architecture" | `codegraph_explore` (seed with symbol names) |
+| "Where is X defined?" / "Find symbol named X"                  | `codegraph_search`                           |
+| "What calls function Y?"                                       | `codegraph_callers`                          |
+| "What does Y call?"                                            | `codegraph_callees`                          |
+| "What would break if I changed Z?"                             | `codegraph_impact`                           |
+| "Show me Y's signature / source / docstring"                   | `codegraph_node`                             |
+| "Give me focused context for a task/area"                      | `codegraph_context`                          |
+| "What files exist under path/"                                 | `codegraph_files`                            |
+| "Is the index healthy?"                                        | `codegraph_status`                           |
+
+### Rules of thumb
+
+- **`codegraph_explore` is the workhorse for understanding questions** ("how does X work", "trace…", "explain the Y system"). Feed it the key symbol/file names and read its output (line-numbered source from many files in one call). If the question names nothing concrete, do one quick `codegraph_search`/`codegraph_context` to surface the names, then explore with them. Fill gaps with `codegraph_node`/Read — don't grep-and-read your way through; that's the loop explore replaces.
+- **Delegating exploration to a subagent?** Tell it to call `codegraph_explore` first and trust the result. A generic "explore"-style agent defaults to grep+Read and treats codegraph as just a search index, throwing away the token savings.
+- **Trust codegraph results.** They come from a full AST parse. Do NOT re-verify them with grep — that's slower, less accurate, and wastes context.
+- **Don't grep first** when looking up a symbol by name. `codegraph_search` is faster and returns kind + location + signature in one call.
+- **Index lag**: the file watcher debounces ~500ms behind writes; don't re-query immediately after editing a file in the same turn.
+
+### If `.codegraph/` doesn't exist
+
+The MCP server returns "not initialized." Ask the user: _"I notice this project doesn't have CodeGraph initialized. Want me to run `codegraph init -i` to build the index?"_
