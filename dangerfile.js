@@ -6,17 +6,48 @@
  * (which enforces message shape) and CodeRabbit (which reviews code
  * quality) with PR-level structural rules:
  *
- *   1. Size cap — warn on PRs the reviewer can't reasonably load.
+ *   1. Size cap — warn on PRs the reviewer can't reasonably load. Hard-fail
+ *      at 2000 reviewable LOC. THREE carve-outs:
+ *        (a) Pure-deletion (additions === 0 && deletions > 0): skipped —
+ *            no per-line review value when removing code; reviewers
+ *            spot-check the file list, not the bytes.
+ *        (b) Format-only commits (`style(<scope>): prettier|format ...`):
+ *            subtracted from the LOC total via computeFormatOnlyLOC().
+ *        (c) Label exemption: PR has 'size-cap-exempt' label AND author
+ *            association is MEMBER / OWNER / COLLABORATOR. Drive-by
+ *            contributors cannot self-exempt.
  *   2. Cross-subsystem sprawl — warn when a single PR spans more than
  *      three top-level src/ areas.
  *   3. Tests-required — fail when server code changes without a
  *      matching test delta.
  *   4. Migration-drift — warn when migrations and schema.sql drift
  *      out of sync.
+ *   5. Lockfile sync — fail when package.json is modified but
+ *      package-lock.json is not; warn on the reverse. Catches the
+ *      "forgot to commit the lockfile" class of bug. Source pattern:
+ *      https://danger.systems/js/tutorials/dependencies.
+ *   6. Native-addon dependency guard — fail if better-sqlite3 or
+ *      node-pty (Argos's native modules) move into devDependencies.
+ *      @sveltejs/adapter-node only externalizes `dependencies`; native
+ *      addons in devDeps get bundled and break at server startup with
+ *      `ReferenceError: __filename is not defined`. Per AGENTS.md.
+ *   7. New-dependency visibility — when ANY dependency is added or
+ *      removed in this PR, post a `message()` listing the entries.
+ *      Aligns with Argos's "no npm install without approval" rule.
+ *   8. PR description quality — warn when PR body is empty or under
+ *      100 chars. The PR description is the first thing reviewers
+ *      see on GitHub; commit messages alone don't surface in the
+ *      summary view.
  *
- * These rules start conservative (mostly warn) and can be tightened
- * once the team sees how they land on live PRs. `fail` rules block the
- * merge; `warn` rules post a comment but do not block.
+ * Industry-norm references: the canonical Danger.js example at
+ * https://danger.systems/js/index uses 600 LOC warn() with no hard
+ * block. Argos retains the 2000-LOC hard block as discipline for
+ * ordinary feature PRs while adding carve-outs (a, b, c) for legitimate
+ * exceptions — structurally consistent with how popular OSS Danger
+ * configurations handle large-but-low-review-value PRs.
+ *
+ * `fail` rules block the merge; `warn` rules post a comment but do not
+ * block. `message` rules are informational only.
  */
 
 // Include deleted files too — a PR that deletes server code is still a
@@ -127,17 +158,67 @@ function computeFormatOnlyLOC() {
 	return { total, matched };
 }
 
+/**
+ * Pure-deletion carve-out (a). Returns the exemption message if the PR is
+ * pure deletion (additions === 0 && deletions > 0), or null if not exempt.
+ */
+function checkPureDeletionExemption() {
+	const pr = danger.github?.pr;
+	if (!pr) return null;
+	const additions = pr.additions ?? 0;
+	const deletions = pr.deletions ?? 0;
+	if (additions !== 0 || deletions <= 0) return null;
+	const changedFiles = pr.changed_files ?? 0;
+	return `Pure-deletion PR (${deletions} lines removed across ${changedFiles} files). Size cap skipped — reviewers should spot-check the file list, not read line-by-line.`;
+}
+
+/**
+ * Label-based exemption carve-out (c). Returns the exemption message if the
+ * PR carries the 'size-cap-exempt' label AND author is a trusted association
+ * (MEMBER / OWNER / COLLABORATOR), or null if not exempt.
+ */
+function checkLabelExemption(reviewable) {
+	const pr = danger.github?.pr;
+	if (!pr) return null;
+	const labels = (danger.github?.issue?.labels ?? []).map((l) => l.name);
+	if (!labels.includes('size-cap-exempt')) return null;
+	const authorAssoc = pr.author_association ?? 'NONE';
+	if (!['MEMBER', 'OWNER', 'COLLABORATOR'].includes(authorAssoc)) return null;
+	const authorLogin = pr.user?.login ?? '?';
+	return `Size cap exempted via 'size-cap-exempt' label (author: ${authorLogin}, association: ${authorAssoc}). Reviewable: ${reviewable} lines. Reviewer is responsible for the manual scope review.`;
+}
+
+/**
+ * Surface the format-only LOC subtraction as a warn for reviewer transparency.
+ * No-op when no format-only commits matched.
+ */
+function reportFormatOnlySubtraction(formatOnly) {
+	if (formatOnly.total <= 0) return;
+	const list = formatOnly.matched.map((m) => `\`${m.sha}\` (${m.loc} LOC)`).join(', ');
+	warn(
+		`Excluding ${formatOnly.total} format-only LOC from size cap (commits matching \`^style(<scope>): prettier|format ...\`): ${list}. Reviewer can verify by re-running \`npm run format\` on the PR head — diff should be empty.`
+	);
+}
+
 function reportPrSize(lineCount, generated, formatOnly) {
 	const reviewable = Math.max(0, lineCount - formatOnly.total);
-	if (formatOnly.total > 0) {
-		const list = formatOnly.matched.map((m) => `\`${m.sha}\` (${m.loc} LOC)`).join(', ');
-		warn(
-			`Excluding ${formatOnly.total} format-only LOC from size cap (commits matching \`^style(<scope>): prettier|format ...\`): ${list}. Reviewer can verify by re-running \`npm run format\` on the PR head — diff should be empty.`
-		);
+	reportFormatOnlySubtraction(formatOnly);
+
+	const pureDelMsg = checkPureDeletionExemption();
+	if (pureDelMsg) {
+		message(pureDelMsg);
+		return;
 	}
+
+	const labelMsg = checkLabelExemption(reviewable);
+	if (labelMsg) {
+		message(labelMsg);
+		return;
+	}
+
 	if (reviewable > PR_SIZE_HARD) {
 		fail(
-			`PR is ${reviewable} reviewable lines (> ${PR_SIZE_HARD}). Split into smaller PRs — reviewers cannot meaningfully review at this scale. Generated files excluded: ${generated} lines. Format-only excluded: ${formatOnly.total} lines.`
+			`PR is ${reviewable} reviewable lines (> ${PR_SIZE_HARD}). Split into smaller PRs — reviewers cannot meaningfully review at this scale. Generated files excluded: ${generated} lines. Format-only excluded: ${formatOnly.total} lines.\n\nLegitimate exemption paths: (a) pure-deletion PRs auto-exempt (no additions); (b) repo-trusted author (MEMBER/OWNER/COLLABORATOR) can apply the 'size-cap-exempt' label and re-run CI.`
 		);
 		return;
 	}
@@ -412,3 +493,121 @@ if (schemaTouched && !migrationTouched) {
 		'schema.sql changed but no new migration file was added. Fresh clones will be fine; existing databases need a migration.'
 	);
 }
+
+// ── 5. Lockfile sync (package.json ↔ package-lock.json) ───────────────────
+/**
+ * Pattern from https://danger.systems/js/tutorials/dependencies.
+ * Fails when package.json changed but package-lock.json didn't — `npm ci`
+ * on CI would fail or install drift. Warns on the reverse (usually
+ * intentional via `npm audit fix` / dedupe but worth a sanity check).
+ */
+function checkLockfileSync() {
+	const pkgChanged = changed.includes('package.json');
+	const lockChanged = changed.includes('package-lock.json');
+	if (pkgChanged && !lockChanged) {
+		fail(
+			'package.json was modified but package-lock.json was not. Run `npm install` locally and commit the updated lockfile — otherwise `npm ci` on CI will fail or install different transitive versions than were tested.'
+		);
+		return;
+	}
+	if (!pkgChanged && lockChanged) {
+		warn(
+			'package-lock.json changed without a corresponding package.json change. Usually intentional (`npm audit fix`, dedupe) but worth a reviewer sanity check.'
+		);
+	}
+}
+checkLockfileSync();
+
+// ── 6. Native-addon dependency guard ──────────────────────────────────────
+/**
+ * Argos-specific (per AGENTS.md): @sveltejs/adapter-node only externalizes
+ * `dependencies`. Native addons (better-sqlite3, node-pty) MUST be in
+ * `dependencies`, NOT `devDependencies`, or the production bundle breaks
+ * with `ReferenceError: __filename is not defined` at server startup.
+ *
+ * Uses JSONDiffForFile per the official tutorial pattern.
+ */
+const NATIVE_ADDONS = ['better-sqlite3', 'node-pty'];
+
+async function getNativeAddonLeakages() {
+	try {
+		const diff = await danger.git.JSONDiffForFile('package.json');
+		const addedDev = diff?.devDependencies?.added ?? [];
+		return NATIVE_ADDONS.filter((mod) => addedDev.includes(mod));
+	} catch {
+		return null;
+	}
+}
+
+schedule(async () => {
+	if (!changed.includes('package.json')) return;
+	const leaked = await getNativeAddonLeakages();
+	if (leaked === null) {
+		warn(
+			'Native-addon dependency guard skipped: could not read JSONDiffForFile(package.json). Reviewer: verify manually.'
+		);
+		return;
+	}
+	if (leaked.length === 0) return;
+	fail(
+		`Native addons must stay in \`dependencies\` (NOT \`devDependencies\`) per AGENTS.md. Detected in devDependencies: ${leaked.join(', ')}. @sveltejs/adapter-node only externalizes \`dependencies\`; native addons in devDeps get bundled into the ESM server chunk and break at server startup with \`ReferenceError: __filename is not defined\`.`
+	);
+});
+
+// ── 7. New-dependency visibility comment ─────────────────────────────────
+/**
+ * When ANY dependency is added or removed in this PR, post a `message()`
+ * listing the entries for reviewer audit. Aligns with the Argos rule
+ * "no npm install without approval" — if a new dep slipped in, this rule
+ * makes it visible in the PR comment. Informational only (no fail/warn).
+ *
+ * Pattern from https://danger.systems/js/tutorials/dependencies.
+ */
+function summarizeDepDiff(diff) {
+	const buckets = [
+		['New dependencies', diff?.dependencies?.added ?? []],
+		['New devDependencies', diff?.devDependencies?.added ?? []],
+		['Removed dependencies', diff?.dependencies?.removed ?? []],
+		['Removed devDependencies', diff?.devDependencies?.removed ?? []]
+	];
+	return buckets
+		.filter(([, items]) => items.length > 0)
+		.map(([label, items]) => `**${label}**: ${items.map((d) => `\`${d}\``).join(', ')}`);
+}
+
+schedule(async () => {
+	if (!changed.includes('package.json')) return;
+	let diff;
+	try {
+		diff = await danger.git.JSONDiffForFile('package.json');
+	} catch {
+		return;
+	}
+	const lines = summarizeDepDiff(diff);
+	if (lines.length === 0) return;
+	message(
+		`Dependency changes in this PR:\n\n${lines.join('\n')}\n\nReviewer: verify per Argos's "no npm install without approval" rule. If the author didn't explicitly request the install, the dep should not be in this PR.`
+	);
+});
+
+// ── 8. PR description body quality ───────────────────────────────────────
+/**
+ * Encourages a non-empty PR description with enough context to review
+ * effectively. The PR body is what reviewers see first on GitHub;
+ * commit messages don't surface in the summary view.
+ */
+function checkPrBodyQuality() {
+	const body = danger.github?.pr?.body?.trim() ?? '';
+	if (body.length === 0) {
+		warn(
+			'PR description is empty. Add a Summary + Test plan so reviewers know what changed and how it was verified.'
+		);
+		return;
+	}
+	if (body.length < 100) {
+		warn(
+			`PR description is short (${body.length} chars). Consider adding: (1) a one-paragraph Summary, (2) a Test plan checklist, (3) any cited docs / issues. See prior PR templates for examples.`
+		);
+	}
+}
+checkPrBodyQuality();
