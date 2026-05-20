@@ -25,9 +25,9 @@ Plugin source: `sveltejs/ai-tools` marketplace, plugin name `svelte`, v1.0.4+. O
 5. **`LSP hover`** (POST-edit) — Confirm TypeScript narrowed correctly on a sample of the migrated consumer sites. One LSP call per site beats running `svelte-check` (~650 MB RAM, 30+ s).
 6. **`mcp__plugin_svelte_svelte__playground-link`** — Ask user if they want one ONLY when no project file was modified. NEVER generate when code was written to project files (the tool description forbids it).
 
-## Rule 4 — GitHub Access via github-mcp-server Only (HARD-LOCKED)
+## Rule 4 — GitHub Access via github-mcp-server Preferred
 
-For ANY GitHub API operation: use `mcp__github__*` tools (github-mcp-server, remote at `https://api.githubcopilot.com/mcp`) ONLY. Mechanically enforced — `mcp__octocode__github*` is in `.claude/settings.json` `permissions.deny` AND blocked by PreToolUse hook `scripts/claude-hooks/block-octocode-github.sh`. `gh` CLI is gated by hook `scripts/claude-hooks/gh-cli-restrict.sh` to a narrow allow-list. `WebFetch` on `github.com/*` is blocked by global hook `~/.claude/hooks/github-url-block.sh`.
+For GitHub API operations: prefer `mcp__github__*` tools (github-mcp-server, remote at `https://api.githubcopilot.com/mcp`) for consistency, auditability, and rate-limit transparency. Mechanically enforced for `mcp__octocode__github*` — `.claude/settings.json` `permissions.deny` AND PreToolUse hook `scripts/claude-hooks/block-octocode-github.sh` both block it. `WebFetch` on `github.com/*` is blocked by global hook `~/.claude/hooks/github-url-block.sh`. The previous `gh` CLI gate (`scripts/claude-hooks/gh-cli-restrict.sh`) was retired 2026-05-20 — `gh` CLI is now available as a fallback without hook-level enforcement (decision: enable RTK shell-command rewriting, which collided with the gate; MCP remains the documented preferred path).
 
 **Routing matrix:**
 
@@ -42,17 +42,17 @@ For ANY GitHub API operation: use `mcp__github__*` tools (github-mcp-server, rem
 | Releases / tags                  | `mcp__github__list_releases` / `get_latest_release` / `get_release_by_tag` / `list_tags` / `get_tag`                           |
 | CI / runs                        | `mcp__github__` actions toolset                                                                                                |
 
-**`gh` CLI allow-list** (gaps github-mcp-server doesn't cover):
+**`gh` CLI** (gaps github-mcp-server doesn't cover are most important for):
 
 - `gh workflow run|list|view` — workflow dispatch (github MCP `actions` toolset is read-only re: dispatch)
 - `gh secret set|list|delete` — secret management (no MCP surface)
 - `gh auth status|login|logout` — auth probe
 
-Anything else (`gh pr`, `gh issue`, `gh api`, `gh release`, `gh repo`, `gh run`) is denied by the hook.
+Other `gh` subcommands (`gh pr`, `gh issue`, `gh api`, `gh release`, `gh repo`, `gh run`) are available but should be the fallback — MCP is preferred because calls are logged + rate-limit-instrumented by the Anthropic surface and the audit trail across sessions is consistent.
 
 **`git` CLI** is fully allowed for local working-tree ops (commit, push, fetch, pull, branch, rebase, checkout, tag) — github MCP cannot replace local git.
 
-**Bash hooks** (`scripts/claude-hooks/*.sh`) MAY use any `gh` subcommand internally because hooks run in bash and have no access to MCP tools. They bypass `gh-cli-restrict.sh` by setting `CLAUDE_HOOK_INTERNAL=1` before invoking `gh` (see `scripts/claude-hooks/post-push-pr-flow.sh`).
+**Bash hooks** (`scripts/claude-hooks/*.sh`) MAY use any `gh` subcommand internally because hooks run in bash and have no access to MCP tools. The legacy `CLAUDE_HOOK_INTERNAL=1` convention (still set in `post-push-pr-flow.sh`) is now dead — left for backward compatibility but no longer required.
 
 **octocode** is kept ONLY for `lsp*` (LSP findReferences/hover/gotoDefinition/callHierarchy) and `local*` (localFindFiles/localSearchCode/localGetFileContent/localViewStructure) namespaces — these are NOT GitHub operations and are out of scope.
 
@@ -67,7 +67,7 @@ For ANY question about a third-party library, framework, SDK, or CLI tool (React
 Every PR is bracketed by sentrux. Bracketing is **per-branch**, not per-phase or per-commit. Under the batched-commit cadence (Rule 10), `session_start` fires ONCE at branch creation and `session_end` + `rescan` + `check_rules` fire ONCE pre-merge — even when the branch contains multiple phases worth of commits. Mid-session optional rescan is allowed after structurally-risky phases (chassis additions, deletions of >5 files) but is not required.
 
 1. **Worktree entry**: when starting work in a freshly spun feature worktree (`scripts/ops/spin-worktree.sh <slug>` → `aoe add --worktree …`), call `mcp__plugin_sentrux_sentrux__session_start` (captures pre-change graph baseline).
-2. **Pre-merge**: before `mcp__github__merge_pull_request` (mergeMethod: "squash"), call in order:
+2. **Pre-merge**: before `mcp__github__merge_pull_request` (mergeMethod: "merge" — a regular merge commit; **never squash**, see Rule 11), call in order:
     - `mcp__plugin_sentrux_sentrux__rescan` (re-walk after final commit)
     - `mcp__plugin_sentrux_sentrux__session_end` (delta report)
     - `mcp__plugin_sentrux_sentrux__check_rules` (must pass `.sentrux/rules.toml`)
@@ -87,7 +87,7 @@ User has explicitly instructed: explain every command, tool, library, and concep
 
 1. **Keyword highlighting.** Bold the keyword the FIRST time it's defined in a turn (`**ESLint cache**`); keep code identifiers / commands / file paths in backticks. Bold + backticks together give the eye an anchor.
 2. **Default to deep explanations, not glosses.** A definition gets 4–8 sentences covering (a) what it literally is, (b) which subsystem owns it, (c) mechanical steps of how it works, (d) why it matters for Argos specifically, (e) where it lives on disk if applicable. One-line glosses are too thin — user has stated explanations must be "pretty detailed."
-3. **Refresh the phase board after every completed phase.** When a PR squash-merge completes a phase or sub-phase (3a → 3b → 3c → 3d → 3e → 3f, or Phase 1 → 2 → 3, etc.), present the FULL updated phase table (Phase / Component / Status / PR / Date) — not just "Phase X done." Include the explicit "next step + engineering reasoning for why" for the upcoming row. User stated: _"I need to see an update to our overall plan once a phase is complete."_
+3. **Refresh the phase board after every completed phase.** When a PR merge completes a phase or sub-phase (3a → 3b → 3c → 3d → 3e → 3f, or Phase 1 → 2 → 3, etc.), present the FULL updated phase table (Phase / Component / Status / PR / Date) — not just "Phase X done." Include the explicit "next step + engineering reasoning for why" for the upcoming row. User stated: _"I need to see an update to our overall plan once a phase is complete."_
 
 Full pattern catalogue + counter-examples + edge cases in user memory `feedback_explain_as_you_go.md`. Rationale: user stated _"the way you explain it, it has to be extremely simple. like i have no idea what your doing when you run a long bash command etc, you really have to break things down clearly"_ — non-negotiable preference; failure to explain is failure to deliver even when the technical work is correct.
 
@@ -176,7 +176,7 @@ Assistant MUST NOT auto-proceed to the next phase. Prompt is non-skippable.
 
 1. Pre-stage audit: `git status` + `git diff --stat` (catch trunk auto-fix pollution per `feedback_trunk_autofix_pollution.md`).
 2. Stage explicitly by path — never `git add -A` or `git add .`.
-3. ONE conventional commit per logical phase (intermediate trail) — preserves bisect granularity inside the squashed PR.
+3. ONE conventional commit per logical phase (intermediate trail). PRs **regular-merge** (never squash — Rule 11), so every one of these commits is preserved verbatim in `dev` history — bisect granularity is kept directly, not "inside a squash".
 4. Sentrux pre-push gate: `rescan` → `scan` → `check_rules` (quality_signal must not regress).
 5. `npm run build` in background (per `feedback_argos_commit_always_bg.md`). Do parallel work per Rule 9 while build runs.
 6. `git push -u origin <branch>` (pre-push hook fires once for the whole bundle ~13-25s).
@@ -204,3 +204,18 @@ Is the diff > 1500 LOC OR touches src/lib/state/ OR src/app.css OR > 6 files in 
 **Worktree model**: one `aoe` worktree per feature under `../Argos-worktrees/<branch>`, branch `feature/<slug>` (or prefixed verbatim) off `origin/dev`. Spin via `./scripts/ops/spin-worktree.sh <slug>` (→ `aoe add --worktree … --launch --trust-hooks` + node_modules/.env/.svelte-kit symlinks). Commit on the feature branch; PR → `dev` → CodeRabbit autofix loop → auto-merge → `bash scripts/claude-hooks/worktree-refresh.sh <branch>` to fan the new `dev` out to the other worktrees → `aoe remove <s> --delete-worktree` when done. Conflict avoidance: L1 pre-push freshness gate + L2 post-merge fan-out + L3 `dev`/`main` branch protection (`strict` — up-to-date-with-base); a GitHub merge queue (L4) was evaluated and declined (commitlint/danger are PR-scoped; `strict` covers the race) — see `platform-and-deps.md` "Git workflow" + `docs/ci-cd-pipeline-spec.md` §4.4. `dev → main` is still a manual rollup PR. The legacy `Argos-session-*` worktrees are deprecated; drain and `aoe worktree cleanup` them.
 
 Catalogue: `feedback_batched_commit_cadence.md`, `feedback_worktree_conflict_strategy.md`, `project_aoe_workflow.md`.
+
+## Rule 11 — Pre-commit audit + user sign-off (non-negotiable)
+
+Added 2026-05-18 after an unauthorized squash-merge of unverified work.
+
+NEVER commit, push, or merge work without BOTH of these first:
+
+1. **Inform the user** — report exactly what was done: the files changed, the behavior added/changed, and the verification results. No commit is a surprise; the user sees the work before it enters history and can stop it.
+
+2. **Run the pre-commit audit checklist** and resolve everything it surfaces:
+    - **chrome-devtools MCP** — end-to-end audit of every screen the change touches: DOM renders, zero new console errors, behavior matches the pre-change baseline.
+    - **OpenTelemetry / Jaeger MCP** — trace audit: no new error spans and no latency regression vs baseline (Jaeger backend on `:16686`).
+    - **Sentry.io MCP** — check for issues introduced by the change; resolve any found before the work lands.
+
+Only after BOTH: commit, and merge via a **regular merge commit — never squash** (so every commit stays visible in history; see Rule 6 + `platform-and-deps.md` "Git workflow"). This rule is non-negotiable and overrides any cadence shortcut in Rule 10.
