@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # start-vite.sh — guarded vite dev launcher.
 #
-# 1. Derives port from worktree name via port-for-worktree.sh.
+# 1. Resolves port: VITE_PORT env wins; otherwise port-for-worktree.sh.
 # 2. Refuses to start if any other process already owns that port (systemd
 #    unit, stray tmux, another worktree's npm run dev, etc.) — preventing
 #    silent fallback or socket fights.
@@ -11,8 +11,10 @@ set -euo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd -P)"
 
-if ! VITE_PORT="$("$here/port-for-worktree.sh")"; then
-	exit 1
+if [[ -z "${VITE_PORT:-}" ]]; then
+	if ! VITE_PORT="$("$here/port-for-worktree.sh")"; then
+		exit 1
+	fi
 fi
 export VITE_PORT
 
