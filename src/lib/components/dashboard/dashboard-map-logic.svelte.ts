@@ -225,17 +225,41 @@ export function createMapState() {
 	});
 
 	$effect(() => {
-		fetch('/api/map-tiles/styles/alidade_smooth_dark.json', { method: 'HEAD' })
-			.then((res) => {
-				stadiaOk = res.ok;
-				stadiaChecked = true;
-				mapSettings.stadiaAvailable.set(res.ok);
-			})
-			.catch(() => {
-				stadiaOk = false;
-				stadiaChecked = true;
-				mapSettings.stadiaAvailable.set(false);
-			});
+		// Probe Stadia availability with bounded retry. Right after a server
+		// restart the map-tiles proxy can briefly fail while the app warms up
+		// (OTel init + top-level hardware scan). A single HEAD check would
+		// latch stadiaAvailable=false and disable the Tactical basemap until a
+		// manual page reload, so retry a few times before giving up.
+		let cancelled = false;
+		const setAvailable = (ok: boolean) => {
+			stadiaOk = ok;
+			stadiaChecked = true;
+			mapSettings.stadiaAvailable.set(ok);
+		};
+		const probeOnce = async (): Promise<boolean> => {
+			try {
+				const res = await fetch('/api/map-tiles/styles/alidade_smooth_dark.json', {
+					method: 'HEAD'
+				});
+				return res.ok;
+			} catch {
+				// transient (network / proxy still warming up) — treat as not-yet-available
+				return false;
+			}
+		};
+		const tryProbe = async (): Promise<boolean> => {
+			for (let attempt = 0; attempt < 5 && !cancelled; attempt++) {
+				if (await probeOnce()) return true;
+				await new Promise((r) => setTimeout(r, 1500));
+			}
+			return false;
+		};
+		void tryProbe().then((ok) => {
+			if (!cancelled) setAvailable(ok);
+		});
+		return () => {
+			cancelled = true;
+		};
 	});
 	$effect(() => {
 		queueMicrotask(() => {
