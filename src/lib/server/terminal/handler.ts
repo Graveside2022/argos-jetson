@@ -203,9 +203,44 @@ function getWss(): WebSocketServer {
 	return wssSingleton;
 }
 
+/**
+ * Self-contained Origin allowlist. This module is imported by vite.config.ts
+ * (via config/vite-plugin-terminal.ts) BEFORE the `$lib` alias exists, so it
+ * must NOT import app modules — mirrors src/lib/server/security/cors.ts.
+ * Browsers always send Origin on cross-origin WS upgrades; non-browser clients
+ * send none and are allowed (CSWSH requires a browser).
+ */
+function isAllowedTerminalOrigin(origin: string | undefined): boolean {
+	if (!origin) return true;
+	const allowed = [
+		'http://localhost:5173',
+		'http://127.0.0.1:5173',
+		'http://localhost:3000',
+		'http://127.0.0.1:3000',
+		...(process.env.ARGOS_CORS_ORIGINS?.split(',').map((s) => s.trim()) ?? [])
+	];
+	return allowed.includes(origin);
+}
+
+/**
+ * CWE-1385: reject cross-site WS upgrades (CSWSH) — a browser at another origin
+ * may not open a PTY. Dev-only path, but the handler ships in the bundle. Writes
+ * 403 + destroys the socket on rejection. Returns true if the upgrade was rejected.
+ */
+function rejectDisallowedTerminalOrigin(req: IncomingMessage, socket: Duplex): boolean {
+	if (isAllowedTerminalOrigin(req.headers.origin)) return false;
+	socket.write('HTTP/1.1 403 Forbidden\r\n\r\n');
+	socket.destroy();
+	return true;
+}
+
+function terminalUpgradeUrl(req: IncomingMessage): URL {
+	return new URL(req.url || '/', `http://${req.headers.host ?? 'localhost'}`);
+}
+
 export function handleTerminalUpgrade(req: IncomingMessage, socket: Duplex, head: Buffer): boolean {
-	const url = new URL(req.url || '/', `http://${req.headers.host ?? 'localhost'}`);
-	if (url.pathname !== TERMINAL_WS_PATH) return false;
+	if (terminalUpgradeUrl(req).pathname !== TERMINAL_WS_PATH) return false;
+	if (rejectDisallowedTerminalOrigin(req, socket)) return true;
 	const wss = getWss();
 	wss.handleUpgrade(req, socket, head, (ws) => {
 		wss.emit('connection', ws, req);

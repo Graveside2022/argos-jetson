@@ -10,14 +10,19 @@
  * No route-specific check is needed.
  */
 
-import { getCorsHeaders } from '$lib/server/security/cors';
+import { getCorsHeaders, isAllowedOrigin } from '$lib/server/security/cors';
 import { createSignalStream } from '$lib/server/services/rf/signal-stream';
 
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = ({ url, request }) => {
-	const sessionId = url.searchParams.get('session') ?? undefined;
 	const origin = request.headers.get('origin');
+	// CWE-1385: reject cross-origin EventSource (CSWSH). Belt-and-braces with the
+	// fail-closed CORS allowlist already applied below.
+	if (!isAllowedOrigin(origin)) {
+		return new Response('Forbidden origin', { status: 403 });
+	}
+	const sessionId = url.searchParams.get('session') ?? undefined;
 	const stream = createSignalStream({ sessionId });
 
 	return new Response(stream, {

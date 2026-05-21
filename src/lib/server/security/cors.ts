@@ -39,3 +39,16 @@ export function getCorsHeaders(requestOrigin: string | null): Record<string, str
 
 	return headers;
 }
+
+/**
+ * Validate the Origin header on a WebSocket upgrade or SSE (EventSource) request.
+ *
+ * Browsers always send an Origin header on cross-origin WS upgrades and
+ * EventSource connections, so a forged cross-site request (CSWSH) carries the
+ * attacker's origin and is rejected. Non-browser clients (CLI, native `ws`,
+ * server-to-server) send no Origin and are allowed — CSWSH requires a browser.
+ */
+export function isAllowedOrigin(origin: string | null | undefined): boolean {
+	if (!origin) return true;
+	return ALLOWED_ORIGINS.includes(origin);
+}
