@@ -10,13 +10,18 @@
  * wrapper). See src/routes/api/rf/stream/+server.ts.
  */
 
-import { getCorsHeaders } from '$lib/server/security/cors';
+import { getCorsHeaders, isAllowedOrigin } from '$lib/server/security/cors';
 import { createSpectrumStream } from '$lib/server/spectrum/spectrum-stream';
 
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = ({ request }) => {
 	const origin = request.headers.get('origin');
+	// CWE-1385: reject cross-origin EventSource (CSWSH). Belt-and-braces with the
+	// fail-closed CORS allowlist already applied below.
+	if (!isAllowedOrigin(origin)) {
+		return new Response('Forbidden origin', { status: 403 });
+	}
 	const stream = createSpectrumStream();
 
 	return new Response(stream, {

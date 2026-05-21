@@ -191,6 +191,18 @@ function checkDragonSyncReadRateLimit(event: Parameters<Handle>[0]['event']): Re
 }
 
 /**
+ * Rate-limit raw WebSocket upgrade attempts by client IP. WS upgrades bypass
+ * the SvelteKit `handle` hook (and thus checkRateLimit), so auth brute-force on
+ * the kismet socket and PTY-spawn flooding on the terminal socket would
+ * otherwise be unthrottled. Returns true if the attempt is allowed.
+ */
+export function checkWsConnectionRateLimit(ip: string): boolean {
+	const safeIp = ip || 'unknown';
+	const limit = safeIp === 'unknown' ? 60 : 30;
+	return rateLimiter.check(`ws:${safeIp}`, limit, limit / 60);
+}
+
+/**
  * Apply rate limiting to a request. Returns a 429 Response if rate limit
  * is exceeded, or null if the request should proceed.
  */
