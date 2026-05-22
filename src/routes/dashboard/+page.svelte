@@ -44,7 +44,7 @@
 
 	onMount(() => {
 		if (!browser) return;
-		services.start();
+		void services.start();
 	});
 
 	onDestroy(() => services.stop());
