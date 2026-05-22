@@ -24,22 +24,16 @@
 		activePanel,
 		activeView,
 		bottomPanelHeight,
-		closeBottomPanel,
 		isBottomPanelOpen,
 		lastNonScanView,
 		openBottomPanel,
 		setBottomPanelHeight
 	} from '$lib/stores/dashboard/dashboard-store';
-	import {
-		createSession,
-		nextTab,
-		previousTab,
-		toggleTerminalPanel
-	} from '$lib/stores/dashboard/terminal-store';
 	import { uasStore } from '$lib/stores/dragonsync/uas-store';
 
 	import BottomPanelTabs from './BottomPanelTabs.svelte';
 	import { createDashboardServices } from './dashboard-services';
+	import { handleDashboardKeydown } from './dashboard-shortcuts';
 	import DashboardViewRouter from './DashboardViewRouter.svelte';
 
 	// spec-024 PR6 — Mk II is now its own URL space at /dashboard/mk2/*.
@@ -106,36 +100,6 @@
 		activeView.set('map');
 	}
 
-	type ShortcutEntry = { ctrl: boolean; shift: boolean; key: string; action: () => void };
-	const SHORTCUTS: ShortcutEntry[] = [
-		{ ctrl: true, shift: false, key: '`', action: toggleTerminalPanel },
-		{ ctrl: true, shift: true, key: '`', action: createSession },
-		{ ctrl: true, shift: true, key: '[', action: previousTab },
-		{ ctrl: true, shift: true, key: ']', action: nextTab }
-	];
-
-	function matchShortcut(e: KeyboardEvent): ShortcutEntry | undefined {
-		return SHORTCUTS.find(
-			(s) => e.ctrlKey === s.ctrl && e.shiftKey === s.shift && e.key === s.key
-		);
-	}
-
-	function handleEscape() {
-		if ($isBottomPanelOpen) closeBottomPanel();
-		else if ($activeView !== 'map') activeView.set('map');
-		else if ($activePanel !== null) activePanel.set(null);
-	}
-
-	function handleKeydown(e: KeyboardEvent) {
-		const shortcut = matchShortcut(e);
-		if (shortcut) {
-			e.preventDefault();
-			shortcut.action();
-			return;
-		}
-		if (e.key === 'Escape') handleEscape();
-	}
-
 	onMount(() => {
 		if (!browser) return;
 		services.start();
@@ -144,7 +108,7 @@
 	onDestroy(() => services.stop());
 </script>
 
-<svelte:window onkeydown={handleKeydown} />
+<svelte:window onkeydown={handleDashboardKeydown} />
 
 <DashboardShell mode={shellMode}>
 	{#snippet sidebar()}
