@@ -4,6 +4,7 @@ import { resolve } from 'node:path';
 import { sentrySvelteKit } from '@sentry/sveltekit';
 import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
+import { optimizeCss } from 'carbon-preprocess-svelte';
 import { defineConfig, loadEnv, searchForWorkspaceRoot } from 'vite';
 import devtoolsJson from 'vite-plugin-devtools-json';
 
@@ -41,6 +42,11 @@ export default defineConfig(({ mode }) => {
 				telemetry: false
 			}),
 			sveltekit(),
+			// Carbon's documented production CSS optimization: prunes unused Carbon
+			// styles from the bundle (build-only, enforce:post). Cuts the global
+			// g100 theme CSS that inflates first-paint style-recalc. (carbon-
+			// preprocess-svelte README; demo shows ~91% CSS reduction.)
+			optimizeCss(),
 			terminalPlugin(),
 			devtoolsJson()
 		],
