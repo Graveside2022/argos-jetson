@@ -13,36 +13,37 @@
 import { get } from 'svelte/store';
 
 import { activeView, lastNonScanView } from '$lib/stores/dashboard/dashboard-store';
+import type { ActiveView } from '$lib/types/dashboard-view';
 
 const ACTIVATING_STATUSES = new Set(['starting', 'running']);
 
 export function createScanAutoSwap() {
 	let lastSeen: string | null = null;
 
-	function deactivationTarget(): string {
+	function deactivationTarget(): ActiveView {
 		const prev = get(lastNonScanView);
 		return prev === 'uas-scan' ? 'map' : prev;
 	}
 
-	const shouldActivate = (status: string, view: string) =>
+	const shouldActivate = (status: string, view: ActiveView) =>
 		ACTIVATING_STATUSES.has(status) && view !== 'uas-scan';
 
-	const shouldDeactivate = (status: string, view: string) =>
+	const shouldDeactivate = (status: string, view: ActiveView) =>
 		status === 'stopped' && lastSeen !== null && view === 'uas-scan';
 
-	function applyTransition(status: string, view: string): void {
+	function applyTransition(status: string, view: ActiveView): void {
 		if (shouldActivate(status, view)) {
 			activeView.set('uas-scan');
 			return;
 		}
 		if (shouldDeactivate(status, view)) {
-			activeView.set(deactivationTarget() as never);
+			activeView.set(deactivationTarget());
 		}
 	}
 
 	return {
-		reconcile(status: string, view: string): void {
-			if (view !== 'uas-scan') lastNonScanView.set(view as never);
+		reconcile(status: string, view: ActiveView): void {
+			if (view !== 'uas-scan') lastNonScanView.set(view);
 			if (lastSeen === status) return;
 			applyTransition(status, view);
 			lastSeen = status;

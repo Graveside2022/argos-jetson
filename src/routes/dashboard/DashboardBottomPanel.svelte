@@ -31,6 +31,8 @@
 	$effect(() => {
 		const tab = $activeBottomTab;
 		if (tab && !mountedTabs.has(tab)) {
+			// Reassign, don't mutate: a plain $state(Set) is NOT reactive on .add()
+			// (only svelte/reactivity SvelteSet is) — the template won't re-render.
 			mountedTabs = new Set([...mountedTabs, tab]);
 		}
 	});
