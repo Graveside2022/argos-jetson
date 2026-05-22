@@ -36,22 +36,3 @@
 	border: none;
 	background: var(--background);
 }
-
-.bottom-panel-content {
-	flex: 1;
-	overflow: hidden;
-	display: flex;
-	flex-direction: column;
-}
-
-.tab-pane {
-	display: none;
-	flex: 1;
-	flex-direction: column;
-	overflow: hidden;
-	min-height: 0;
-}
-
-.tab-pane.tab-active {
-	display: flex;
-}
