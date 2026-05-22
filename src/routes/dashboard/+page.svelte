@@ -25,7 +25,6 @@
 		activeView,
 		bottomPanelHeight,
 		isBottomPanelOpen,
-		lastNonScanView,
 		openBottomPanel,
 		setBottomPanelHeight
 	} from '$lib/stores/dashboard/dashboard-store';
@@ -35,6 +34,7 @@
 	import { createDashboardServices } from './dashboard-services';
 	import { handleDashboardKeydown } from './dashboard-shortcuts';
 	import DashboardViewRouter from './DashboardViewRouter.svelte';
+	import { createScanAutoSwap } from './scan-auto-swap';
 
 	// spec-024 PR6 — Mk II is now its own URL space at /dashboard/mk2/*.
 	// `?ui=mk2` redirects in +page.ts so this file is the legacy shell only.
@@ -57,44 +57,11 @@
 		}
 	});
 
-	// UAS scan auto-swap: when a scan starts, swap the center region from map to
-	// the UAS live-log terminal view. When the scan stops, revert to whichever
-	// non-scan view was last active (default 'map'). Also keeps lastNonScanView
-	// up-to-date so manual navigation during a scan is preserved.
-	let lastSeenScanStatus: string | null = null;
-	$effect(() => reconcileScanAutoSwap($uasStore.status, $activeView));
-
-	function reconcileScanAutoSwap(status: string, view: string): void {
-		if (view !== 'uas-scan') lastNonScanView.set(view as never);
-		if (lastSeenScanStatus === status) return;
-		applyScanTransition(status, view);
-		lastSeenScanStatus = status;
-	}
-
-	const ACTIVATING_STATUSES = new Set(['starting', 'running']);
-
-	function shouldActivate(status: string, view: string): boolean {
-		return ACTIVATING_STATUSES.has(status) && view !== 'uas-scan';
-	}
-
-	function shouldDeactivate(status: string, view: string): boolean {
-		return status === 'stopped' && lastSeenScanStatus !== null && view === 'uas-scan';
-	}
-
-	function deactivationTarget(): string {
-		const prev = $lastNonScanView;
-		return prev === 'uas-scan' ? 'map' : prev;
-	}
-
-	function applyScanTransition(status: string, view: string): void {
-		if (shouldActivate(status, view)) {
-			activeView.set('uas-scan');
-			return;
-		}
-		if (shouldDeactivate(status, view)) {
-			activeView.set(deactivationTarget() as never);
-		}
-	}
+	// UAS scan auto-swap: starts→swap center to the UAS live-log view; stops→revert
+	// to the last non-scan view. State machine + transitions live in the module;
+	// only the reactive wiring stays here.
+	const scanSwap = createScanAutoSwap();
+	$effect(() => scanSwap.reconcile($uasStore.status, $activeView));
 
 	function goBackToMap() {
 		activeView.set('map');
