@@ -21,7 +21,12 @@
 	{:then { default: View }}
 		<View />
 	{:catch}
-		<div class="view-loading">View failed to load — reload to retry.</div>
+		<div class="view-loading" role="alert">
+			<p>View failed to load.</p>
+			<button type="button" class="view-error-action" onclick={onBackToMap}
+				>Back to map</button
+			>
+		</div>
 	{/await}
 {:else if entry.kind === 'iframe'}
 	<ToolViewWrapper title={entry.title} onBack={onBackToMap}>
@@ -34,6 +39,8 @@
 <style>
 	.view-loading {
 		display: flex;
+		flex-direction: column;
+		gap: 12px;
 		align-items: center;
 		justify-content: center;
 		width: 100%;
@@ -41,6 +48,20 @@
 		font-family: var(--font-mono, 'Fira Code', monospace);
 		font-size: 12px;
 		color: var(--muted-foreground, #888);
+	}
+
+	.view-error-action {
+		font: inherit;
+		padding: 6px 14px;
+		color: var(--foreground, #ddd);
+		background: var(--secondary, #1f1f1f);
+		border: 1px solid var(--border, #333);
+		border-radius: 4px;
+		cursor: pointer;
+	}
+
+	.view-error-action:hover {
+		background: var(--accent, #2a2a2a);
 	}
 
 	.tool-iframe {
