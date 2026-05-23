@@ -269,3 +269,10 @@ export async function killAllProcesses(): Promise<void> {
 export function getCurrentFlowgraph(): string | null {
 	return ensureState().currentFlowgraph;
 }
+
+// Set synchronously by startGnuRadioVnc so getGnuRadioVncStatus() reports the
+// requested flowgraph immediately, without waiting for the async spawn chain
+// (SPD-5: spawnGnuRadioCompanion runs inside fire-and-forget performStartup).
+export function setCurrentFlowgraph(flowgraph: string | null): void {
+	ensureState().currentFlowgraph = flowgraph;
+}
