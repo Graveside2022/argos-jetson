@@ -4,7 +4,7 @@
  */
 import maplibregl from 'maplibre-gl';
 
-import type { DeviceClassification } from '$lib/stores/tactical-map/kismet-store';
+import type { DeviceClassification } from '$lib/stores/tactical-map/kismet-store.svelte';
 
 import { resolveMapColor, SIGNAL_COLORS } from './map-colors';
 import type { RangeBand } from './map-geojson';

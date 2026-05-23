@@ -1,4 +1,4 @@
-import { takStatus } from '$lib/stores/tak-store';
+import { takStore } from '$lib/stores/tak-store.svelte';
 import type { TakStatus } from '$lib/types/tak';
 import { fetchJSON } from '$lib/utils/fetch-json';
 
@@ -12,7 +12,7 @@ export class TakService {
 		);
 		if (data?.success && data.status) {
 			const { success: _success, ...rest } = data;
-			takStatus.set(rest as TakStatus);
+			takStore.setStatus(rest as TakStatus);
 		}
 	}
 

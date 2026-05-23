@@ -16,6 +16,7 @@ import {
 	getCurrentFlowgraph,
 	isAnyProcessAlive,
 	killAllProcesses,
+	setCurrentFlowgraph,
 	spawnGnuRadioCompanion,
 	spawnGrcMaximizer,
 	spawnWebsockify,
@@ -108,6 +109,11 @@ export async function startGnuRadioVnc(flowgraph?: string): Promise<GnuRadioVncC
 
 	const { resolved, error } = resolveFlowgraphOrError(flowgraph);
 	if (error) return error;
+
+	// Record flowgraph synchronously so getGnuRadioVncStatus() reflects it on
+	// the next tick (spawnGnuRadioCompanion below runs inside fire-and-forget
+	// performStartup, so its own state.currentFlowgraph write races the caller).
+	setCurrentFlowgraph(resolved ?? null);
 
 	// SPD-5: spawn the VNC stack in the background instead of awaiting the ~2s
 	// sequential spawn (5 procs + inter-spawn delays). Matches the other tool

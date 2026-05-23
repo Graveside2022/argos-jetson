@@ -10,9 +10,7 @@
  * a one-line `$effect(() => scanSwap.reconcile($uasStore.status, $activeView))`
  * — the reactive read stays in the component; the transition logic lives here.
  */
-import { get } from 'svelte/store';
-
-import { activeView, lastNonScanView } from '$lib/stores/dashboard/dashboard-store';
+import { activeView, lastNonScanView } from '$lib/stores/dashboard/dashboard-store.svelte';
 import type { ActiveView } from '$lib/types/dashboard-view';
 
 const ACTIVATING_STATUSES = new Set(['starting', 'running']);
@@ -21,7 +19,7 @@ export function createScanAutoSwap() {
 	let lastSeen: string | null = null;
 
 	function deactivationTarget(): ActiveView {
-		const prev = get(lastNonScanView);
+		const prev = lastNonScanView.current;
 		return prev === 'uas-scan' ? 'map' : prev;
 	}
 

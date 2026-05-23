@@ -8,7 +8,7 @@
 		isolateDevice,
 		resetBands,
 		toggleBand as toggleGlobalBand
-	} from '$lib/stores/dashboard/dashboard-store';
+	} from '$lib/stores/dashboard/dashboard-store.svelte';
 	import {
 		busyAPs,
 		fetchReconData,
@@ -20,12 +20,12 @@
 		resetReconData,
 		weakSecurityTargets,
 		wpsTargets
-	} from '$lib/stores/dashboard/recon-store';
+	} from '$lib/stores/dashboard/recon-store.svelte';
 	import {
 		clearAllKismetDevices,
 		kismetStore,
 		setWhitelistMAC
-	} from '$lib/stores/tactical-map/kismet-store';
+	} from '$lib/stores/tactical-map/kismet-store.svelte';
 
 	import { filterAndSortDevices, type SortColumn } from './devices/device-filters';
 	import DeviceSubTabs from './devices/DeviceSubTabs.svelte';
@@ -63,7 +63,7 @@
 	}
 
 	function handleApClick(device: KismetDevice) {
-		if ($isolatedDeviceMAC === device.mac) {
+		if (isolatedDeviceMAC.current === device.mac) {
 			isolateDevice(null);
 			selectedMAC = null;
 			expandedMAC = null;
@@ -75,7 +75,7 @@
 	}
 
 	function handleClientClick(device: KismetDevice) {
-		if ($isolatedDeviceMAC === device.parentAP) {
+		if (isolatedDeviceMAC.current === device.parentAP) {
 			isolateDevice(null);
 			selectedMAC = null;
 			expandedMAC = null;
@@ -140,11 +140,11 @@
 	const RENDER_CAP = 200;
 
 	let allDevices = $derived(
-		filterAndSortDevices($kismetStore.devices, $isolatedDeviceMAC, {
+		filterAndSortDevices(kismetStore.current.devices, isolatedDeviceMAC.current, {
 			searchQuery,
 			shouldHideNoSignal,
 			shouldShowOnlyWithClients,
-			activeBands: $activeBands,
+			activeBands: activeBands.current,
 			sortColumn,
 			sortDirection
 		})
@@ -156,30 +156,33 @@
 
 	let subTabCounts = $derived({
 		all: allDevices.length,
-		'weak-security': $weakSecurityTargets.length,
-		wps: $wpsTargets.length,
-		hidden: $hiddenNetworks.length,
-		'busy-aps': $busyAPs.length,
-		gps: $gpsTracked.length,
-		alerts: $reconAlerts.length,
+		'weak-security': weakSecurityTargets.current.length,
+		wps: wpsTargets.current.length,
+		hidden: hiddenNetworks.current.length,
+		'busy-aps': busyAPs.current.length,
+		gps: gpsTracked.current.length,
+		alerts: reconAlerts.current.length,
 		whitelist: 0
 	});
 
 	/* ── Lifecycle ──────────────────────────────────── */
 
 	$effect(() => {
-		if ($isolatedDeviceMAC && !$kismetStore.devices.has($isolatedDeviceMAC)) {
+		if (
+			isolatedDeviceMAC.current &&
+			!kismetStore.current.devices.has(isolatedDeviceMAC.current)
+		) {
 			isolateDevice(null);
 		}
 	});
 
 	$effect(() => {
-		if ($reconStatus === 'idle') triggerRecon();
+		if (reconStatus.current === 'idle') triggerRecon();
 	});
 
 	let apsWithClientsCount = $derived.by(() => {
 		let count = 0;
-		$kismetStore.devices.forEach((d) => {
+		kismetStore.current.devices.forEach((d) => {
 			if (d.clients && d.clients.length > 0) count++;
 		});
 		return count;
@@ -190,9 +193,9 @@
 	<DeviceToolbar
 		deviceCount={allDevices.length}
 		renderedCount={renderedDevices.length}
-		isolatedMAC={$isolatedDeviceMAC}
+		isolatedMAC={isolatedDeviceMAC.current}
 		{searchQuery}
-		activeBands={$activeBands}
+		activeBands={activeBands.current}
 		{shouldHideNoSignal}
 		{shouldShowOnlyWithClients}
 		{apsWithClientsCount}
@@ -228,16 +231,16 @@
 		<IntelCategoryView
 			title="Weak Security"
 			description={INTEL_DESCRIPTIONS['weak-security']}
-			targets={$weakSecurityTargets}
-			reconStatus={$reconStatus}
+			targets={weakSecurityTargets.current}
+			reconStatus={reconStatus.current}
 			onRefresh={triggerRecon}
 		/>
 	{:else if activeSubTab === 'wps'}
 		<IntelCategoryView
 			title="WPS Targets"
 			description={INTEL_DESCRIPTIONS.wps}
-			targets={$wpsTargets}
-			reconStatus={$reconStatus}
+			targets={wpsTargets.current}
+			reconStatus={reconStatus.current}
 			onRefresh={triggerRecon}
 			extraColumns={WPS_EXTRA_COLUMNS}
 		/>
@@ -245,16 +248,16 @@
 		<IntelCategoryView
 			title="Hidden Networks"
 			description={INTEL_DESCRIPTIONS.hidden}
-			targets={$hiddenNetworks}
-			reconStatus={$reconStatus}
+			targets={hiddenNetworks.current}
+			reconStatus={reconStatus.current}
 			onRefresh={triggerRecon}
 		/>
 	{:else if activeSubTab === 'busy-aps'}
 		<IntelCategoryView
 			title="Busy Access Points"
 			description={INTEL_DESCRIPTIONS['busy-aps']}
-			targets={$busyAPs}
-			reconStatus={$reconStatus}
+			targets={busyAPs.current}
+			reconStatus={reconStatus.current}
 			onRefresh={triggerRecon}
 			extraColumns={BUSY_EXTRA_COLUMNS}
 		/>
@@ -262,8 +265,8 @@
 		<IntelCategoryView
 			title="GPS Tracked"
 			description={INTEL_DESCRIPTIONS.gps}
-			targets={$gpsTracked}
-			reconStatus={$reconStatus}
+			targets={gpsTracked.current}
+			reconStatus={reconStatus.current}
 			onRefresh={triggerRecon}
 			extraColumns={GPS_EXTRA_COLUMNS}
 		/>
@@ -271,9 +274,9 @@
 		<IntelCategoryView
 			title="Security Alerts"
 			description={INTEL_DESCRIPTIONS.alerts}
-			targets={$reconTargets}
-			alerts={$reconAlerts}
-			reconStatus={$reconStatus}
+			targets={reconTargets.current}
+			alerts={reconAlerts.current}
+			reconStatus={reconStatus.current}
 			onRefresh={triggerRecon}
 		/>
 	{:else}

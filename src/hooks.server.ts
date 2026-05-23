@@ -245,28 +245,11 @@ function redirect307(location: string): Response {
 	return new Response(null, { status: 307, headers: { location } });
 }
 
-function rootRedirectTarget(): string {
-	const port = process.env.PORT;
-	if (port === '5174') return '/dashboard/mk2/overview';
-	return '/dashboard';
-}
-
-function rootRedirect(event: Parameters<Handle>[0]['event']): Response | null {
+/** Redirect bare `/` to the dashboard. v2/mk2 split retired 2026-05-23. */
+function uiRedirect(event: Parameters<Handle>[0]['event']): Response | null {
 	const p = event.url.pathname;
 	if (p !== '/' && p !== '') return null;
-	return redirect307(rootRedirectTarget());
-}
-
-function mk2DashboardRedirect(event: Parameters<Handle>[0]['event']): Response | null {
-	if (process.env.PORT !== '5174') return null;
-	const p = event.url.pathname;
-	if (p !== '/dashboard' && p !== '/dashboard/') return null;
-	return redirect307('/dashboard/mk2/overview');
-}
-
-/** Run the port-aware UI redirect chain. Returns a redirect Response or null. */
-function uiRedirect(event: Parameters<Handle>[0]['event']): Response | null {
-	return rootRedirect(event) ?? mk2DashboardRedirect(event);
+	return redirect307('/dashboard');
 }
 
 const innerHandle: Handle = async ({ event, resolve }) => {

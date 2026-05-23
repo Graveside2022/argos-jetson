@@ -2,28 +2,29 @@
 import type { FeatureCollection } from 'geojson';
 import type { LngLatLike } from 'maplibre-gl';
 import type maplibregl from 'maplibre-gl';
-import { fromStore } from 'svelte/store';
 
 import {
 	RF_CENTROID_HALO_LAYER_ID,
 	RF_CENTROID_LAYER_ID
 } from '$lib/map/components/RfCentroidLayer.svelte';
-import { promotedDevices, visibilityMode } from '$lib/map/visibility-engine';
-import { selectDevice } from '$lib/stores/dashboard/agent-context-store';
+import { promotedDevices, visibilityMode } from '$lib/map/visibility-engine.svelte';
+import { selectDevice } from '$lib/stores/dashboard/agent-context-store.svelte';
 import {
 	activeBands,
 	isolatedDeviceMAC,
 	isolateDevice,
 	layerVisibility
-} from '$lib/stores/dashboard/dashboard-store';
-import { GOOGLE_SATELLITE_STYLE, mapSettings } from '$lib/stores/dashboard/map-settings-store';
-import { rfOverlays } from '$lib/stores/dashboard/rf-overlay-store';
-import { uasStore } from '$lib/stores/dragonsync/uas-store';
+} from '$lib/stores/dashboard/dashboard-store.svelte';
+import {
+	GOOGLE_SATELLITE_STYLE,
+	mapSettings
+} from '$lib/stores/dashboard/map-settings-store.svelte';
+import { rfOverlays } from '$lib/stores/dashboard/rf-overlay-store.svelte';
+import { uasStore } from '$lib/stores/dragonsync/uas-store.svelte';
 import { rfVisualization } from '$lib/stores/rf-visualization.svelte';
-import { kismetStore } from '$lib/stores/tactical-map/kismet-store';
-import { takCotMessages } from '$lib/stores/tak-store';
+import { kismetStore } from '$lib/stores/tactical-map/kismet-store.svelte';
+import { takStore } from '$lib/stores/tak-store.svelte';
 import { themeStore } from '$lib/stores/theme-store.svelte';
-import { HackRFDataService } from '$lib/tactical-map/hackrf-data-service';
 import { ellipseToPolygon } from '$lib/utils/ellipse-geometry';
 
 import { MAP_UI_COLORS } from './map/map-colors';
@@ -54,15 +55,10 @@ export { MAP_UI_COLORS, onClusterClick };
 
 /** Create all reactive map state and effects. Call once from the component. */
 export function createMapState() {
-	const kismet$ = fromStore(kismetStore);
-	const takCot$ = fromStore(takCotMessages);
-	const isolatedMAC$ = fromStore(isolatedDeviceMAC);
-	const bands$ = fromStore(activeBands);
-	const visMode$ = fromStore(visibilityMode);
-	const promoted$ = fromStore(promotedDevices);
-	const layerVis$ = fromStore(layerVisibility);
-	const mapS$ = fromStore(mapSettings);
-	const rfOverlays$ = fromStore(rfOverlays);
+	const kismet$ = kismetStore;
+	const isolatedMAC$ = isolatedDeviceMAC;
+	const bands$ = activeBands;
+	const layerVis$ = layerVisibility;
 
 	let map: maplibregl.Map | undefined = $state();
 	let mapLoaded = $state(false);
@@ -71,7 +67,7 @@ export function createMapState() {
 	let stadiaChecked = $state(false);
 	let stadiaOk = $state(false);
 	let mapStyle: maplibregl.StyleSpecification | string = $derived.by(() => {
-		const settings = mapS$.current;
+		const settings = mapSettings.provider;
 		if (settings.type === 'satellite') {
 			return GOOGLE_SATELLITE_STYLE;
 		}
@@ -91,20 +87,13 @@ export function createMapState() {
 		}
 	});
 
-	// HackRF SSE data service — populates hackrfStore.targetFrequency
-	const hackrfService = new HackRFDataService();
-	$effect(() => {
-		hackrfService.start();
-		return () => hackrfService.stop();
-	});
-
 	const deviceGeoJSON: FeatureCollection = $derived(
 		buildDeviceGeoJSON(
 			kismet$.current,
 			isolatedMAC$.current,
 			bands$.current,
-			visMode$.current,
-			promoted$.current
+			visibilityMode.current,
+			promotedDevices.current
 		)
 	);
 	const visibleDeviceMACs: Set<string> = $derived(
@@ -119,7 +108,7 @@ export function createMapState() {
 		)
 	);
 
-	const uas$ = fromStore(uasStore);
+	const uas$ = uasStore;
 	const uasGeoJSON: FeatureCollection = $derived(buildUASGeoJSON(uas$.current));
 	const uasLinesGeoJSON: FeatureCollection = $derived(
 		buildUASConnectionLinesGeoJSON(uas$.current)
@@ -191,7 +180,7 @@ export function createMapState() {
 		};
 	});
 
-	// Mirror the dashboard-store's isolatedDeviceMAC into the RF store so
+	// Mirror the dashboard-store.svelte's isolatedDeviceMAC into the RF store so
 	// that selecting an AP anywhere (map or panel) triggers the highlight
 	// fetch. The store's setter no-ops on redundant sets so this is cheap.
 	$effect(() => {
@@ -234,7 +223,7 @@ export function createMapState() {
 		const setAvailable = (ok: boolean) => {
 			stadiaOk = ok;
 			stadiaChecked = true;
-			mapSettings.stadiaAvailable.set(ok);
+			mapSettings.setStadiaAvailable(ok);
 		};
 		const probeOnce = async (): Promise<boolean> => {
 			try {
@@ -267,16 +256,16 @@ export function createMapState() {
 		});
 	});
 	const milSymFC: FeatureCollection = $derived(
-		buildMilSymFC(deviceGeoJSON, kismet$.current.deviceAffiliations, takCot$.current)
+		buildMilSymFC(deviceGeoJSON, kismet$.current.deviceAffiliations, takStore.cotMessages)
 	);
 	const milSymsVisible: boolean = $derived(layerVis$.current.milSyms !== false);
-	const satelliteVisible: boolean = $derived(mapS$.current.type === 'satellite');
+	const satelliteVisible: boolean = $derived(mapSettings.provider.type === 'satellite');
 	const satelliteUrl: string = $derived(
-		mapS$.current.type === 'satellite' ? mapS$.current.url : ''
+		mapSettings.provider.type === 'satellite' ? mapSettings.provider.url : ''
 	);
 	const satelliteAttribution: string = $derived(
-		mapS$.current.type === 'satellite'
-			? (mapS$.current.attribution ?? '© Google')
+		mapSettings.provider.type === 'satellite'
+			? (mapSettings.provider.attribution ?? '© Google')
 			: '© Google'
 	);
 	$effect(() => {
@@ -312,7 +301,7 @@ export function createMapState() {
 		if (map) syncThemePaint(map);
 	});
 	$effect(() => {
-		const overlays = rfOverlays$.current;
+		const overlays = rfOverlays.current;
 		const rfVis = layerVis$.current.rfPropagation !== false;
 		if (map) syncRFOverlays(map, overlays, rfVis);
 	});

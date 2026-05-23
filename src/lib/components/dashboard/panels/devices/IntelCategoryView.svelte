@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { ReconAlert, ReconTarget } from '$lib/stores/dashboard/recon-store';
+	import type { ReconAlert, ReconTarget } from '$lib/stores/dashboard/recon-store.svelte';
 	import { getSignalHex } from '$lib/utils/signal-utils';
 
 	import { formatDataSize } from './device-formatters';

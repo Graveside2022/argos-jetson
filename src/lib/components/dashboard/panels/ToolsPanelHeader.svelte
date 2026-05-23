@@ -6,10 +6,10 @@
 		breadcrumbs,
 		navigateBack,
 		toolNavigationPath
-	} from '$lib/stores/dashboard/tools-store';
+	} from '$lib/stores/dashboard/tools-store.svelte';
 
-	let canGoBack = $derived($toolNavigationPath.length > 0);
-	let currentBreadcrumbs = $derived($breadcrumbs);
+	let canGoBack = $derived(toolNavigationPath.current.length > 0);
+	let currentBreadcrumbs = $derived(breadcrumbs.current);
 	let currentTitle = $derived(currentBreadcrumbs[currentBreadcrumbs.length - 1] || 'TOOLS');
 	let parentTitle = $derived(currentBreadcrumbs[currentBreadcrumbs.length - 2] || 'TOOLS');
 </script>

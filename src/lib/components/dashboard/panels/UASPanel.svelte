@@ -15,7 +15,7 @@
 		startDragonSyncFromUi,
 		stopDragonSyncFromUi,
 		uasStore
-	} from '$lib/stores/dragonsync/uas-store';
+	} from '$lib/stores/dragonsync/uas-store.svelte';
 	import type {
 		DragonSyncC2Signal,
 		DragonSyncDrone,
@@ -92,7 +92,9 @@
 	}
 
 	$effect(() => {
-		syncPollTimer($uasStore.status === 'running' || $uasStore.status === 'starting');
+		syncPollTimer(
+			uasStore.current.status === 'running' || uasStore.current.status === 'starting'
+		);
 	});
 
 	onMount(() => {
@@ -257,24 +259,30 @@
 <div class="panel">
 	<div class="toolbar">
 		<span class="title">UAS DETECTION</span>
-		<span class="chip {chipCls($uasStore.status)}">{$uasStore.status.toUpperCase()}</span>
-		<span class="svc"
-			>droneid-go <span class="dot" class:up={$uasStore.droneidGoRunning}></span></span
+		<span class="chip {chipCls(uasStore.current.status)}"
+			>{uasStore.current.status.toUpperCase()}</span
 		>
 		<span class="svc"
-			>DragonSync <span class="dot" class:up={$uasStore.dragonSyncRunning}></span></span
+			>droneid-go <span class="dot" class:up={uasStore.current.droneidGoRunning}></span></span
 		>
 		<span class="svc"
-			>FPV Scanner <span class="dot" class:up={$uasStore.fpvScannerRunning}></span></span
+			>DragonSync <span class="dot" class:up={uasStore.current.dragonSyncRunning}
+			></span></span
 		>
 		<span class="svc"
-			>C2 Scanner <span class="dot" class:up={$uasStore.c2ScannerRunning}></span></span
+			>FPV Scanner <span class="dot" class:up={uasStore.current.fpvScannerRunning}
+			></span></span
+		>
+		<span class="svc"
+			>C2 Scanner <span class="dot" class:up={uasStore.current.c2ScannerRunning}></span></span
 		>
 		<span class="spacer"></span>
 		<span class="count"
-			>{$uasStore.drones.size} drone{$uasStore.drones.size === 1 ? '' : 's'}</span
+			>{uasStore.current.drones.size} drone{uasStore.current.drones.size === 1
+				? ''
+				: 's'}</span
 		>
-		{#if $uasStore.status === 'stopped'}
+		{#if uasStore.current.status === 'stopped'}
 			<button class="btn-start" onclick={onStart} disabled={starting}>
 				{starting ? 'Starting...' : 'Start'}
 			</button>
@@ -285,20 +293,20 @@
 		{/if}
 	</div>
 
-	{#if $uasStore.error}<div class="error-banner">{$uasStore.error}</div>{/if}
+	{#if uasStore.current.error}<div class="error-banner">{uasStore.current.error}</div>{/if}
 
-	{#if $uasStore.drones.size === 0 && $uasStore.fpvSignals.size === 0}
+	{#if uasStore.current.drones.size === 0 && uasStore.current.fpvSignals.size === 0}
 		<div class="empty">
 			<p class="empty-title">No drones or FPV signals detected</p>
 			<p class="empty-sub">
-				{$uasStore.status === 'stopped'
+				{uasStore.current.status === 'stopped'
 					? 'Click Start to begin UAS detection via DragonSync'
 					: 'Listening for Remote ID + FPV video broadcasts...'}
 			</p>
 		</div>
 	{:else}
-		{#if $uasStore.drones.size > 0}
-			<div class="section-header">REMOTE ID DRONES ({$uasStore.drones.size})</div>
+		{#if uasStore.current.drones.size > 0}
+			<div class="section-header">REMOTE ID DRONES ({uasStore.current.drones.size})</div>
 			<div class="table-wrap">
 				<table>
 					<thead
@@ -311,7 +319,7 @@
 						</tr></thead
 					>
 					<tbody>
-						{#each sorted($uasStore.drones) as d (d.id)}
+						{#each sorted(uasStore.current.drones) as d (d.id)}
 							<tr>
 								{#each COLUMNS as [key] (key)}
 									<td class={key === 'rssi' ? rssiCls(d.rssi) : 'dim'}
@@ -325,8 +333,8 @@
 			</div>
 		{/if}
 
-		{#if $uasStore.fpvSignals.size > 0}
-			<div class="section-header">FPV VIDEO SIGNALS ({$uasStore.fpvSignals.size})</div>
+		{#if uasStore.current.fpvSignals.size > 0}
+			<div class="section-header">FPV VIDEO SIGNALS ({uasStore.current.fpvSignals.size})</div>
 			<div class="table-wrap">
 				<table>
 					<thead
@@ -343,7 +351,7 @@
 						</tr></thead
 					>
 					<tbody>
-						{#each fpvList($uasStore.fpvSignals) as sig (sig.uid)}
+						{#each fpvList(uasStore.current.fpvSignals) as sig (sig.uid)}
 							{@const ch = hzToChannel(sig.center_hz)}
 							{@const vid = palNtscBadge(sig)}
 							<tr>
@@ -381,9 +389,9 @@
 			</div>
 		{/if}
 
-		{#if $uasStore.c2Signals.size > 0}
+		{#if uasStore.current.c2Signals.size > 0}
 			<div class="section-header">
-				C2 LINKS — sub-GHz drone control ({$uasStore.c2Signals.size})
+				C2 LINKS — sub-GHz drone control ({uasStore.current.c2Signals.size})
 			</div>
 			<div class="table-wrap">
 				<table>
@@ -398,7 +406,7 @@
 						</tr>
 					</thead>
 					<tbody>
-						{#each c2List($uasStore.c2Signals) as sig (sig.uid)}
+						{#each c2List(uasStore.current.c2Signals) as sig (sig.uid)}
 							<tr>
 								<td class="dim mono">{(sig.center_hz / 1e6).toFixed(3)} MHz</td>
 								<td class="dim mono"><span class="badge-band">{sig.band}</span></td>

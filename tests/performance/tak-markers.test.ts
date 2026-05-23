@@ -13,7 +13,10 @@ vi.mock('$app/environment', () => ({
 }));
 
 import { SymbolFactory } from '../../src/lib/map/symbols/symbol-factory';
-import { type DeviceForVisibility, filterByVisibility } from '../../src/lib/map/visibility-engine';
+import {
+	type DeviceForVisibility,
+	filterByVisibility
+} from '../../src/lib/map/visibility-engine.svelte';
 
 /**
  * Performance stress test for TAK marker pipeline (SC-006).

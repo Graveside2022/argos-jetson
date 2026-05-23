@@ -23,8 +23,8 @@
 	import RfPathLayer from '$lib/map/components/RfPathLayer.svelte';
 	import SatelliteLayer from '$lib/map/components/SatelliteLayer.svelte';
 	import { mapInstance } from '$lib/map/map-instance.svelte';
-	import { isolatedDeviceMAC } from '$lib/stores/dashboard/dashboard-store';
-	import { gpsStore } from '$lib/stores/tactical-map/gps-store';
+	import { isolatedDeviceMAC } from '$lib/stores/dashboard/dashboard-store.svelte';
+	import { gpsStore } from '$lib/stores/tactical-map/gps-store.svelte';
 
 	import { createMapState, MAP_UI_COLORS, onClusterClick } from './dashboard-map-logic.svelte';
 	import DeviceOverlay from './map/DeviceOverlay.svelte';
@@ -267,7 +267,7 @@
 			<GeoJSONSource
 				id="devices-src"
 				data={ms.deviceGeoJSON}
-				cluster={!$isolatedDeviceMAC}
+				cluster={!isolatedDeviceMAC.current}
 				clusterRadius={50}
 				clusterMaxZoom={16}
 				clusterMinPoints={3}
@@ -409,21 +409,25 @@
 		<DeviceOverlay content={ms.popupContent} onclose={ms.closeDevicePopup} />
 	{/if}
 
-	{#if $gpsStore.status.hasGPSFix}
+	{#if gpsStore.current.status.hasGPSFix}
 		<div class="gps-legend">
 			<div class="legend-line1">
-				<span class="legend-gps-tag">GPS {$gpsStore.status.satellites} SAT</span>
-				{#if $gpsStore.status.currentCountry.name}
+				<span class="legend-gps-tag">GPS {gpsStore.current.status.satellites} SAT</span>
+				{#if gpsStore.current.status.currentCountry.name}
 					<span class="legend-sep">·</span>
-					<span class="legend-location">{$gpsStore.status.currentCountry.name}</span>
+					<span class="legend-location"
+						>{gpsStore.current.status.currentCountry.name}</span
+					>
 				{/if}
 			</div>
 			<div class="legend-line2">
-				<span class="legend-coord">{$gpsStore.status.formattedCoords.lat}</span>
-				<span class="legend-coord">{$gpsStore.status.formattedCoords.lon}</span>
-				<span class="legend-mgrs">{$gpsStore.status.mgrsCoord}</span>
-				{#if $gpsStore.status.altitude != null}
-					<span class="legend-asl">{Math.round($gpsStore.status.altitude)}m ASL</span>
+				<span class="legend-coord">{gpsStore.current.status.formattedCoords.lat}</span>
+				<span class="legend-coord">{gpsStore.current.status.formattedCoords.lon}</span>
+				<span class="legend-mgrs">{gpsStore.current.status.mgrsCoord}</span>
+				{#if gpsStore.current.status.altitude != null}
+					<span class="legend-asl"
+						>{Math.round(gpsStore.current.status.altitude)}m ASL</span
+					>
 				{/if}
 			</div>
 		</div>

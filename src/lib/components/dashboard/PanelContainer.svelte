@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
-	import { activePanel } from '$lib/stores/dashboard/dashboard-store';
+	import { activePanel } from '$lib/stores/dashboard/dashboard-store.svelte';
 	import { themeStore } from '$lib/stores/theme-store.svelte';
 
 	import { bindPanelDragListeners } from './panel-drag-lifecycle';
@@ -11,7 +11,7 @@
 	import SettingsPanel from './panels/SettingsPanel.svelte';
 	import ToolsPanel from './panels/ToolsPanel.svelte';
 
-	let isOpen = $derived($activePanel !== null);
+	let isOpen = $derived(activePanel.current !== null);
 	let isHorizontal = $derived(
 		themeStore.railPosition === 'top' || themeStore.railPosition === 'bottom'
 	);
@@ -91,17 +91,17 @@
 		<!-- Drag handle for top position (at bottom edge) -->
 		{#if themeStore.railPosition === 'top'}
 			<div class="panel-content">
-				{#if $activePanel === 'overview'}
+				{#if activePanel.current === 'overview'}
 					<OverviewPanel />
-				{:else if $activePanel === 'tools'}
+				{:else if activePanel.current === 'tools'}
 					<ToolsPanel />
-				{:else if $activePanel === 'map-settings'}
+				{:else if activePanel.current === 'map-settings'}
 					<MapSettingsPanel />
-				{:else if $activePanel === 'settings'}
+				{:else if activePanel.current === 'settings'}
 					<SettingsPanel />
-				{:else if $activePanel === 'hardware'}
+				{:else if activePanel.current === 'hardware'}
 					<HardwareConfigPanel />
-				{:else if $activePanel === 'onnet-tools'}
+				{:else if activePanel.current === 'onnet-tools'}
 					<OnnetToolsPanel />
 				{/if}
 			</div>
@@ -154,34 +154,34 @@
 				<div class="drag-indicator"></div>
 			</div>
 			<div class="panel-content">
-				{#if $activePanel === 'overview'}
+				{#if activePanel.current === 'overview'}
 					<OverviewPanel />
-				{:else if $activePanel === 'tools'}
+				{:else if activePanel.current === 'tools'}
 					<ToolsPanel />
-				{:else if $activePanel === 'map-settings'}
+				{:else if activePanel.current === 'map-settings'}
 					<MapSettingsPanel />
-				{:else if $activePanel === 'settings'}
+				{:else if activePanel.current === 'settings'}
 					<SettingsPanel />
-				{:else if $activePanel === 'hardware'}
+				{:else if activePanel.current === 'hardware'}
 					<HardwareConfigPanel />
-				{:else if $activePanel === 'onnet-tools'}
+				{:else if activePanel.current === 'onnet-tools'}
 					<OnnetToolsPanel />
 				{/if}
 			</div>
 		{:else}
 			<!-- Left/Right: no drag handle -->
 			<div class="panel-content">
-				{#if $activePanel === 'overview'}
+				{#if activePanel.current === 'overview'}
 					<OverviewPanel />
-				{:else if $activePanel === 'tools'}
+				{:else if activePanel.current === 'tools'}
 					<ToolsPanel />
-				{:else if $activePanel === 'map-settings'}
+				{:else if activePanel.current === 'map-settings'}
 					<MapSettingsPanel />
-				{:else if $activePanel === 'settings'}
+				{:else if activePanel.current === 'settings'}
 					<SettingsPanel />
-				{:else if $activePanel === 'hardware'}
+				{:else if activePanel.current === 'hardware'}
 					<HardwareConfigPanel />
-				{:else if $activePanel === 'onnet-tools'}
+				{:else if activePanel.current === 'onnet-tools'}
 					<OnnetToolsPanel />
 				{/if}
 			</div>

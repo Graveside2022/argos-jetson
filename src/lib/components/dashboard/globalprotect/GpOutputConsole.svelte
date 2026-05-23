@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { gpOutput } from '$lib/stores/globalprotect-store';
+	import { gpOutput } from '$lib/stores/globalprotect-store.svelte';
 
 	let consoleEl: HTMLDivElement | undefined = $state();
 
 	$effect(() => {
-		if ($gpOutput.length && consoleEl) {
+		if (gpOutput.current.length && consoleEl) {
 			consoleEl.scrollTop = consoleEl.scrollHeight;
 		}
 	});
@@ -18,12 +18,12 @@
 		bind:this={consoleEl}
 		class="flex-1 overflow-y-auto rounded-md border border-border/30 bg-black/40 p-3 font-mono text-sm leading-relaxed text-muted-foreground"
 	>
-		{#if $gpOutput.length === 0}
+		{#if gpOutput.current.length === 0}
 			<span class="italic text-muted-foreground/50"
 				>No output — connect to see openconnect logs</span
 			>
 		{:else}
-			{#each $gpOutput as line, i (i)}
+			{#each gpOutput.current as line, i (i)}
 				<div
 					class:text-green-400={line.toLowerCase().includes('connected')}
 					class:text-red-400={line.toLowerCase().includes('error') ||

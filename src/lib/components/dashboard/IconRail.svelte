@@ -19,7 +19,7 @@
 		activeView,
 		toggleBottomTab,
 		togglePanel
-	} from '$lib/stores/dashboard/dashboard-store';
+	} from '$lib/stores/dashboard/dashboard-store.svelte';
 	import { themeStore } from '$lib/stores/theme-store.svelte';
 
 	const VIEW_TOGGLE_IDS = new Set(['webtak', 'uas-scan']);
@@ -31,7 +31,7 @@
 	}
 
 	function toggleView(id: string) {
-		activeView.set($activeView === id ? 'map' : (id as never));
+		activeView.set(activeView.current === id ? 'map' : (id as never));
 		activePanel.set(null);
 	}
 </script>
@@ -41,10 +41,10 @@
 		<!-- Overview (house) -->
 		<button
 			class="rail-btn"
-			class:active={$activePanel === 'overview'}
+			class:active={activePanel.current === 'overview'}
 			title="Overview"
 			aria-label="Overview"
-			aria-pressed={$activePanel === 'overview'}
+			aria-pressed={activePanel.current === 'overview'}
 			onclick={() => handleClick('overview')}
 		>
 			<House size={18} />
@@ -52,10 +52,10 @@
 		<!-- Dashboard (list) -->
 		<button
 			class="rail-btn"
-			class:active={$activeBottomTab === 'dashboard'}
+			class:active={activeBottomTab.current === 'dashboard'}
 			title="Dashboard"
 			aria-label="Dashboard"
-			aria-pressed={$activeBottomTab === 'dashboard'}
+			aria-pressed={activeBottomTab.current === 'dashboard'}
 			onclick={() => handleClick('dashboard')}
 		>
 			<List size={18} />
@@ -63,10 +63,10 @@
 		<!-- Tools (zap) -->
 		<button
 			class="rail-btn"
-			class:active={$activePanel === 'tools'}
+			class:active={activePanel.current === 'tools'}
 			title="Tools"
 			aria-label="Tools"
-			aria-pressed={$activePanel === 'tools'}
+			aria-pressed={activePanel.current === 'tools'}
 			onclick={() => handleClick('tools')}
 		>
 			<Zap size={18} />
@@ -74,10 +74,10 @@
 		<!-- Reports -->
 		<button
 			class="rail-btn"
-			class:active={$activePanel === 'reports'}
+			class:active={activePanel.current === 'reports'}
 			title="Reports"
 			aria-label="Reports"
-			aria-pressed={$activePanel === 'reports'}
+			aria-pressed={activePanel.current === 'reports'}
 			onclick={() => handleClick('reports')}
 		>
 			<FileText size={18} />
@@ -90,10 +90,10 @@
 		<!-- WebTAK -->
 		<button
 			class="rail-btn"
-			class:active={$activeView === 'webtak'}
+			class:active={activeView.current === 'webtak'}
 			title="WebTAK"
 			aria-label="WebTAK"
-			aria-pressed={$activeView === 'webtak'}
+			aria-pressed={activeView.current === 'webtak'}
 			onclick={() => handleClick('webtak')}
 		>
 			<Radar size={18} />
@@ -101,10 +101,10 @@
 		<!-- UAS Scan (live log terminal view) -->
 		<button
 			class="rail-btn"
-			class:active={$activeView === 'uas-scan'}
+			class:active={activeView.current === 'uas-scan'}
 			title="UAS Scan — Live Log"
 			aria-label="UAS Scan"
-			aria-pressed={$activeView === 'uas-scan'}
+			aria-pressed={activeView.current === 'uas-scan'}
 			onclick={() => handleClick('uas-scan')}
 		>
 			<RadioTower size={18} />
@@ -121,10 +121,10 @@
 		<!-- Map Settings -->
 		<button
 			class="rail-btn"
-			class:active={$activePanel === 'map-settings'}
+			class:active={activePanel.current === 'map-settings'}
 			title="Map Settings"
 			aria-label="Map Settings"
-			aria-pressed={$activePanel === 'map-settings'}
+			aria-pressed={activePanel.current === 'map-settings'}
 			onclick={() => handleClick('map-settings')}
 		>
 			<Map size={18} />
@@ -134,10 +134,10 @@
 		<!-- Settings -->
 		<button
 			class="rail-btn"
-			class:active={$activePanel === 'settings'}
+			class:active={activePanel.current === 'settings'}
 			title="Settings"
 			aria-label="Settings"
-			aria-pressed={$activePanel === 'settings'}
+			aria-pressed={activePanel.current === 'settings'}
 			onclick={() => handleClick('settings')}
 		>
 			<Settings size={18} />

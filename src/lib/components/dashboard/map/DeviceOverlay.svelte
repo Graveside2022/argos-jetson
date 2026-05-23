@@ -3,9 +3,9 @@
 	import { SelectItem } from 'carbon-components-svelte';
 
 	import Select from '$lib/components/chassis/forms/Select.svelte';
-	import { isolateDevice } from '$lib/stores/dashboard/dashboard-store';
-	import type { DeviceClassification } from '$lib/stores/tactical-map/kismet-store';
-	import { setDeviceAffiliation } from '$lib/stores/tactical-map/kismet-store';
+	import { isolateDevice } from '$lib/stores/dashboard/dashboard-store.svelte';
+	import type { DeviceClassification } from '$lib/stores/tactical-map/kismet-store.svelte';
+	import { setDeviceAffiliation } from '$lib/stores/tactical-map/kismet-store.svelte';
 
 	import { formatFrequency, formatTimeAgo } from './map-helpers';
 

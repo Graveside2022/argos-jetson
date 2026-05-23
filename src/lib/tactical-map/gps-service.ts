@@ -1,6 +1,6 @@
 import { reverseGeocode } from '$lib/components/dashboard/status/status-bar-data';
 import { GPSApiResponseSchema } from '$lib/schemas/rf';
-import { updateGPSPosition, updateGPSStatus } from '$lib/stores/tactical-map/gps-store';
+import { updateGPSPosition, updateGPSStatus } from '$lib/stores/tactical-map/gps-store.svelte';
 import { detectCountry, formatCoordinates } from '$lib/utils/country-detector';
 import { haversineMeters } from '$lib/utils/geo';
 import { logger } from '$lib/utils/logger';

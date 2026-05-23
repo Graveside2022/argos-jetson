@@ -15,7 +15,7 @@
 	 * leak a Chromium process.
 	 */
 
-	import { activeView } from '$lib/stores/dashboard/dashboard-store';
+	import { activeView } from '$lib/stores/dashboard/dashboard-store.svelte';
 	import { fetchJSON } from '$lib/utils/fetch-json';
 
 	import ToolViewWrapper from './ToolViewWrapper.svelte';

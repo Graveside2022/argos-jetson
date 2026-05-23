@@ -3,7 +3,7 @@
   Extracted from TakConfigView.svelte to comply with Article 2.2 (max 300 lines/file).
 -->
 <script lang="ts">
-	import { takStatus } from '$lib/stores/tak-store';
+	import { takStore } from '$lib/stores/tak-store.svelte';
 
 	interface Props {
 		port: number;
@@ -23,19 +23,20 @@
 	<div class="flex items-center justify-between">
 		<div class="flex items-center gap-2 text-xs">
 			<span
-				class="size-2.5 shrink-0 rounded-full {$takStatus.status === 'connected'
+				class="size-2.5 shrink-0 rounded-full {takStore.status.status === 'connected'
 					? 'bg-green-500 shadow-[0_0_6px_theme(colors.green.500)]'
-					: $takStatus.status === 'error'
+					: takStore.status.status === 'error'
 						? 'bg-destructive'
 						: 'bg-muted-foreground'}"
 			></span>
-			<span class="font-semibold text-foreground">{$takStatus.status.toUpperCase()}</span>
-			{#if $takStatus.serverHost}
-				<span class="text-muted-foreground">{$takStatus.serverHost}:{port}</span>
+			<span class="font-semibold text-foreground">{takStore.status.status.toUpperCase()}</span
+			>
+			{#if takStore.status.serverHost}
+				<span class="text-muted-foreground">{takStore.status.serverHost}:{port}</span>
 			{/if}
 		</div>
 		<div>
-			{#if $takStatus.status === 'connected'}
+			{#if takStore.status.status === 'connected'}
 				<button
 					onclick={onDisconnect}
 					disabled={isConnecting}
@@ -89,7 +90,7 @@
 		</div>
 	</div>
 
-	{#if $takStatus.status === 'connected' && $takStatus.saBroadcast?.broadcasting}
+	{#if takStore.status.status === 'connected' && takStore.status.saBroadcast?.broadcasting}
 		<div class="mt-2 flex items-center gap-2 border-t border-border/40 pt-2">
 			<span class="relative flex size-2">
 				<span
@@ -99,8 +100,8 @@
 			</span>
 			<span class="font-mono text-[10px] text-green-400">BROADCASTING TO NETWORK</span>
 			<span class="ml-auto font-mono text-[10px] text-muted-foreground">
-				{#if $takStatus.saBroadcast.lastBroadcastAt}
-					Last: {new Date($takStatus.saBroadcast.lastBroadcastAt).toLocaleTimeString(
+				{#if takStore.status.saBroadcast.lastBroadcastAt}
+					Last: {new Date(takStore.status.saBroadcast.lastBroadcastAt).toLocaleTimeString(
 						'en-US',
 						{
 							hour12: false,
@@ -110,8 +111,8 @@
 				{:else}
 					Waiting for GPS...
 				{/if}
-				{#if $takStatus.saBroadcast.broadcastCount > 0}
-					&middot; {$takStatus.saBroadcast.broadcastCount} sent
+				{#if takStore.status.saBroadcast.broadcastCount > 0}
+					&middot; {takStore.status.saBroadcast.broadcastCount} sent
 				{/if}
 			</span>
 		</div>

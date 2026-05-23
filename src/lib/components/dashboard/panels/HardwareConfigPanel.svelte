@@ -2,7 +2,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	import { activePanel } from '$lib/stores/dashboard/dashboard-store';
+	import { activePanel } from '$lib/stores/dashboard/dashboard-store.svelte';
 
 	interface WifiDevice {
 		interface: string;

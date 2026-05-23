@@ -4,9 +4,8 @@
  */
 import type { FeatureCollection } from 'geojson';
 import type { LngLatLike } from 'maplibre-gl';
-import { fromStore } from 'svelte/store';
 
-import { gpsStore } from '$lib/stores/tactical-map/gps-store';
+import { gpsStore } from '$lib/stores/tactical-map/gps-store.svelte';
 import { themeStore } from '$lib/stores/theme-store.svelte';
 
 import { MAP_UI_COLORS, resolveMapColor } from './map-colors';
@@ -30,7 +29,7 @@ export function hasRealGPSFix(lat: number, lon: number, hasFix: boolean): boolea
 
 /** Create all GPS-derived reactive state. Call once from the main map state factory. */
 export function createGpsDerivedState(cssReady: { current: boolean }) {
-	const gps$ = fromStore(gpsStore);
+	const gps$ = gpsStore;
 
 	// GPS memoization: skip expensive GeoJSON rebuilds when position hasn't changed
 	// Infinity ensures first real GPS fix always triggers a build

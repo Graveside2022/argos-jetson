@@ -3,18 +3,18 @@
   streaming journalctl output for zmq-decoder + dragonsync + wardragon-fpv-detect.
 
   Activated via $activeView === 'uas-scan' in src/routes/dashboard/+page.svelte.
-  Auto-opened when $uasStore.status transitions to starting|running.
+  Auto-opened when uasStore.current.status transitions to starting|running.
 
   Data source: GET /api/dragonsync/logs (Server-Sent Events). EventSource opens
-  on mount, closes on destroy OR when `$uasStore.status === 'stopped'` (no
+  on mount, closes on destroy OR when `uasStore.current.status === 'stopped'` (no
   point holding a dead stream open).
 -->
 <script lang="ts">
 	import { onDestroy, onMount, tick } from 'svelte';
 
 	import { browser } from '$app/environment';
-	import { activeView, lastNonScanView } from '$lib/stores/dashboard/dashboard-store';
-	import { uasStore } from '$lib/stores/dragonsync/uas-store';
+	import { activeView, lastNonScanView } from '$lib/stores/dashboard/dashboard-store.svelte';
+	import { uasStore } from '$lib/stores/dragonsync/uas-store.svelte';
 
 	import ToolViewWrapper from './ToolViewWrapper.svelte';
 
@@ -157,7 +157,7 @@
 	}
 
 	function onBack(): void {
-		const prev = $lastNonScanView;
+		const prev = lastNonScanView.current;
 		activeView.set(prev === 'uas-scan' ? 'map' : prev);
 	}
 
@@ -183,7 +183,7 @@
 	// pre-restart overflow history mixed with the clean post-Start stream.
 	let _prevStatus: string | null = null;
 	const isActivating = (s: string) => s === 'starting' || s === 'running';
-	$effect(() => reactToScanStatus($uasStore.status));
+	$effect(() => reactToScanStatus(uasStore.current.status));
 
 	function reactToScanStatus(status: string): void {
 		if (_prevStatus === 'stopped' && isActivating(status)) clearBuffer();
@@ -193,7 +193,7 @@
 	}
 
 	onMount(() => {
-		if ($uasStore.status === 'running' || $uasStore.status === 'starting') {
+		if (uasStore.current.status === 'running' || uasStore.current.status === 'starting') {
 			openStream();
 		}
 	});
@@ -203,11 +203,11 @@
 	});
 
 	// Chip copy matches UASPanel's toolbar for visual consistency.
-	const chipLabel = $derived(($uasStore.status ?? 'stopped').toUpperCase());
+	const chipLabel = $derived((uasStore.current.status ?? 'stopped').toUpperCase());
 	const chipClass = $derived(
-		$uasStore.status === 'running'
+		uasStore.current.status === 'running'
 			? 'chip-run'
-			: $uasStore.status === 'starting' || $uasStore.status === 'stopping'
+			: uasStore.current.status === 'starting' || uasStore.current.status === 'stopping'
 				? 'chip-trans'
 				: 'chip-stop'
 	);
@@ -218,13 +218,16 @@
 		<div class="bar">
 			<span class="chip {chipClass}">{chipLabel}</span>
 			<span class="svc"
-				>zmq-decoder <span class="dot" class:up={$uasStore.droneidGoRunning}></span></span
+				>zmq-decoder <span class="dot" class:up={uasStore.current.droneidGoRunning}
+				></span></span
 			>
 			<span class="svc"
-				>DragonSync <span class="dot" class:up={$uasStore.dragonSyncRunning}></span></span
+				>DragonSync <span class="dot" class:up={uasStore.current.dragonSyncRunning}
+				></span></span
 			>
 			<span class="svc"
-				>FPV Scanner <span class="dot" class:up={$uasStore.fpvScannerRunning}></span></span
+				>FPV Scanner <span class="dot" class:up={uasStore.current.fpvScannerRunning}
+				></span></span
 			>
 			<span class="spacer"></span>
 			<span class="count">{lines.length} lines</span>
@@ -245,7 +248,7 @@
 				<div class="empty">
 					<p class="empty-title">No log output yet</p>
 					<p class="empty-sub">
-						{$uasStore.status === 'stopped'
+						{uasStore.current.status === 'stopped'
 							? 'Click Start in the UAS panel below to begin.'
 							: 'Waiting for journalctl stream...'}
 					</p>

@@ -1,7 +1,10 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
 
-	import { computeProgress, isComputing } from '$lib/stores/dashboard/rf-propagation-store';
+	import {
+		computeProgress,
+		isComputing
+	} from '$lib/stores/dashboard/rf-propagation-store.svelte';
 	import { fetchJSON } from '$lib/utils/fetch-json';
 
 	interface StatusResponse {
@@ -44,10 +47,10 @@
 		</div>
 	{/if}
 
-	{#if $isComputing}
+	{#if isComputing.current}
 		<div class="status-row" style="margin-top: 2px">
 			<span class="dot computing"></span>
-			<span class="progress-text">{$computeProgress || 'Computing...'}</span>
+			<span class="progress-text">{computeProgress.current || 'Computing...'}</span>
 		</div>
 	{/if}
 </section>

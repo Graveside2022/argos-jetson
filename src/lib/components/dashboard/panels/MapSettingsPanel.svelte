@@ -2,10 +2,10 @@
 	import { ChevronLeft, ChevronRight, Globe, Layers, Radio } from '@lucide/svelte';
 
 	import {
-		activeMapSettingsView,
+		mapSettingsView,
 		navigateBackToHub,
 		navigateToMapSettingsView
-	} from '$lib/stores/dashboard/map-settings-store';
+	} from '$lib/stores/dashboard/map-settings-store.svelte';
 
 	import MapLayersView from './MapLayersView.svelte';
 	import MapProviderView from './MapProviderView.svelte';
@@ -13,7 +13,7 @@
 </script>
 
 <div class="map-settings-panel">
-	{#if $activeMapSettingsView === 'hub'}
+	{#if mapSettingsView.current === 'hub'}
 		<header class="panel-header">
 			<span class="panel-title">MAP SETTINGS</span>
 		</header>
@@ -52,19 +52,19 @@
 				<ChevronLeft size={14} />
 			</button>
 			<span class="panel-title">
-				{#if $activeMapSettingsView === 'provider'}MAP PROVIDER
-				{:else if $activeMapSettingsView === 'layers'}MAP LAYERS
-				{:else if $activeMapSettingsView === 'rf-propagation'}RF PROPAGATION
+				{#if mapSettingsView.current === 'provider'}MAP PROVIDER
+				{:else if mapSettingsView.current === 'layers'}MAP LAYERS
+				{:else if mapSettingsView.current === 'rf-propagation'}RF PROPAGATION
 				{/if}
 			</span>
 		</header>
 
 		<div class="subview-content">
-			{#if $activeMapSettingsView === 'provider'}
+			{#if mapSettingsView.current === 'provider'}
 				<MapProviderView />
-			{:else if $activeMapSettingsView === 'layers'}
+			{:else if mapSettingsView.current === 'layers'}
 				<MapLayersView />
-			{:else if $activeMapSettingsView === 'rf-propagation'}
+			{:else if mapSettingsView.current === 'rf-propagation'}
 				<RFPropagationView />
 			{/if}
 		</div>
