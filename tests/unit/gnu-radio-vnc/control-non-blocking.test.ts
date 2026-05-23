@@ -13,6 +13,7 @@ vi.mock('../../../src/lib/server/services/gnu-radio-vnc/gnu-radio-vnc-processes'
 	getCurrentFlowgraph: () => null,
 	isAnyProcessAlive: () => false,
 	killAllProcesses: vi.fn(async () => {}),
+	setCurrentFlowgraph: vi.fn(),
 	spawnGnuRadioCompanion: vi.fn(),
 	spawnGrcMaximizer: vi.fn(),
 	spawnWebsockify: vi.fn(),
