@@ -11,8 +11,8 @@
 	import TakConfigView from '$lib/components/dashboard/tak/TakConfigView.svelte';
 	import ReportsView from '$lib/components/dashboard/views/ReportsView.svelte';
 	import ToolViewWrapper from '$lib/components/dashboard/views/ToolViewWrapper.svelte';
-	import { activePanel, activeView } from '$lib/stores/dashboard/dashboard-store';
-	import { uasStore } from '$lib/stores/dragonsync/uas-store';
+	import { activePanel, activeView } from '$lib/stores/dashboard/dashboard-store.svelte';
+	import { uasStore } from '$lib/stores/dragonsync/uas-store.svelte';
 
 	import { createDashboardServices } from './dashboard-services';
 	import { handleDashboardKeydown } from './dashboard-shortcuts';
@@ -20,12 +20,9 @@
 	import DashboardViewRouter from './DashboardViewRouter.svelte';
 	import { createScanAutoSwap } from './scan-auto-swap';
 
-	// spec-024 PR6 — Mk II is now its own URL space at /dashboard/mk2/*.
-	// `?ui=mk2` redirects in +page.ts so this file is the legacy shell only.
-
 	const FULL_WIDTH_VIEWS = new Set(['tak-config', 'globalprotect', 'gsm-evil']);
 	let shellMode = $derived(
-		$activePanel === 'reports' || FULL_WIDTH_VIEWS.has($activeView)
+		activePanel.current === 'reports' || FULL_WIDTH_VIEWS.has(activeView.current)
 			? ('full-width' as const)
 			: ('sidebar' as const)
 	);
@@ -36,7 +33,7 @@
 	// to the last non-scan view. State machine + transitions live in the module;
 	// only the reactive wiring stays here.
 	const scanSwap = createScanAutoSwap();
-	$effect(() => scanSwap.reconcile($uasStore.status, $activeView));
+	$effect(() => scanSwap.reconcile(uasStore.current.status, activeView.current));
 
 	function goBackToMap() {
 		activeView.set('map');
@@ -54,25 +51,25 @@
 
 <DashboardShell mode={shellMode}>
 	{#snippet sidebar()}
-		{#if $activeView === 'map' && $activePanel !== 'reports'}
+		{#if activeView.current === 'map' && activePanel.current !== 'reports'}
 			<PanelContainer />
 		{/if}
 	{/snippet}
 
 	{#snippet content()}
 		<div class="dashboard-content">
-			<DashboardViewRouter activeView={$activeView} onBackToMap={goBackToMap} />
+			<DashboardViewRouter activeView={activeView.current} onBackToMap={goBackToMap} />
 		</div>
 	{/snippet}
 
 	{#snippet fullWidth()}
-		{#if $activePanel === 'reports'}
+		{#if activePanel.current === 'reports'}
 			<ReportsView />
-		{:else if $activeView === 'tak-config'}
+		{:else if activeView.current === 'tak-config'}
 			<TakConfigView />
-		{:else if $activeView === 'globalprotect'}
+		{:else if activeView.current === 'globalprotect'}
 			<GpConfigView />
-		{:else if $activeView === 'gsm-evil'}
+		{:else if activeView.current === 'gsm-evil'}
 			<ToolViewWrapper title="GSM Evil" onBack={goBackToMap}>
 				<iframe src="/gsm-evil" title="GSM Evil" class="tool-iframe"></iframe>
 			</ToolViewWrapper>

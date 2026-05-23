@@ -9,8 +9,8 @@
 	import GpServerForm from '$lib/components/dashboard/globalprotect/GpServerForm.svelte';
 	import GpStatusSection from '$lib/components/dashboard/globalprotect/GpStatusSection.svelte';
 	import ToolViewWrapper from '$lib/components/dashboard/views/ToolViewWrapper.svelte';
-	import { activeView } from '$lib/stores/dashboard/dashboard-store';
-	import { gpStatus } from '$lib/stores/globalprotect-store';
+	import { activeView } from '$lib/stores/dashboard/dashboard-store.svelte';
+	import { gpStatus } from '$lib/stores/globalprotect-store.svelte';
 	import type { GlobalProtectConfig } from '$lib/types/globalprotect';
 
 	import {
@@ -102,11 +102,11 @@
 
 <ToolViewWrapper
 	title="GLOBALPROTECT VPN"
-	status={$gpStatus.status === 'connected' ? 'Connected' : ''}
+	status={gpStatus.current.status === 'connected' ? 'Connected' : ''}
 	onBack={() => activeView.set('map')}
 >
 	{#snippet actions()}
-		{#if $gpStatus.status === 'connected'}
+		{#if gpStatus.current.status === 'connected'}
 			<button
 				class="inline-flex items-center gap-1.5 rounded-md border border-red-500/50 bg-red-600/20 px-3 py-1.5 text-sm font-medium text-red-400 transition-colors hover:bg-red-600/30"
 				onclick={handleDisconnect}

@@ -10,7 +10,7 @@ import type { LngLatLike } from 'maplibre-gl';
 import maplibregl from 'maplibre-gl';
 
 import { SymbolFactory } from '$lib/map/symbols/symbol-factory';
-import type { DeviceClassification } from '$lib/stores/tactical-map/kismet-store';
+import type { DeviceClassification } from '$lib/stores/tactical-map/kismet-store.svelte';
 import { parseCotToFeature } from '$lib/utils/cot-parser';
 
 import { MAP_UI_COLORS, resolveMapColor } from './map-colors';

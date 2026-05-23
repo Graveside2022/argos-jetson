@@ -2,7 +2,7 @@
 	import { onDestroy, onMount } from 'svelte';
 
 	import PanelStatus from '$lib/components/chassis/PanelStatus.svelte';
-	import { activeView } from '$lib/stores/dashboard/dashboard-store';
+	import { activeView } from '$lib/stores/dashboard/dashboard-store.svelte';
 
 	import ToolViewWrapper from './ToolViewWrapper.svelte';
 	import { buildWsUrl, type ServiceStatus } from './vnc-tool-view-helpers';

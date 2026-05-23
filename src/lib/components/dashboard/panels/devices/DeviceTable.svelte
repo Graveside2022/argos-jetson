@@ -1,8 +1,8 @@
 <script lang="ts">
 	import PanelEmptyState from '$lib/components/ui/PanelEmptyState.svelte';
 	import type { KismetDevice } from '$lib/kismet/types';
-	import { isolatedDeviceMAC } from '$lib/stores/dashboard/dashboard-store';
-	import { kismetStore } from '$lib/stores/tactical-map/kismet-store';
+	import { isolatedDeviceMAC } from '$lib/stores/dashboard/dashboard-store.svelte';
+	import { kismetStore } from '$lib/stores/tactical-map/kismet-store.svelte';
 	import { getSignalHex } from '$lib/utils/signal-utils';
 
 	import type { SortColumn } from './device-filters';
@@ -70,7 +70,7 @@
 				<tr
 					class:selected={selectedMAC === device.mac}
 					class:has-connections={hasConnections(device)}
-					class:isolated-parent={$isolatedDeviceMAC === device.mac}
+					class:isolated-parent={isolatedDeviceMAC.current === device.mac}
 					onclick={() => onRowClick(device)}
 				>
 					<td class="col-mac">
@@ -80,7 +80,7 @@
 									<span
 										class="row-chevron"
 										class:expanded={expandedMAC === device.mac ||
-											$isolatedDeviceMAC === device.mac}>&#8250;</span
+											isolatedDeviceMAC.current === device.mac}>&#8250;</span
 									>
 								{:else if device.parentAP}
 									<span
@@ -134,13 +134,13 @@
 						<span class="mono-value">{formatLastSeen(device)}</span>
 					</td>
 				</tr>
-				{#if !$isolatedDeviceMAC && expandedMAC === device.mac && hasConnections(device)}
+				{#if !isolatedDeviceMAC.current && expandedMAC === device.mac && hasConnections(device)}
 					<DeviceSubRows {device} {onRowClick} />
 				{/if}
 			{:else}
 				<tr>
 					<td colspan="11" class="empty-row">
-						{#if $kismetStore.status !== 'running'}
+						{#if kismetStore.current.status !== 'running'}
 							<PanelEmptyState
 								title="Start Kismet to see devices"
 								description="The Wi-Fi scanner is stopped. Start it from the Tools panel to begin capture."

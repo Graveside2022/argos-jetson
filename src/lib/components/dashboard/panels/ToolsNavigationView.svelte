@@ -1,13 +1,12 @@
 <!-- @constitutional-exemption Article-IV-4.3 issue:#11 — Component state handling (loading/error/empty UI) deferred to UX improvement phase -->
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { writable } from 'svelte/store';
 
 	import ToolCard from '$lib/components/dashboard/shared/ToolCard.svelte';
 	import ToolCategoryCard from '$lib/components/dashboard/shared/ToolCategoryCard.svelte';
-	import { activePanel, activeView } from '$lib/stores/dashboard/dashboard-store';
-	import { currentCategory } from '$lib/stores/dashboard/tools-store';
-	import { kismetStore, setKismetStatus } from '$lib/stores/tactical-map/kismet-store';
+	import { activePanel, activeView } from '$lib/stores/dashboard/dashboard-store.svelte';
+	import { currentCategory } from '$lib/stores/dashboard/tools-store.svelte';
+	import { kismetStore, setKismetStatus } from '$lib/stores/tactical-map/kismet-store.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
 	import { isCategory, type ToolDefinition, type ToolStatus } from '$lib/types/tools';
 
@@ -37,21 +36,21 @@
 	};
 
 	/** Local status store for tools without their own dedicated store (e.g. Docker-based tools) */
-	const localStatuses = writable<Record<string, ToolStatus>>({});
+	let localStatuses = $state<Record<string, ToolStatus>>({});
 
 	function setLocalStatus(toolId: string, status: ToolStatus) {
-		localStatuses.update((s) => ({ ...s, [toolId]: status }));
+		localStatuses = { ...localStatuses, [toolId]: status };
 	}
 
 	/** Get live status — checks dedicated stores first, then local status map */
 	function getLiveStatus(tool: ToolDefinition): ToolStatus {
-		if (tool.id === 'kismet-wifi') return $kismetStore.status;
-		return $localStatuses[tool.id] ?? tool.status ?? 'stopped';
+		if (tool.id === 'kismet-wifi') return kismetStore.current.status;
+		return localStatuses[tool.id] ?? tool.status ?? 'stopped';
 	}
 
 	/** Get live device count for tools that report it */
 	function getLiveCount(tool: ToolDefinition): number | null {
-		if (tool.id === 'kismet-wifi') return $kismetStore.deviceCount || null;
+		if (tool.id === 'kismet-wifi') return kismetStore.current.deviceCount || null;
 		return tool.count ?? null;
 	}
 
@@ -288,12 +287,12 @@
 </script>
 
 <div class="tools-navigation-view">
-	{#if $currentCategory?.description}
-		<p class="category-description">{$currentCategory.description}</p>
+	{#if currentCategory.current?.description}
+		<p class="category-description">{currentCategory.current.description}</p>
 	{/if}
 
 	<div class="items-list">
-		{#each $currentCategory?.children || [] as item (item.id)}
+		{#each currentCategory.current?.children || [] as item (item.id)}
 			{#if isCategory(item)}
 				<ToolCategoryCard category={item} />
 			{:else}

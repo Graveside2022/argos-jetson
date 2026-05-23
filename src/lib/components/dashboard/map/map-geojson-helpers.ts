@@ -5,8 +5,8 @@
 import type { Feature } from 'geojson';
 
 import type { KismetDevice } from '$lib/kismet/types';
-import type { DeviceForVisibility } from '$lib/map/visibility-engine';
-import type { KismetState } from '$lib/stores/tactical-map/kismet-store';
+import type { DeviceForVisibility } from '$lib/map/visibility-engine.svelte';
+import type { KismetState } from '$lib/stores/tactical-map/kismet-store.svelte';
 import { getSignalHex } from '$lib/utils/signal-utils';
 
 import { bezierArc, spreadClientPosition } from './map-helpers';

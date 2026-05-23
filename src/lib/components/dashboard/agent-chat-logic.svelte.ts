@@ -4,10 +4,8 @@
  *
  * Manages message state, streaming, LLM status, and device interaction events.
  */
-import { get } from 'svelte/store';
-
 import { browser } from '$app/environment';
-import { agentContext, lastInteractionEvent } from '$lib/stores/dashboard/agent-context-store';
+import { agentContext, lastInteractionEvent } from '$lib/stores/dashboard/agent-context-store.svelte';
 import { fetchJSON } from '$lib/utils/fetch-json';
 
 // ============================================================================
@@ -122,7 +120,7 @@ function buildConversationHistory(): { role: string; content: string }[] {
 
 /** Post a message to the agent stream endpoint */
 async function postToAgentStream(content: string): Promise<Response> {
-	const currentContext = get(agentContext);
+	const currentContext = agentContext.current;
 	const response = await fetch('/api/agent/stream', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },

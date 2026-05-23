@@ -6,7 +6,7 @@
 		overlayMode,
 		rfOverlayCount,
 		setAllOverlaysOpacity
-	} from '$lib/stores/dashboard/rf-overlay-store';
+	} from '$lib/stores/dashboard/rf-overlay-store.svelte';
 
 	function handleOpacity(e: Event) {
 		const val = parseFloat((e.target as HTMLInputElement).value);
@@ -23,14 +23,14 @@
 	<div class="mode-row">
 		<button
 			class="mode-btn"
-			class:active={$overlayMode === 'single'}
+			class:active={overlayMode.current === 'single'}
 			onclick={() => overlayMode.set('single')}
 		>
 			Single
 		</button>
 		<button
 			class="mode-btn"
-			class:active={$overlayMode === 'multi'}
+			class:active={overlayMode.current === 'multi'}
 			onclick={() => overlayMode.set('multi')}
 		>
 			Multi
@@ -46,18 +46,18 @@
 				min="0.1"
 				max="1"
 				step="0.05"
-				value={$globalOpacity}
+				value={globalOpacity.current}
 				oninput={handleOpacity}
 			/>
-			<span class="opacity-value">{Math.round($globalOpacity * 100)}%</span>
+			<span class="opacity-value">{Math.round(globalOpacity.current * 100)}%</span>
 		</div>
 	</label>
 
 	<div class="footer-row">
 		<span class="overlay-count"
-			>{$rfOverlayCount} overlay{$rfOverlayCount !== 1 ? 's' : ''}</span
+			>{rfOverlayCount.current} overlay{rfOverlayCount.current !== 1 ? 's' : ''}</span
 		>
-		<button class="clear-btn" disabled={$rfOverlayCount === 0} onclick={clearOverlays}>
+		<button class="clear-btn" disabled={rfOverlayCount.current === 0} onclick={clearOverlays}>
 			Clear All
 		</button>
 	</div>

@@ -1,5 +1,3 @@
-import { get } from 'svelte/store';
-
 import type { KismetDevice } from '$lib/kismet/types';
 import { KismetControlResponseSchema, KismetDevicesResponseSchema } from '$lib/schemas/rf';
 import {
@@ -7,7 +5,7 @@ import {
 	clearAllKismetDevices,
 	kismetStore,
 	setKismetStatus
-} from '$lib/stores/tactical-map/kismet-store';
+} from '$lib/stores/tactical-map/kismet-store.svelte';
 import { logger } from '$lib/utils/logger';
 import { safeParseWithHandling } from '$lib/utils/validation-error';
 
@@ -19,7 +17,7 @@ export class KismetService {
 	/** Reconcile Kismet running state with the store */
 	// fallow-ignore-next-line complexity
 	private reconcileStatus(isRunning: boolean): void {
-		const currentStatus = get(kismetStore).status;
+		const currentStatus = kismetStore.current.status;
 		if (isRunning && currentStatus === 'stopped') setKismetStatus('running');
 		else if (!isRunning && currentStatus === 'running') setKismetStatus('stopped');
 	}
@@ -49,7 +47,7 @@ export class KismetService {
 
 	// fallow-ignore-next-line complexity
 	async startKismet(): Promise<void> {
-		const currentStatus = get(kismetStore).status;
+		const currentStatus = kismetStore.current.status;
 
 		if (currentStatus === 'starting' || currentStatus === 'stopping') return;
 
@@ -91,7 +89,7 @@ export class KismetService {
 
 	// fallow-ignore-next-line complexity
 	async stopKismet(): Promise<void> {
-		const currentStatus = get(kismetStore).status;
+		const currentStatus = kismetStore.current.status;
 		if (currentStatus === 'starting' || currentStatus === 'stopping') return;
 
 		setKismetStatus('stopping');
@@ -140,7 +138,7 @@ export class KismetService {
 
 	// fallow-ignore-next-line complexity
 	async fetchKismetDevices(): Promise<KismetDevice[]> {
-		const currentState = get(kismetStore);
+		const currentState = kismetStore.current;
 		if (currentState.status !== 'running') return [];
 
 		try {

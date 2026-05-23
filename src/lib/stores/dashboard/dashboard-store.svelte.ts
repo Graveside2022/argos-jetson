@@ -1,0 +1,186 @@
+import { browser } from '$app/environment';
+import { persistedState } from '$lib/state/persisted.svelte';
+import { type ActiveView, VALID_VIEWS } from '$lib/types/dashboard-view';
+
+/** Which panel is open in the icon rail (null by default — user must explicitly open) */
+let activePanelValue = $state<string | null>(null);
+export const activePanel = {
+	get current() {
+		return activePanelValue;
+	},
+	set(value: string | null) {
+		activePanelValue = value;
+	}
+};
+
+/** Bottom panel tab type — gsm-evil removed (full-screen view), captures added */
+type BottomTab =
+	| 'terminal'
+	| 'chat'
+	| 'logs'
+	| 'captures'
+	| 'dashboard'
+	| 'bluetooth'
+	| 'uas'
+	| null;
+
+const VALID_TABS: BottomTab[] = [
+	'terminal',
+	'chat',
+	'logs',
+	'captures',
+	'dashboard',
+	'bluetooth',
+	'uas'
+];
+
+export const activeBottomTab = persistedState<BottomTab>('activeBottomTab', 'terminal', {
+	serialize: (tab) => (tab === null ? 'null' : tab),
+	deserialize: (raw) => {
+		// Graceful fallback: map removed 'gsm-evil' tab to terminal default
+		if (raw === 'gsm-evil') return 'terminal';
+		return VALID_TABS.includes(raw as BottomTab) ? (raw as BottomTab) : 'terminal';
+	}
+});
+
+/** Shared bottom panel height (persisted to localStorage) */
+const DEFAULT_BOTTOM_HEIGHT = 240;
+const MIN_BOTTOM_HEIGHT = 100;
+const MAX_BOTTOM_HEIGHT_PERCENT = 0.95;
+
+export const bottomPanelHeight = persistedState<number>('bottomPanelHeight', DEFAULT_BOTTOM_HEIGHT, {
+	serialize: (h) => String(h),
+	deserialize: (raw) => Math.max(MIN_BOTTOM_HEIGHT, parseInt(raw, 10) || DEFAULT_BOTTOM_HEIGHT)
+});
+
+/** Whether the bottom panel is open */
+export const isBottomPanelOpen = {
+	get current() {
+		return activeBottomTab.current !== null;
+	}
+};
+
+/** Toggle a bottom panel tab: if already active, close; otherwise open */
+export function toggleBottomTab(
+	tab: 'terminal' | 'chat' | 'logs' | 'captures' | 'dashboard' | 'bluetooth' | 'uas'
+): void {
+	activeBottomTab.set(activeBottomTab.current === tab ? null : tab);
+}
+
+/** Close the bottom panel */
+export function closeBottomPanel(): void {
+	activeBottomTab.set(null);
+}
+
+/** Open the bottom panel (restores terminal tab) */
+export function openBottomPanel(): void {
+	activeBottomTab.set('terminal');
+}
+
+/** Set bottom panel height with clamping */
+export function setBottomPanelHeight(height: number): void {
+	const maxHeight = browser ? window.innerHeight * MAX_BOTTOM_HEIGHT_PERCENT : 600;
+	bottomPanelHeight.set(Math.max(MIN_BOTTOM_HEIGHT, Math.min(maxHeight, height)));
+}
+
+export const activeView = persistedState<ActiveView>('activeView', 'map', {
+	deserialize: (raw) => (VALID_VIEWS.has(raw) ? (raw as ActiveView) : 'map')
+});
+
+/**
+ * Tracks the last non-UAS-scan view so the dashboard can auto-revert when the
+ * UAS scan stops. Not persisted — session-only so a refresh doesn't leave the
+ * operator stuck if they were mid-scan when the tab last closed.
+ */
+let lastNonScanViewValue = $state<ActiveView>('map');
+export const lastNonScanView = {
+	get current() {
+		return lastNonScanViewValue;
+	},
+	set(value: ActiveView) {
+		lastNonScanViewValue = value;
+	}
+};
+
+/** Toggle a panel: if already active, close it; otherwise open it */
+export function togglePanel(panel: string): void {
+	activePanel.set(activePanel.current === panel ? null : panel);
+}
+
+/** Map layer visibility — shared between MapSettingsPanel and DashboardMap */
+let layerVisibilityValue = $state<Record<string, boolean>>({
+	deviceDots: true, // Default to Symbols now? Requirement says "Replace dots"
+	milSyms: false,
+	connectionLines: false,
+	cellTowers: false,
+	signalMarkers: false,
+	accuracyCircle: true,
+	rfPropagation: false,
+	uasMarkers: true,
+	// Flying-Squirrel-style RF visualization layers — default ON now that
+	// Phase A.4 is live. Operators who start Kismet/BlueDragon expect to
+	// see the heatmap, centroids, and drive path immediately; burying them
+	// behind opt-in toggles defeats the point of the live-refresh pipeline.
+	rfDrivePath: true,
+	rfApCentroid: true,
+	rfHeatmap: true
+});
+export const layerVisibility = {
+	get current() {
+		return layerVisibilityValue;
+	},
+	set(value: Record<string, boolean>) {
+		layerVisibilityValue = value;
+	}
+};
+
+/** Toggle a single map layer on/off */
+export function toggleLayerVisibility(key: string): void {
+	layerVisibility.set({ ...layerVisibility.current, [key]: !layerVisibility.current[key] });
+}
+
+/** Shared isolated device MAC — when set, DevicesPanel shows only this AP + clients.
+ *  Set from DashboardMap on device click, read by DevicesPanel. */
+let isolatedDeviceMACValue = $state<string | null>(null);
+export const isolatedDeviceMAC = {
+	get current() {
+		return isolatedDeviceMACValue;
+	},
+	set(value: string | null) {
+		isolatedDeviceMACValue = value;
+	}
+};
+
+/** Isolate a device in the table (set from map click or table click) */
+export function isolateDevice(mac: string | null): void {
+	isolatedDeviceMAC.set(mac);
+	// Auto-open devices tab when isolating from map
+	if (mac !== null) {
+		activeBottomTab.set('dashboard');
+	}
+}
+
+/** Signal band filter — which RSSI bands are visible on the map */
+const ALL_BANDS = ['critical', 'strong', 'good', 'fair', 'weak', 'none'];
+let activeBandsValue = $state<Set<string>>(new Set(ALL_BANDS));
+export const activeBands = {
+	get current() {
+		return activeBandsValue;
+	},
+	set(value: Set<string>) {
+		activeBandsValue = value;
+	}
+};
+
+/** Toggle a signal strength band on/off */
+export function toggleBand(key: string): void {
+	const next = new Set(activeBands.current);
+	if (next.has(key)) next.delete(key);
+	else next.add(key);
+	activeBands.set(next);
+}
+
+/** Reset the active band set to the default (all bands visible). */
+export function resetBands(): void {
+	activeBands.set(new Set(ALL_BANDS));
+}

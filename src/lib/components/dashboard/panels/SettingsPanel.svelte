@@ -3,7 +3,7 @@
 	import { SelectItem } from 'carbon-components-svelte';
 
 	import Select from '$lib/components/chassis/forms/Select.svelte';
-	import { activePanel, activeView } from '$lib/stores/dashboard/dashboard-store';
+	import { activePanel, activeView } from '$lib/stores/dashboard/dashboard-store.svelte';
 	import type { RailPosition, ThemePalette } from '$lib/stores/theme-store.svelte';
 	import { themeStore } from '$lib/stores/theme-store.svelte';
 	import { palettes } from '$lib/themes/palettes';

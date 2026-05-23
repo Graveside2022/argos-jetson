@@ -10,7 +10,7 @@
  * Does NOT exercise the actual journalctl spawn — that requires a host with
  * systemd + the dragonsync/zmq-decoder/wardragon-fpv-detect/argos-c2-scanner
  * units installed and running, which CI doesn't have. Real lifecycle is
- * exercised manually via `curl :5174/api/dragonsync/logs` against a live
+ * exercised manually via `curl :5173/api/dragonsync/logs` against a live
  * Jetson with the UAS Phase 2 stack online.
  */
 

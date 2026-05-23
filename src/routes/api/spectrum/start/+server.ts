@@ -25,8 +25,7 @@ import { safeParseWithHandling } from '$lib/utils/validation-error';
 import type { RequestHandler } from './$types';
 
 // FM-band defaults: receive-only sweep, safe to start on any HackRF.
-// Matches Mk II spectrum-page UI defaults (88-108 MHz, 100 kHz bins,
-// LNA 32 dB / VGA 20 dB / AMP off — Mk II spectrum snapshot 2026-05-15).
+// 88-108 MHz, 100 kHz bins, LNA 32 dB / VGA 20 dB / AMP off.
 const DEFAULT_START_BODY = {
 	device: 'hackrf' as const,
 	config: {

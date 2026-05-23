@@ -1,7 +1,4 @@
-// spec-024 PR1 T011/T012 — Mk II weather model.
-// Mirrors the prototype WX object (docs/Argos (1).zip → src/chassis.jsx)
-// and feeds both WeatherButton.svelte (T011) and the METAR proxy
-// /api/weather/metar (T012).
+// Weather model — feeds the METAR proxy `/api/weather/metar`.
 
 export type FlightCategory = 'VFR' | 'MVFR' | 'IFR' | 'LIFR';
 

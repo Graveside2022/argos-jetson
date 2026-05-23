@@ -1,11 +1,10 @@
 <!-- RF Propagation view — orchestrates status, controls, colormap, compute, and overlay sections -->
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { get } from 'svelte/store';
 
 	import { overlayError } from '$lib/components/dashboard/map/rf-propagation-overlay.svelte';
-	import { layerVisibility } from '$lib/stores/dashboard/dashboard-store';
-	import { addOverlay } from '$lib/stores/dashboard/rf-overlay-store';
+	import { layerVisibility } from '$lib/stores/dashboard/dashboard-store.svelte';
+	import { addOverlay } from '$lib/stores/dashboard/rf-overlay-store.svelte';
 	import {
 		completeCompute,
 		computeError,
@@ -16,8 +15,8 @@
 		rfParams,
 		startCompute,
 		updateRFParam
-	} from '$lib/stores/dashboard/rf-propagation-store';
-	import { gpsStore } from '$lib/stores/tactical-map/gps-store';
+	} from '$lib/stores/dashboard/rf-propagation-store.svelte';
+	import { gpsStore } from '$lib/stores/tactical-map/gps-store.svelte';
 	import type { CloudRFColormapName } from '$lib/types/rf-propagation';
 	import { logger } from '$lib/utils/logger';
 
@@ -60,7 +59,7 @@
 
 	onMount(() => {
 		// Reset stale "computing" state on mount (fixes HMR store desync)
-		if (get(computeState) === 'computing') {
+		if (computeState.current === 'computing') {
 			logger.warn('RF compute state was stuck in "computing" — resetting to idle');
 			resetCompute();
 		}
@@ -74,7 +73,7 @@
 
 	/** Return validated GPS position or throw if no fix is available */
 	function requireGPSPosition(): { lat: number; lon: number } {
-		const { position, status } = get(gpsStore);
+		const { position, status } = gpsStore.current;
 		if (!status.hasGPSFix || (position.lat === 0 && position.lon === 0)) {
 			throw new Error('No GPS fix — cannot compute coverage without a valid position');
 		}
@@ -84,7 +83,7 @@
 	/** Fetch the compute endpoint and return parsed response; throws on error */
 	// fallow-ignore-next-line complexity
 	async function fetchCompute(signal: AbortSignal): Promise<ComputeResponse> {
-		const { mode: _, ...params } = get(rfParams);
+		const { mode: _, ...params } = rfParams.current;
 		const position = requireGPSPosition();
 
 		const res = await fetch('/api/rf-propagation/compute', {
@@ -114,7 +113,7 @@
 			label: 'Coverage'
 		});
 		// Auto-enable the RF layer so the overlay is visible on the map
-		layerVisibility.update((v) => ({ ...v, rfPropagation: true }));
+		layerVisibility.set({ ...layerVisibility.current, rfPropagation: true });
 		completeCompute();
 	}
 
@@ -131,8 +130,8 @@
 
 	/** True when GPS has no valid fix — blocks compute to prevent Gulf-of-Guinea renders */
 	const noGpsFix = $derived(
-		!$gpsStore.status.hasGPSFix ||
-			($gpsStore.position.lat === 0 && $gpsStore.position.lon === 0)
+		!gpsStore.current.status.hasGPSFix ||
+			(gpsStore.current.position.lat === 0 && gpsStore.current.position.lon === 0)
 	);
 
 	async function handleCompute(): Promise<void> {
@@ -163,7 +162,7 @@
 
 	<section class="panel-section">
 		<CloudRFColormapSelector
-			value={$rfParams.colormap}
+			value={rfParams.current.colormap}
 			onchange={(name) => updateRFParam('colormap', name as CloudRFColormapName)}
 		/>
 	</section>
@@ -171,24 +170,24 @@
 	<section class="compute-section">
 		<button
 			class="compute-btn"
-			disabled={$isComputing || noGpsFix}
-			class:computing={$isComputing}
+			disabled={isComputing.current || noGpsFix}
+			class:computing={isComputing.current}
 			onclick={handleCompute}
 		>
-			{$isComputing ? 'COMPUTING...' : 'COMPUTE COVERAGE'}
+			{isComputing.current ? 'COMPUTING...' : 'COMPUTE COVERAGE'}
 		</button>
-		{#if $isComputing}
+		{#if isComputing.current}
 			<div class="compute-elapsed">{elapsedSeconds}s elapsed</div>
 			<div class="compute-hint">CloudRF cloud — typically &lt;10s</div>
 		{:else if noGpsFix}
 			<div class="compute-hint compute-hint--warn">Awaiting GPS fix...</div>
-		{:else if $computeError}
-			<div class="compute-error">{$computeError}</div>
-		{:else if $overlayError}
-			<div class="compute-error">{$overlayError}</div>
+		{:else if computeError.current}
+			<div class="compute-error">{computeError.current}</div>
+		{:else if overlayError.current}
+			<div class="compute-error">{overlayError.current}</div>
 		{:else}
 			<div class="compute-hint">
-				{$rfParams.radius}km @ {$rfParams.resolution}m resolution
+				{rfParams.current.radius}km @ {rfParams.current.resolution}m resolution
 			</div>
 		{/if}
 	</section>

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	import { activeView } from '$lib/stores/dashboard/dashboard-store';
+	import { activeView } from '$lib/stores/dashboard/dashboard-store.svelte';
 
 	import ToolViewWrapper from './ToolViewWrapper.svelte';
 

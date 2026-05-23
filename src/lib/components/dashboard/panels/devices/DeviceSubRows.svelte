@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { KismetDevice } from '$lib/kismet/types';
-	import { kismetStore } from '$lib/stores/tactical-map/kismet-store';
+	import { kismetStore } from '$lib/stores/tactical-map/kismet-store.svelte';
 	import { getSignalHex } from '$lib/utils/signal-utils';
 
 	import {
@@ -21,7 +21,7 @@
 	let { device, onRowClick }: Props = $props();
 
 	function lookupDevice(mac: string): KismetDevice | undefined {
-		return $kismetStore.devices.get(mac);
+		return kismetStore.current.devices.get(mac);
 	}
 </script>
 

@@ -3,7 +3,7 @@
 
 	import PanelStatus from '$lib/components/chassis/PanelStatus.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
-	import { activeView } from '$lib/stores/dashboard/dashboard-store';
+	import { activeView } from '$lib/stores/dashboard/dashboard-store.svelte';
 
 	import ToolViewWrapper from './ToolViewWrapper.svelte';
 	import { buildWsUrl } from './vnc-tool-view-helpers';

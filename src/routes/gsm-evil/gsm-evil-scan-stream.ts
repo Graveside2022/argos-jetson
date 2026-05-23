@@ -6,7 +6,7 @@
 
 import { tick } from 'svelte';
 
-import { gsmEvilStore, type ScanResult } from '$lib/stores/gsm-evil-store';
+import { gsmEvilStore, type ScanResult } from '$lib/stores/gsm-evil-store.svelte';
 import type { FrequencyTestResult } from '$lib/types/gsm';
 
 import { startIMSICapture } from './gsm-evil-page-logic';

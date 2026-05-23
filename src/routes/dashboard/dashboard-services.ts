@@ -9,7 +9,7 @@
  * evaluated on the first-paint critical path. Type-only imports below are
  * erased at build, so they pull nothing into the chunk.
  */
-import { startGpPolling, stopGpPolling } from '$lib/stores/globalprotect-store';
+import { startGpPolling, stopGpPolling } from '$lib/stores/globalprotect-store.svelte';
 import type { GPSService } from '$lib/tactical-map/gps-service';
 import type { KismetService } from '$lib/tactical-map/kismet-service';
 import type { TakService } from '$lib/tactical-map/tak-service';
