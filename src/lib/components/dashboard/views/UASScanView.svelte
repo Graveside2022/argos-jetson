@@ -218,13 +218,16 @@
 		<div class="bar">
 			<span class="chip {chipClass}">{chipLabel}</span>
 			<span class="svc"
-				>zmq-decoder <span class="dot" class:up={uasStore.current.droneidGoRunning}></span></span
+				>zmq-decoder <span class="dot" class:up={uasStore.current.droneidGoRunning}
+				></span></span
 			>
 			<span class="svc"
-				>DragonSync <span class="dot" class:up={uasStore.current.dragonSyncRunning}></span></span
+				>DragonSync <span class="dot" class:up={uasStore.current.dragonSyncRunning}
+				></span></span
 			>
 			<span class="svc"
-				>FPV Scanner <span class="dot" class:up={uasStore.current.fpvScannerRunning}></span></span
+				>FPV Scanner <span class="dot" class:up={uasStore.current.fpvScannerRunning}
+				></span></span
 			>
 			<span class="spacer"></span>
 			<span class="count">{lines.length} lines</span>

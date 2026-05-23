@@ -5,7 +5,10 @@
  * Manages message state, streaming, LLM status, and device interaction events.
  */
 import { browser } from '$app/environment';
-import { agentContext, lastInteractionEvent } from '$lib/stores/dashboard/agent-context-store.svelte';
+import {
+	agentContext,
+	lastInteractionEvent
+} from '$lib/stores/dashboard/agent-context-store.svelte';
 import { fetchJSON } from '$lib/utils/fetch-json';
 
 // ============================================================================

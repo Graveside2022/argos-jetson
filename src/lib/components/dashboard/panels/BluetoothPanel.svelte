@@ -43,7 +43,9 @@
 	let starting = $state(false);
 	let stopping = $state(false);
 	const togglesDisabled = $derived(
-		starting || bluetoothStore.current.status === 'running' || bluetoothStore.current.status === 'stopping'
+		starting ||
+			bluetoothStore.current.status === 'running' ||
+			bluetoothStore.current.status === 'stopping'
 	);
 	let sortKey: SortKey = $state('last');
 	let sortDir: 'asc' | 'desc' = $state('desc');
@@ -65,7 +67,8 @@
 
 	$effect(() => {
 		const isRunning =
-			bluetoothStore.current.status === 'running' || bluetoothStore.current.status === 'starting';
+			bluetoothStore.current.status === 'running' ||
+			bluetoothStore.current.status === 'starting';
 		syncPollTimer(isRunning);
 	});
 

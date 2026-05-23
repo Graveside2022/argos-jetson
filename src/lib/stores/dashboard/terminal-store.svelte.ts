@@ -73,15 +73,19 @@ function deserializeTerminalState(raw: string): TerminalPanelState {
 }
 
 /** Main terminal panel state — persists height, preferredShell, sessions to localStorage */
-export const terminalPanelState = persistedState<TerminalPanelState>(STORAGE_KEY, getDefaultState(), {
-	serialize: (state) =>
-		JSON.stringify({
-			height: state.height,
-			preferredShell: state.preferredShell,
-			sessions: state.sessions
-		}),
-	deserialize: deserializeTerminalState
-});
+export const terminalPanelState = persistedState<TerminalPanelState>(
+	STORAGE_KEY,
+	getDefaultState(),
+	{
+		serialize: (state) =>
+			JSON.stringify({
+				height: state.height,
+				preferredShell: state.preferredShell,
+				sessions: state.sessions
+			}),
+		deserialize: deserializeTerminalState
+	}
+);
 
 // Getter accessors for convenience (replace the legacy `derived` stores).
 export const terminalSessions = {
