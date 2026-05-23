@@ -9,22 +9,20 @@
 # collision makes Vite exit cleanly instead of stomping another instance.
 #
 # Reserved ports (never auto-assigned):
-#   5173  argos-final.service        (production, v1 legacy UI — main worktree)
-#   5174  argos-dev.service          (production, v2 Mk II UI — main worktree)
+#   5173  argos-final.service        (production — main worktree)
 #   5175  argos-newui-dev.service    (legacy session-2 worktree)
 #
-# Both :5173 and :5174 serve from the main worktree; UI split is port-aware in
-# hooks.server.ts (see memory feedback_port_ui_split_nonnegotiable.md).
+# v2/Mk II UI + argos-dev.service on :5174 retired 2026-05-23 — no longer reserved.
 #
 # Assignment:
-#   main checkout (basename "Argos")         → 5174
+#   main checkout (basename "Argos")         → 5180 (generic dev port; main rarely dev'd)
 #   legacy "Argos-session-2"                 → 5175
 #   legacy "Argos-session-N" (N∈{1,3..9})    → 5180 + N ; session-10 → 5190
 #   anything else (aoe feature worktree)     → 5191 + (hash(branch) mod 79)  ∈ [5191, 5269]
 #
 # The feature-worktree port is a hash of the *branch name* (not the directory),
 # so it's stable across rename/move and identical for the same branch wherever
-# it's checked out. Range chosen to avoid 5173–5175 and the session-N band.
+# it's checked out. Range chosen to avoid 5173 / 5175 and the session-N band.
 #
 # Caller: VITE_PORT="$(./scripts/dev/port-for-worktree.sh)"
 # Exits non-zero with an explanatory message on the refuse path.
@@ -37,7 +35,7 @@ name="$(basename "$cwd")"
 # Legacy fixed mappings (kept until the old worktrees are drained).
 case "$name" in
 	Argos)
-		echo 5174
+		echo 5180
 		exit 0
 		;;
 	Argos-session-2)

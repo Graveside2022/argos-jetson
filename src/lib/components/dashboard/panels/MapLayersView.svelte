@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { type VisibilityMode, visibilityMode } from '$lib/map/visibility-engine';
+	import { type VisibilityMode, visibilityMode } from '$lib/map/visibility-engine.svelte';
 	import {
 		activeBands,
 		layerVisibility,
 		toggleBand,
 		toggleLayerVisibility
-	} from '$lib/stores/dashboard/dashboard-store';
+	} from '$lib/stores/dashboard/dashboard-store.svelte';
 	import { signalBands } from '$lib/utils/signal-utils';
 
 	import SessionSelector from './SessionSelector.svelte';
@@ -31,7 +31,7 @@
 		<div class="vis-options">
 			<button
 				class="vis-btn"
-				class:active={$visibilityMode === 'dynamic'}
+				class:active={visibilityMode.current === 'dynamic'}
 				onclick={() => setVisibilityMode('dynamic')}
 				title="Auto-squelch noise"
 			>
@@ -40,7 +40,7 @@
 			</button>
 			<button
 				class="vis-btn"
-				class:active={$visibilityMode === 'all'}
+				class:active={visibilityMode.current === 'all'}
 				onclick={() => setVisibilityMode('all')}
 				title="Show all detections"
 			>
@@ -49,7 +49,7 @@
 			</button>
 			<button
 				class="vis-btn"
-				class:active={$visibilityMode === 'manual'}
+				class:active={visibilityMode.current === 'manual'}
 				onclick={() => setVisibilityMode('manual')}
 				title="Manually promoted only"
 			>
@@ -67,10 +67,10 @@
 			<span class="toggle-label">Device Dots</span>
 			<button
 				class="toggle-switch"
-				class:on={$layerVisibility.deviceDots}
+				class:on={layerVisibility.current.deviceDots}
 				onclick={() => toggleLayerVisibility('deviceDots')}
 				role="switch"
-				aria-checked={$layerVisibility.deviceDots}
+				aria-checked={layerVisibility.current.deviceDots}
 			>
 				<span class="toggle-knob"></span>
 			</button>
@@ -80,10 +80,10 @@
 			<span class="toggle-label">Military Symbols</span>
 			<button
 				class="toggle-switch"
-				class:on={$layerVisibility.milSyms}
+				class:on={layerVisibility.current.milSyms}
 				onclick={() => toggleLayerVisibility('milSyms')}
 				role="switch"
-				aria-checked={$layerVisibility.milSyms}
+				aria-checked={layerVisibility.current.milSyms}
 			>
 				<span class="toggle-knob"></span>
 			</button>
@@ -93,10 +93,10 @@
 			<span class="toggle-label">Connections</span>
 			<button
 				class="toggle-switch"
-				class:on={$layerVisibility.connectionLines}
+				class:on={layerVisibility.current.connectionLines}
 				onclick={() => toggleLayerVisibility('connectionLines')}
 				role="switch"
-				aria-checked={$layerVisibility.connectionLines}
+				aria-checked={layerVisibility.current.connectionLines}
 			>
 				<span class="toggle-knob"></span>
 			</button>
@@ -106,10 +106,10 @@
 			<span class="toggle-label">Cell Towers</span>
 			<button
 				class="toggle-switch"
-				class:on={$layerVisibility.cellTowers}
+				class:on={layerVisibility.current.cellTowers}
 				onclick={() => toggleLayerVisibility('cellTowers')}
 				role="switch"
-				aria-checked={$layerVisibility.cellTowers}
+				aria-checked={layerVisibility.current.cellTowers}
 			>
 				<span class="toggle-knob"></span>
 			</button>
@@ -119,10 +119,10 @@
 			<span class="toggle-label">Signal Markers</span>
 			<button
 				class="toggle-switch"
-				class:on={$layerVisibility.signalMarkers}
+				class:on={layerVisibility.current.signalMarkers}
 				onclick={() => toggleLayerVisibility('signalMarkers')}
 				role="switch"
-				aria-checked={$layerVisibility.signalMarkers}
+				aria-checked={layerVisibility.current.signalMarkers}
 			>
 				<span class="toggle-knob"></span>
 			</button>
@@ -132,10 +132,10 @@
 			<span class="toggle-label">RF Propagation</span>
 			<button
 				class="toggle-switch"
-				class:on={$layerVisibility.rfPropagation}
+				class:on={layerVisibility.current.rfPropagation}
 				onclick={() => toggleLayerVisibility('rfPropagation')}
 				role="switch"
-				aria-checked={$layerVisibility.rfPropagation}
+				aria-checked={layerVisibility.current.rfPropagation}
 			>
 				<span class="toggle-knob"></span>
 			</button>
@@ -145,10 +145,10 @@
 			<span class="toggle-label">RF Drive Path</span>
 			<button
 				class="toggle-switch"
-				class:on={$layerVisibility.rfDrivePath}
+				class:on={layerVisibility.current.rfDrivePath}
 				onclick={() => toggleLayerVisibility('rfDrivePath')}
 				role="switch"
-				aria-checked={$layerVisibility.rfDrivePath}
+				aria-checked={layerVisibility.current.rfDrivePath}
 			>
 				<span class="toggle-knob"></span>
 			</button>
@@ -158,10 +158,10 @@
 			<span class="toggle-label">AP Centroids</span>
 			<button
 				class="toggle-switch"
-				class:on={$layerVisibility.rfApCentroid}
+				class:on={layerVisibility.current.rfApCentroid}
 				onclick={() => toggleLayerVisibility('rfApCentroid')}
 				role="switch"
-				aria-checked={$layerVisibility.rfApCentroid}
+				aria-checked={layerVisibility.current.rfApCentroid}
 			>
 				<span class="toggle-knob"></span>
 			</button>
@@ -171,10 +171,10 @@
 			<span class="toggle-label">RSSI Heatmap</span>
 			<button
 				class="toggle-switch"
-				class:on={$layerVisibility.rfHeatmap}
+				class:on={layerVisibility.current.rfHeatmap}
 				onclick={() => toggleLayerVisibility('rfHeatmap')}
 				role="switch"
-				aria-checked={$layerVisibility.rfHeatmap}
+				aria-checked={layerVisibility.current.rfHeatmap}
 			>
 				<span class="toggle-knob"></span>
 			</button>
@@ -194,10 +194,10 @@
 				</div>
 				<button
 					class="toggle-switch"
-					class:on={$activeBands.has(band.key)}
+					class:on={activeBands.current.has(band.key)}
 					onclick={() => toggleBand(band.key)}
 					role="switch"
-					aria-checked={$activeBands.has(band.key)}
+					aria-checked={activeBands.current.has(band.key)}
 				>
 					<span class="toggle-knob"></span>
 				</button>
@@ -211,10 +211,10 @@
 			</div>
 			<button
 				class="toggle-switch"
-				class:on={$activeBands.has('none')}
+				class:on={activeBands.current.has('none')}
 				onclick={() => toggleBand('none')}
 				role="switch"
-				aria-checked={$activeBands.has('none')}
+				aria-checked={activeBands.current.has('none')}
 			>
 				<span class="toggle-knob"></span>
 			</button>

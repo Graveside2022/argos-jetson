@@ -4,7 +4,7 @@
  */
 
 import { mccToCountry, mncToCarrier } from '$lib/data/carrier-mappings';
-import type { TowerLocation } from '$lib/stores/gsm-evil-store';
+import type { TowerLocation } from '$lib/stores/gsm-evil-store.svelte';
 
 const UNKNOWN_COUNTRY = { name: 'Unknown', flag: '', code: '??' };
 

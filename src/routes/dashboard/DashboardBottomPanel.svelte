@@ -22,14 +22,14 @@
 		isBottomPanelOpen,
 		openBottomPanel,
 		setBottomPanelHeight
-	} from '$lib/stores/dashboard/dashboard-store';
+	} from '$lib/stores/dashboard/dashboard-store.svelte';
 
 	import BottomPanelTabs from './BottomPanelTabs.svelte';
 
 	let mountedTabs = $state(new Set<string>());
 
 	$effect(() => {
-		const tab = $activeBottomTab;
+		const tab = activeBottomTab.current;
 		if (tab && !mountedTabs.has(tab)) {
 			// Reassign, don't mutate: a plain $state(Set) is NOT reactive on .add()
 			// (only svelte/reactivity SvelteSet is) — the template won't re-render.
@@ -45,48 +45,48 @@
 	- Tab bar always visible; chevron rotates ▼/▲ to show collapse state
 -->
 <ResizableBottomPanel
-	isOpen={$isBottomPanelOpen}
-	height={$bottomPanelHeight}
+	isOpen={isBottomPanelOpen.current}
+	height={bottomPanelHeight.current}
 	onHeightChange={setBottomPanelHeight}
 	onOpen={openBottomPanel}
 >
 	<!-- Tab bar sits inside the resizable panel, always rendered -->
-	<BottomPanelTabs activeTab={$activeBottomTab} />
+	<BottomPanelTabs activeTab={activeBottomTab.current} />
 
 	<!-- Content area shown only when open -->
 	<div class="bottom-panel-content">
 		{#if mountedTabs.has('terminal')}
-			<div class="tab-pane" class:tab-active={$activeBottomTab === 'terminal'}>
+			<div class="tab-pane" class:tab-active={activeBottomTab.current === 'terminal'}>
 				<TerminalPanel />
 			</div>
 		{/if}
 		{#if mountedTabs.has('chat')}
-			<div class="tab-pane" class:tab-active={$activeBottomTab === 'chat'}>
+			<div class="tab-pane" class:tab-active={activeBottomTab.current === 'chat'}>
 				<AgentChatPanel />
 			</div>
 		{/if}
 		{#if mountedTabs.has('logs')}
-			<div class="tab-pane" class:tab-active={$activeBottomTab === 'logs'}>
+			<div class="tab-pane" class:tab-active={activeBottomTab.current === 'logs'}>
 				<LogsPanel />
 			</div>
 		{/if}
 		{#if mountedTabs.has('captures')}
-			<div class="tab-pane" class:tab-active={$activeBottomTab === 'captures'}>
+			<div class="tab-pane" class:tab-active={activeBottomTab.current === 'captures'}>
 				<CapturesPanel />
 			</div>
 		{/if}
 		{#if mountedTabs.has('dashboard')}
-			<div class="tab-pane" class:tab-active={$activeBottomTab === 'dashboard'}>
+			<div class="tab-pane" class:tab-active={activeBottomTab.current === 'dashboard'}>
 				<DevicesPanel />
 			</div>
 		{/if}
 		{#if mountedTabs.has('bluetooth')}
-			<div class="tab-pane" class:tab-active={$activeBottomTab === 'bluetooth'}>
+			<div class="tab-pane" class:tab-active={activeBottomTab.current === 'bluetooth'}>
 				<BluetoothPanel />
 			</div>
 		{/if}
 		{#if mountedTabs.has('uas')}
-			<div class="tab-pane" class:tab-active={$activeBottomTab === 'uas'}>
+			<div class="tab-pane" class:tab-active={activeBottomTab.current === 'uas'}>
 				<UASPanel />
 			</div>
 		{/if}

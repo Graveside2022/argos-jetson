@@ -239,7 +239,24 @@ export default [
 		// legitimately uses `!` for type narrowing on known-safe values).
 		files: ['src/**/*.{js,ts,svelte}'],
 		rules: {
-			'@typescript-eslint/no-non-null-assertion': 'error'
+			'@typescript-eslint/no-non-null-assertion': 'error',
+			// ADR-0003: the app state layer is unified on Svelte 5 runes. `svelte/store`
+			// is retired in src — census is 0 as of the Phase 3 migration. This ban
+			// locks the gain (new `svelte/store` imports fail lint). Bans only the exact
+			// `svelte/store` specifier; `svelte/reactivity`, `svelte/motion`, and
+			// `$app/stores` are unaffected.
+			'no-restricted-imports': [
+				'error',
+				{
+					paths: [
+						{
+							name: 'svelte/store',
+							message:
+								'svelte/store is retired (ADR-0003). Use Svelte 5 runes ($state/$derived) in a .svelte.ts module. See docs/adr/0003-state-architecture.md.'
+						}
+					]
+				}
+			]
 		}
 	},
 	{

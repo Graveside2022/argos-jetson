@@ -4,7 +4,7 @@
 
 	import NumberInput from '$lib/components/chassis/forms/NumberInput.svelte';
 	import Select from '$lib/components/chassis/forms/Select.svelte';
-	import { rfParams, updateRFParam } from '$lib/stores/dashboard/rf-propagation-store';
+	import { rfParams, updateRFParam } from '$lib/stores/dashboard/rf-propagation-store.svelte';
 
 	function setRfNumber(
 		key: 'frequency' | 'txHeight' | 'rxHeight' | 'radius' | 'resolution',
@@ -24,7 +24,7 @@
 	<div class="field-grid">
 		<NumberInput
 			labelText="FREQUENCY (MHz)"
-			value={$rfParams.frequency}
+			value={rfParams.current.frequency}
 			min={1}
 			max={100000}
 			step={1}
@@ -36,7 +36,7 @@
 
 		<Select
 			labelText="POLARIZATION"
-			value={$rfParams.polarization}
+			value={rfParams.current.polarization}
 			onChange={handlePolarization}
 			size="sm"
 		>
@@ -48,7 +48,7 @@
 	<div class="field-grid">
 		<NumberInput
 			labelText="TX HEIGHT (m)"
-			value={$rfParams.txHeight}
+			value={rfParams.current.txHeight}
 			min={0.5}
 			max={500}
 			step={0.5}
@@ -60,7 +60,7 @@
 
 		<NumberInput
 			labelText="RX HEIGHT (m)"
-			value={$rfParams.rxHeight}
+			value={rfParams.current.rxHeight}
 			min={0.5}
 			max={500}
 			step={0.5}
@@ -74,7 +74,7 @@
 	<div class="field-grid">
 		<NumberInput
 			labelText="RADIUS (km)"
-			value={$rfParams.radius}
+			value={rfParams.current.radius}
 			min={0.1}
 			max={100}
 			step={0.5}
@@ -86,7 +86,7 @@
 
 		<NumberInput
 			labelText="RESOLUTION (m/px)"
-			value={$rfParams.resolution}
+			value={rfParams.current.resolution}
 			min={5}
 			max={300}
 			step={5}

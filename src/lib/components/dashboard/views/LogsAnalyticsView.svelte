@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { activeView } from '$lib/stores/dashboard/dashboard-store';
+	import { activeView } from '$lib/stores/dashboard/dashboard-store.svelte';
 
 	import ToolViewWrapper from './ToolViewWrapper.svelte';
 </script>

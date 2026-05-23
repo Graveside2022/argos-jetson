@@ -13,7 +13,7 @@
 		setActiveSession,
 		terminalPanelState,
 		terminalSessions
-	} from '$lib/stores/dashboard/terminal-store';
+	} from '$lib/stores/dashboard/terminal-store.svelte';
 	import type { ShellInfo } from '$lib/types/terminal';
 	import { fetchJSON } from '$lib/utils/fetch-json';
 
@@ -34,38 +34,47 @@
 		availableShells = data?.shells ?? [{ path: '/bin/zsh', name: 'zsh', isDefault: true }];
 	});
 
+	type PanelState = Parameters<typeof terminalPanelState.set>[0];
+
+	function addToExistingSplits(s: PanelState, newSessionId: string): PanelState | null {
+		if (!s.splits || s.splits.sessionIds.length >= 4) return null;
+		const newSessionIds = [...s.splits.sessionIds, newSessionId];
+		const equalWidth = 100 / newSessionIds.length;
+		return {
+			...s,
+			splits: {
+				...s.splits,
+				sessionIds: newSessionIds,
+				widths: newSessionIds.map(() => equalWidth)
+			}
+		};
+	}
+
+	function createInitialSplits(
+		s: PanelState,
+		originalSessionId: string,
+		newSessionId: string
+	): PanelState {
+		return {
+			...s,
+			splits: {
+				id: Math.random().toString(36).substring(2, 9),
+				sessionIds: [originalSessionId, newSessionId],
+				widths: [50, 50]
+			}
+		};
+	}
+
 	function handleCreateSession(shell?: string) {
 		const newSessionId = createSession(shell);
-
 		if (pendingSplitSessionId) {
-			const originalSessionId = pendingSplitSessionId;
-			terminalPanelState.update((s) => {
-				if (s.splits) {
-					if (s.splits.sessionIds.length >= 4) return s;
-					const newSessionIds = [...s.splits.sessionIds, newSessionId];
-					const equalWidth = 100 / newSessionIds.length;
-					return {
-						...s,
-						splits: {
-							...s.splits,
-							sessionIds: newSessionIds,
-							widths: newSessionIds.map(() => equalWidth)
-						}
-					};
-				} else {
-					return {
-						...s,
-						splits: {
-							id: Math.random().toString(36).substring(2, 9),
-							sessionIds: [originalSessionId, newSessionId],
-							widths: [50, 50]
-						}
-					};
-				}
-			});
+			const s = terminalPanelState.current;
+			const next = s.splits
+				? addToExistingSplits(s, newSessionId)
+				: createInitialSplits(s, pendingSplitSessionId, newSessionId);
+			if (next) terminalPanelState.set(next);
 			pendingSplitSessionId = null;
 		}
-
 		showShellDropdown = false;
 	}
 
@@ -74,7 +83,7 @@
 	}
 
 	const editorTabs = $derived<EditorTab[]>(
-		$terminalSessions.map((s) => ({ id: s.id, title: s.title }))
+		terminalSessions.current.map((s) => ({ id: s.id, title: s.title }))
 	);
 
 	function handleTitleChange(sessionId: string, newTitle: string) {
@@ -83,7 +92,7 @@
 
 	function handleSplit(e: MouseEvent) {
 		e.stopPropagation();
-		const active = $activeSession;
+		const active = activeSession.current;
 		if (active) {
 			pendingSplitSessionId = active.id;
 			showShellDropdown = true;
@@ -105,12 +114,12 @@
 
 <svelte:window onclick={handleWindowClick} />
 
-<div class="terminal-panel" class:maximized={$terminalPanelState.isMaximized}>
+<div class="terminal-panel" class:maximized={terminalPanelState.current.isMaximized}>
 	<!-- VS Code-style toolbar -->
 	<div class="terminal-toolbar">
 		<EditorTabBar
 			tabs={editorTabs}
-			activeId={$terminalPanelState.activeTabId ?? ''}
+			activeId={terminalPanelState.current.activeTabId ?? ''}
 			onActivate={setActiveSession}
 			onClose={handleCloseSession}
 			ariaLabel="Terminal sessions"
@@ -132,7 +141,7 @@
 			onCreateSession={handleCreateSession}
 			onToggleMoreMenu={() => (showMoreMenu = !showMoreMenu)}
 			onCloseActiveSession={() => {
-				closeSession($terminalPanelState.activeTabId || '');
+				closeSession(terminalPanelState.current.activeTabId || '');
 				showMoreMenu = false;
 			}}
 		/>
@@ -140,14 +149,14 @@
 
 	<!-- Terminal content area -->
 	<div class="terminal-content">
-		{#if $terminalPanelState.splits}
+		{#if terminalPanelState.current.splits}
 			<div class="split-container">
-				{#each $terminalPanelState.splits.sessionIds as sessionId, index (sessionId)}
-					{@const session = $terminalSessions.find((s) => s.id === sessionId)}
+				{#each terminalPanelState.current.splits.sessionIds as sessionId, index (sessionId)}
+					{@const session = terminalSessions.current.find((s) => s.id === sessionId)}
 					{#if session}
 						<div
 							class="split-pane"
-							style="width: {$terminalPanelState.splits.widths[index]}%"
+							style="width: {terminalPanelState.current.splits.widths[index]}%"
 						>
 							<TerminalTabContent
 								sessionId={session.id}
@@ -157,24 +166,24 @@
 									handleTitleChange(session.id, title)}
 							/>
 						</div>
-						{#if index < $terminalPanelState.splits.sessionIds.length - 1}
+						{#if index < terminalPanelState.current.splits.sessionIds.length - 1}
 							<div class="split-divider"></div>
 						{/if}
 					{/if}
 				{/each}
 			</div>
 		{:else}
-			{#each $terminalSessions as session (session.id)}
+			{#each terminalSessions.current as session (session.id)}
 				<TerminalTabContent
 					sessionId={session.id}
 					shell={session.shell}
-					isActive={session.id === $terminalPanelState.activeTabId}
+					isActive={session.id === terminalPanelState.current.activeTabId}
 					onTitleChange={(title: string) => handleTitleChange(session.id, title)}
 				/>
 			{/each}
 		{/if}
 
-		{#if $terminalSessions.length === 0}
+		{#if terminalSessions.current.length === 0}
 			<div class="empty-state">
 				<p>No terminals open</p>
 				<button class="create-btn" onclick={() => handleCreateSession()}>

@@ -4,11 +4,10 @@
 		DEFAULT_SATELLITE_SOURCE,
 		DEFAULT_VECTOR_SOURCE,
 		mapSettings
-	} from '$lib/stores/dashboard/map-settings-store';
+	} from '$lib/stores/dashboard/map-settings-store.svelte';
 
 	let customUrl = $state('');
-	const stadiaStore = mapSettings.stadiaAvailable;
-	let stadiaAvailable = $derived($stadiaStore);
+	let stadiaAvailable = $derived(mapSettings.stadiaAvailable);
 
 	function selectVector() {
 		mapSettings.setProvider(DEFAULT_VECTOR_SOURCE);
@@ -35,7 +34,7 @@
 		<div class="provider-grid">
 			<button
 				class="provider-btn"
-				class:active={$mapSettings.type === 'vector'}
+				class:active={mapSettings.provider.type === 'vector'}
 				onclick={selectVector}
 				disabled={!stadiaAvailable}
 				title={!stadiaAvailable ? 'Requires Stadia Maps API key' : ''}
@@ -45,7 +44,7 @@
 			</button>
 			<button
 				class="provider-btn"
-				class:active={$mapSettings.name === 'Satellite Hybrid'}
+				class:active={mapSettings.provider.name === 'Satellite Hybrid'}
 				onclick={selectSatellite}
 			>
 				<span class="provider-icon satellite"></span>

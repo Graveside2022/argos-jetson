@@ -2,9 +2,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	import { activePanel, activeView } from '$lib/stores/dashboard/dashboard-store';
-	import { gpsStore } from '$lib/stores/tactical-map/gps-store';
-	import { kismetStore } from '$lib/stores/tactical-map/kismet-store';
+	import { activePanel, activeView } from '$lib/stores/dashboard/dashboard-store.svelte';
+	import { gpsStore } from '$lib/stores/tactical-map/gps-store.svelte';
+	import { kismetStore } from '$lib/stores/tactical-map/kismet-store.svelte';
 	import type { ActiveView } from '$lib/types/dashboard-view';
 	import type { SystemInfo } from '$lib/types/system';
 	import { fetchJSON } from '$lib/utils/fetch-json';
@@ -29,7 +29,7 @@
 
 	// gpsd uptime — sourced from system uptime as a proxy (gpsd runs at boot)
 	let gpsdRunning = $derived(
-		$gpsStore.status.hasGPSFix || $gpsStore.status.gpsStatus !== 'Requesting GPS...'
+		gpsStore.current.status.hasGPSFix || gpsStore.current.status.gpsStatus !== 'Requesting GPS...'
 	);
 	let gpsdUptime = $derived.by(() => {
 		const s = systemInfo;
@@ -82,7 +82,7 @@
 
 	function toolStatus(id: string): { label: string; uptime: string | null } {
 		if (id === 'kismet') {
-			const running = $kismetStore.status === 'running';
+			const running = kismetStore.current.status === 'running';
 			return {
 				label: running ? 'running' : 'stopped',
 				uptime: running ? null : null
@@ -92,7 +92,7 @@
 	}
 
 	function toolActive(id: string): boolean {
-		return id === 'kismet' && $kismetStore.status === 'running';
+		return id === 'kismet' && kismetStore.current.status === 'running';
 	}
 
 	let lastAlertDisplay = $derived.by(() => {

@@ -4,7 +4,7 @@
 
 	import { browser } from '$app/environment';
 	import { buildTerminalTheme } from '$lib/components/dashboard/terminal/terminal-theme';
-	import { updateSessionConnection } from '$lib/stores/dashboard/terminal-store';
+	import { updateSessionConnection } from '$lib/stores/dashboard/terminal-store.svelte';
 	import { themeStore } from '$lib/stores/theme-store.svelte';
 	import { WebSocketEventName } from '$lib/types/enums';
 	import { logger } from '$lib/utils/logger';

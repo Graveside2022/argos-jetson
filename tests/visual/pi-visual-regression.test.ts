@@ -46,7 +46,7 @@ const PI_VISUAL_CONFIG = {
 	// Relaxed threshold for ARM architecture rendering differences
 	threshold: 0.15, // 0.15% difference allowed for Pi-specific rendering
 	diffThreshold: 2.0, // 2% total difference threshold for Grade A+ compliance
-	baseUrl: process.env.TEST_URL || 'http://localhost:5174',
+	baseUrl: process.env.TEST_URL || 'http://localhost:5173',
 	// Pi-optimized viewports (common Pi display resolutions)
 	viewports: [
 		{ name: 'pi-hdmi', width: 1920, height: 1080 }, // Standard Pi HDMI

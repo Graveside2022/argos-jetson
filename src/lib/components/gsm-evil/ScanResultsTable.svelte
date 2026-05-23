@@ -15,7 +15,7 @@
 		Header: TableHeader,
 		Row: TableRow
 	};
-	import type { ScanResult } from '$lib/stores/gsm-evil-store';
+	import type { ScanResult } from '$lib/stores/gsm-evil-store.svelte';
 
 	let {
 		scanResults = [],

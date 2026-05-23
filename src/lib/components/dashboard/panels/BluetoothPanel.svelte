@@ -20,7 +20,7 @@
 		fetchBluetoothStatus,
 		startBluedragonFromUi,
 		stopBluedragonFromUi
-	} from '$lib/stores/bluedragon/bluetooth-store';
+	} from '$lib/stores/bluedragon/bluetooth-store.svelte';
 	import type { BluedragonProfile, BluetoothDevice } from '$lib/types/bluedragon';
 
 	type SortKey =
@@ -43,7 +43,7 @@
 	let starting = $state(false);
 	let stopping = $state(false);
 	const togglesDisabled = $derived(
-		starting || $bluetoothStore.status === 'running' || $bluetoothStore.status === 'stopping'
+		starting || bluetoothStore.current.status === 'running' || bluetoothStore.current.status === 'stopping'
 	);
 	let sortKey: SortKey = $state('last');
 	let sortDir: 'asc' | 'desc' = $state('desc');
@@ -65,7 +65,7 @@
 
 	$effect(() => {
 		const isRunning =
-			$bluetoothStore.status === 'running' || $bluetoothStore.status === 'starting';
+			bluetoothStore.current.status === 'running' || bluetoothStore.current.status === 'starting';
 		syncPollTimer(isRunning);
 	});
 
@@ -215,17 +215,17 @@
 <div class="bluetooth-panel">
 	<div class="toolbar">
 		<span class="title">BLUETOOTH</span>
-		<span class="chip {statusClass($bluetoothStore.status)}"
-			>{$bluetoothStore.status.toUpperCase()}</span
+		<span class="chip {statusClass(bluetoothStore.current.status)}"
+			>{bluetoothStore.current.status.toUpperCase()}</span
 		>
-		{#if $bluetoothStore.status === 'running'}
-			<span class="profile-tag">{$bluetoothStore.profile ?? 'volume'}</span>
+		{#if bluetoothStore.current.status === 'running'}
+			<span class="profile-tag">{bluetoothStore.current.profile ?? 'volume'}</span>
 		{/if}
 		<span class="spacer"></span>
-		<span class="count">{$bluetoothStore.deviceCount} devices</span>
-		<span class="packets">{$bluetoothStore.packetCount} pkts</span>
+		<span class="count">{bluetoothStore.current.deviceCount} devices</span>
+		<span class="packets">{bluetoothStore.current.packetCount} pkts</span>
 		<button class="btn-clear" onclick={onClear}>Clear</button>
-		{#if $bluetoothStore.status === 'stopped'}
+		{#if bluetoothStore.current.status === 'stopped'}
 			<Select
 				hideLabel
 				labelText="profile"
@@ -296,16 +296,16 @@
 		{/if}
 	</div>
 
-	{#if $bluetoothStore.error}
-		<div class="error-banner">{$bluetoothStore.error}</div>
+	{#if bluetoothStore.current.error}
+		<div class="error-banner">{bluetoothStore.current.error}</div>
 	{/if}
 
-	{#if $bluetoothStore.status === 'stopped' && $bluetoothStore.devices.size === 0}
+	{#if bluetoothStore.current.status === 'stopped' && bluetoothStore.current.devices.size === 0}
 		<PanelEmptyState
 			title="Blue Dragon not running"
 			description="Select a profile and click Start to begin wideband BLE/BT capture"
 		/>
-	{:else if $bluetoothStore.devices.size === 0}
+	{:else if bluetoothStore.current.devices.size === 0}
 		<div class="empty">
 			<p class="empty-title">Capturing…</p>
 			<p class="empty-sub">Waiting for first packets</p>
@@ -373,7 +373,7 @@
 					</tr>
 				</thead>
 				<tbody>
-					{#each sortedDevices($bluetoothStore.devices) as device (device.addr)}
+					{#each sortedDevices(bluetoothStore.current.devices) as device (device.addr)}
 						<tr>
 							<td class="col-addr">{device.addr}</td>
 							<td class="col-vendor">{device.vendor ?? '—'}</td>

@@ -1,7 +1,7 @@
 <!-- @constitutional-exemption Article-IV-4.2 issue:#12 — Band filter chips, back button use custom 24x20px sizing incompatible with shadcn Button -->
 <script lang="ts">
 	import Search from '$lib/components/chassis/forms/Search.svelte';
-	import { kismetStore, setKismetStatus } from '$lib/stores/tactical-map/kismet-store';
+	import { kismetStore, setKismetStatus } from '$lib/stores/tactical-map/kismet-store.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
 	import { signalBands } from '$lib/utils/signal-utils';
 
@@ -82,9 +82,9 @@
 <div class="panel-toolbar">
 	<span
 		class="status-chip"
-		class:chip-running={$kismetStore.status === 'running'}
-		class:chip-transition={$kismetStore.status === 'starting' ||
-			$kismetStore.status === 'stopping'}>{$kismetStore.status.toUpperCase()}</span
+		class:chip-running={kismetStore.current.status === 'running'}
+		class:chip-transition={kismetStore.current.status === 'starting' ||
+			kismetStore.current.status === 'stopping'}>{kismetStore.current.status.toUpperCase()}</span
 	>
 	<span class="device-count">{deviceCount}</span>
 	{#if renderedCount !== undefined && renderedCount < deviceCount}
@@ -175,7 +175,7 @@
 	<button class="scan-btn scan-clear" onclick={onClearAll} title="Clear search + all filters">
 		Clear
 	</button>
-	{#if $kismetStore.status === 'running' || $kismetStore.status === 'stopping'}
+	{#if kismetStore.current.status === 'running' || kismetStore.current.status === 'stopping'}
 		<button
 			class="scan-btn scan-stop"
 			onclick={() => sendKismetControl('stop')}

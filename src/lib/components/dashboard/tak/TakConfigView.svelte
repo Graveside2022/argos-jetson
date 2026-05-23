@@ -11,8 +11,8 @@
 	import TakStatusSection from '$lib/components/dashboard/tak/TakStatusSection.svelte';
 	import TakTruststore from '$lib/components/dashboard/tak/TakTruststore.svelte';
 	import ToolViewWrapper from '$lib/components/dashboard/views/ToolViewWrapper.svelte';
-	import { activeView } from '$lib/stores/dashboard/dashboard-store';
-	import { takStatus } from '$lib/stores/tak-store';
+	import { activeView } from '$lib/stores/dashboard/dashboard-store.svelte';
+	import { takStore } from '$lib/stores/tak-store.svelte';
 	import type { TakServerConfig } from '$lib/types/tak';
 	import { validateForm } from '$lib/utils/validate-form';
 
@@ -162,7 +162,7 @@
 
 <ToolViewWrapper
 	title="TAK SERVER"
-	status={$takStatus.status === 'connected' ? 'Connected' : ''}
+	status={takStore.status.status === 'connected' ? 'Connected' : ''}
 	onBack={() => activeView.set('map')}
 >
 	<div class="tak-body">

@@ -3,8 +3,8 @@
 	import { onnetCategory } from '$lib/data/onnet';
 	import { countTools } from '$lib/data/tool-hierarchy';
 	import { uiIcons } from '$lib/data/tool-icons';
-	import { activePanel } from '$lib/stores/dashboard/dashboard-store';
-	import { toolNavigationPath } from '$lib/stores/dashboard/tools-store';
+	import { activePanel } from '$lib/stores/dashboard/dashboard-store.svelte';
+	import { toolNavigationPath } from '$lib/stores/dashboard/tools-store.svelte';
 
 	function handleBack() {
 		activePanel.set('tools');

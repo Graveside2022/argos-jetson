@@ -20,11 +20,16 @@
 	import SkeletonText from '$lib/components/chassis/forms/SkeletonText.svelte';
 	import PanelStatus from '$lib/components/chassis/PanelStatus.svelte';
 	import PanelEmptyState from '$lib/components/ui/PanelEmptyState.svelte';
-	import { persistedWritable } from '$lib/stores/persisted-writable';
+	import { persistedState } from '$lib/state/persisted.svelte';
 
-	const reportsPreviewHeight = persistedWritable<number>('reportsPreviewHeight', 360, {});
+	const reportsPreviewHeight = persistedState<number>('reportsPreviewHeight', 360);
 	const MIN_PREVIEW = 180;
 	const MAX_PREVIEW_PCT = 0.85;
+
+	function clampPreview(v: number): number {
+		const max = typeof window !== 'undefined' ? window.innerHeight * MAX_PREVIEW_PCT : v;
+		return Math.max(MIN_PREVIEW, Math.min(max, v));
+	}
 
 	interface ReportRow {
 		id: string;
@@ -52,18 +57,10 @@
 	let fullScreen = $state(false);
 	let filterType = $state<FilterType>('all');
 	let searchQuery = $state('');
-	let previewHeight = $state(360);
+	let previewHeight = $derived(clampPreview(reportsPreviewHeight.current));
 	let isResizing = $state(false);
 	let dragStartY = 0;
 	let dragStartHeight = 0;
-
-	$effect(() => {
-		const unsub = reportsPreviewHeight.subscribe((v) => {
-			const max = typeof window !== 'undefined' ? window.innerHeight * MAX_PREVIEW_PCT : v;
-			previewHeight = Math.max(MIN_PREVIEW, Math.min(max, v));
-		});
-		return unsub;
-	});
 
 	function onResizeDown(e: MouseEvent): void {
 		e.preventDefault();
@@ -77,10 +74,7 @@
 	function onResizeMove(e: MouseEvent): void {
 		if (!isResizing) return;
 		const delta = dragStartY - e.clientY;
-		const max = window.innerHeight * MAX_PREVIEW_PCT;
-		const next = Math.max(MIN_PREVIEW, Math.min(max, dragStartHeight + delta));
-		previewHeight = next;
-		reportsPreviewHeight.set(next);
+		reportsPreviewHeight.set(clampPreview(dragStartHeight + delta));
 	}
 
 	function onResizeUp(): void {
@@ -92,15 +86,12 @@
 
 	function onResizeKeydown(e: KeyboardEvent): void {
 		const step = e.shiftKey ? 50 : 10;
-		const max = window.innerHeight * MAX_PREVIEW_PCT;
 		if (e.key === 'ArrowUp') {
 			e.preventDefault();
-			previewHeight = Math.min(max, previewHeight + step);
-			reportsPreviewHeight.set(previewHeight);
+			reportsPreviewHeight.set(clampPreview(previewHeight + step));
 		} else if (e.key === 'ArrowDown') {
 			e.preventDefault();
-			previewHeight = Math.max(MIN_PREVIEW, previewHeight - step);
-			reportsPreviewHeight.set(previewHeight);
+			reportsPreviewHeight.set(clampPreview(previewHeight - step));
 		}
 	}
 

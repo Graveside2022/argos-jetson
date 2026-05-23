@@ -5,7 +5,7 @@
  * @module
  */
 
-import type { ReconTarget } from '$lib/stores/dashboard/recon-store';
+import type { ReconTarget } from '$lib/stores/dashboard/recon-store.svelte';
 
 export interface TabDef {
 	id: string;
