@@ -1,7 +1,10 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
 
-	import { computeProgress, isComputing } from '$lib/stores/dashboard/rf-propagation-store.svelte';
+	import {
+		computeProgress,
+		isComputing
+	} from '$lib/stores/dashboard/rf-propagation-store.svelte';
 	import { fetchJSON } from '$lib/utils/fetch-json';
 
 	interface StatusResponse {

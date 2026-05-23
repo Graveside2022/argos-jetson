@@ -415,7 +415,9 @@
 				<span class="legend-gps-tag">GPS {gpsStore.current.status.satellites} SAT</span>
 				{#if gpsStore.current.status.currentCountry.name}
 					<span class="legend-sep">·</span>
-					<span class="legend-location">{gpsStore.current.status.currentCountry.name}</span>
+					<span class="legend-location"
+						>{gpsStore.current.status.currentCountry.name}</span
+					>
 				{/if}
 			</div>
 			<div class="legend-line2">
@@ -423,7 +425,9 @@
 				<span class="legend-coord">{gpsStore.current.status.formattedCoords.lon}</span>
 				<span class="legend-mgrs">{gpsStore.current.status.mgrsCoord}</span>
 				{#if gpsStore.current.status.altitude != null}
-					<span class="legend-asl">{Math.round(gpsStore.current.status.altitude)}m ASL</span>
+					<span class="legend-asl"
+						>{Math.round(gpsStore.current.status.altitude)}m ASL</span
+					>
 				{/if}
 			</div>
 		</div>

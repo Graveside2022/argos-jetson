@@ -4,11 +4,15 @@
   Always visible — chevron toggles collapse/expand (panel never fully disappears).
 -->
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import {
 		activeBottomTab,
 		closeBottomPanel,
 		isBottomPanelOpen
 	} from '$lib/stores/dashboard/dashboard-store.svelte';
+	import { createSession } from '$lib/stores/dashboard/terminal-store.svelte';
+	import type { ShellInfo } from '$lib/types/terminal';
+	import { fetchJSON } from '$lib/utils/fetch-json';
 
 	interface Props {
 		activeTab: string | null;
@@ -28,6 +32,26 @@
 		{ id: 'bluetooth', label: 'Bluetooth', icon: null },
 		{ id: 'uas', label: 'UAS', icon: null }
 	];
+
+	// Shell-picker state — mirrors TerminalShellDropdown so the tab-bar "+" offers
+	// the same Tmux-0/1/2/3 choice as the in-panel "+". Fetched once on mount.
+	let availableShells = $state<ShellInfo[]>([]);
+	let showShellDropdown = $state(false);
+
+	onMount(async () => {
+		try {
+			const data = await fetchJSON<{ shells: ShellInfo[] }>('/api/terminal/shells');
+			availableShells = data?.shells ?? [];
+		} catch {
+			/* keep dropdown empty on fetch fail; user can still use in-panel "+" */
+		}
+	});
+
+	function pickShell(shellPath?: string) {
+		activeBottomTab.set('terminal');
+		createSession(shellPath);
+		showShellDropdown = false;
+	}
 
 	// Toggle: if panel is open, collapse it; if collapsed, reopen to terminal tab
 	function toggleCollapse() {
@@ -64,31 +88,66 @@
 				{/if}
 				{tab.label}
 			</button>
-			<!-- "+" new session button sits immediately after Terminal tab -->
+			<!-- "+" new session button sits immediately after Terminal tab. Opens a
+			     shell-picker dropdown (Tmux 0-3, /bin/zsh, etc.) — mirrors the
+			     in-panel TerminalShellDropdown. -->
 			{#if tab.id === 'terminal'}
-				<button
-					class="tab-new-btn"
-					aria-label="New terminal session"
-					title="New terminal session"
-				>
-					<svg
-						width="12"
-						height="12"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
+				<div class="tab-new-wrapper">
+					<button
+						class="tab-new-btn"
+						aria-label="New terminal session"
+						title="New terminal session"
+						aria-haspopup="menu"
+						aria-expanded={showShellDropdown}
+						onclick={() => (showShellDropdown = !showShellDropdown)}
 					>
-						<line x1="12" y1="5" x2="12" y2="19" /><line
-							x1="5"
-							y1="12"
-							x2="19"
-							y2="12"
-						/>
-					</svg>
-				</button>
+						<svg
+							width="12"
+							height="12"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						>
+							<line x1="12" y1="5" x2="12" y2="19" /><line
+								x1="5"
+								y1="12"
+								x2="19"
+								y2="12"
+							/>
+						</svg>
+					</button>
+					{#if showShellDropdown}
+						<div class="shell-dropdown-menu" role="menu">
+							{#if availableShells.length === 0}
+								<button
+									type="button"
+									class="dropdown-item"
+									role="menuitem"
+									onclick={() => pickShell()}
+								>
+									<span class="dropdown-item__name">Default shell</span>
+								</button>
+							{:else}
+								{#each availableShells as shell (shell.path)}
+									<button
+										type="button"
+										class="dropdown-item"
+										role="menuitem"
+										onclick={() => pickShell(shell.path)}
+									>
+										<span class="dropdown-item__name">{shell.name}</span>
+										{#if shell.isDefault}
+											<span class="default-badge">default</span>
+										{/if}
+									</button>
+								{/each}
+							{/if}
+						</div>
+					{/if}
+				</div>
 			{/if}
 		{/each}
 	</div>
@@ -136,6 +195,12 @@
 		flex: 1;
 	}
 
+	.tab-new-wrapper {
+		position: relative;
+		display: inline-flex;
+		align-items: center;
+	}
+
 	.tab-new-btn {
 		display: flex;
 		align-items: center;
@@ -156,6 +221,54 @@
 	.tab-new-btn:hover {
 		background: var(--surface-hover);
 		color: var(--foreground-muted);
+	}
+
+	.shell-dropdown-menu {
+		position: absolute;
+		top: calc(100% + 4px);
+		left: 0;
+		background: var(--card, #1a1a1a);
+		border: 1px solid var(--border);
+		border-radius: 6px;
+		padding: 4px;
+		box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+		z-index: 1000;
+		min-width: 160px;
+	}
+
+	.dropdown-item {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		width: 100%;
+		padding: 6px 10px;
+		background: transparent;
+		border: none;
+		border-radius: 4px;
+		color: var(--muted-foreground);
+		font-size: 13px;
+		text-align: left;
+		cursor: pointer;
+		transition: background 0.1s ease;
+		white-space: nowrap;
+	}
+
+	.dropdown-item:hover {
+		background: var(--surface-hover);
+		color: var(--foreground);
+	}
+
+	.dropdown-item__name {
+		flex: 1;
+	}
+
+	.default-badge {
+		font-size: 10px;
+		padding: 1px 4px;
+		background: var(--surface-hover);
+		border-radius: 4px;
+		color: var(--muted-foreground);
 	}
 
 	.tab-list {

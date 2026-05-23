@@ -93,6 +93,10 @@ export function loadPersisted<T>(
 }
 
 /** Serialize + persist a value to localStorage; no-op on SSR or storage failure. */
-export function savePersisted<T>(key: string, value: T, options?: PersistedStorageOptions<T>): void {
+export function savePersisted<T>(
+	key: string,
+	value: T,
+	options?: PersistedStorageOptions<T>
+): void {
 	writeStorage(key, value, resolveSerializer(options));
 }

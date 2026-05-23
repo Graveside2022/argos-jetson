@@ -80,7 +80,9 @@
 					{#if gpStatus.current.assignedIp}
 						<div class="flex flex-col">
 							<span class="text-muted-foreground">Assigned IP</span>
-							<span class="font-medium text-foreground">{gpStatus.current.assignedIp}</span>
+							<span class="font-medium text-foreground"
+								>{gpStatus.current.assignedIp}</span
+							>
 						</div>
 					{/if}
 				</div>

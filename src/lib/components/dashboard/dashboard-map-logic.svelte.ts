@@ -15,7 +15,10 @@ import {
 	isolateDevice,
 	layerVisibility
 } from '$lib/stores/dashboard/dashboard-store.svelte';
-import { GOOGLE_SATELLITE_STYLE, mapSettings } from '$lib/stores/dashboard/map-settings-store.svelte';
+import {
+	GOOGLE_SATELLITE_STYLE,
+	mapSettings
+} from '$lib/stores/dashboard/map-settings-store.svelte';
 import { rfOverlays } from '$lib/stores/dashboard/rf-overlay-store.svelte';
 import { uasStore } from '$lib/stores/dragonsync/uas-store.svelte';
 import { rfVisualization } from '$lib/stores/rf-visualization.svelte';
