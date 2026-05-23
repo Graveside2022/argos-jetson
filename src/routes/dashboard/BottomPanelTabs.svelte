@@ -9,6 +9,7 @@
 		closeBottomPanel,
 		isBottomPanelOpen
 	} from '$lib/stores/dashboard/dashboard-store.svelte';
+	import { createSession } from '$lib/stores/dashboard/terminal-store.svelte';
 
 	interface Props {
 		activeTab: string | null;
@@ -70,6 +71,10 @@
 					class="tab-new-btn"
 					aria-label="New terminal session"
 					title="New terminal session"
+					onclick={() => {
+						activeBottomTab.set('terminal');
+						createSession();
+					}}
 				>
 					<svg
 						width="12"
