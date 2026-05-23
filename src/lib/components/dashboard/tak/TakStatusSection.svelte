@@ -29,7 +29,8 @@
 						? 'bg-destructive'
 						: 'bg-muted-foreground'}"
 			></span>
-			<span class="font-semibold text-foreground">{takStore.status.status.toUpperCase()}</span>
+			<span class="font-semibold text-foreground">{takStore.status.status.toUpperCase()}</span
+			>
 			{#if takStore.status.serverHost}
 				<span class="text-muted-foreground">{takStore.status.serverHost}:{port}</span>
 			{/if}

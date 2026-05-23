@@ -168,7 +168,10 @@
 	/* ── Lifecycle ──────────────────────────────────── */
 
 	$effect(() => {
-		if (isolatedDeviceMAC.current && !kismetStore.current.devices.has(isolatedDeviceMAC.current)) {
+		if (
+			isolatedDeviceMAC.current &&
+			!kismetStore.current.devices.has(isolatedDeviceMAC.current)
+		) {
 			isolateDevice(null);
 		}
 	});

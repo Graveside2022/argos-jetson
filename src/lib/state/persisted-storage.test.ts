@@ -48,9 +48,9 @@ describe('persisted-storage (ADR-0003 load/save helpers)', () => {
 
 	it('legacy validate returning null → default', () => {
 		localStorage.setItem('k', JSON.stringify('bad'));
-		expect(loadPersisted<string>('k', 'def', { validate: (v) => (v === 'good' ? v : null) })).toBe(
-			'def'
-		);
+		expect(
+			loadPersisted<string>('k', 'def', { validate: (v) => (v === 'good' ? v : null) })
+		).toBe('def');
 	});
 
 	it('custom serialize/deserialize round-trips a Set', () => {

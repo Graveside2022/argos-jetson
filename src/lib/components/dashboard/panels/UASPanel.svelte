@@ -92,7 +92,9 @@
 	}
 
 	$effect(() => {
-		syncPollTimer(uasStore.current.status === 'running' || uasStore.current.status === 'starting');
+		syncPollTimer(
+			uasStore.current.status === 'running' || uasStore.current.status === 'starting'
+		);
 	});
 
 	onMount(() => {
@@ -257,22 +259,28 @@
 <div class="panel">
 	<div class="toolbar">
 		<span class="title">UAS DETECTION</span>
-		<span class="chip {chipCls(uasStore.current.status)}">{uasStore.current.status.toUpperCase()}</span>
+		<span class="chip {chipCls(uasStore.current.status)}"
+			>{uasStore.current.status.toUpperCase()}</span
+		>
 		<span class="svc"
 			>droneid-go <span class="dot" class:up={uasStore.current.droneidGoRunning}></span></span
 		>
 		<span class="svc"
-			>DragonSync <span class="dot" class:up={uasStore.current.dragonSyncRunning}></span></span
+			>DragonSync <span class="dot" class:up={uasStore.current.dragonSyncRunning}
+			></span></span
 		>
 		<span class="svc"
-			>FPV Scanner <span class="dot" class:up={uasStore.current.fpvScannerRunning}></span></span
+			>FPV Scanner <span class="dot" class:up={uasStore.current.fpvScannerRunning}
+			></span></span
 		>
 		<span class="svc"
 			>C2 Scanner <span class="dot" class:up={uasStore.current.c2ScannerRunning}></span></span
 		>
 		<span class="spacer"></span>
 		<span class="count"
-			>{uasStore.current.drones.size} drone{uasStore.current.drones.size === 1 ? '' : 's'}</span
+			>{uasStore.current.drones.size} drone{uasStore.current.drones.size === 1
+				? ''
+				: 's'}</span
 		>
 		{#if uasStore.current.status === 'stopped'}
 			<button class="btn-start" onclick={onStart} disabled={starting}>

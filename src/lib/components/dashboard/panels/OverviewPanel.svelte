@@ -29,7 +29,8 @@
 
 	// gpsd uptime — sourced from system uptime as a proxy (gpsd runs at boot)
 	let gpsdRunning = $derived(
-		gpsStore.current.status.hasGPSFix || gpsStore.current.status.gpsStatus !== 'Requesting GPS...'
+		gpsStore.current.status.hasGPSFix ||
+			gpsStore.current.status.gpsStatus !== 'Requesting GPS...'
 	);
 	let gpsdUptime = $derived.by(() => {
 		const s = systemInfo;

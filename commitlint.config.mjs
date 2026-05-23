@@ -30,7 +30,8 @@ export default {
 				'build',
 				'ci',
 				'chore',
-				'revert'
+				'revert',
+				'release'
 			]
 		],
 		'subject-case': [2, 'never', ['sentence-case', 'start-case', 'pascal-case', 'upper-case']],

@@ -84,7 +84,8 @@
 		class="status-chip"
 		class:chip-running={kismetStore.current.status === 'running'}
 		class:chip-transition={kismetStore.current.status === 'starting' ||
-			kismetStore.current.status === 'stopping'}>{kismetStore.current.status.toUpperCase()}</span
+			kismetStore.current.status === 'stopping'}
+		>{kismetStore.current.status.toUpperCase()}</span
 	>
 	<span class="device-count">{deviceCount}</span>
 	{#if renderedCount !== undefined && renderedCount < deviceCount}

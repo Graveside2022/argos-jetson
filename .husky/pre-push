@@ -110,6 +110,25 @@ else
 	esac
 fi
 
+# 1c) Lockfile integrity — block if package-lock.json drifted from package.json.
+#     A merge that auto-merges package-lock.json can silently drop a
+#     resolved-version block (e.g. PR #236 lost qs@6.15.1 after main→dev sync
+#     auto-merge), making `npm ci` fail on every downstream CI run. `npm ci
+#     --dry-run` is the exact integrity check CI uses; runs in ~1s.
+#     Skip: SKIP_LOCK_INTEGRITY=1 git push ...
+if [ "${SKIP_LOCK_INTEGRITY:-0}" = "1" ]; then
+	echo "[pre-push] SKIP_LOCK_INTEGRITY=1 — skipping lockfile integrity check"
+elif [ -f package-lock.json ]; then
+	echo "[pre-push] lockfile integrity (npm ci --dry-run)..."
+	if ! npm ci --dry-run --ignore-scripts --no-audit --no-fund >/dev/null 2>&1; then
+		echo "[pre-push] ❌ package-lock.json out of sync with package.json" >&2
+		echo "[pre-push]    Likely cause: auto-merge of package-lock.json during a branch merge." >&2
+		echo "[pre-push]    Fix:  npm install --package-lock-only --ignore-scripts && git add package-lock.json && git commit --amend --no-edit" >&2
+		echo "[pre-push]    Bypass: SKIP_LOCK_INTEGRITY=1 git push ..." >&2
+		exit 1
+	fi
+fi
+
 # 2) Typecheck (svelte-check via mem-guard wrapper in package.json)
 # npm run typecheck is already wrapped in mem-guard via its package.json
 # script definition — wrapping it again here would cause a nested-lock failure.

@@ -48,10 +48,15 @@ const DEFAULT_BOTTOM_HEIGHT = 240;
 const MIN_BOTTOM_HEIGHT = 100;
 const MAX_BOTTOM_HEIGHT_PERCENT = 0.95;
 
-export const bottomPanelHeight = persistedState<number>('bottomPanelHeight', DEFAULT_BOTTOM_HEIGHT, {
-	serialize: (h) => String(h),
-	deserialize: (raw) => Math.max(MIN_BOTTOM_HEIGHT, parseInt(raw, 10) || DEFAULT_BOTTOM_HEIGHT)
-});
+export const bottomPanelHeight = persistedState<number>(
+	'bottomPanelHeight',
+	DEFAULT_BOTTOM_HEIGHT,
+	{
+		serialize: (h) => String(h),
+		deserialize: (raw) =>
+			Math.max(MIN_BOTTOM_HEIGHT, parseInt(raw, 10) || DEFAULT_BOTTOM_HEIGHT)
+	}
+);
 
 /** Whether the bottom panel is open */
 export const isBottomPanelOpen = {
