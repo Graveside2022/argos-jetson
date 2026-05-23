@@ -5,6 +5,7 @@
 -->
 <script lang="ts">
 	import { onMount } from 'svelte';
+
 	import {
 		activeBottomTab,
 		closeBottomPanel,
