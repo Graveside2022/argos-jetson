@@ -3,20 +3,18 @@
  * orchestrator no longer owns the shortcut table + matcher + Escape logic.
  * +page wires `<svelte:window onkeydown={handleDashboardKeydown} />`.
  */
-import { get } from 'svelte/store';
-
 import {
 	activePanel,
 	activeView,
 	closeBottomPanel,
 	isBottomPanelOpen
-} from '$lib/stores/dashboard/dashboard-store';
+} from '$lib/stores/dashboard/dashboard-store.svelte';
 import {
 	createSession,
 	nextTab,
 	previousTab,
 	toggleTerminalPanel
-} from '$lib/stores/dashboard/terminal-store';
+} from '$lib/stores/dashboard/terminal-store.svelte';
 
 type ShortcutEntry = { ctrl: boolean; shift: boolean; key: string; action: () => void };
 
@@ -33,9 +31,9 @@ function matchShortcut(e: KeyboardEvent): ShortcutEntry | undefined {
 
 /** Escape: collapse the bottom panel, else leave a tool view, else close a panel. */
 function handleEscape(): void {
-	if (get(isBottomPanelOpen)) closeBottomPanel();
-	else if (get(activeView) !== 'map') activeView.set('map');
-	else if (get(activePanel) !== null) activePanel.set(null);
+	if (isBottomPanelOpen.current) closeBottomPanel();
+	else if (activeView.current !== 'map') activeView.set('map');
+	else if (activePanel.current !== null) activePanel.set(null);
 }
 
 export function handleDashboardKeydown(e: KeyboardEvent): void {

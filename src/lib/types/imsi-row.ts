@@ -1,4 +1,4 @@
-// spec-024 PR10b T052 — Mk II GSM screen IMSI table row.
+// GSM screen IMSI table row.
 //
 // Subset of /api/gsm-evil/imsi-data response with optional tower
 // fields populated lazily via /api/gsm-evil/tower-location lookup

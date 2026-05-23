@@ -12,8 +12,8 @@ import {
 	type DeviceForVisibility,
 	filterByVisibility,
 	type VisibilityMode
-} from '$lib/map/visibility-engine';
-import type { KismetState } from '$lib/stores/tactical-map/kismet-store';
+} from '$lib/map/visibility-engine.svelte';
+import type { KismetState } from '$lib/stores/tactical-map/kismet-store.svelte';
 import { getSignalBandKey, getSignalHex } from '$lib/utils/signal-utils';
 
 import {

@@ -7,7 +7,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { KismetDevice } from '$lib/kismet/types';
-import { batchUpdateDevices, kismetStore } from '$lib/stores/tactical-map/kismet-store';
+import { batchUpdateDevices, kismetStore } from '$lib/stores/tactical-map/kismet-store.svelte';
 
 function createMockDevice(index: number): KismetDevice {
 	return {
@@ -51,11 +51,7 @@ describe('Store Performance Benchmarks', () => {
 		const devices = Array.from({ length: 30 }, (_, i) => createMockDevice(i));
 		batchUpdateDevices(devices, new Map());
 
-		let storeState: { deviceCount: number; distributions: { byType: Map<string, number> } } = {
-			deviceCount: 0,
-			distributions: { byType: new Map() }
-		};
-		kismetStore.subscribe((s) => (storeState = s))();
+		const storeState = kismetStore.current;
 
 		expect(storeState.deviceCount).toBe(30);
 		expect(storeState.distributions.byType.size).toBeGreaterThan(0);

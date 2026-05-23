@@ -4,13 +4,12 @@
  * Validates that GSM Evil debounced persistence limits actual localStorage
  * writes under rapid update bursts.
  */
-import { get } from 'svelte/store';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock $app/environment before importing gsm-evil-store (it checks `browser`)
 vi.mock('$app/environment', () => ({ browser: true }));
 
-const { gsmEvilStore } = await import('$lib/stores/gsm-evil-store');
+const { gsmEvilStore } = await import('$lib/stores/gsm-evil-store.svelte');
 
 describe('Persistence Performance Benchmarks', () => {
 	let setItemCalls: number;
@@ -55,7 +54,7 @@ describe('Persistence Performance Benchmarks', () => {
 			gsmEvilStore.addScanProgress(`Progress ${i}`);
 		}
 
-		const state = get(gsmEvilStore);
+		const state = gsmEvilStore.current;
 		expect(state.scanProgress.length).toBeGreaterThan(0);
 	});
 });

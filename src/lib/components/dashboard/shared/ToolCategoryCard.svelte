@@ -3,7 +3,7 @@
 <script lang="ts">
 	import { countTools } from '$lib/data/tool-hierarchy';
 	import { uiIcons } from '$lib/data/tool-icons';
-	import { navigateToCategory } from '$lib/stores/dashboard/tools-store';
+	import { navigateToCategory } from '$lib/stores/dashboard/tools-store.svelte';
 	import type { ToolCategory } from '$lib/types/tools';
 
 	interface Props {

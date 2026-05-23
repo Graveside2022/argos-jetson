@@ -3,8 +3,6 @@
  * All interfaces, type aliases, default state, and storage constants.
  */
 
-import type { Updater } from 'svelte/store';
-
 export const STORAGE_KEY = 'gsm-evil-state';
 export const STORAGE_VERSION = '1.0';
 export const DEBOUNCE_MS = 2000;
@@ -85,5 +83,5 @@ export const defaultState: GSMEvilState = {
 /** Fields excluded from localStorage — transient runtime state */
 export const TRANSIENT_KEYS: (keyof GSMEvilState)[] = ['scanProgress', 'scanAbortController'];
 
-export type StoreUpdate = (updater: Updater<GSMEvilState>) => void;
+export type StoreUpdate = (updater: (value: GSMEvilState) => GSMEvilState) => void;
 export type StoreSet = (value: GSMEvilState) => void;

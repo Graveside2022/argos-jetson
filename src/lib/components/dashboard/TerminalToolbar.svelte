@@ -5,7 +5,7 @@
 		terminalPanelState,
 		toggleMaximize,
 		unsplit
-	} from '$lib/stores/dashboard/terminal-store';
+	} from '$lib/stores/dashboard/terminal-store.svelte';
 
 	interface Props {
 		showMoreMenu: boolean;
@@ -21,7 +21,7 @@
 
 <div class="toolbar-right">
 	<!-- Split/Unsplit button -->
-	{#if $terminalPanelState.splits}
+	{#if terminalPanelState.current.splits}
 		<button
 			class="toolbar-btn"
 			aria-label="Unsplit terminal"
@@ -80,7 +80,7 @@
 		{#if showMoreMenu}
 			<div class="dropdown-menu more-menu">
 				<button class="dropdown-item" onclick={() => onToggleMoreMenu()}> Clear </button>
-				{#if $terminalPanelState.splits}
+				{#if terminalPanelState.current.splits}
 					<button
 						class="dropdown-item"
 						onclick={() => {
@@ -104,11 +104,11 @@
 	<!-- Maximize/restore button -->
 	<button
 		class="toolbar-btn"
-		aria-label={$terminalPanelState.isMaximized ? 'Restore panel' : 'Maximize panel'}
-		title={$terminalPanelState.isMaximized ? 'Restore panel' : 'Maximize panel'}
+		aria-label={terminalPanelState.current.isMaximized ? 'Restore panel' : 'Maximize panel'}
+		title={terminalPanelState.current.isMaximized ? 'Restore panel' : 'Maximize panel'}
 		onclick={toggleMaximize}
 	>
-		{#if $terminalPanelState.isMaximized}
+		{#if terminalPanelState.current.isMaximized}
 			<svg
 				width="14"
 				height="14"

@@ -3,7 +3,7 @@
  * Extracted to break the circular dependency between map-handlers.ts and map-handlers-helpers.ts.
  */
 
-import type { DeviceClassification } from '$lib/stores/tactical-map/kismet-store';
+import type { DeviceClassification } from '$lib/stores/tactical-map/kismet-store.svelte';
 
 export interface PopupState {
 	ssid: string;

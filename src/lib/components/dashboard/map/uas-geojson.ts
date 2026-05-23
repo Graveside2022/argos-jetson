@@ -1,6 +1,6 @@
 import type { Feature, FeatureCollection, Point } from 'geojson';
 
-import type { UASState } from '$lib/stores/dragonsync/uas-store';
+import type { UASState } from '$lib/stores/dragonsync/uas-store.svelte';
 import type { DragonSyncDrone, DragonSyncFpvSignal } from '$lib/types/dragonsync';
 import { hzToChannel } from '$lib/utils/fpv-channels';
 

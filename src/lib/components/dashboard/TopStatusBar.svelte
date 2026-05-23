@@ -5,7 +5,7 @@
 	import { Network, Signal } from '@lucide/svelte';
 	import { onMount, tick } from 'svelte';
 
-	import { gpsStore } from '$lib/stores/tactical-map/gps-store';
+	import { gpsStore } from '$lib/stores/tactical-map/gps-store.svelte';
 	import type { PingResult, TakServer } from '$lib/types/network';
 	import { fetchJSON } from '$lib/utils/fetch-json';
 
@@ -13,8 +13,6 @@
 		takServers: TakServer[];
 	}
 
-	import LatencyDropdown from './status/LatencyDropdown.svelte';
-	import MeshDropdown from './status/MeshDropdown.svelte';
 	import {
 		type DeviceState,
 		fetchHardwareDetails,
@@ -29,7 +27,10 @@
 		getWeatherIcon,
 		type WeatherData
 	} from './status/weather-helpers';
-	import WeatherDropdown from './status/WeatherDropdown.svelte';
+
+	// Dropdowns render only on click ({#if openDropdown===…}), never at first
+	// paint — dynamic-import them so their code stays out of the chassis bundle
+	// + module-eval (SvelteKit "selective loading"). Loaded on first open.
 
 	let wifiState = $state<DeviceState>('offline');
 	let sdrState = $state<DeviceState>('offline');
@@ -41,7 +42,7 @@
 	);
 
 	// Network latency — real Pi-to-target ping measurements
-	let pingResults: PingResult[] = $state([]);
+	let pingResults: PingResult[] = $state.raw([]);
 	let pingLoading = $state(false);
 	let latencyMs = $derived(
 		pingResults.reduce<number | null>((best, r) => {
@@ -50,8 +51,8 @@
 		}, null)
 	);
 
-	let wifiInfo: WifiInfo = $state({});
-	let sdrInfo: SdrInfo = $state({});
+	let wifiInfo: WifiInfo = $state.raw({});
+	let sdrInfo: SdrInfo = $state.raw({});
 	let _gpsInfo: GpsInfo = $state({});
 
 	let _gpsSats = $state(0);
@@ -62,7 +63,7 @@
 	let dateStr = $state('');
 	let openDropdown: 'wifi' | 'sdr' | 'gps' | 'weather' | 'latency' | 'mesh' | null = $state(null);
 
-	let weather: WeatherData | null = $state(null);
+	let weather: WeatherData | null = $state.raw(null);
 	let lastWeatherLat = 0;
 	let lastWeatherLon = 0;
 	// Prevents a second fetch firing while the first is still in-flight.
@@ -75,7 +76,7 @@
 	let isAfterPaint = $state(false);
 
 	// Mesh data from Tailscale + TAK
-	let meshData: MeshStatusResponse = $state({ takServers: [] });
+	let meshData: MeshStatusResponse = $state.raw({ takServers: [] });
 	let meshLoading = $state(false);
 	let takConnectedCount = $derived(meshData.takServers.filter((s) => s.connected).length);
 	let takTotal = $derived(meshData.takServers.length);
@@ -117,7 +118,7 @@
 		_gpsFix = 0;
 	}
 
-	function applyGpsFix(gps: typeof $gpsStore) {
+	function applyGpsFix(gps: typeof gpsStore.current) {
 		const s = gps.status;
 		gpsState = 'active';
 		_gpsSats = s.satellites;
@@ -127,7 +128,7 @@
 		currentGpsLat = gps.position.lat;
 		currentGpsLon = gps.position.lon;
 		// Guard: skip if a fetch is already in-flight. Without this, a second
-		// $gpsStore tick during the fetch window passes hasExistingData=false
+		// gpsStore.current tick during the fetch window passes hasExistingData=false
 		// (weather is still null) and bypasses the hasMoved guard, firing a
 		// duplicate request.
 		if (!isFetchingWeather) {
@@ -162,7 +163,7 @@
 		if (d.gps) _gpsInfo = { ...d.gps };
 	}
 
-	function applyGpsFields(gps: typeof $gpsStore): void {
+	function applyGpsFields(gps: typeof gpsStore.current): void {
 		const s = gps.status;
 		gpsState = 'active';
 		_gpsSats = s.satellites;
@@ -173,13 +174,13 @@
 		currentGpsLon = gps.position.lon;
 	}
 
-	function applyGpsStateOnly(gps: typeof $gpsStore): void {
+	function applyGpsStateOnly(gps: typeof gpsStore.current): void {
 		if (gps.status.hasGPSFix) applyGpsFields(gps);
 		else resetGpsState(gps.status.gpsStatus.includes('Error') ? 'offline' : 'standby');
 	}
 
 	$effect(() => {
-		const gps = $gpsStore;
+		const gps = gpsStore.current;
 		// Defer weather/geocode API calls until after first paint to keep them
 		// off the LCP critical path. UI state (gpsState, sats) still updates
 		// immediately — only the network fetch is deferred.
@@ -288,11 +289,13 @@
 				{latencyMs ?? '--'}ms
 			</button>
 			{#if openDropdown === 'latency'}
-				<LatencyDropdown
-					results={pingResults}
-					loading={pingLoading}
-					onping={fetchNetworkLatency}
-				/>
+				{#await import('./status/LatencyDropdown.svelte') then { default: LatencyDropdown }}
+					<LatencyDropdown
+						results={pingResults}
+						loading={pingLoading}
+						onping={fetchNetworkLatency}
+					/>
+				{/await}
 			{/if}
 		</div>
 		<div class="device-wrapper">
@@ -301,11 +304,13 @@
 				{meshDisplay}
 			</button>
 			{#if openDropdown === 'mesh'}
-				<MeshDropdown
-					takServers={meshData.takServers}
-					loading={meshLoading}
-					onrefresh={fetchMeshStatus}
-				/>
+				{#await import('./status/MeshDropdown.svelte') then { default: MeshDropdown }}
+					<MeshDropdown
+						takServers={meshData.takServers}
+						loading={meshLoading}
+						onrefresh={fetchMeshStatus}
+					/>
+				{/await}
 			{/if}
 		</div>
 		{#if weather}
@@ -318,7 +323,11 @@
 					<span>{Math.round((weather.temperature * 9) / 5 + 32)}°F</span>
 					<span class="weather-desc">{getWeatherCondition(weather.weatherCode)}</span>
 				</button>
-				{#if openDropdown === 'weather'}<WeatherDropdown {weather} />{/if}
+				{#if openDropdown === 'weather'}
+					{#await import('./status/WeatherDropdown.svelte') then { default: WeatherDropdown }}
+						<WeatherDropdown {weather} />
+					{/await}
+				{/if}
 			</div>
 		{:else}
 			<span class="segment segment-muted">--°F</span>

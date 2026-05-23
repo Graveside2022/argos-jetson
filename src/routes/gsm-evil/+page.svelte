@@ -9,7 +9,7 @@
 	import ScanResultsTable from '$lib/components/gsm-evil/ScanResultsTable.svelte';
 	import TowerTable from '$lib/components/gsm-evil/TowerTable.svelte';
 	import { mccToCountry, mncToCarrier } from '$lib/data/carrier-mappings';
-	import { gsmEvilStore } from '$lib/stores/gsm-evil-store';
+	import { gsmEvilStore } from '$lib/stores/gsm-evil-store.svelte';
 	import { groupIMSIsByTower } from '$lib/utils/gsm-tower-utils';
 	import { logger } from '$lib/utils/logger';
 
@@ -27,15 +27,15 @@
 	let imsiPollInterval: ReturnType<typeof setInterval>;
 
 	// Store-managed state via $derived runes
-	let selectedFrequency = $derived($gsmEvilStore.selectedFrequency);
-	let isScanning = $derived($gsmEvilStore.isScanning);
-	let scanResults = $derived($gsmEvilStore.scanResults);
-	let capturedIMSIs = $derived($gsmEvilStore.capturedIMSIs);
-	let scanProgress = $derived($gsmEvilStore.scanProgress);
-	let towerLocations = $derived($gsmEvilStore.towerLocations);
-	let towerLookupAttempted = $derived($gsmEvilStore.towerLookupAttempted);
+	let selectedFrequency = $derived(gsmEvilStore.current.selectedFrequency);
+	let isScanning = $derived(gsmEvilStore.current.isScanning);
+	let scanResults = $derived(gsmEvilStore.current.scanResults);
+	let capturedIMSIs = $derived(gsmEvilStore.current.capturedIMSIs);
+	let scanProgress = $derived(gsmEvilStore.current.scanProgress);
+	let towerLocations = $derived(gsmEvilStore.current.towerLocations);
+	let towerLookupAttempted = $derived(gsmEvilStore.current.towerLookupAttempted);
 
-	let scanButtonText = $derived($gsmEvilStore.scanButtonText);
+	let scanButtonText = $derived(gsmEvilStore.current.scanButtonText);
 
 	// Button shows "Stop Scan" (red) when scanning OR when IMSI capture is running
 	let isActive = $derived(isScanning || imsiCaptureActive);
@@ -235,8 +235,8 @@
 			const response = await fetchScanStream();
 			const abortController = gsmEvilStore.getAbortController();
 			await processScanStream(response, abortController, pageState, startPolling, () => ({
-				scanResults: $gsmEvilStore.scanResults,
-				selectedFrequency: $gsmEvilStore.selectedFrequency
+				scanResults: gsmEvilStore.current.scanResults,
+				selectedFrequency: gsmEvilStore.current.selectedFrequency
 			}));
 		} catch (error) {
 			if (isAbortError(error)) {

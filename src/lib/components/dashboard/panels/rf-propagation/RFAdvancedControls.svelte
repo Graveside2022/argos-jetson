@@ -2,7 +2,7 @@
 <script lang="ts">
 	import Dropdown from '$lib/components/chassis/forms/Dropdown.svelte';
 	import NumberInput from '$lib/components/chassis/forms/NumberInput.svelte';
-	import { rfParams, updateRFParam } from '$lib/stores/dashboard/rf-propagation-store';
+	import { rfParams, updateRFParam } from '$lib/stores/dashboard/rf-propagation-store.svelte';
 	import type {
 		ClutterProfile,
 		PropagationModelId,
@@ -19,7 +19,7 @@
 
 	/** Label for the auto-selected propagation model based on current frequency */
 	const autoModelLabel = $derived.by(() => {
-		const autoId = autoSelectPropModel($rfParams.frequency);
+		const autoId = autoSelectPropModel(rfParams.current.frequency);
 		const model = PROPAGATION_MODELS.find((m) => m.id === autoId);
 		return model ? model.label : 'Auto';
 	});
@@ -36,7 +36,7 @@
 	]);
 
 	const propModelSelectedId = $derived<string | number>(
-		$rfParams.propagationModel === null ? 'auto' : $rfParams.propagationModel
+		rfParams.current.propagationModel === null ? 'auto' : rfParams.current.propagationModel
 	);
 
 	function setRfNumber(key: 'txPower' | 'rxSensitivity', v: number | null): void {
@@ -70,7 +70,7 @@
 			<div class="field-grid">
 				<NumberInput
 					labelText="TX POWER (W)"
-					value={$rfParams.txPower}
+					value={rfParams.current.txPower}
 					min={0.001}
 					max={100}
 					step={0.5}
@@ -82,7 +82,7 @@
 
 				<NumberInput
 					labelText="RX SENSITIVITY (dBm)"
-					value={$rfParams.rxSensitivity}
+					value={rfParams.current.rxSensitivity}
 					min={-150}
 					max={0}
 					step={1}
@@ -97,7 +97,7 @@
 				<Dropdown
 					labelText="ENVIRONMENT"
 					items={clutterItems}
-					selectedId={$rfParams.clutterProfile}
+					selectedId={rfParams.current.clutterProfile}
 					onSelect={(id) => handleClutter(id)}
 					size="sm"
 				/>
@@ -105,7 +105,7 @@
 				<Dropdown
 					labelText="RELIABILITY"
 					items={reliabilityItems}
-					selectedId={$rfParams.reliability}
+					selectedId={rfParams.current.reliability}
 					onSelect={(id) => handleReliability(id)}
 					size="sm"
 				/>

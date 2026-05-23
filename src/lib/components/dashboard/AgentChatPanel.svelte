@@ -2,7 +2,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	import { lastInteractionEvent } from '$lib/stores/dashboard/agent-context-store';
+	import { lastInteractionEvent } from '$lib/stores/dashboard/agent-context-store.svelte';
 
 	import {
 		clearChat,
@@ -57,7 +57,7 @@
 
 	// Auto-send device context when operator clicks a device on the map
 	$effect(() => {
-		handleInteractionEvent($lastInteractionEvent);
+		handleInteractionEvent(lastInteractionEvent.current);
 	});
 
 	function onInput(e: Event) {

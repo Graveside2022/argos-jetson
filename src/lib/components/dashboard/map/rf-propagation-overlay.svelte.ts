@@ -13,16 +13,23 @@
  */
 
 import type maplibregl from 'maplibre-gl';
-import { writable } from 'svelte/store';
 
-import type { RFOverlayEntry } from '$lib/stores/dashboard/rf-overlay-store';
+import type { RFOverlayEntry } from '$lib/stores/dashboard/rf-overlay-store.svelte';
 import type { PropagationBounds } from '$lib/types/rf-propagation';
 
 /**
- * Overlay error store — set when MapLibre rejects a source or layer add.
- * Cleared at the start of each sync cycle. Subscribe in UI to surface failures.
+ * Overlay error rune — set when MapLibre rejects a source or layer add.
+ * Cleared at the start of each sync cycle. Read `.current` in UI to surface failures.
  */
-export const overlayError = writable<string | null>(null);
+let overlayErrorValue = $state<string | null>(null);
+export const overlayError = {
+	get current(): string | null {
+		return overlayErrorValue;
+	},
+	set(value: string | null): void {
+		overlayErrorValue = value;
+	}
+};
 
 // ── Helpers ─────────────────────────────────────────────────────────
 

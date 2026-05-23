@@ -8,7 +8,7 @@
 		activeBottomTab,
 		closeBottomPanel,
 		isBottomPanelOpen
-	} from '$lib/stores/dashboard/dashboard-store';
+	} from '$lib/stores/dashboard/dashboard-store.svelte';
 
 	interface Props {
 		activeTab: string | null;
@@ -31,7 +31,7 @@
 
 	// Toggle: if panel is open, collapse it; if collapsed, reopen to terminal tab
 	function toggleCollapse() {
-		if ($isBottomPanelOpen) {
+		if (isBottomPanelOpen.current) {
 			closeBottomPanel();
 		} else {
 			activeBottomTab.set('terminal');
@@ -99,9 +99,9 @@
 	<!-- Collapse/expand toggle — shows ▼ when open, ▲ when collapsed -->
 	<button
 		class="tab-collapse-btn"
-		class:collapsed={!$isBottomPanelOpen}
-		aria-label={$isBottomPanelOpen ? 'Collapse panel' : 'Expand panel'}
-		title={$isBottomPanelOpen ? 'Collapse panel' : 'Expand panel'}
+		class:collapsed={!isBottomPanelOpen.current}
+		aria-label={isBottomPanelOpen.current ? 'Collapse panel' : 'Expand panel'}
+		title={isBottomPanelOpen.current ? 'Collapse panel' : 'Expand panel'}
 		onclick={toggleCollapse}
 	>
 		<svg

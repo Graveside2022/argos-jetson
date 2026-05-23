@@ -6,7 +6,7 @@
 import { tick } from 'svelte';
 
 import { mccToCountry, mncToCarrier } from '$lib/data/carrier-mappings';
-import { gsmEvilStore, type TowerLocation } from '$lib/stores/gsm-evil-store';
+import { gsmEvilStore, type TowerLocation } from '$lib/stores/gsm-evil-store.svelte';
 import type { CapturedIMSI } from '$lib/types/gsm';
 import { fetchJSON } from '$lib/utils/fetch-json';
 import { groupIMSIsByTower } from '$lib/utils/gsm-tower-utils';
