@@ -1,3 +1,4 @@
+import { error as kitError } from '@sveltejs/kit';
 import { describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 
@@ -155,5 +156,104 @@ describe('createHandler', () => {
 		expect(logSpy).toHaveBeenCalledWith('[GET /signals] fail');
 
 		logger.error = originalError;
+	});
+
+	describe('HttpError handling (kills L104, L106, L107, L112, L113 mutants)', () => {
+		it('forwards SvelteKit HttpError status code (not 500)', async () => {
+			const handler = createHandler(async () => {
+				throw kitError(404, 'Resource not found');
+			});
+			const response = await handler(mockEvent());
+			expect(response.status).toBe(404);
+		});
+
+		it('extracts string message from HttpError body', async () => {
+			const handler = createHandler(async () => {
+				throw kitError(403, 'Forbidden: insufficient permissions');
+			});
+			const response = await handler(mockEvent());
+			const body = await response.json();
+			expect(body).toEqual({ success: false, error: 'Forbidden: insufficient permissions' });
+		});
+
+		it('extracts message from HttpError body when body is { message } object', async () => {
+			const handler = createHandler(async () => {
+				throw kitError(409, { message: 'Conflict on resource id=42' });
+			});
+			const response = await handler(mockEvent());
+			expect(response.status).toBe(409);
+			const body = await response.json();
+			expect(body).toEqual({ success: false, error: 'Conflict on resource id=42' });
+		});
+
+		it('falls back to "Request error" when HttpError body has no message', async () => {
+			const handler = createHandler(async () => {
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				throw kitError(400, {} as any);
+			});
+			const response = await handler(mockEvent());
+			expect(response.status).toBe(400);
+			const body = await response.json();
+			expect(body).toEqual({ success: false, error: 'Request error' });
+		});
+
+		it('returns exact { success: false, error: ... } envelope for HttpError', async () => {
+			const handler = createHandler(async () => {
+				throw kitError(418, "I'm a teapot");
+			});
+			const response = await handler(mockEvent());
+			expect(response.status).toBe(418);
+			const body = await response.json();
+			// Exact object identity assertion — kills ObjectLiteral '{}' mutants on L113
+			expect(body).toStrictEqual({ success: false, error: "I'm a teapot" });
+			expect(body.success).toBe(false); // exact bool, not just falsy
+			expect(Object.keys(body).sort()).toEqual(['error', 'success']);
+		});
+
+		it('uses status 200 only when no error thrown (sanity)', async () => {
+			const handler = createHandler(async () => ({ ok: 1 }));
+			const response = await handler(mockEvent());
+			expect(response.status).toBe(200);
+		});
+	});
+
+	describe('resolveContext fallbacks (kills L100 mutants)', () => {
+		it('falls back to "unknown" when neither method option nor pathname available', async () => {
+			const logSpy = vi.fn();
+			const { logger } = await import('$lib/utils/logger');
+			const originalError = logger.error;
+			logger.error = logSpy;
+
+			// Build an event with NO url + NO method option → must hit 'unknown' fallback
+			const handler = createHandler(async () => {
+				throw new Error('boom');
+			});
+
+			// Cast: deliberately strip url to trigger fallback chain
+			const evt = mockEvent();
+			(evt as unknown as { url: undefined }).url = undefined;
+			await handler(evt);
+
+			expect(logSpy).toHaveBeenCalledWith('[unknown] boom');
+
+			logger.error = originalError;
+		});
+
+		it('logs the EXACT pathname (not just any string)', async () => {
+			const logSpy = vi.fn();
+			const { logger } = await import('$lib/utils/logger');
+			const originalError = logger.error;
+			logger.error = logSpy;
+
+			const handler = createHandler(async () => {
+				throw new Error('detail');
+			});
+			await handler(mockEvent({ pathname: '/api/signals/aggregate' }));
+
+			// Exact string identity — kills StringLiteral '""' mutant on L100:51
+			expect(logSpy).toHaveBeenCalledExactlyOnceWith('[/api/signals/aggregate] detail');
+
+			logger.error = originalError;
+		});
 	});
 });

@@ -11,6 +11,10 @@
 import { z } from 'zod';
 
 function parseBboxNumbers(raw: string): number[] | null {
+	// Stryker disable next-line MethodExpression : equivalent — Number() coerces
+	// whitespace-padded numeric strings identically (`Number(' 42 ') === 42`),
+	// so dropping the .trim() produces the same parsed array for every input.
+	// The .trim() is retained for clarity, not behavior.
 	const parts = raw.split(',').map((s) => Number(s.trim()));
 	if (parts.length !== 4 || parts.some((n) => !Number.isFinite(n))) return null;
 	return parts;
