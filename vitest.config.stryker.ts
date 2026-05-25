@@ -6,10 +6,10 @@ import baseConfig from './vitest.config';
  * Vitest config used ONLY by stryker (test:mutation script).
  *
  * Inherits resolve/aliases/setup from vitest.config.ts; overrides include
- * to scope test discovery to src/lib/server/api so each mutant runs only
- * the colocated tests there — keeps stryker's per-mutant cost cheap on
- * RPi5/Jetson single-fork. Coverage disabled (stryker tracks mutation
- * coverage; v8 coverage on every mutant would 10x runtime).
+ * to scope test discovery to the middleware tests so each mutant runs only
+ * the relevant suites — keeps stryker's per-mutant cost cheap on Jetson.
+ * Coverage disabled (stryker tracks mutation coverage; v8 coverage on every
+ * mutant would 10x runtime).
  *
  * Use the canonical vitest.config.ts for `npm test` / CI.
  */
@@ -17,7 +17,14 @@ export default defineConfig({
 	...baseConfig,
 	test: {
 		...baseConfig.test,
-		include: ['src/lib/utils/**/*.{test,spec}.{js,ts}'],
+		include: [
+			'src/lib/server/middleware/**/*.{test,spec}.{js,ts}',
+			'tests/unit/rate-limit-middleware.test.ts',
+			'tests/unit/rate-limit-middleware-internals.test.ts',
+			'tests/unit/response-pipeline.test.ts',
+			'tests/unit/ws-origin-guard.test.ts',
+			'tests/unit/ws-connection-handler.test.ts'
+		],
 		exclude: ['node_modules/**', '.stryker-tmp/**'],
 		coverage: { enabled: false },
 		// Bump from inherited maxWorkers:1 (RPi5-era) to 2. With stryker's
