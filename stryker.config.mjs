@@ -1,11 +1,9 @@
 /**
- * Stryker mutation testing config.
+ * Stryker mutation testing config (auto-discovered by `stryker run`).
  *
  * Scope starts narrow (server API utilities) — mutation testing is slow on
  * RPi5/Jetson with single-fork vitest (~30+ min per dir). Widen via
  * `npm run test:mutation -- --mutate <pattern>` once a baseline lands.
- *
- * @type {import('@stryker-mutator/api/core').PartialStrykerOptions}
  */
 export default {
 	packageManager: 'npm',
