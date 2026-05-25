@@ -1,44 +1,44 @@
 {
-  "baselinedAt": "2026-05-25T07:43:13Z",
-  "counts": {
-    "info": 0,
-    "low": 0,
-    "moderate": 10,
-    "high": 1,
-    "critical": 0,
-    "total": 11
-  },
-  "advisories": [
-    {
-      "ghsa": "GHSA-c2c7-rcm5-vvqj",
-      "pkg": "picomatch",
-      "severity": "high",
-      "title": "Picomatch has a ReDoS vulnerability via extglob quantifiers"
-    },
-    {
-      "ghsa": "GHSA-3v7f-55p6-f55p",
-      "pkg": "picomatch",
-      "severity": "moderate",
-      "title": "Picomatch: Method Injection in POSIX Character Classes causes incorrect Glob Matching"
-    },
-    {
-      "ghsa": "GHSA-f886-m6hf-6m8v",
-      "pkg": "brace-expansion",
-      "severity": "moderate",
-      "title": "brace-expansion: Zero-step sequence causes process hang and memory exhaustion"
-    },
-    {
-      "ghsa": "GHSA-q8mj-m7cp-5q26",
-      "pkg": "qs",
-      "severity": "moderate",
-      "title": "qs has a remotely triggerable DoS: qs.stringify crashes with TypeError on null/undefined entries in comma-format arrays when encodeValuesOnly is set"
-    },
-    {
-      "ghsa": "GHSA-v2v4-37r5-5v8g",
-      "pkg": "ip-address",
-      "severity": "moderate",
-      "title": "ip-address has XSS in Address6 HTML-emitting methods"
-    }
-  ],
-  "note": "This file gates the `npm audit` delta check. Regenerate with: scripts/ops/audit-delta.sh --update"
+	"baselinedAt": "2026-05-25T07:43:13Z",
+	"counts": {
+		"info": 0,
+		"low": 0,
+		"moderate": 10,
+		"high": 1,
+		"critical": 0,
+		"total": 11
+	},
+	"advisories": [
+		{
+			"ghsa": "GHSA-c2c7-rcm5-vvqj",
+			"pkg": "picomatch",
+			"severity": "high",
+			"title": "Picomatch has a ReDoS vulnerability via extglob quantifiers"
+		},
+		{
+			"ghsa": "GHSA-3v7f-55p6-f55p",
+			"pkg": "picomatch",
+			"severity": "moderate",
+			"title": "Picomatch: Method Injection in POSIX Character Classes causes incorrect Glob Matching"
+		},
+		{
+			"ghsa": "GHSA-f886-m6hf-6m8v",
+			"pkg": "brace-expansion",
+			"severity": "moderate",
+			"title": "brace-expansion: Zero-step sequence causes process hang and memory exhaustion"
+		},
+		{
+			"ghsa": "GHSA-q8mj-m7cp-5q26",
+			"pkg": "qs",
+			"severity": "moderate",
+			"title": "qs has a remotely triggerable DoS: qs.stringify crashes with TypeError on null/undefined entries in comma-format arrays when encodeValuesOnly is set"
+		},
+		{
+			"ghsa": "GHSA-v2v4-37r5-5v8g",
+			"pkg": "ip-address",
+			"severity": "moderate",
+			"title": "ip-address has XSS in Address6 HTML-emitting methods"
+		}
+	],
+	"note": "This file gates the `npm audit` delta check. Regenerate with: scripts/ops/audit-delta.sh --update"
 }
