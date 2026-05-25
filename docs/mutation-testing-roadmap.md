@@ -1,133 +1,147 @@
-# Mutation Testing Roadmap — comprehensive codebase audit
+# Mutation Testing Roadmap — risk-first, layered defense
 
-**Goal:** every TypeScript source file under `src/` has stryker-verified
-mutation score ≥ 80% (stryker `high` threshold). Track-A trunk-health work.
+**Goal:** stryker-verified mutation score ≥ 80% on **critical-path files
+only** (~50-80 files). For non-critical code, rely on the existing layered
+defense stack (TS strict, ESLint, Sentrux, ArchUnitTS, CodeQL, Playwright
+visual regression, Sentry) rather than expensive mutation testing.
 
-**Started:** 2026-05-25 (PR establishing infrastructure + first module).
+**Revised:** 2026-05-25 (Phase 2 pivot — original "all 4034 files in 14-23
+weeks" scope was overreach; replaced with risk-ordered critical-paths-only
+scope).
 
-**Strategy:** module-by-module incremental expansion. NO nuke-and-rewrite —
-preserves existing tests as the regression net + behavioral oracle while
-stryker surfaces weak spots per module. Each module's PR ships a measurable
-score gain.
+**Original aspirational scope:** 4034 source files, 14-23 weeks. Replaced
+after Phase 1 evidence showed mutation testing's real value is on
+security/correctness-critical code, not pure utilities or UI.
 
-## Method
+## Strategy
 
-1. Pick next module from the phase list below.
-2. Add module path to `stryker.config.mjs` `mutate:` array (single-PR scope).
-3. Run `npm run test:mutation` → baseline score.
-4. Triage survivors (see existing `mutation-baseline-2026-05-25.md` for
-   the per-mutator action table).
-5. Add tests until module hits ≥ 80%. Equivalent mutants get
-   `// Stryker disable next-line <Mutator>` annotation with one-line
-   justification.
-6. Re-run `npm run test:mutation` → verified score.
-7. Ship PR. Update this roadmap's status column.
+**Mutation testing is one tool, not the only tool.** It excels at measuring
+oracle strength on critical code. For non-critical code, the existing
+layered defense catches the same issues cheaper.
 
-## CI gate
+Phase by **risk** (severity of bugs the layer could ship), not by directory
+walking. Each phase = 1 PR per sub-module at ≥80% mutation score.
 
-Once stryker is in CI (post-Phase 1), every PR touching `src/**/*.ts` runs
-`npm run test:mutation` on the scoped diff. Stryker `break: 80` blocks merge
-on regression.
+## Layered defense — what catches what
 
-Note: full-suite stryker runs are SLOW (~38 min for 5 files on RPi5 single-
-fork). CI strategy is per-module scoping driven by file diff, not whole-
-codebase per-PR.
+| Layer                                                                        | Catches                                 | Cost                     | Status                                                          |
+| ---------------------------------------------------------------------------- | --------------------------------------- | ------------------------ | --------------------------------------------------------------- |
+| **TypeScript strict** + `tsc --noEmit`                                       | type errors, missing fields, null deref | free                     | ✅ already on                                                   |
+| **ESLint** (incl. `@typescript-eslint/*`, `boundaries`, `sonarjs`, `svelte`) | bug patterns, style, layer violations   | free                     | ✅ already on                                                   |
+| **Sentrux** (project ruleset)                                                | architectural drift, structural quality | session-bracketed        | ✅ already on                                                   |
+| **ArchUnitTS** (`tests/architecture/`)                                       | layer-ordering, network boundary        | CI-gated                 | ✅ in CI as of PR #241                                          |
+| **CodeQL** (default + custom queries)                                        | security/correctness via dataflow       | free on GitHub           | ✅ already on                                                   |
+| **Playwright visual regression** (`tests/visual/`)                           | UI rendering bugs                       | minutes                  | ✅ already on                                                   |
+| **Sentry** runtime monitoring                                                | bugs that escaped tests, in prod        | already paid             | ✅ already on                                                   |
+| **vitest unit/integration**                                                  | per-function behavior                   | seconds-minutes          | ✅ already on                                                   |
+| **vitest --coverage**                                                        | untested code (zero-coverage files)     | seconds                  | ✅ underused — surface untested critical files this way FIRST   |
+| **fast-check** (property-based)                                              | edge cases tests forget                 | seconds                  | ✅ installed, underused — apply to Zod schemas + numeric paths  |
+| **Stryker mutation testing**                                                 | weak oracles on tested code             | minutes-hours per module | ✅ NEW — Phase 1+1.5 shipped, critical-paths-only going forward |
 
-## Phase list
+## Critical-paths-only scope (~50-80 files)
 
-Lower-layer modules first — utility code has fewer dependencies + faster
-mutation runs. Higher-layer (components, routes) need more mock infrastructure.
+|                  # | Module                                                       |         Files | Risk if weak tests                                                     | Priority | Status                                       |
+| -----------------: | ------------------------------------------------------------ | ------------: | ---------------------------------------------------------------------- | -------- | -------------------------------------------- |
+|                  1 | `src/lib/server/api/` (utility layer)                        |             5 | Request-handling exceptions, error envelope shape                      | HIGH     | ✅ done (PR #241) — 97.37%                   |
+|                  2 | `src/lib/server/middleware/` (auth, CSRF, security-headers)  |             4 | **CRITICAL** — unauthorized access, request forgery                    | NEXT     | pending                                      |
+|                  3 | `src/lib/server/hardware/` (claim/release, resource-manager) |            18 | **CRITICAL** — race conditions, USB device contention, corrupted state | next-2   | pending                                      |
+|                  4 | `src/lib/server/db/` (better-sqlite3, migrations, queries)   |            27 | **HIGH** — data corruption, leak, FK integrity                         | next-3   | pending                                      |
+|                  5 | `src/lib/schemas/` (Zod validators)                          |             9 | HIGH — injection, DoS via unvalidated input                            | next-4   | pending; pair with fast-check property tests |
+|                  6 | WebSocket message handlers (in `src/lib/server/services/`)   |        ~10-20 | HIGH — sync logic, reconnection state                                  | next-5   | pending                                      |
+| **CRITICAL TOTAL** |                                                              | **~75 files** |                                                                        |          | ~1-2 weeks parallelized                      |
 
-### Phase 1 + 1.5 — API utility layer (5 files) — DONE 2026-05-25
+## Deferred (rely on layered defense)
 
-| File                                       |      Score | Mutants |               Survived |
-| ------------------------------------------ | ---------: | ------: | ---------------------: |
-| `src/lib/server/api/create-handler.ts`     |     93.33% |      45 |         3 (equivalent) |
-| `src/lib/server/api/error-utils.ts`        |     92.59% |      27 |         2 (equivalent) |
-| `src/lib/server/api/rf-query-schemas.ts`   |    100.00% |      72 |                      0 |
-| `src/lib/server/api/webrx-control-lock.ts` |    100.00% |       3 | 0 (+2 timeouts killed) |
-| `src/lib/server/api/webrx-hackrf-claim.ts` |    100.00% |      43 |                      0 |
-| **Phase total**                            | **97.37%** | **190** | **5 (all equivalent)** |
+| Module                                  |  Files | Why deferred                                                 | Substitute defense                                                                 |
+| --------------------------------------- | -----: | ------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
+| `src/lib/utils/`                        |     21 | Pure helpers, low blast radius (logger msgs, format helpers) | `vitest --coverage` finds zero-coverage; `tsc strict` + `eslint` catch most issues |
+| `src/lib/types/`                        |    ~30 | Type-only files, zero runtime to mutate                      | `tsc strict` IS the test                                                           |
+| `src/routes/` (Svelte components)       |   ~245 | Visual rendering, UX                                         | `tests/visual/` Playwright regression, `web-accessibility-essentials` skill        |
+| `src/lib/components/` (Svelte)          |   ~200 | Same — UI                                                    | Visual regression + ArchUnitTS layer rules                                         |
+| `src/lib/stores/`, `src/lib/state/`     |    ~45 | Svelte 5 runes — stryker support experimental                | Manual review + `svelte-best-practices` skill                                      |
+| `tactical/blue-dragon/` (Rust crate)    | varies | Wrong language                                               | Use `cargo-mutants` separately if needed (not stryker)                             |
+| Generated/vendored code, configs, tests | varies | No source to mutate                                          | N/A                                                                                |
 
-All 5 remaining survivors are documented + annotated equivalent mutants
-(see triage doc). Phase complete.
+## Method (per critical-path PR)
 
-Triage doc: [`mutation-baseline-2026-05-25.md`](./mutation-baseline-2026-05-25.md)
-— full per-survivor analysis + equivalence justifications.
+1. **Coverage gap pass first** — `npm run test:coverage` on the target dir. Identify zero-coverage files. Write minimal tests for those (biggest ROI).
+2. **Invoke the matching skill** for the module's domain:
+    - middleware → `tessl__software-security` + `tessl__csrf-protection` + `tessl__ssr-auth-session-management`
+    - hardware → `tessl__graceful-degradation`
+    - db → `tessl__sqlite-node-best-practices`
+    - schemas → `tessl__simple-typescript` + fast-check
+3. **Update stryker config** mutate scope to ONLY this sub-module.
+4. **Baseline `npm run test:mutation`** with parallel config (concurrency:2-4 depending on system load — see config notes).
+5. **Triage survivors** per `docs/mutation-baseline-2026-05-25.md` action table.
+6. **Write tests / annotate equivalents** until ≥80%.
+7. **Re-run stryker** → verified score.
+8. **Ship PR** with: tests + this roadmap doc updated with row status + survivor triage doc.
 
-### Phase 2 — utility / pure layer
+## Parallel-run config
 
-| Module                    | Est files | Notes                                                                            |
-| ------------------------- | --------: | -------------------------------------------------------------------------------- |
-| `src/lib/utils/**/*.ts`   |       ~40 | Pure functions, no IO. Should mutation-score well with existing colocated tests. |
-| `src/lib/types/**/*.ts`   |       ~30 | Mostly type aliases (zero mutants) + small validators.                           |
-| `src/lib/schemas/**/*.ts` |       ~15 | Zod schemas. Property-based testing via fast-check belongs here.                 |
+Stryker config now ships with `concurrency: 4` (lifted from RPi5-era `1`).
+Vitest stryker config has `maxWorkers: 2`. Effective: 8 active workers on
+8-core Jetson (full utilization, no oversubscription).
 
-### Phase 3 — server data layer
+**Caveat:** when other CPU-heavy work runs on the box (Argos services,
+chromium-mcp, claude-mem, parallel Claude sessions), dial back to
+`concurrency: 2` to leave headroom. The 8-core full-utilization assumes
+mutation testing is the only heavy workload.
 
-| Module                              | Est files | Notes                                                      |
-| ----------------------------------- | --------: | ---------------------------------------------------------- |
-| `src/lib/server/db/**/*.ts`         |       ~25 | better-sqlite3. Tests need real `:memory:` DB.             |
-| `src/lib/server/hardware/**/*.ts`   |       ~50 | resource-manager, device claims. Heavy mocking.            |
-| `src/lib/server/middleware/**/*.ts` |       ~10 | auth, csrf, security-headers. Per-endpoint contract tests. |
+For multi-module parallel runs: spawn N stryker bg jobs each at
+`--concurrency $((8/N))` so the sum stays at 8 cores.
 
-### Phase 4 — server services
+## Estimated effort (revised)
 
-| Module                            | Est files | Notes                                                                   |
-| --------------------------------- | --------: | ----------------------------------------------------------------------- |
-| `src/lib/server/services/**/*.ts` |      ~150 | Biggest layer. Per-sub-module sub-phases (hackrf/, kismet/, tak/, etc). |
+| Module                |                  Est PRs |                       Est wall time (parallel) |
+| --------------------- | -----------------------: | ---------------------------------------------: |
+| 1. api utility (done) |                     done |                                           done |
+| 2. middleware         |                        1 |                   ~15-30 min stryker + writing |
+| 3. hardware           |                      1-2 |                   ~45-90 min stryker + writing |
+| 4. db                 |                      1-2 |                  ~60-120 min stryker + writing |
+| 5. schemas            | 1 (paired w/ fast-check) |                                     ~30-60 min |
+| 6. WebSocket handlers |                        1 |                                     ~30-60 min |
+| **TOTAL**             |              **5-7 PRs** | **~4-8 hours of compute, ~1-2 weeks calendar** |
 
-### Phase 5 — route handlers
+## CI gate (future)
 
-| Module                         | Est files | Notes                                                              |
-| ------------------------------ | --------: | ------------------------------------------------------------------ |
-| `src/routes/api/**/+server.ts` |       ~50 | RequestHandler endpoints. Test via `createHandler` + mocked event. |
+Add to `.github/workflows/ci.yml` once scope stabilizes:
 
-### Phase 6 — frontend (Svelte 5)
+```yaml
+- name: Mutation testing (changed critical-path files only)
+  if: contains(github.event.pull_request.changed_files, 'src/lib/server/{api,middleware,hardware,db}/')
+  run: npm run test:mutation -- --incremental
+  env:
+      STRYKER_BREAK_THRESHOLD: 80
+```
 
-| Module                           | Est files | Notes                                                                                       |
-| -------------------------------- | --------: | ------------------------------------------------------------------------------------------- |
-| `src/lib/stores/**/*.svelte.ts`  |       ~30 | Runes-based state stores. Per-store unit tests.                                             |
-| `src/lib/state/**/*.svelte.ts`   |       ~15 | State machines / derived state.                                                             |
-| `src/lib/components/**/*.svelte` |      ~200 | Component testing. Stryker may not handle .svelte well — verify in spike before committing. |
+Uses stryker's `--incremental` mode + `break: 80` to fail PRs that regress
+critical-path mutation score.
 
-### Phase 7 — Rust crate (separate)
+## Anti-patterns
 
-`tactical/blue-dragon/**` — uses Rust + cargo. Stryker is JS/TS only.
-Switch to `cargo-mutants` for this crate. Separate roadmap.
-
-## Estimated effort
-
-|     Phase |      Files |   Est PRs | Est calendar weeks |
-| --------: | ---------: | --------: | -----------------: |
-|         1 |          5 |      done |               done |
-|       1.5 |          5 |         1 |                0.5 |
-|         2 |        ~85 |       3-4 |                1-2 |
-|         3 |        ~85 |       4-5 |                2-3 |
-|         4 |       ~150 |      8-12 |                4-6 |
-|         5 |        ~50 |       3-4 |                  2 |
-|         6 |       ~245 |     10-15 |                4-8 |
-|         7 | Rust crate |       2-3 |                1-2 |
-| **Total** |   **~620** | **31-45** |    **14-23 weeks** |
-
-Single-engineer estimate. Parallel work via worktrees can compress this.
-
-## Out of scope (for now)
-
-- Mutation testing of `tests/**` files themselves (self-referential).
-- Generated files: `.svelte-kit/`, `build/`, `node_modules/`.
-- Third-party vendored code in `static/`.
-- Configuration files (`*.config.ts`, `*.config.js`, `dangerfile.js`).
-
-## Anti-patterns to avoid
-
-- **Don't nuke-and-rewrite tests.** Existing tests are the behavioral oracle
-    - regression net during transition. Tighten in place; only delete tests
-      that are demonstrably useless (no assertion, or assertion-on-mock-shape).
+- **Don't mutation-test the whole codebase.** It's diminishing returns past
+  critical paths. Use layered defense for low-risk code.
 - **Don't widen `mutate:` scope mid-PR.** One module per PR keeps runtime
-  bounded + makes the score delta legible.
+  bounded and makes score delta legible.
 - **Don't accept survivors silently.** Either kill them with a test or
-  annotate as equivalent with a one-line justification. The TRIAGE doc
-  for each module is the audit trail.
-- **Don't skip the re-run.** A "should kill it" test that wasn't verified
-  by stryker doesn't count toward score. Always re-baseline after additions.
+  annotate as equivalent with one-line justification.
+- **Don't run stryker without checking system load.** Other Claude sessions,
+  Argos services, and chromium-mcp share the 8-core Jetson — dial
+  concurrency down when those are active.
+- **Don't skip the coverage report.** `vitest --coverage` finds zero-coverage
+  files in seconds — that's the cheapest win before reaching for stryker.
+- **Don't conflate "complete" with "comprehensive".** Layered defense IS
+  comprehensive. 100% mutation score on every file is vanity.
+
+## Why this is the right scope
+
+- Phase 1 evidence: mutation testing surfaced 3 zero-coverage files (which
+  `vitest --coverage` would find faster) + 28 weak-oracle survivors (most
+  on defensive code). It found ZERO actual source bugs.
+- Real value: future regressions on the 5 api files now caught.
+- Marginal value of expanding to utils/types/UI: each additional file adds
+  more compute cost than safety. Diminishing returns are steep past
+  security/correctness layers.
+- Industry reality: Google/Meta don't mutation-test entire monorepos. They
+  mutation-test what costs money to get wrong.
