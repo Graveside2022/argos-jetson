@@ -348,3 +348,14 @@ docs/carbon-website/
 # Tessl tile cache — heavy binary artifacts shared across worktrees via
 # spin-worktree.sh symlink. tessl.json + .tessl/RULES.md ARE tracked.
 .tessl/tiles/
+
+# Tessl auto-generated .gitignore (inside .tessl/) — local-only runtime state
+.tessl/.gitignore
+
+# ── Local Tool / Skill Caches (NEVER tracked) ───────────────
+# CodeGraph MCP knowledge-graph index — rebuild via `codegraph init -i`
+.codegraph/
+# Project-level Claude Code skill cache (auto-generated)
+.agents/
+# GitHub-MCP skill cache (auto-generated)
+.github/skills/
