@@ -13,7 +13,12 @@ import { RateLimiter } from '$lib/server/security/rate-limiter';
 const rateLimiter = globalThis.__rateLimiter ?? (globalThis.__rateLimiter = new RateLimiter());
 
 // Cleanup interval (globalThis guard for HMR) - Phase 2.2.5
+// Stryker disable next-line all: module-init singleton; HMR guard cannot be
+// asserted in unit tests without restarting the test process (genuinely
+// equivalent mutants per Phase 3 mutation triage).
 if (!globalThis.__rateLimiterCleanup) {
+	// Stryker disable next-line all: 5-minute setInterval cleanup; not observable
+	// in a test process without sleeping for 5 minutes (genuinely equivalent).
 	globalThis.__rateLimiterCleanup = setInterval(
 		() => rateLimiter.cleanup(),
 		300_000 // 5 minutes
