@@ -17,8 +17,15 @@ export default defineConfig({
 	...baseConfig,
 	test: {
 		...baseConfig.test,
-		include: ['src/lib/server/api/**/*.{test,spec}.{js,ts}'],
+		include: ['src/lib/utils/**/*.{test,spec}.{js,ts}'],
 		exclude: ['node_modules/**', '.stryker-tmp/**'],
-		coverage: { enabled: false }
+		coverage: { enabled: false },
+		// Bump from inherited maxWorkers:1 (RPi5-era) to 2. With stryker's
+		// concurrency:4 = 4 concurrent stryker test runners × 2 vitest workers
+		// each = 8 cores busy on Jetson AGX Orin's 8-core CPU. Full utilization
+		// without oversubscription.
+		maxWorkers: 2,
+		minWorkers: 1,
+		pool: 'forks'
 	}
 });

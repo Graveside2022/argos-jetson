@@ -32,15 +32,21 @@ export default {
 	// even on relative-import tests). Trade-off: each mutant runs ALL
 	// tests in the scoped config (only 20 tests here, so cheap).
 	coverageAnalysis: 'off',
-	concurrency: 1,
+	// concurrency 4 — Jetson AGX Orin has 8 cores + 64GB RAM (plenty of
+	// headroom). The earlier `concurrency: 1` was a leftover from the RPi5
+	// era (8GB, 4 cores). On Jetson each mutation run uses ~500MB RSS so
+	// 4 parallel = ~2GB total, trivial. Cuts per-module mutation time ~4x.
+	// For multi-module parallel runs, dispatch separate stryker instances
+	// each with --reporters-html-fileName overrides to avoid report collision.
+	concurrency: 4,
 	timeoutMS: 60000,
 	timeoutFactor: 2,
 	dryRunTimeoutMinutes: 10,
 	mutate: [
-		'src/lib/server/api/**/*.ts',
-		'!src/lib/server/api/**/*.test.ts',
-		'!src/lib/server/api/**/*.spec.ts',
-		'!src/lib/server/api/**/*.d.ts'
+		'src/lib/utils/**/*.ts',
+		'!src/lib/utils/**/*.test.ts',
+		'!src/lib/utils/**/*.spec.ts',
+		'!src/lib/utils/**/*.d.ts'
 	],
 	ignorePatterns: [
 		'node_modules',
@@ -56,6 +62,7 @@ export default {
 		'.tessl',
 		'.agents',
 		'.github/skills',
+		'.trunk',
 		'.stryker-tmp',
 		'.git'
 	],
