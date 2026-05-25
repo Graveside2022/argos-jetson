@@ -73,12 +73,7 @@
 			"version": "0f00a4fc37905ec9d69a3413b51efefd57e9a997",
 			"source": "https://github.com/ArabelaTso/Skills-4-SE",
 			"include": {
-				"skills": [
-					"abstract-state-analyzer",
-					"error-explanation-generator",
-					"bug-reproduction-test-generator",
-					"cve-reachability-analyzer"
-				]
+				"skills": ["abstract-state-analyzer"]
 			}
 		},
 		"idrevnii/perks": {
