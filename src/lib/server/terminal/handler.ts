@@ -4,6 +4,9 @@ import type { IncomingMessage } from 'http';
 import type { Duplex } from 'stream';
 import { WebSocket, WebSocketServer } from 'ws';
 
+// Relative import — `$lib/*` alias does not exist when vite-plugin-terminal
+// evaluates this module. See origin-allowlist.ts header for the constraint.
+import { isAllowedOrigin } from '../security/origin-allowlist';
 import { detachSession, reattachSession, sendJson, sessions, spawnPty } from './session';
 import { INIT_TIMEOUT_MS, TERMINAL_WS_PATH } from './types';
 
@@ -204,31 +207,12 @@ function getWss(): WebSocketServer {
 }
 
 /**
- * Self-contained Origin allowlist. This module is imported by vite.config.ts
- * (via config/vite-plugin-terminal.ts) BEFORE the `$lib` alias exists, so it
- * must NOT import app modules — mirrors src/lib/server/security/cors.ts.
- * Browsers always send Origin on cross-origin WS upgrades; non-browser clients
- * send none and are allowed (CSWSH requires a browser).
- */
-function isAllowedTerminalOrigin(origin: string | undefined): boolean {
-	if (!origin) return true;
-	const allowed = [
-		'http://localhost:5173',
-		'http://127.0.0.1:5173',
-		'http://localhost:3000',
-		'http://127.0.0.1:3000',
-		...(process.env.ARGOS_CORS_ORIGINS?.split(',').map((s) => s.trim()) ?? [])
-	];
-	return allowed.includes(origin);
-}
-
-/**
  * CWE-1385: reject cross-site WS upgrades (CSWSH) — a browser at another origin
- * may not open a PTY. Dev-only path, but the handler ships in the bundle. Writes
- * 403 + destroys the socket on rejection. Returns true if the upgrade was rejected.
+ * may not open a PTY. Allowlist logic shared with cors.ts via origin-allowlist.
+ * Writes 403 + destroys the socket on rejection. Returns true if rejected.
  */
 function rejectDisallowedTerminalOrigin(req: IncomingMessage, socket: Duplex): boolean {
-	if (isAllowedTerminalOrigin(req.headers.origin)) return false;
+	if (isAllowedOrigin(req.headers.origin)) return false;
 	socket.write('HTTP/1.1 403 Forbidden\r\n\r\n');
 	socket.destroy();
 	return true;
