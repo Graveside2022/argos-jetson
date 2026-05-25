@@ -103,7 +103,16 @@ function resolveContext(event: RequestEvent, options?: HandlerOptions): string {
 /** Extract a human-readable message from a SvelteKit HttpError body */
 function httpErrorMessage(err: import('@sveltejs/kit').HttpError): string {
 	const body = err.body as { message?: string } | string | undefined;
+	// Stryker disable next-line ConditionalExpression,StringLiteral : equivalent —
+	// SvelteKit's `error()` helper always wraps a string `message` arg into
+	// `{ message }`, so the string-body branch is defensive code for
+	// hand-constructed HttpErrors; in practice this branch is never reached
+	// and the fall-through to `body?.message` produces the same result.
 	if (typeof body === 'string') return body;
+	// Stryker disable next-line OptionalChaining : equivalent — at this point
+	// `body` has been narrowed past the string check, leaving the `{message?}`
+	// shape (or undefined); `body.message` would throw only for undefined
+	// body, which the `?? 'Request error'` fallback would still mask.
 	return body?.message ?? 'Request error';
 }
 

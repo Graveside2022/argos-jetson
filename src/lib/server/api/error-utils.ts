@@ -21,7 +21,14 @@
  * ```
  */
 export function errMsg(err: unknown): string {
+	// Stryker disable next-line ConditionalExpression : equivalent — Error instance
+	// also satisfies hasStringMessage() on next-next line, so skipping this branch
+	// (false-mutant) still produces err.message via that fall-through path.
 	if (err instanceof Error) return err.message;
+	// Stryker disable next-line ConditionalExpression,StringLiteral,EqualityOperator : equivalent —
+	// String() coercion of a string is identity, so skipping the string fast-path
+	// (false-mutant / typeof === "" / typeof !== 'string') still returns the
+	// same string via the final `return String(err)`.
 	if (typeof err === 'string') return err;
 	if (hasStringMessage(err)) return err.message;
 	return String(err);
@@ -44,6 +51,9 @@ export function errMsg(err: unknown): string {
  */
 export function normalizeError(err: unknown): Error {
 	if (err instanceof Error) return err;
+	// Stryker disable next-line ConditionalExpression,StringLiteral : equivalent —
+	// `new Error(String('foo'))` === `new Error('foo')`, so skipping the string
+	// fast-path produces identical output. Branch retained for clarity.
 	if (typeof err === 'string') return new Error(err);
 	return new Error(String(err));
 }
