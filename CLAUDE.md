@@ -6,6 +6,27 @@ Project rules clean-slate as of 2026-05-20. Four rule surfaces are active in thi
 
 **Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
 
+## 0. Ruflo PRIMARY orchestrator — ALL tasks + prompts route through ruflo FIRST
+
+**Established 2026-05-26 (post PR #251 ruflo integration + PR #252 106-skill catalog).** Every Argos task and every user prompt — bug fix, feature, refactor, audit, swarm dispatch, doc update, ANY code-action verb — MUST start with ruflo memory recall + scope store + swarm-vs-single decision. Tessl skills, codegraph, sentrux, etc. are COMBINATIONS that layer on top of the ruflo flow; they are NOT alternatives to ruflo and they do NOT come first.
+
+### Mandatory per-task flow (see [`RUFLO.md`](./RUFLO.md) §Per-phase ruflo workflow pattern)
+
+1. **Recall** → `mcp__ruflo__memory_search` + `mcp__ruflo__agentdb_pattern-search` for prior context ("did we already solve this?", scope/methodology decisions, prior PR findings).
+2. **Scope store + swarm-vs-single decision** → `mcp__ruflo__memory_store` task scope + goals in `argos-<task-name>-scope` namespace. Decision: parallel/swarm work needed? Spawn N native `Agent` calls (use ruflo 60+ `subagent_type` labels). Single-shot? Proceed inline.
+3. **Skill match (ruflo-first)** → match the work to ruflo skills FIRST via [`SKILL-ROUTING.md`](./SKILL-ROUTING.md) §Ruflo skill catalog (skip ⚠️ STUB / 🎯 DOMAIN / 📦 DEPRECATED / 📝 GUIDANCE tags), then tessl skills as COMBINATION layer.
+4. **Findings as they land** → `mcp__ruflo__agentdb_pattern-store` per finding (severity + file:line).
+5. **Decisions / pivots** → `mcp__ruflo__memory_store` each in `argos-decisions` namespace.
+6. **Task end** → `mcp__ruflo__agentdb_pattern-store` completion record (score, deferred items, PR number).
+
+### Theater tools to SKIP (per RUFLO.md audit + Argos Phase 4 demo)
+
+`coordination_orchestrate`, `agent_spawn`, `swarm_init`, `hive-mind_*` (verifySignature returns true), `wasm_agent_*` (echoes input), `neural_train` (hardcoded += 100), `autopilot_*`, `claims_*`, `daa_*`. Skip these — use native equivalents (`Agent` tool for orchestration, `/loop` + `ScheduleWakeup` for autonomous loops, git+PR for cross-machine sync).
+
+### Hook enforcement
+
+PreToolUse hook `~/.claude/hooks/ruflo-task-routing-gate.sh` BLOCKS code-action tools (`Edit`, `Write`, `MultiEdit`, `NotebookEdit`, `TaskCreate`, `Agent`, `ScheduleWakeup`, `CronCreate`, github writes, file-mutating Bash) if the same turn does not include `mcp__ruflo__memory_store` or `mcp__ruflo__memory_search`. Bypass: `CLAUDE_RUFLO_BYPASS=1` in env. Mechanical enforcement is the only way this discipline survives.
+
 ## 1. Think Before Coding
 
 **Don't assume. Don't hide confusion. Surface tradeoffs.**
@@ -107,11 +128,15 @@ Use codegraph for **structural** questions — what calls what, what would break
 
 The MCP server returns "not initialized." Ask the user: _"I notice this project doesn't have CodeGraph initialized. Want me to run `codegraph init -i` to build the index?"_
 
-## Skill routing (tessl + ruflo)
+## Skill routing (ruflo PRIMARY, tessl COMBINATIONS)
 
-13 tessl skills + ~50 ruflo skills are installed for the v1 audit + ongoing work. **Before planning or doing a code task, match the work to the right skill and invoke it via the Skill tool** — same deliberate-routing discipline as the MCP-PREFLIGHT walk. The full trigger map, per-skill cards, and overlap/disambiguation rules live in `@SKILL-ROUTING.md`. Skills are guidance; the measurement engines remain native MCP (sentrux/codegraph/chrome-devtools/CodeQL/Sentry).
+13 tessl skills + 106 ruflo skill cards (69 REAL, 16 STUB, 16 DOMAIN, 4 GUIDANCE, 1 DEPRECATED — full enumeration in `@SKILL-ROUTING.md`) are installed. **Before planning or doing a code task, route through ruflo FIRST per §0 above, THEN match tessl skills as combination layers.** Full trigger map + disambiguation in `@SKILL-ROUTING.md`. Skills are guidance; measurement engines stay native MCP (sentrux/codegraph/chrome-devtools/CodeQL/Sentry).
 
-**Skill catalog scan order** (cheapest → most expensive): scan ruflo cards (`~/.claude/plugins/cache/.../ruflo-*`) + tessl skills (`@SKILL-ROUTING.md` trigger map) FIRST. If neither covers the task, run `mcp__tessl__search` and gate any new install by the 5-check safe-install protocol.
+**Skill catalog scan order (INVERTED 2026-05-26)**:
+1. `mcp__ruflo__memory_search` + `agentdb_pattern-search` — prior context recall (PRIMARY entry point per §0)
+2. Ruflo skill cards (per-plugin catalog in `@SKILL-ROUTING.md`) — match to ruflo executor; skip ⚠️ STUB / 🎯 DOMAIN / 📦 DEPRECATED / 📝 GUIDANCE tags
+3. Tessl skills — match as COMBINATION layer on top of ruflo flow (e.g. `tessl__sqlite-node-best-practices` LAYERED INTO a ruflo `test-gaps` + `memory_store` flow)
+4. Gap → `mcp__tessl__search` and gate any new install by the 5-check safe-install protocol from §Tessl install discipline below.
 
 ## Ruflo cross-session memory
 
