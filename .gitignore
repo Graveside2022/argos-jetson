@@ -146,6 +146,10 @@ tests/visual/baselines/
 tests/reports/
 browser-test.png
 
+# Stryker mutation testing — sandbox + report artifacts (large binaries)
+.stryker-tmp/
+reports/mutation/
+
 # ── Runtime Data ─────────────────────────────────────────────
 pids/
 *.pid

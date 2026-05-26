@@ -62,7 +62,7 @@
 		"docs/argos-v2-mockup/**",
 		"docs/export_pen_files/**"
 	],
-	"entry": ["dangerfile.js", "scripts/ops/prod-server.ts"],
+	"entry": ["dangerfile.js", "scripts/ops/prod-server.ts", "stryker.config.mjs"],
 	"dynamicallyLoaded": [
 		"src/lib/server/db/migrations/**/*.ts",
 		"src/lib/server/db/migrations/**/*.sql"
