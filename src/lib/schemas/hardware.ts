@@ -52,7 +52,8 @@ export const WiFiCapabilitiesSchema = z.object({
 	canInject: z.boolean(),
 	frequencyBands: z.array(z.string()),
 	channels: z.array(z.number()),
-	maxTxPower: z.number().optional()
+	// Typical wifi tx power: 0-30 dBm (consumer), up to ~50 dBm (high-power radios incl. directional antennas).
+	maxTxPower: z.number().min(0).max(50).optional()
 });
 
 /**

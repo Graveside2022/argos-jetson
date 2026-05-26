@@ -1,5 +1,14 @@
 import { z } from 'zod';
 
+import { AltMetersBounds, LatBounds, LonBounds, RssiDbmBounds } from './common-bounds';
+
+// Drone-telemetry-specific bounds (not shared with other schemas).
+const HeightMetersBounds = z.number().min(0).max(50_000); // [0, 50km] above ground
+const SpeedMsBounds = z.number().min(0).max(300); // [0, 300 m/s] — fast drones ~70 m/s; small aircraft ~300
+const VSpeedMsBounds = z.number().min(-200).max(200);
+const HeadingDegBounds = z.number().min(0).max(360);
+const FreqMhzBounds = z.number().min(1).max(100_000);
+
 const DragonSyncRidSchema = z
 	.object({
 		make: z.string().nullable(),
@@ -19,22 +28,22 @@ const DragonSyncDroneSchema = z
 		operator_id: z.string().default(''),
 		operator_id_type: z.string().default(''),
 		op_status: z.string().default(''),
-		lat: z.number().default(0),
-		lon: z.number().default(0),
-		alt: z.number().default(0),
-		height: z.number().default(0),
-		speed: z.number().default(0),
-		vspeed: z.number().default(0),
-		direction: z.number().nullable().default(null),
-		pressure_altitude: z.number().nullable().default(null),
+		lat: LatBounds.default(0),
+		lon: LonBounds.default(0),
+		alt: AltMetersBounds.default(0),
+		height: HeightMetersBounds.default(0),
+		speed: SpeedMsBounds.default(0),
+		vspeed: VSpeedMsBounds.default(0),
+		direction: HeadingDegBounds.nullable().default(null),
+		pressure_altitude: AltMetersBounds.nullable().default(null),
 		height_type: z.string().default(''),
-		pilot_lat: z.number().default(0),
-		pilot_lon: z.number().default(0),
-		home_lat: z.number().default(0),
-		home_lon: z.number().default(0),
+		pilot_lat: LatBounds.default(0),
+		pilot_lon: LonBounds.default(0),
+		home_lat: LatBounds.default(0),
+		home_lon: LonBounds.default(0),
 		mac: z.string().default(''),
-		rssi: z.number().default(0),
-		freq: z.number().nullable().default(null),
+		rssi: RssiDbmBounds.default(0),
+		freq: FreqMhzBounds.nullable().default(null),
 		transport: z.string().default(''),
 		description: z.string().default(''),
 		rid: DragonSyncRidSchema.default({
@@ -44,13 +53,13 @@ const DragonSyncDroneSchema = z
 			lookup_attempted: false,
 			lookup_success: false
 		}),
-		last_update_time: z.number().default(0),
+		last_update_time: z.number().nonnegative().default(0),
 		track_type: z.enum(['drone', 'aircraft']).default('drone'),
 		caa_id: z.string().default(''),
 		horizontal_accuracy: z.string().default(''),
 		vertical_accuracy: z.string().default(''),
 		speed_accuracy: z.string().default(''),
-		observed_at: z.number().nullable().default(null),
+		observed_at: z.number().nonnegative().nullable().default(null),
 		seen_by: z.string().nullable().default(null)
 	})
 	.passthrough();
@@ -86,21 +95,21 @@ const DragonSyncFpvSignalSchema = z
 		callsign: z.string().default(''),
 		description: z.string().nullable().default(null),
 		self_id: z.string().nullable().default(null),
-		center_hz: z.number().nullable().default(null),
-		bandwidth_hz: z.number().nullable().default(null),
-		pal_conf: z.number().nullable().default(null),
-		ntsc_conf: z.number().nullable().default(null),
-		rssi: z.number().nullable().default(null),
-		sensor_lat: z.number().default(0),
-		sensor_lon: z.number().default(0),
-		sensor_alt: z.number().default(0),
-		lat: z.number().default(0),
-		lon: z.number().default(0),
-		alt: z.number().default(0),
-		radius_m: z.number().default(15),
+		center_hz: z.number().positive().nullable().default(null),
+		bandwidth_hz: z.number().positive().nullable().default(null),
+		pal_conf: z.number().min(0).max(1).nullable().default(null),
+		ntsc_conf: z.number().min(0).max(1).nullable().default(null),
+		rssi: RssiDbmBounds.nullable().default(null),
+		sensor_lat: LatBounds.default(0),
+		sensor_lon: LonBounds.default(0),
+		sensor_alt: AltMetersBounds.default(0),
+		lat: LatBounds.default(0),
+		lon: LonBounds.default(0),
+		alt: AltMetersBounds.default(0),
+		radius_m: z.number().positive().default(15),
 		seen_by: z.string().nullable().default(null),
-		expires_at: z.number().optional(),
-		last_update_time: z.number().optional()
+		expires_at: z.number().nonnegative().optional(),
+		last_update_time: z.number().nonnegative().optional()
 	})
 	.passthrough();
 
