@@ -11,6 +11,8 @@
 
 import { z } from 'zod';
 
+import { FreqMhzBounds, RssiDbmBounds } from './common-bounds';
+
 /**
  * GPSPosition Schema - Validates GPS coordinates
  *
@@ -72,8 +74,8 @@ export const GPSStatusSchema = z.object({
  */
 export const SimplifiedSignalSchema = z.object({
 	id: z.string().min(1),
-	frequency: z.number().min(1).max(6000),
-	power: z.number().min(-120).max(0),
+	frequency: FreqMhzBounds,
+	power: RssiDbmBounds,
 	lat: z.number().min(-90).max(90),
 	lon: z.number().min(-180).max(180),
 	timestamp: z.number().int().positive(),

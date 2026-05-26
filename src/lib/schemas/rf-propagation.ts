@@ -9,6 +9,8 @@
 
 import { z } from 'zod';
 
+import { RssiDbmBounds } from './common-bounds';
+
 /** CloudRF colormap identifiers (verified against live API) */
 const CloudRFColormapSchema = z.enum(['RAINBOW45.dBm', 'LTE.dBm', 'HF.dBm']);
 
@@ -55,7 +57,7 @@ export const CoverageRequestSchema = z.object({
 	resolution: z.number().min(5).max(300).default(10),
 	colormap: CloudRFColormapSchema.default('RAINBOW45.dBm'),
 	txPower: z.number().min(0.001).max(100).optional(),
-	rxSensitivity: z.number().min(-150).max(0).optional(),
+	rxSensitivity: RssiDbmBounds.optional(),
 	clutterProfile: ClutterProfileSchema.optional(),
 	propagationModel: PropagationModelSchema.nullable().optional(),
 	reliability: ReliabilitySchema.optional()
