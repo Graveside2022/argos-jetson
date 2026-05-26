@@ -170,6 +170,30 @@ describe('scanAllHardware', () => {
 		expect(result.stats.byCategory.wifi).toBe(1);
 		expect(result.stats.byConnectionType.usb).toBe(2);
 	});
+
+	test('byCategory.unknown stays finite when a device carries category: "unknown"', async () => {
+		// Pre-built record at hardware-detector.ts:58-68 seeds every HardwareCategory key
+		// to 0. The mutation we’re killing: if the initializer is mutated (e.g., unknown
+		// key removed), byCategory['unknown']++ becomes `undefined++` → NaN. Force the
+		// path by feeding a hw row with category: 'unknown' and assert the counter is
+		// a finite integer, not NaN.
+		(detectUSBDevices as ReturnType<typeof vi.fn>).mockResolvedValue([
+			{
+				id: 'mystery',
+				name: 'mystery device',
+				category: 'unknown',
+				connectionType: 'usb',
+				status: 'connected',
+				capabilities: {}
+			}
+		]);
+		const result = await scanAllHardware();
+		expect(result.stats.byCategory.unknown).toBe(1);
+		expect(Number.isFinite(result.stats.byCategory.unknown)).toBe(true);
+		// Sibling buckets stay 0 — the increment didn’t leak.
+		expect(result.stats.byCategory.sdr).toBe(0);
+		expect(result.stats.byCategory.wifi).toBe(0);
+	});
 });
 
 describe('HardwareMonitor', () => {

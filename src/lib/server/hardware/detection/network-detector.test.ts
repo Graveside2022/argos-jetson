@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 vi.mock('$lib/server/exec', () => ({
 	execFileAsync: vi.fn()
@@ -16,6 +16,7 @@ vi.mock('$lib/server/env', () => ({
 	}
 }));
 
+import { env } from '$lib/server/env';
 import { execFileAsync } from '$lib/server/exec';
 
 import { detectNetworkDevices } from './network-detector';
@@ -50,7 +51,8 @@ describe('detectNetworkDevices — orchestration', () => {
 		});
 		const result = await detectNetworkDevices();
 		const kismet = result.find((r) => r.id === 'kismet-server');
-		expect(kismet).toBeDefined();
+		expect(kismet?.name).toBe('Kismet Server');
+		expect(kismet?.port).toBe(2501);
 	});
 });
 
@@ -154,12 +156,75 @@ describe('detectNetworkDevices — OpenWebRX', () => {
 			throw new Error('refused');
 		});
 		const result = await detectNetworkDevices();
-		expect(result.find((r) => r.id === 'openwebrx-server')).toBeDefined();
+		const openwebrx = result.find((r) => r.id === 'openwebrx-server');
+		expect(openwebrx?.name).toBe('OpenWebRX Server');
+		expect(openwebrx?.port).toBe(8073);
 	});
 
 	test('no OpenWebRX when status is not ok', async () => {
 		fetchMock.mockImplementation(async () => new Response('', { status: 503 }));
 		const result = await detectNetworkDevices();
 		expect(result.find((r) => r.id === 'openwebrx-server')).toBeUndefined();
+	});
+});
+
+describe('detectNetworkDevices — port-fallback edge cases (buildServiceDevice)', () => {
+	const originalKismetUrl = env.PUBLIC_KISMET_API_URL;
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+		execMock.mockRejectedValue(new Error('no uhd'));
+		mockFetchFailures();
+	});
+
+	afterEach(() => {
+		env.PUBLIC_KISMET_API_URL = originalKismetUrl;
+	});
+
+	test('parseInt(url.port) for port=0 falls back to defaultPort 2501', async () => {
+		// URL with explicit :0 port — parseInt("0") is 0, which is falsy → defaultPort wins
+		env.PUBLIC_KISMET_API_URL = 'http://localhost:0';
+		fetchMock.mockImplementation(async (url: string) => {
+			if (url.includes('localhost')) {
+				return new Response(JSON.stringify({ kismet_version: '2024-02' }), { status: 200 });
+			}
+			throw new Error('refused');
+		});
+		const result = await detectNetworkDevices();
+		const kismet = result.find((r) => r.id === 'kismet-server');
+		expect(kismet?.port).toBe(2501);
+	});
+
+	test('parseInt(url.port) for empty port falls back to defaultPort 2501', async () => {
+		// URL without explicit port — url.port === "", parseInt("") is NaN → defaultPort wins
+		env.PUBLIC_KISMET_API_URL = 'http://localhost';
+		fetchMock.mockImplementation(async (url: string) => {
+			if (url.includes('localhost')) {
+				return new Response(JSON.stringify({ kismet_version: '2024-03' }), { status: 200 });
+			}
+			throw new Error('refused');
+		});
+		const result = await detectNetworkDevices();
+		const kismet = result.find((r) => r.id === 'kismet-server');
+		expect(kismet?.port).toBe(2501);
+	});
+});
+
+describe('detectNetworkDevices — parseNetworkUSRPLineFields malformed addr', () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+		mockFetchFailures();
+	});
+
+	test('addr line without IP captures empty/short → zod safeParse rejects', async () => {
+		// "addr: " with no numeric IP. /addr:\s*([0-9.]+)/i needs ≥1 char, so addrMatch
+		// fails → ipAddress stays undefined → no flush + final ipAddress check skips push.
+		// This guards against the bug where matchgroup[1] could become an empty string
+		// and silently flow through DetectedHardwareSchema as an invalid hardware row.
+		execMock.mockResolvedValue({
+			stdout: ['  Device Address:', '    addr: ', '    serial: ABC123', '    type: x'].join('\n')
+		});
+		const result = await detectNetworkDevices();
+		expect(result.filter((r) => r.id?.startsWith('usrp-net-'))).toEqual([]);
 	});
 });

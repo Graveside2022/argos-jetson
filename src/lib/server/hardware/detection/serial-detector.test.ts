@@ -143,6 +143,67 @@ describe('detectSerialDevices — cellular modem', () => {
 		expect((cell?.capabilities as Record<string, unknown>).supportedBands).toContain('LTE');
 		expect((cell?.capabilities as Record<string, unknown>).supportedBands).toContain('5G');
 	});
+
+	test('imeiMatch absent → CellularCapabilities.imei is undefined (type-safe)', async () => {
+		// Details output has model + state but no imei line — imeiMatch?.[1] yields undefined.
+		// Guards against the mutation where ?.[1] becomes [1] (would throw on null match).
+		execMock.mockImplementation(async (cmd: string, args: string[]) => {
+			if (cmd === '/usr/bin/mmcli' && args[0] === '-L') {
+				return { stdout: '/org/freedesktop/ModemManager1/Modem/7' };
+			}
+			if (cmd === '/usr/bin/mmcli' && args[0] === '-m') {
+				return { stdout: 'model: Sierra\nstate: registered\nGSM bands' };
+			}
+			throw new Error('unmocked');
+		});
+		const result = await detectSerialDevices();
+		const cell = result.find((r) => r.category === 'cellular');
+		expect(cell).toBeDefined();
+		const caps = cell?.capabilities as Record<string, unknown>;
+		expect(caps.imei).toBeUndefined();
+		expect(caps.simStatus).toBe('registered');
+	});
+});
+
+describe('detectSerialDevices — generic serial probe edge cases', () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+		execMock.mockRejectedValue(new Error('not found'));
+		readFileMock.mockRejectedValue(new Error('no file'));
+	});
+
+	test('cat /dev/ttyUSB* 3s timeout error path: logs warn, doesn’t crash', async () => {
+		// execFileAsync rejects (e.g., timeout firing or EACCES) — probeGpsDevice swallows
+		// the error, logs warn, returns null. detectSerialDevices must NOT throw.
+		readdirMock.mockResolvedValue(['ttyUSB0']);
+		execMock.mockImplementation(async (cmd: string, args: string[]) => {
+			if (cmd === '/usr/bin/cat' && args[0] === '/dev/ttyUSB0') {
+				throw new Error('Command failed: timeout');
+			}
+			throw new Error('not found');
+		});
+		const result = await detectSerialDevices();
+		expect(result.find((r) => r.category === 'gps')).toBeUndefined();
+		const { logger } = await import('$lib/utils/logger');
+		expect(logger.warn).toHaveBeenCalledWith(
+			'[SerialDetector] Could not read device',
+			expect.objectContaining({ devicePath: '/dev/ttyUSB0' })
+		);
+	});
+
+	test('readUsbInfo path traversal: missing manufacturer file → device skipped', async () => {
+		// /sys/class/tty/<dev>/device/../../../manufacturer doesn’t exist (unexpected sys
+		// structure). readFile rejects → manufacturer defaults to "Unknown" → probe returns null.
+		readdirMock.mockResolvedValue(['ttyUSB5']);
+		execMock.mockImplementation(async (cmd: string) => {
+			// No NMEA sentence so GPS probe doesn’t fabricate a device path.
+			if (cmd === '/usr/bin/cat') return { stdout: 'random' };
+			throw new Error('not found');
+		});
+		readFileMock.mockRejectedValue(new Error('ENOENT'));
+		const result = await detectSerialDevices();
+		expect(result.filter((r) => r.device === '/dev/ttyUSB5')).toEqual([]);
+	});
 });
 
 describe('detectSerialDevices — generic serial dedup', () => {

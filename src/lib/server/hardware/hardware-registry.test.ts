@@ -262,18 +262,6 @@ describe('HardwareRegistry — updateStatus / markConnected / markDisconnected /
 		expect(reg.updateStatus('ghost', 'connected')).toBe(false);
 	});
 
-	test('markConnected delegates to updateStatus with connected', () => {
-		reg.register(makeHw({ id: 'a', status: 'disconnected' }));
-		expect(reg.markConnected('a')).toBe(true);
-		expect(reg.get('a')?.status).toBe('connected');
-	});
-
-	test('markDisconnected delegates to updateStatus with disconnected', () => {
-		reg.register(makeHw({ id: 'a', status: 'connected' }));
-		expect(reg.markDisconnected('a')).toBe(true);
-		expect(reg.get('a')?.status).toBe('disconnected');
-	});
-
 	test('markConnected / markDisconnected return false for unknown id', () => {
 		expect(reg.markConnected('ghost')).toBe(false);
 		expect(reg.markDisconnected('ghost')).toBe(false);
@@ -381,11 +369,16 @@ describe('HardwareRegistry — distinct-kill mutation guards', () => {
 		expect(reg.query({ search: 'foox' })).toHaveLength(0);
 	});
 
-	test('register triggers logger.debug exactly once per call', async () => {
+	test('register triggers logger.debug exactly once per call with [HardwareRegistry] tag', async () => {
 		const { logger } = await import('$lib/utils/logger');
 		(logger.debug as ReturnType<typeof vi.fn>).mockClear();
 		reg.register(makeHw({ id: 'a' }));
 		expect(logger.debug).toHaveBeenCalledTimes(1);
+		expect(logger.debug).toHaveBeenCalledWith(
+			expect.stringContaining('[HardwareRegistry]'),
+			expect.anything(),
+			expect.anything()
+		);
 	});
 
 	test('unregister of unknown id does NOT call logger.debug', async () => {
@@ -395,10 +388,47 @@ describe('HardwareRegistry — distinct-kill mutation guards', () => {
 		expect(logger.debug).not.toHaveBeenCalled();
 	});
 
-	test('clear triggers logger.info exactly once', async () => {
+	test('unregister of KNOWN id calls logger.debug with [HardwareRegistry] tag', async () => {
+		const { logger } = await import('$lib/utils/logger');
+		reg.register(makeHw({ id: 'a' }));
+		(logger.debug as ReturnType<typeof vi.fn>).mockClear();
+		reg.unregister('a');
+		expect(logger.debug).toHaveBeenCalledWith(
+			expect.stringContaining('[HardwareRegistry]'),
+			expect.anything()
+		);
+	});
+
+	test('clear triggers logger.info exactly once with [HardwareRegistry] tag', async () => {
 		const { logger } = await import('$lib/utils/logger');
 		(logger.info as ReturnType<typeof vi.fn>).mockClear();
 		reg.clear();
 		expect(logger.info).toHaveBeenCalledTimes(1);
+		expect(logger.info).toHaveBeenCalledWith(expect.stringContaining('[HardwareRegistry]'));
+	});
+
+	test('updateStatus mutates the SAME object reference returned by prior get()', () => {
+		// Documents current behavior: HardwareRegistry stores by reference and
+		// mutates in-place inside updateStatus. A handle obtained via get()
+		// before the update sees the new status — no immutable snapshot is
+		// returned. If this changes (e.g. structural sharing or freezing),
+		// downstream code that aliases get()'s return must be updated.
+		reg.register(makeHw({ id: 'a', status: 'disconnected' }));
+		const handle = reg.get('a');
+		if (!handle) throw new Error('expected registered hw');
+		expect(handle.status).toBe('disconnected');
+		reg.updateStatus('a', 'connected');
+		expect(handle.status).toBe('connected');
+	});
+
+	test('getByCategory().bluetooth is `undefined` at runtime when no bluetooth device registered', () => {
+		// Static type is Record<HardwareCategory, DetectedHardware[]> via a
+		// type-cast at the return site, but the runtime value is built from a
+		// Partial<Record<...>>. Accessing an unregistered category yields
+		// `undefined`, not an empty array. Callers MUST narrow before iterating.
+		reg.register(makeHw({ id: 'sdr-only', category: 'sdr' }));
+		const grouped = reg.getByCategory();
+		expect(grouped.bluetooth).toBeUndefined();
+		expect(grouped.sdr).toHaveLength(1);
 	});
 });

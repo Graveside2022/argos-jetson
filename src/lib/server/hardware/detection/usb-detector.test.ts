@@ -119,9 +119,11 @@ describe('detectUSBDevices — WiFi adapter detection (via iw)', () => {
 		execMock.mockImplementation(makeIwMock('2.4 GHz\nmonitor\nTX frame'));
 		const result = await detectUSBDevices();
 		const wifi = result.find((r) => r.category === 'wifi');
-		expect(wifi).toBeDefined();
-		expect((wifi?.capabilities as Record<string, unknown>).hasMonitorMode).toBe(true);
-		expect((wifi?.capabilities as Record<string, unknown>).canInject).toBe(true);
+		const caps = wifi?.capabilities as Record<string, unknown>;
+		expect(wifi?.id).toBe('wifi-wlan0');
+		expect(wifi?.name).toBe('WiFi Adapter wlan0');
+		expect(caps.hasMonitorMode).toBe(true);
+		expect(caps.canInject).toBe(true);
 		expect(wifi?.compatibleTools).toContain('wifi.scan.kismet');
 	});
 
@@ -186,5 +188,19 @@ describe('detectUSBDevices — Bluetooth adapter detection', () => {
 		const caps = bt?.capabilities as Record<string, unknown>;
 		expect(caps.hasBleSupport).toBe(true);
 		expect(caps.hasClassicSupport).toBe(true);
+	});
+
+	test('hciconfig output without (hci\\d+) capture → no bluetooth device emitted (no NaN)', async () => {
+		// /(hci\d+):\s+Type: ([^\n]+)/g requires both groups; output missing the digit
+		// or the Type: prefix yields zero matches → empty result, no Number coercion path.
+		execMock.mockImplementation(async (cmd: string) => {
+			if (cmd === '/usr/bin/hciconfig') {
+				return { stdout: 'hciX:\nNo bluetooth devices\n' };
+			}
+			if (cmd === '/usr/sbin/iw') throw new Error('no iw');
+			throw new Error('unmocked');
+		});
+		const result = await detectUSBDevices();
+		expect(result.filter((r) => r.category === 'bluetooth')).toEqual([]);
 	});
 });

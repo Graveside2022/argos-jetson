@@ -50,6 +50,8 @@ describe('resourceManager — acquire', () => {
 	test('returns success when device available + no current owner', async () => {
 		const result = await resourceManager.acquire('mytool', HardwareDevice.HACKRF);
 		expect(result.success).toBe(true);
+		const status = resourceManager.getStatus();
+		expect(status.hackrf.connectedSince).toBeGreaterThan(0);
 	});
 
 	test('emits "acquired" event on successful claim', async () => {
@@ -59,6 +61,8 @@ describe('resourceManager — acquire', () => {
 		expect(handler).toHaveBeenCalledWith(
 			expect.objectContaining({ device: HardwareDevice.HACKRF, toolName: 'mytool' })
 		);
+		const status = resourceManager.getStatus();
+		expect(status.hackrf.connectedSince).toBeGreaterThan(0);
 	});
 
 	test('second acquire by SAME tool returns success (re-acquire idempotent)', async () => {
@@ -66,6 +70,8 @@ describe('resourceManager — acquire', () => {
 		const second = await resourceManager.acquire('mytool', HardwareDevice.HACKRF);
 		expect(second.success).toBe(true);
 		expect(second.owner).toBe('mytool');
+		const status = resourceManager.getStatus();
+		expect(status.hackrf.connectedSince).toBeGreaterThan(0);
 	});
 
 	test('acquire by DIFFERENT tool while held returns failure + current owner', async () => {
@@ -85,6 +91,8 @@ describe('resourceManager — acquire', () => {
 	test('dispatchRefresh runs before tryClaim (re-scan OS state)', async () => {
 		await resourceManager.acquire('mytool', HardwareDevice.HACKRF);
 		expect(dispatchRefresh).toHaveBeenCalled();
+		const status = resourceManager.getStatus();
+		expect(status.hackrf.connectedSince).toBeGreaterThan(0);
 	});
 
 	test('dispatchRefresh failure does not block acquire (swallowed via .catch)', async () => {
@@ -93,6 +101,8 @@ describe('resourceManager — acquire', () => {
 		);
 		const result = await resourceManager.acquire('mytool', HardwareDevice.HACKRF);
 		expect(result.success).toBe(true);
+		const status = resourceManager.getStatus();
+		expect(status.hackrf.connectedSince).toBeGreaterThan(0);
 	});
 });
 
@@ -221,5 +231,48 @@ describe('resourceManager — dispose', () => {
 			resourceManager.dispose();
 			resourceManager.dispose();
 		}).not.toThrow();
+	});
+});
+
+describe('resourceManager — distinct-kill mutation guards', () => {
+	test('release race: only the first concurrent release emits "released" event', async () => {
+		await resourceManager.acquire('racer', HardwareDevice.HACKRF);
+		const handler = vi.fn();
+		resourceManager.on('released', handler);
+		const [first, second] = await Promise.all([
+			resourceManager.release('racer', HardwareDevice.HACKRF),
+			resourceManager.release('racer', HardwareDevice.HACKRF)
+		]);
+		// Exactly one of the two concurrent releases succeeds, exactly one emits
+		const successes = [first.success, second.success].filter(Boolean).length;
+		expect(successes).toBe(1);
+		expect(handler).toHaveBeenCalledTimes(1);
+	});
+
+	test('forceRelease still releases mutex when killDeviceHolders throws', async () => {
+		(killDeviceHolders as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+			new Error('kill failed')
+		);
+		await resourceManager.acquire('alice', HardwareDevice.HACKRF);
+		// killDeviceHolders throw propagates (no try/catch around it in source),
+		// but the `finally` block MUST still releaseMutex — so a subsequent
+		// acquire can succeed without timing out.
+		await expect(resourceManager.forceRelease(HardwareDevice.HACKRF)).rejects.toThrow(
+			'kill failed'
+		);
+		// Mutex was released in `finally`; the next acquire should not block.
+		const result = await resourceManager.acquire('bob', HardwareDevice.HACKRF);
+		expect(result.success).toBe(false); // still owned by 'alice' — state not flipped
+		expect(result.owner).toBe('alice');
+	});
+
+	test('re-acquire by same tool emits "acquired" only on the first acquire', async () => {
+		const handler = vi.fn();
+		resourceManager.on('acquired', handler);
+		const first = await resourceManager.acquire('mytool', HardwareDevice.HACKRF);
+		const second = await resourceManager.acquire('mytool', HardwareDevice.HACKRF);
+		expect(first.success).toBe(true);
+		expect(second.success).toBe(true);
+		expect(handler).toHaveBeenCalledTimes(1);
 	});
 });
