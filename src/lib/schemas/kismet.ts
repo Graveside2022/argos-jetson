@@ -5,6 +5,8 @@
 
 import { z } from 'zod';
 
+import { LatBounds, LonBounds, RssiDbmBounds } from './common-bounds';
+
 /**
  * Kismet Status Response Schema
  */
@@ -47,12 +49,12 @@ export const KismetDeviceSchema = z.object({
 export const SimplifiedKismetDeviceSchema = z.object({
 	mac: z.string().min(1),
 	lastSeen: z.union([z.string(), z.number()]), // ISO date string or Unix timestamp
-	signal: z.number().optional(),
+	signal: RssiDbmBounds.optional(),
 	type: z.string().optional(),
 	location: z
 		.object({
-			lat: z.number().optional(),
-			lon: z.number().optional()
+			lat: LatBounds.optional(),
+			lon: LonBounds.optional()
 		})
 		.optional(),
 	manufacturer: z.string().optional(),
@@ -83,8 +85,8 @@ const KismetDot11Schema = z.object({
  * Used within kismet.device.base.location field
  */
 const KismetLocationSchema = z.object({
-	'kismet.common.location.lat': z.number().optional(),
-	'kismet.common.location.lon': z.number().optional()
+	'kismet.common.location.lat': LatBounds.optional(),
+	'kismet.common.location.lon': LonBounds.optional()
 });
 
 /**
@@ -92,8 +94,8 @@ const KismetLocationSchema = z.object({
  * Used within kismet.device.base.signal field
  */
 const KismetSignalSchema = z.object({
-	'kismet.common.signal.last_signal': z.number().optional(),
-	'kismet.common.signal.max_signal': z.number().optional()
+	'kismet.common.signal.last_signal': RssiDbmBounds.optional(),
+	'kismet.common.signal.max_signal': RssiDbmBounds.optional()
 });
 
 /**
