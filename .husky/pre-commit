@@ -107,6 +107,51 @@ elif [ -f .trunk/trunk.yaml ]; then
 	fi
 fi
 
+# 1d) Skill-receipt gate for phase-mutation branches (blocking)
+#
+# Phases 4-7 of the mutation-testing roadmap require invoking the matching
+# tessl skill (graceful-degradation, sqlite-node-best-practices, etc.) before
+# writing tests. Soft reminders proven insufficient (feedback_per_pr_skill_gate
+# memory — "user pushed twice on skill-skipping"). This gate enforces that
+# .skills/phase-N-receipt.md exists with at least one tessl__* skill ID and
+# a non-empty "How applied" line per skill, on branches matching
+# chore/phase-[4-7]-*.
+#
+# Bypass: SKIP_SKILL_GATE=1 git commit ... (audit-trail token for emergencies)
+if [ "${SKIP_SKILL_GATE:-0}" = "1" ]; then
+	echo "[pre-commit] SKIP_SKILL_GATE=1 — skipping skill-receipt gate"
+else
+	BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+	case "$BRANCH" in
+		chore/phase-[4-7]-*)
+			PHASE=$(echo "$BRANCH" | sed -nE 's|^chore/phase-([4-7])-.*$|\1|p')
+			RECEIPT=".skills/phase-${PHASE}-receipt.md"
+			if [ ! -f "$RECEIPT" ]; then
+				echo "[pre-commit] ❌ skill-receipt gate: $RECEIPT missing on branch $BRANCH" >&2
+				echo "[pre-commit]    Create it with a ## Skill Invocations section listing the tessl__* skills you invoked + how applied." >&2
+				echo "[pre-commit]    Bypass: SKIP_SKILL_GATE=1 git commit ..." >&2
+				exit 1
+			fi
+			if ! grep -q "^## Skill Invocations" "$RECEIPT"; then
+				echo "[pre-commit] ❌ skill-receipt gate: $RECEIPT lacks '## Skill Invocations' section" >&2
+				exit 1
+			fi
+			if ! grep -qE "tessl__[a-z-]+" "$RECEIPT"; then
+				echo "[pre-commit] ❌ skill-receipt gate: $RECEIPT lacks any 'tessl__*' skill ID" >&2
+				exit 1
+			fi
+			if ! grep -qE "How applied:[[:space:]]+[^[:space:]]" "$RECEIPT"; then
+				echo "[pre-commit] ❌ skill-receipt gate: $RECEIPT has no non-empty 'How applied:' line" >&2
+				exit 1
+			fi
+			echo "[pre-commit] ✓ skill-receipt gate: $RECEIPT validated for phase $PHASE"
+			;;
+		*)
+			# Non-phase branches skip the skill-receipt gate by design.
+			;;
+	esac
+fi
+
 # 1c) Fallow audit gate REMOVED from pre-commit 2026-05-04.
 #
 # Rationale: fallow audit's base-snapshot semantic doesn't fit pre-commit.
