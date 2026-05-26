@@ -106,3 +106,29 @@ Synchronizer token (server-validated hidden field), double-submit cookie, SameSi
 - **RTK + `npm run verify`**: lint-and-validate defers to the project wrapper, not raw shell.
 - **Perf measurement is native**: chrome-devtools/Lighthouse measure; web-performance only guides.
 - **Out of scope**: Rust tactical (blue-dragon) — these skills are JS/TS/web; use cargo clippy/audit for that.
+
+## Ruflo skill catalog (2026-05-26 — added to scan order)
+
+~50 ruflo skills are also installed at user scope (see `@RUFLO.md`). Examples: `sparc-coder`, `sparc-tdd`, `swarm-orchestration`, `agentdb-memory-patterns`, `v3-core-implementation`, `hooks-automation`, `verification-quality`. These are **guidance docs**, not executors — same role as the 13 tessl skills above.
+
+**Skill scan order** (apply this BEFORE running `mcp__tessl__search` or installing new tiles):
+
+1. **tessl catalog** — match work to the 13 tessl skills via the trigger map above
+2. **ruflo catalog** — scan `~/.claude/plugins/cache/.../ruflo-*` skill cards (60+ subagent_type labels, ~50 skill markdown docs)
+3. **Combined match** — if either tessl OR ruflo covers the work, invoke via `Skill(...)` tool
+4. **Gap → search** — only if NEITHER catalog covers, run `mcp__tessl__search` with task keywords
+5. **Gap → install** — only if a relevant new tile surfaces, gate by 5-check safe-install protocol from CLAUDE.md
+
+The combined catalog covers ~95% of common code-tasks. Searches + installs are exception paths now, not first-step.
+
+### Ruflo skill overlap with tessl (most useful pairs)
+
+| Ruflo skill | Tessl skill | When to use which |
+|---|---|---|
+| `sparc-coder` (TDD writer) | `tessl__simple-typescript` + `tessl__lint-and-validate` | ruflo for TDD WORKFLOW, tessl for code-style preferences |
+| `swarm-orchestration` (multi-agent) | None — use native Agent tool | ruflo skill is conceptual; actual execution = native Agent |
+| `agentdb-memory-patterns` | None | Unique ruflo capability — cross-session memory patterns |
+| `v3-*` (DDD/ports/adapters) | None | ruflo only — architecture guidance |
+| `verification-quality` | `tessl__lint-and-validate` | ruflo more abstract; tessl more concrete shell commands |
+| `hooks-automation` | None | ruflo only — but NOT auto-wired in Argos's `.husky/` |
+| `swarm-advanced`, `hive-mind:*` | None | mostly theater per `@RUFLO.md` audit — skip unless persisting state |

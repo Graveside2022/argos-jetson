@@ -2,7 +2,7 @@
 
 Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
 
-Project rules clean-slate as of 2026-05-20. Only three rule surfaces are active in this repo: the **Karpathy coding guidelines** below, **RTK shell-output compression**, and **CodeGraph MCP**. All prior surfaces (legacy `.claude/rules/*.md`, `AGENTS.md`, `.tessl/RULES.md`, codebase overview, commands, graphify, narrate/parallel-work directives, sentrux/ci/danger/spec-kit/Lunaris conventions) have been retired and moved to `*-retired-2026-05-20.*` paths under git history.
+Project rules clean-slate as of 2026-05-20. Four rule surfaces are active in this repo: the **Karpathy coding guidelines** below, **RTK shell-output compression**, **CodeGraph MCP**, and **Ruflo cross-session memory** (added 2026-05-26 PR #251). All prior surfaces (legacy `.claude/rules/*.md`, `AGENTS.md`, `.tessl/RULES.md`, codebase overview, commands, graphify, narrate/parallel-work directives, sentrux/ci/danger/spec-kit/Lunaris conventions) have been retired and moved to `*-retired-2026-05-20.*` paths under git history.
 
 **Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
 
@@ -107,10 +107,18 @@ Use codegraph for **structural** questions — what calls what, what would break
 
 The MCP server returns "not initialized." Ask the user: _"I notice this project doesn't have CodeGraph initialized. Want me to run `codegraph init -i` to build the index?"_
 
-## Skill routing (tessl)
+## Skill routing (tessl + ruflo)
 
-13 tessl skills are installed for the v1 audit + ongoing work (security, DB, realtime/WS, resilience, error-handling, a11y, perf, TS style). **Before planning or doing a code task, match the work to the right skill and invoke it via the Skill tool** — same deliberate-routing discipline as the MCP-PREFLIGHT walk. The full trigger map, per-skill cards, and overlap/disambiguation rules (e.g. software-security=PREVENT vs patch-advisor=REMEDIATE; ssr-auth is Supabase-coupled→harvest patterns only) live in `@SKILL-ROUTING.md`. If a task needs a capability none of the 13 cover, run `mcp__tessl__search` and gate any new install by the 5-check safe-install protocol. Skills are guidance; the measurement engines remain native MCP (sentrux/codegraph/chrome-devtools/CodeQL/Sentry).
+13 tessl skills + ~50 ruflo skills are installed for the v1 audit + ongoing work. **Before planning or doing a code task, match the work to the right skill and invoke it via the Skill tool** — same deliberate-routing discipline as the MCP-PREFLIGHT walk. The full trigger map, per-skill cards, and overlap/disambiguation rules live in `@SKILL-ROUTING.md`. Skills are guidance; the measurement engines remain native MCP (sentrux/codegraph/chrome-devtools/CodeQL/Sentry).
+
+**Skill catalog scan order** (cheapest → most expensive): scan ruflo cards (`~/.claude/plugins/cache/.../ruflo-*`) + tessl skills (`@SKILL-ROUTING.md` trigger map) FIRST. If neither covers the task, run `mcp__tessl__search` and gate any new install by the 5-check safe-install protocol.
+
+## Ruflo cross-session memory
+
+Ruflo is registered at user-scope MCP. Use it for what's real (memory_store/search, agentdb_pattern-store/search, agent-type taxonomy) and skip the theater (coordination_orchestrate, hive-mind, wasm_agent, neural_*, autopilot_*). Full audit + usage patterns + decision tree in `@RUFLO.md`. Per-phase workflow: `memory_store` scope at start → `agentdb_pattern-store` findings → `memory_store` decisions → `agentdb_pattern-store` completion record. Phase 4 was the prototype (entries `entry_1779794724890...` through `entry_1779802424186...`).
 
 @SKILL-ROUTING.md
+
+@RUFLO.md
 
 @AGENTS.md
