@@ -1,16 +1,12 @@
 import { z } from 'zod';
 
-// Physical bounds for drone telemetry fields. Wider than typical to avoid
-// rejecting legitimate edge cases (very high altitudes, sea-level drones)
-// while still catching spoofed RemoteID broadcasts emitting garbage values.
-const LatBounds = z.number().min(-90).max(90);
-const LonBounds = z.number().min(-180).max(180);
-const AltMetersBounds = z.number().min(-500).max(50_000); // [-500m, 50km]
+import { AltMetersBounds, LatBounds, LonBounds, RssiDbmBounds } from './common-bounds';
+
+// Drone-telemetry-specific bounds (not shared with other schemas).
 const HeightMetersBounds = z.number().min(0).max(50_000); // [0, 50km] above ground
 const SpeedMsBounds = z.number().min(0).max(300); // [0, 300 m/s] — fast drones ~70 m/s; small aircraft ~300
 const VSpeedMsBounds = z.number().min(-200).max(200);
 const HeadingDegBounds = z.number().min(0).max(360);
-const RssiDbmBounds = z.number().min(-150).max(0);
 const FreqMhzBounds = z.number().min(1).max(100_000);
 
 const DragonSyncRidSchema = z
