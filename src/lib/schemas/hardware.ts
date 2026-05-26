@@ -88,7 +88,27 @@ const CellularCapabilitiesSchema = z.object({
 });
 
 /**
- * Hardware Capabilities (discriminated union)
+ * Network Service Capabilities Schema — covers network-attached SDR / radio
+ * services where the hardware surface is a remote HTTP / streaming endpoint
+ * (e.g. OpenWebRX, USRP over IP) rather than a USB device.
+ */
+const NetworkServiceCapabilitiesSchema = z.object({
+	service: z.string().min(1, 'Service name required'),
+	version: z.string().optional(),
+	webInterface: z.boolean().optional()
+});
+
+/**
+ * Empty Capabilities Schema — sentinel for "detection incomplete; shape
+ * unknown". Used by serial-detector before a device class is identified and
+ * by test fixtures. .strict() accepts ONLY `{}` — any extra field must route
+ * to a concrete capability schema or fail validation. Replaces the previous
+ * `z.record(z.unknown())` catch-all (F7).
+ */
+const EmptyCapabilitiesSchema = z.object({}).strict();
+
+/**
+ * Hardware Capabilities (union of typed shapes; no catch-all fallback).
  */
 const HardwareCapabilitiesSchema = z.union([
 	SDRCapabilitiesSchema,
@@ -96,7 +116,8 @@ const HardwareCapabilitiesSchema = z.union([
 	BluetoothCapabilitiesSchema,
 	GPSCapabilitiesSchema,
 	CellularCapabilitiesSchema,
-	z.record(z.unknown()) // Fallback for unknown capabilities
+	NetworkServiceCapabilitiesSchema,
+	EmptyCapabilitiesSchema
 ]);
 
 /**

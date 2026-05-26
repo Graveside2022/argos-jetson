@@ -441,3 +441,71 @@ describe('Edge Cases', () => {
 		expect(WiFiCapabilitiesSchema.parse(wifi)).toEqual(wifi);
 	});
 });
+
+// ─── F7 — fallback removal regression tests ────────────────────────────────
+
+describe('NetworkServiceCapabilitiesSchema (F7)', () => {
+	it('should accept OpenWebRX network-service shape', () => {
+		const result = DetectedHardwareSchema.safeParse({
+			id: 'hw-openwebrx',
+			name: 'OpenWebRX',
+			category: 'sdr',
+			connectionType: 'network',
+			status: 'connected',
+			capabilities: { service: 'openwebrx', webInterface: true }
+		});
+		expect(result.success).toBe(true);
+	});
+
+	it('should accept USRP-net shape with version', () => {
+		const result = DetectedHardwareSchema.safeParse({
+			id: 'hw-usrp-net',
+			name: 'USRP',
+			category: 'sdr',
+			connectionType: 'network',
+			status: 'connected',
+			capabilities: { service: 'usrp', version: '4.5' }
+		});
+		expect(result.success).toBe(true);
+	});
+
+	it('should reject empty service string', () => {
+		const result = DetectedHardwareSchema.safeParse({
+			id: 'hw-bad-service',
+			name: 'X',
+			category: 'sdr',
+			connectionType: 'network',
+			status: 'connected',
+			capabilities: { service: '' }
+		});
+		expect(result.success).toBe(false);
+	});
+});
+
+describe('EmptyCapabilitiesSchema (F7)', () => {
+	it('should accept literal {}', () => {
+		const result = DetectedHardwareSchema.safeParse({
+			id: 'hw-serial',
+			name: 'Generic Serial',
+			category: 'serial',
+			connectionType: 'serial',
+			status: 'connected',
+			capabilities: {}
+		});
+		expect(result.success).toBe(true);
+	});
+});
+
+describe('HardwareCapabilitiesSchema fallback removal (F7 regression)', () => {
+	it('should reject an arbitrary capabilities object that does not match any concrete schema (was accepted via z.record fallback pre-F7)', () => {
+		const result = DetectedHardwareSchema.safeParse({
+			id: 'hw-spoof',
+			name: 'X',
+			category: 'unknown',
+			connectionType: 'usb',
+			status: 'unknown',
+			capabilities: { spoofed: 'attacker-controlled', leak: 'secret' }
+		});
+		expect(result.success).toBe(false);
+	});
+});
