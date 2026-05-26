@@ -194,8 +194,11 @@ export abstract class BaseWebSocket {
 			}
 		};
 
-		this.ws.onerror = () => {
-			const error = new Error('WebSocket error');
+		this.ws.onerror = (event) => {
+			const readyState = this.ws?.readyState;
+			const error = new Error(
+				`WebSocket error (type=${event.type}, readyState=${readyState})`
+			);
 			this.emit(WebSocketEventEnum.Error, { error });
 			this.handleConnectionError(error);
 		};
@@ -219,11 +222,23 @@ export abstract class BaseWebSocket {
 		}
 	}
 
+	/**
+	 * FINDING HIGH-1: record inbound 'pong' arrivals so the > 0 guard in
+	 * startHeartbeat (websocket-heartbeat.ts:46) becomes reachable and the
+	 * 2× heartbeatInterval dead-connection close can actually fire.
+	 */
+	private trackHeartbeatPong(type: string): void {
+		if (type === 'pong') {
+			this.heartbeatState.lastHeartbeat = Date.now();
+		}
+	}
+
 	// fallow-ignore-next-line complexity
 	protected handleMessage(data: unknown): void {
 		if (data && typeof data === 'object' && 'type' in data) {
 			// @constitutional-exemption Article-II-2.1 issue:#14 — WebSocket message data type narrowing — browser API returns union type
 			const typedData = data as { type: string; data?: unknown };
+			this.trackHeartbeatPong(typedData.type);
 			const handlers = this.messageHandlers.get(typedData.type);
 			if (handlers) {
 				handlers.forEach((handler) => {

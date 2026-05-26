@@ -35,10 +35,18 @@ export function scheduleReconnect(
 
 	state.reconnectAttempts++;
 
+	// 0-50% additive jitter on the actual sleep to break thundering-herd
+	// lockstep when N clients reconnect simultaneously after a server bounce.
+	// Stored currentReconnectInterval stays clean so exponential backoff math
+	// below remains deterministic and the maxReconnectInterval cap still
+	// bounds growth (max possible sleep = maxReconnectInterval * 1.5).
+	const sleepMs =
+		state.currentReconnectInterval + Math.random() * state.currentReconnectInterval * 0.5;
+
 	state.reconnectTimer = setTimeout(() => {
 		state.reconnectTimer = null;
 		connectFn();
-	}, state.currentReconnectInterval);
+	}, sleepMs);
 
 	// Apply backoff for the next scheduled attempt
 	state.currentReconnectInterval = Math.min(
