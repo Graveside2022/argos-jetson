@@ -38,8 +38,8 @@ Top 5 high-risk targets selected by symbol count + criticality:
 | 3 | **MED** | `db-optimizer.ts:251` | `write_heavy` workload sets `synchronous = OFF` (data corruption risk on power failure) | DEFERRED — runtime-selectable, undocumented use; follow-up PR |
 | 4 | **LOW** | `db-optimizer.ts:155-161` | `getPragmaSettings` catch-swallows per-pragma errors | DEFERRED — defensive shim; follow-up PR |
 | 5 | **LOW** | `rf-aggregation.ts:212` | H3 res clamp uses magic literal 15 (should be MAX_H3_RES const) | DEFERRED — style nit |
-| 6 | **MED** | `geo.ts:68-74` | FREQUENCY_BANDS order causes bluetooth (2400-2485) NEVER to match — shadowed by wifi (2400-2500) | **FIXED** (reordered bluetooth before wifi) |
-| 7 | **LOW** | `geo.ts:29 + 37` | GPS coord validation only rejects (0,0) — doesn't reject NaN, Infinity, out-of-bounds | DEFERRED — boundary tightening; follow-up PR |
+| 6 | **MED** | `geo.ts:68-74` | FREQUENCY_BANDS order: in the physical 2400-2485 MHz overlap (both bluetooth ISM and wifi 2.4 GHz channel 1-13), `find()` previously returned 'wifi' first so bluetooth NEVER matched. **FIXED** (reordered: bluetooth wins the overlap). NOTE: the overlap is physical — any 2400-2485 MHz signal can be either; this fix changes priority from wifi-wins to bluetooth-wins. The pre-fix bug was that the priority was opaque; the post-fix priority is documented + tested |
+| 7 | **MED** | `geo.ts:29 + 37` | GPS coord validation only rejects (0,0) — `hasValidGpsCoords(NaN, NaN)` returns true; NaN propagates into H3 indexing + Haversine; NaN stored in `latitude`/`longitude REAL NOT NULL` corrupts aggregate queries. (Severity uplifted from LOW to MED per pre-push review) | DEFERRED — fix in follow-up PR: add `Number.isFinite(lat) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180` |
 | 8 | **LOW** | `signal-repository.ts:60-61` | UNIQUE constraint detection via brittle `message.includes('UNIQUE constraint failed')`; prefer `error.code` | DEFERRED — better-sqlite3 stability; follow-up PR |
 
 **In-PR fixes (3):** FINDING-1 + FINDING-2 + FINDING-6.

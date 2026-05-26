@@ -29,12 +29,14 @@ describe('database connection pragmas (FINDING-PHASE5-DB-1 + DB-2)', () => {
 		d.pragma('page_size = 4096');
 	}
 
-	it('journal_mode = WAL after constructor pragmas', () => {
+	it('journal_mode pragma accepts WAL (in-memory reports memory; file-based reports wal)', () => {
+		// :memory: dbs cannot actually switch to WAL — they always report 'memory'.
+		// Test the constructor pragma sequence does not throw, then verify the value
+		// is one of the documented states.
 		db = new Database(':memory:');
 		applyConstructorPragmas(db);
 		const result = db.pragma('journal_mode') as Array<{ journal_mode: string }>;
-		// :memory: dbs report 'memory' regardless of pragma — verify command was accepted, not status
-		expect(result[0]).toBeDefined();
+		expect(['wal', 'memory']).toContain(result[0].journal_mode);
 	});
 
 	it('foreign_keys = ON after constructor pragmas (regression for FINDING-PHASE5-DB-2)', () => {

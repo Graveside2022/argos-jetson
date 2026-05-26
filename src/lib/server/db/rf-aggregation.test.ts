@@ -190,12 +190,15 @@ describe('rf-aggregation queries against in-memory schema', () => {
 			expect(path[1].t).toBe(600);
 		});
 
-		it('respects custom sampleEveryMs', () => {
+		it('strict-less-than threshold: row at exactly sampleEveryMs is KEPT, row below is dropped', () => {
+			// Source: `r.timestamp - lastT < sampleEveryMs` — strict <. Boundary at 50.
+			// 0 always kept (-Infinity); 49 - 0 = 49 < 50 → DROPPED; 50 - 0 = 50 NOT < 50 → KEPT.
+			// A mutation flipping < to <= would change behavior (50 - 0 = 50 <= 50 → DROPPED).
 			insertSignal({ signal_id: 's1', timestamp: 0, latitude: 0, longitude: 0, power: -50 });
-			insertSignal({ signal_id: 's2', timestamp: 50, latitude: 1, longitude: 1, power: -50 });
-			insertSignal({ signal_id: 's3', timestamp: 100, latitude: 2, longitude: 2, power: -50 });
+			insertSignal({ signal_id: 's2', timestamp: 49, latitude: 1, longitude: 1, power: -50 });
+			insertSignal({ signal_id: 's3', timestamp: 50, latitude: 2, longitude: 2, power: -50 });
 			const path = getDrivePath({}, 50, db);
-			expect(path).toHaveLength(3);
+			expect(path.map((p) => p.t)).toEqual([0, 50]);
 		});
 	});
 
