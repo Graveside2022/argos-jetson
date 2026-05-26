@@ -109,6 +109,43 @@ describe('WiFiCapabilities Schema', () => {
 
 		expect(() => WiFiCapabilitiesSchema.parse(invalid)).toThrow('Interface name required');
 	});
+
+	// FINDING-17 regression: maxTxPower must be bounded to typical wifi tx power range.
+	it('should accept maxTxPower in [0, 50] dBm', () => {
+		const wifi = {
+			interface: 'wlan0',
+			hasMonitorMode: true,
+			canInject: true,
+			frequencyBands: ['2.4GHz'],
+			channels: [1, 6, 11],
+			maxTxPower: 23
+		};
+		expect(WiFiCapabilitiesSchema.parse(wifi).maxTxPower).toBe(23);
+	});
+
+	it('should reject negative maxTxPower', () => {
+		const wifi = {
+			interface: 'wlan0',
+			hasMonitorMode: false,
+			canInject: false,
+			frequencyBands: [],
+			channels: [],
+			maxTxPower: -5
+		};
+		expect(() => WiFiCapabilitiesSchema.parse(wifi)).toThrow();
+	});
+
+	it('should reject maxTxPower above 50 dBm (unphysical for wifi)', () => {
+		const wifi = {
+			interface: 'wlan0',
+			hasMonitorMode: false,
+			canInject: false,
+			frequencyBands: [],
+			channels: [],
+			maxTxPower: 100
+		};
+		expect(() => WiFiCapabilitiesSchema.parse(wifi)).toThrow();
+	});
 });
 
 describe('BluetoothCapabilities Schema', () => {

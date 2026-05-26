@@ -38,6 +38,12 @@
  *      100 chars. The PR description is the first thing reviewers
  *      see on GitHub; commit messages alone don't surface in the
  *      summary view.
+ *   9. Phase-mutation skill receipt — fail when PR branch matches
+ *      `chore/phase-[4-7]-*` (the mutation-testing roadmap rows 3-6)
+ *      AND the PR body lacks a populated `## Skill Receipt` section
+ *      OR the matching `docs/mutation-baseline-*-phase<N>.md` baseline
+ *      doc is not in the diff. Mechanical complement to the pre-commit
+ *      skill-receipt gate; this is the server-side backstop.
  *
  * Industry-norm references: the canonical Danger.js example at
  * https://danger.systems/js/index uses 600 LOC warn() with no hard
@@ -634,3 +640,91 @@ function checkPrBodyQuality() {
 	}
 }
 checkPrBodyQuality();
+
+// ── 9. Phase-mutation skill receipt ──────────────────────────────────────
+/**
+ * Mutation-testing roadmap phases 4-7 (`chore/phase-[4-7]-*` branches) must
+ * carry a populated `## Skill Receipt` section in the PR body AND ship the
+ * matching `docs/mutation-baseline-*-phase<N>.md` survivor-triage doc in
+ * the diff. Companion to the `.husky/pre-commit` step 1d gate on
+ * `.skills/phase-N-receipt.md` — the receipt file proves the skill was
+ * invoked locally; this rule proves the receipt + baseline reach the PR.
+ *
+ * Fires only on phase branches; non-phase PRs see no fail/warn from this rule.
+ */
+/**
+ * Slice the `## Skill Receipt` section out of the PR body — from the heading
+ * to the next `## ` heading or end-of-body, whichever comes first. Returns
+ * '' if the section is absent.
+ */
+function extractSkillReceiptSection(body) {
+	const heading = '## Skill Receipt';
+	const startIdx = body.indexOf(heading);
+	if (startIdx === -1) return '';
+	const rest = body.slice(startIdx);
+	const nextHeading = rest.slice(heading.length).search(/\n## /);
+	return nextHeading === -1 ? rest : rest.slice(0, heading.length + nextHeading);
+}
+
+function detectPhaseBranch() {
+	const headRef = danger.github?.pr?.head?.ref ?? '';
+	const m = headRef.match(/^chore\/phase-([4-7])-/);
+	return m ? m[1] : null;
+}
+
+function verifySkillsListed(section, phase) {
+	const skills = section.match(/tessl__[a-z-]+/g) ?? [];
+	if (skills.length === 0) {
+		fail(
+			`Phase-${phase} PR's \`## Skill Receipt\` section names no \`tessl__*\` skill. Per the roadmap, list every skill you actually invoked (e.g. \`tessl__graceful-degradation\` for hardware/, \`tessl__sqlite-node-best-practices\` for db/).`
+		);
+	}
+	return skills;
+}
+
+function verifyHowAppliedFilled(section, skills, phase) {
+	const filled = (section.match(/How applied:[\s]+\S/g) ?? []).length;
+	if (filled < skills.length) {
+		fail(
+			`Phase-${phase} PR's \`## Skill Receipt\` lists ${skills.length} skill(s) but only ${filled} have a non-empty "How applied:" line. Fill every entry — the gate exists to keep receipts honest, not ceremonial.`
+		);
+	}
+}
+
+function verifyBaselineInDiff(phase) {
+	const baselineRe = new RegExp(`docs/mutation-baseline-[0-9-]+-phase${phase}\\.md$`);
+	if (!changed.some((f) => baselineRe.test(f))) {
+		fail(
+			`Phase-${phase} PR must include a \`docs/mutation-baseline-YYYY-MM-DD-phase${phase}.md\` survivor-triage doc in the diff. Per the roadmap §Method step 7 — survivors are either killed with tests or annotated as equivalent. No silent acceptance.`
+		);
+	}
+}
+
+function verifyMutationScoreThreshold(section, phase) {
+	const m = section.match(/Mutation score before \/ after:\s*([0-9.]+)\s*\/\s*([0-9.]+)/);
+	if (!m) return;
+	const after = Number(m[2]);
+	if (Number.isFinite(after) && after < 80) {
+		fail(
+			`Phase-${phase} mutation score is ${after}% (< 80% roadmap threshold). Either add tests to kill more mutants or annotate equivalent mutants in the baseline doc — do not lower the bar.`
+		);
+	}
+}
+
+function checkPhaseSkillReceipt() {
+	const phase = detectPhaseBranch();
+	if (!phase) return;
+	const section = extractSkillReceiptSection(danger.github?.pr?.body ?? '');
+	if (!section) {
+		fail(
+			`Phase-${phase} PR missing \`## Skill Receipt\` section in body. See \`.github/pull_request_template.md\` for the required shape — list the invoked \`tessl__*\` skills with a non-empty "How applied" line each, plus before/after mutation score and the linked baseline doc.`
+		);
+		return;
+	}
+	const skills = verifySkillsListed(section, phase);
+	if (skills.length === 0) return;
+	verifyHowAppliedFilled(section, skills, phase);
+	verifyBaselineInDiff(phase);
+	verifyMutationScoreThreshold(section, phase);
+}
+checkPhaseSkillReceipt();

@@ -137,16 +137,29 @@ export function validateSecurityConfig(): void {
 /**
  * Parse a specific cookie value from a Cookie header string.
  *
- * Implements RFC 6265 cookie parsing: semicolon-separated name=value pairs.
- * Returns null if the cookie is not found.
+ * Implements RFC 6265 §5.4 cookie parsing: semicolon-separated name=value pairs.
+ * If the same cookie name appears multiple times in the header, the LAST value
+ * wins (most-recently-set per RFC 6265 §5.4 step 2 order; modern browsers send
+ * the most-specific cookie last). Logs at debug level when duplicates are
+ * detected so request-smuggling / header-injection attempts surface in audit.
  */
 function parseCookieValue(cookieHeader: string, name: string): string | null {
 	const cookies = cookieHeader.split(';');
+	let lastValue: string | null = null;
+	let matchCount = 0;
 	for (const cookie of cookies) {
 		const [cookieName, ...rest] = cookie.trim().split('=');
 		if (cookieName === name) {
-			return rest.join('=');
+			lastValue = rest.join('=');
+			matchCount++;
 		}
 	}
-	return null;
+	if (matchCount > 1) {
+		logger.debug(
+			'Duplicate cookies in request header; using last value (RFC 6265 §5.4)',
+			{ name, occurrences: matchCount },
+			'duplicate-cookie-header'
+		);
+	}
+	return lastValue;
 }

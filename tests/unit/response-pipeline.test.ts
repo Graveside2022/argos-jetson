@@ -24,35 +24,11 @@ function buildHandleInput(pathname: string, search = ''): Parameters<Handle>[0] 
 }
 
 describe('withSecurityHeaders', () => {
-	it('applies Content-Security-Policy to a 401 short-circuit response', async () => {
-		const short401: Handle = async () =>
-			new Response(JSON.stringify({ error: 'Unauthorized' }), {
-				status: 401,
-				headers: { 'Content-Type': 'application/json' }
-			});
-
-		const wrapped = withSecurityHeaders(short401);
-		const response = await wrapped(buildHandleInput('/api/hackrf/start'));
-
-		expect(response.status).toBe(401);
-		expect(response.headers.get('Content-Security-Policy')).toBeTruthy();
-	});
-
-	it('applies CSP to a 413 body-size short-circuit response', async () => {
-		const short413: Handle = async () =>
-			new Response(JSON.stringify({ error: 'Payload too large' }), {
-				status: 413,
-				headers: { 'Content-Type': 'application/json' }
-			});
-
-		const wrapped = withSecurityHeaders(short413);
-		const response = await wrapped(buildHandleInput('/api/kismet/start'));
-
-		expect(response.status).toBe(413);
-		expect(response.headers.get('Content-Security-Policy')).toBeTruthy();
-	});
-
-	it('applies CSP to a 429 rate-limit short-circuit response', async () => {
+	it('applies CSP to a short-circuit response and preserves pre-existing headers', async () => {
+		// One representative test covers the wrapper's only behavior: pass-through
+		// the inner Response while adding security headers. The wrapper does not
+		// branch on status, so additional per-status tests (401/413/200/etc.)
+		// would kill the same mutants — deleted as sprawl per Phase 3 audit.
 		const short429: Handle = async () =>
 			new Response(JSON.stringify({ error: 'Too many requests' }), {
 				status: 429,
@@ -64,40 +40,19 @@ describe('withSecurityHeaders', () => {
 
 		expect(response.status).toBe(429);
 		expect(response.headers.get('Content-Security-Policy')).toBeTruthy();
-		// Pre-existing headers on the short-circuit response must be preserved.
 		expect(response.headers.get('Retry-After')).toBe('60');
 	});
 
-	it('applies CSP to the normal resolved-app response', async () => {
-		const ok: Handle = async () =>
-			new Response('<html><body>page</body></html>', {
-				status: 200,
-				headers: { 'Content-Type': 'text/html' }
-			});
+	it('forwards pathname to applySecurityHeaders so path-dependent CSP works', async () => {
+		// Black-box test that exercises the wrapper's ACTUAL call to
+		// applySecurityHeaders. PDF embed routes (/api/reports/<id>/view) get
+		// `object-src 'self'`; every other path gets `object-src 'none'`.
+		// If the wrapper mishandles the path (mutator turns `pathname + search`
+		// into anything that fails the PDF regex), object-src stays 'none'.
+		const wrapped = withSecurityHeaders(async () => new Response('pdf'));
+		const response = await wrapped(buildHandleInput('/api/reports/abc/view'));
 
-		const wrapped = withSecurityHeaders(ok);
-		const response = await wrapped(buildHandleInput('/dashboard'));
-
-		expect(response.status).toBe(200);
-		expect(response.headers.get('Content-Security-Policy')).toBeTruthy();
-	});
-
-	it('passes the correct pathWithQuery to applySecurityHeaders', async () => {
-		// If CSP varies by path (e.g. frame-ancestors rules for /rdio), the
-		// wrapper must forward the real pathname + search, not just `/`.
-		let observedPath: string | null = null;
-		const capture: Handle = async () => new Response('ok');
-
-		const wrapped = withSecurityHeaders(async (input) => {
-			const response = await capture(input);
-			// The security-headers module may read the URL off the caller's
-			// arguments; assert via CSP presence + path echo.
-			observedPath = input.event.url.pathname + input.event.url.search;
-			return response;
-		});
-
-		await wrapped(buildHandleInput('/rdio/api/stream', '?chan=1'));
-
-		expect(observedPath).toBe('/rdio/api/stream?chan=1');
+		// Path forwarded correctly → PDF-embed branch → object-src 'self'.
+		expect(response.headers.get('Content-Security-Policy')).toContain("object-src 'self'");
 	});
 });

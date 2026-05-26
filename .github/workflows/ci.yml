@@ -107,6 +107,12 @@ jobs:
         # 7GB runner from OOMing during the full parallel suite
         # (svelte-check + vitest workers + test fixtures approach the
         # default 2GB V8 heap on this repo's ~511 tests).
+        #
+        # Suites gated here: unit (src/ + tests/unit) + architecture
+        # (ArchUnitTS layer-ordering — pure static, no server needed).
+        # Suites NOT gated here (need running dev server / hardware):
+        # integration, security, visual, performance, load, e2e. Those
+        # belong in a separate workflow with the server brought up first.
         env:
           NODE_OPTIONS: --max-old-space-size=4096
           # CI-only placeholder. src/lib/server/env.ts rejects short keys
@@ -114,7 +120,9 @@ jobs:
           # tests/build — those paths are mocked or don't reach the auth
           # middleware. 64 hex chars ensures the validator passes.
           ARGOS_API_KEY: ci-placeholder-do-not-use-for-auth-0000000000000000000000000000
-        run: npm run test:unit
+        run: |
+          npm run test:unit
+          npm run test:architecture
 
       - name: 'Verify Production Build'
         env:

@@ -70,6 +70,15 @@ Please describe the tests that you ran to verify your changes:
 
 Add screenshots to help explain your changes.
 
+## Skill Receipt (required for `chore/phase-*` branches in the mutation-testing roadmap)
+
+Required on PRs from `chore/phase-[4-7]-*` branches. Danger rule 9 fails the PR if this section is missing or incomplete. See `docs/mutation-testing-roadmap.md` for the per-phase skill mapping.
+
+- [ ] Invoked `tessl__<primary-skill>` — How applied: ...
+- [ ] Invoked `tessl__<secondary-skill>` — How applied: ...
+- Mutation score before / after: `<NN>` / `<NN>` (≥ 80% required)
+- Survivors triaged in: `docs/mutation-baseline-<YYYY-MM-DD>-phase<N>.md`
+
 ## Additional Notes
 
 Add any additional notes or context about the pull request here.
