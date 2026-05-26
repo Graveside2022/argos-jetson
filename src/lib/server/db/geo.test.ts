@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import { SignalSource } from '$lib/types/enums';
+
 import {
 	calculateDistance,
 	convertRadiusToGrid,
@@ -70,8 +72,7 @@ describe('validateGpsCoords', () => {
 	});
 	it('returns null on (0,0)', () => expect(validateGpsCoords(0, 0)).toBeNull());
 	it('returns null on null lat', () => expect(validateGpsCoords(null, 1)).toBeNull());
-	it('returns null on undefined lon', () =>
-		expect(validateGpsCoords(1, undefined)).toBeNull());
+	it('returns null on undefined lon', () => expect(validateGpsCoords(1, undefined)).toBeNull());
 });
 
 describe('calculateDistance — Haversine delegation', () => {
@@ -120,7 +121,7 @@ describe('generateDeviceId', () => {
 			power: -55,
 			frequency: 2440.7,
 			timestamp: 1000,
-			source: 'kismet',
+			source: SignalSource.Kismet,
 			metadata: { signalType: 'wifi' }
 		});
 		expect(id).toBe('wifi_2440_-60'); // floor(2440.7), floor(-55/10)*10 = -60
@@ -135,7 +136,7 @@ describe('generateDeviceId', () => {
 			power: -50,
 			frequency: 5500,
 			timestamp: 1,
-			source: 'kismet',
+			source: SignalSource.Kismet,
 			metadata: { type: 'cellular' }
 		});
 		expect(id.startsWith('cellular_')).toBe(true);
@@ -150,8 +151,8 @@ describe('generateDeviceId', () => {
 			power: -50,
 			frequency: 2440,
 			timestamp: 1,
-			source: 'kismet',
-			metadata: undefined
+			source: SignalSource.Kismet,
+			metadata: {}
 		});
 		expect(id.startsWith('unknown_')).toBe(true);
 	});
@@ -165,7 +166,7 @@ describe('generateDeviceId', () => {
 			power: -50,
 			frequency: 2440,
 			timestamp: 1,
-			source: 'kismet',
+			source: SignalSource.Kismet,
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			metadata: JSON.stringify({ signalType: 'wifi' }) as any
 		});
@@ -187,7 +188,7 @@ describe('dbSignalToMarker', () => {
 			frequency: 2440,
 			bandwidth: null,
 			modulation: null,
-			source: 'kismet',
+			source: SignalSource.Kismet,
 			metadata: undefined,
 			session_id: null
 		});
@@ -212,7 +213,7 @@ describe('dbSignalToMarker', () => {
 			frequency: 2440,
 			bandwidth: null,
 			modulation: null,
-			source: 'kismet',
+			source: SignalSource.Kismet,
 			metadata: JSON.stringify({ ssid: 'guest' }),
 			session_id: null
 		});
@@ -232,7 +233,7 @@ describe('dbSignalToMarker', () => {
 			frequency: 2440,
 			bandwidth: null,
 			modulation: null,
-			source: 'kismet',
+			source: SignalSource.Kismet,
 			metadata: '{ not json',
 			session_id: null
 		});
