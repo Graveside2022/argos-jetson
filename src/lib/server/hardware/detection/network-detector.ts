@@ -3,11 +3,76 @@
  * Detects networked SDRs and other network-connected hardware
  */
 
+import { SpanStatusCode, trace } from '@opentelemetry/api';
+
 import { DetectedHardwareSchema } from '$lib/schemas/hardware.js';
 import { env } from '$lib/server/env';
 import { execFileAsync } from '$lib/server/exec';
 import type { DetectedHardware, SDRCapabilities } from '$lib/server/hardware/detection-types';
 import { logger } from '$lib/utils/logger';
+
+/**
+ * Tracer for network-detector probes. Probes to Kismet/OpenWebRX/HackRF are
+ * expected to fail when those services aren't running — that's how we detect
+ * absence. We wrap each probe in an explicit span and force status=OK on
+ * caught failures so OTel auto-instrumentation doesn't mark the parent trace
+ * as errored (BUG-1, docs/bug-hunt-2026-05-26.md). When no OTel SDK is
+ * registered (OTEL_ENABLED!=1) this resolves to a no-op tracer.
+ */
+const tracer = trace.getTracer('argos.network-detector');
+
+/**
+ * Core probe primitive. Calls `fetch(url)` inside a span, forces span
+ * status=OK on any failure (so the parent trace stays clean), and applies
+ * `onOk` to the response on 2xx. Probe failures are expected — that's how
+ * we detect absent services.
+ */
+async function probe<T>(
+	spanName: string,
+	url: string,
+	onOk: (response: Response) => Promise<T>
+): Promise<T | null> {
+	return tracer.startActiveSpan(spanName, async (span) => {
+		try {
+			const response = await fetch(url, { signal: AbortSignal.timeout(2000) });
+			if (!response.ok) {
+				span.setStatus({ code: SpanStatusCode.OK });
+				return null;
+			}
+			const result = await onOk(response);
+			span.setStatus({ code: SpanStatusCode.OK });
+			return result;
+		} catch {
+			// Probe failures are expected (service may not be running). Mark the
+			// span OK so the parent trace isn't flagged as errored.
+			span.setStatus({ code: SpanStatusCode.OK });
+			return null;
+		} finally {
+			span.end();
+		}
+	});
+}
+
+/**
+ * Probe a service URL and return the parsed JSON body on a 2xx response.
+ * Returns `null` on any failure (ECONNREFUSED, non-2xx, JSON parse error,
+ * timeout). See {@link probe} for span-status handling.
+ */
+async function probeJsonService(spanName: string, url: string): Promise<unknown | null> {
+	return probe(spanName, url, async (response) => {
+		const data: unknown = await response.json();
+		return data;
+	});
+}
+
+/**
+ * Probe a service URL with HEAD-like semantics — returns `true` on a 2xx
+ * response, `null` otherwise. Use for endpoints that don't return JSON
+ * (e.g. OpenWebRX root HTML).
+ */
+async function probeReachable(spanName: string, url: string): Promise<true | null> {
+	return probe(spanName, url, async () => true as const);
+}
 
 // ── USRP network detection ──
 
@@ -133,79 +198,67 @@ function buildServiceDevice(
 }
 
 async function detectKismetServer(): Promise<DetectedHardware[]> {
-	try {
-		const kismetUrl = env.PUBLIC_KISMET_API_URL;
-		const url = new URL('/system/status.json', kismetUrl);
-		const response = await fetch(url.toString(), { signal: AbortSignal.timeout(2000) });
-		if (!response.ok) return [];
-		const data = await response.json();
-		return [
-			buildServiceDevice(
-				'kismet-server',
-				'Kismet Server',
-				'kismet',
-				data.kismet_version || 'unknown',
-				kismetUrl,
-				2501,
-				['wifi.scan.kismet', 'wifi.monitor.kismet']
-			)
-		];
-	} catch {
-		return [];
-	}
+	const kismetUrl = env.PUBLIC_KISMET_API_URL;
+	const url = new URL('/system/status.json', kismetUrl);
+	const data = (await probeJsonService('network-detector.probe.kismet', url.toString())) as {
+		kismet_version?: string;
+	} | null;
+	if (!data) return [];
+	return [
+		buildServiceDevice(
+			'kismet-server',
+			'Kismet Server',
+			'kismet',
+			data.kismet_version || 'unknown',
+			kismetUrl,
+			2501,
+			['wifi.scan.kismet', 'wifi.monitor.kismet']
+		)
+	];
 }
 
 // ── HackRF API server detection ──
 
 async function detectHackRFServer(): Promise<DetectedHardware[]> {
-	try {
-		const hackrfUrl = env.PUBLIC_HACKRF_API_URL;
-		const url = new URL('/status', hackrfUrl);
-		const response = await fetch(url.toString(), { signal: AbortSignal.timeout(2000) });
-		if (!response.ok) return [];
-		const data = await response.json();
-		return [
-			buildServiceDevice(
-				'hackrf-server',
-				'HackRF API Server',
-				'hackrf-api',
-				data.version || 'unknown',
-				hackrfUrl,
-				8092,
-				['spectrum.analysis.hackrf']
-			)
-		];
-	} catch {
-		return [];
-	}
+	const hackrfUrl = env.PUBLIC_HACKRF_API_URL;
+	const url = new URL('/status', hackrfUrl);
+	const data = (await probeJsonService('network-detector.probe.hackrf', url.toString())) as {
+		version?: string;
+	} | null;
+	if (!data) return [];
+	return [
+		buildServiceDevice(
+			'hackrf-server',
+			'HackRF API Server',
+			'hackrf-api',
+			data.version || 'unknown',
+			hackrfUrl,
+			8092,
+			['spectrum.analysis.hackrf']
+		)
+	];
 }
 
 // ── OpenWebRX detection ──
 
 async function detectOpenWebRX(): Promise<DetectedHardware[]> {
-	try {
-		const response = await fetch(env.OPENWEBRX_URL, {
-			signal: AbortSignal.timeout(2000)
-		});
-		if (!response.ok) return [];
-		return [
-			{
-				id: 'openwebrx-server',
-				name: 'OpenWebRX Server',
-				category: 'network',
-				connectionType: 'network',
-				status: 'connected',
-				capabilities: { service: 'openwebrx', webInterface: true },
-				ipAddress: 'localhost',
-				port: 8073,
-				lastSeen: Date.now(),
-				firstSeen: Date.now(),
-				compatibleTools: ['spectrum.view.openwebrx']
-			}
-		];
-	} catch {
-		return [];
-	}
+	const reachable = await probeReachable('network-detector.probe.openwebrx', env.OPENWEBRX_URL);
+	if (!reachable) return [];
+	return [
+		{
+			id: 'openwebrx-server',
+			name: 'OpenWebRX Server',
+			category: 'network',
+			connectionType: 'network',
+			status: 'connected',
+			capabilities: { service: 'openwebrx', webInterface: true },
+			ipAddress: 'localhost',
+			port: 8073,
+			lastSeen: Date.now(),
+			firstSeen: Date.now(),
+			compatibleTools: ['spectrum.view.openwebrx']
+		}
+	];
 }
 
 /**
