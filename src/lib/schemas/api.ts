@@ -10,6 +10,21 @@
 
 import { z } from 'zod';
 
+import { AltMetersBounds } from './common-bounds';
+
+/**
+ * Physical bounds for signal statistics (FINDING-13 hardening).
+ *
+ * Bounds chosen to accept any realistic RF measurement while rejecting
+ * obviously corrupt or spoofed input. Tighter than dBm signal range
+ * because these are derived statistics, not raw RSSI.
+ */
+const NoiseFloorBounds = z.number().min(-150).max(0); // dBm — below 0 is physical
+const SnrBounds = z.number().min(-50).max(200); // dB — negative SNR = signal below noise
+const SignalPowerBounds = z.number().min(-150).max(50); // dBm — peak/average power
+const StdDevBounds = z.number().min(0).max(1000); // dB — non-negative spread
+const MomentBounds = z.number().min(-100).max(100); // skewness/kurtosis dimensionless
+
 /** Check if direct lat + lon/lng coordinates are present */
 function hasDirectCoords(data: { lat?: number; lon?: number; lng?: number }): boolean {
 	return data.lat !== undefined && (data.lon !== undefined || data.lng !== undefined);
@@ -44,21 +59,21 @@ function hasCoordinates(data: {
  * - source: optional string (normalized to SignalSource enum)
  * - metadata: optional object with signal characteristics
  */
-const SignalInputSchema = z
+export const SignalInputSchema = z
 	.object({
 		id: z.string().min(1).optional(),
 		// Direct coordinate properties
 		lat: z.number().min(-90).max(90).optional(),
 		lon: z.number().min(-180).max(180).optional(),
 		lng: z.number().min(-180).max(180).optional(), // Alternative longitude field
-		altitude: z.number().optional(),
+		altitude: AltMetersBounds.optional(),
 		// Location object (alternative coordinate format)
 		location: z
 			.object({
 				lat: z.number().min(-90).max(90).optional(),
 				lon: z.number().min(-180).max(180).optional(),
 				lng: z.number().min(-180).max(180).optional(),
-				altitude: z.number().optional()
+				altitude: AltMetersBounds.optional()
 			})
 			.optional(),
 		// Signal characteristics
@@ -70,13 +85,13 @@ const SignalInputSchema = z
 		bandwidth: z.number().positive().optional(),
 		modulation: z.string().optional(),
 		confidence: z.number().min(0).max(1).optional(),
-		noiseFloor: z.number().optional(),
-		snr: z.number().optional(),
-		peakPower: z.number().optional(),
-		averagePower: z.number().optional(),
-		standardDeviation: z.number().optional(),
-		skewness: z.number().optional(),
-		kurtosis: z.number().optional(),
+		noiseFloor: NoiseFloorBounds.optional(),
+		snr: SnrBounds.optional(),
+		peakPower: SignalPowerBounds.optional(),
+		averagePower: SignalPowerBounds.optional(),
+		standardDeviation: StdDevBounds.optional(),
+		skewness: MomentBounds.optional(),
+		kurtosis: MomentBounds.optional(),
 		antennaId: z.string().optional(),
 		scanConfig: z.record(z.unknown()).optional()
 	})
