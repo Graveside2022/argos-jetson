@@ -64,11 +64,15 @@ export function convertRadiusToGrid(
 	};
 }
 
-/** Frequency band definitions for device type classification. */
+/** Frequency band definitions for device type classification.
+ * Order matters: bluetooth (2400-2485) is a subrange of wifi 2.4GHz (2400-2500),
+ * so bluetooth MUST be listed first or find() returns wifi for the overlap region.
+ * FINDING-PHASE5-DB-6 (2026-05-26): bluetooth was previously shadowed by wifi.
+ */
 const FREQUENCY_BANDS: Array<{ min: number; max: number; type: string }> = [
+	{ min: 2400, max: 2485, type: 'bluetooth' },
 	{ min: 2400, max: 2500, type: 'wifi' },
 	{ min: 5150, max: 5850, type: 'wifi' },
-	{ min: 2400, max: 2485, type: 'bluetooth' },
 	{ min: 800, max: 900, type: 'cellular' },
 	{ min: 1800, max: 1900, type: 'cellular' }
 ];
