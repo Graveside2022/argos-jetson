@@ -7,6 +7,7 @@
 // because the connection is rejected at the server level before it reaches addClient().
 import { EventEmitter } from 'events';
 import { WebSocket } from 'ws';
+import { z } from 'zod';
 
 import { env } from '$lib/server/env';
 import { logger } from '$lib/utils/logger';
@@ -14,15 +15,21 @@ import { logger } from '$lib/utils/logger';
 import { type PollerState, pollKismetDevices } from './kismet-poller';
 import type { KismetDevice, WebSocketMessage } from './types';
 
-// Client message interface
-interface ClientMessage {
-	type: string;
-	events?: string[];
-	filters?: {
-		minSignal?: number;
-		deviceTypes?: string[];
-	};
-}
+// Runtime schema for incoming client WS messages. Validates that arrays are
+// actually arrays of strings (prevents Object.prototype.toString tricks and
+// keeps the Set<string> in Subscription pure-string).
+const ClientMessageSchema = z.object({
+	type: z.string(),
+	events: z.array(z.string()).optional(),
+	filters: z
+		.object({
+			minSignal: z.number().optional(),
+			deviceTypes: z.array(z.string()).optional()
+		})
+		.optional()
+});
+
+type ClientMessage = z.infer<typeof ClientMessageSchema>;
 
 interface Subscription {
 	types: Set<string>;
@@ -123,16 +130,14 @@ export class WebSocketManager extends EventEmitter {
 		ws.on('message', (data: Buffer) => {
 			try {
 				const parsed: unknown = JSON.parse(data.toString());
-				// Validate minimum shape before treating as ClientMessage
-				if (
-					typeof parsed !== 'object' ||
-					parsed === null ||
-					typeof (parsed as Record<string, unknown>).type !== 'string'
-				) {
-					logger.error('Invalid client message shape (missing type field)', {});
+				const result = ClientMessageSchema.safeParse(parsed);
+				if (!result.success) {
+					logger.error('Invalid client message shape', {
+						issues: result.error.issues
+					});
 					return;
 				}
-				this.handleClientMessage(ws, parsed as ClientMessage);
+				this.handleClientMessage(ws, result.data);
 			} catch (error) {
 				logger.error('Error parsing client message:', { error });
 			}
@@ -174,6 +179,16 @@ export class WebSocketManager extends EventEmitter {
 
 	/** Add a client WebSocket with subscription preferences */
 	addClient(ws: WebSocket, subscription?: Partial<Subscription>) {
+		// Reject sockets that closed between the WS upgrade and this call —
+		// without this, attachClientHandlers' 'close' fires immediately, but the
+		// entry was already inserted in the same tick and we leak a Subscription
+		// in the clients map until the next iteration.
+		if (ws.readyState === WebSocket.CLOSING || ws.readyState === WebSocket.CLOSED) {
+			logger.info('Dropping addClient on already-closed socket', {
+				readyState: ws.readyState
+			});
+			return;
+		}
 		const sub = this.buildSubscription(subscription);
 		this.clients.set(ws, sub);
 		this.attachClientHandlers(ws);

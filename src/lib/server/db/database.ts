@@ -266,8 +266,14 @@ export class RFDatabase {
 	// ── Lifecycle & utilities ──────────────────────────────────────────
 
 	private initializeCleanupService() {
+		// Build into a local first so a throw from initialize()/start() does not
+		// leave this.cleanupService pointing at a partially-initialized service.
+		// On failure, explicitly null out so getCleanupService() returns null and
+		// callers fall back to their no-cleanup path instead of touching a
+		// half-constructed instance.
+		let service: DatabaseCleanupService | null = null;
 		try {
-			this.cleanupService = new DatabaseCleanupService(this.db, {
+			service = new DatabaseCleanupService(this.db, {
 				hackrfRetention: ONE_HOUR,
 				wifiRetention: SEVEN_DAYS,
 				defaultRetention: ONE_HOUR,
@@ -279,10 +285,13 @@ export class RFDatabase {
 				batchSize: 500,
 				maxRuntime: 20000
 			});
-			this.cleanupService.initialize();
-			this.cleanupService.start();
+			service.initialize();
+			service.start();
+			this.cleanupService = service;
 			logger.info('Database cleanup service started', {}, 'cleanup-service-started');
 		} catch (error) {
+			rollbackCleanupService(service);
+			this.cleanupService = null;
 			logger.error(
 				'Failed to initialize cleanup service',
 				{ error },
@@ -308,6 +317,16 @@ export class RFDatabase {
 	}
 }
 
+/**
+ * Per-call-site timestamp of the last logged signal-bus emit failure. Used to
+ * rate-limit log spam when the signal bus is unavailable for a sustained
+ * window (otherwise a high-rate ingest path can emit thousands of identical
+ * debug lines per minute). One log per minute per call site.
+ */
+const EMIT_WARN_INTERVAL_MS = 60_000;
+let lastEmitWarnAt = 0;
+let lastBatchEmitWarnAt = 0;
+
 /** Fan out a post-insert event for a single row returned by signalRepo. */
 function emitObservation(row: DbSignal): void {
 	try {
@@ -323,11 +342,15 @@ function emitObservation(row: DbSignal): void {
 			timestamp: row.timestamp
 		});
 	} catch (err) {
-		logger.debug(
-			'[database] signal-bus emit failed',
-			{ error: String(err) },
-			'signal-bus-emit-failed'
-		);
+		const now = Date.now();
+		if (now - lastEmitWarnAt >= EMIT_WARN_INTERVAL_MS) {
+			lastEmitWarnAt = now;
+			logger.debug(
+				'[database] signal-bus emit failed',
+				{ error: String(err) },
+				'signal-bus-emit-failed'
+			);
+		}
 	}
 }
 
@@ -353,10 +376,31 @@ function emitObservationFromMarker(signal: SignalMarker): void {
 			timestamp: signal.timestamp
 		});
 	} catch (err) {
+		const now = Date.now();
+		if (now - lastBatchEmitWarnAt >= EMIT_WARN_INTERVAL_MS) {
+			lastBatchEmitWarnAt = now;
+			logger.debug(
+				'[database] signal-bus emit failed (batch)',
+				{ error: String(err) },
+				'signal-bus-emit-failed-batch'
+			);
+		}
+	}
+}
+
+/**
+ * Best-effort rollback of a partially-initialized cleanup service when start()
+ * threw after initialize() succeeded. Swallows nested stop() errors.
+ */
+function rollbackCleanupService(service: DatabaseCleanupService | null): void {
+	if (!service) return;
+	try {
+		service.stop();
+	} catch (stopErr) {
 		logger.debug(
-			'[database] signal-bus emit failed (batch)',
-			{ error: String(err) },
-			'signal-bus-emit-failed-batch'
+			'Cleanup service stop() failed during init rollback',
+			{ error: String(stopErr) },
+			'cleanup-service-init-rollback-stop-failed'
 		);
 	}
 }
@@ -369,8 +413,18 @@ function emitObservationFromMarker(signal: SignalMarker): void {
  * UNIQUE` index. Same pattern as the other __argos_* singletons in app.d.ts.
  */
 export function getRFDatabase(): RFDatabase {
+	// Capture into a local before set so a concurrent caller (e.g. an HMR
+	// re-evaluation that runs interleaved with the first call) cannot blow away
+	// an instance another caller is already using. First writer wins; later
+	// writers discard their construction. Constructor side-effects (migrations,
+	// pragmas) on a discarded instance still complete but do no harm because the
+	// dropped instance is GC'd before any query runs on it.
+	const existing = globalThis.__argos_rfdatabase;
+	if (existing) return existing;
+	const fresh = new RFDatabase();
 	if (!globalThis.__argos_rfdatabase) {
-		globalThis.__argos_rfdatabase = new RFDatabase();
+		globalThis.__argos_rfdatabase = fresh;
+		return fresh;
 	}
 	return globalThis.__argos_rfdatabase;
 }
