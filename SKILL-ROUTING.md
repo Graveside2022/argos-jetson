@@ -123,15 +123,21 @@ Synchronizer token (server-validated hidden field), double-submit cookie, SameSi
 
 **Tally**: 69 REAL · 16 STUB · 4 GUIDANCE · 16 DOMAIN · 1 DEPRECATED · **106 total**.
 
-### Skill scan order (unchanged)
+### Skill scan order — RUFLO PRIMARY, TESSL COMBINATION (INVERTED 2026-05-26)
+
+Per user directive 2026-05-26 (post PR #251 + #252), the prior tessl-first scan order is INVERTED. All Argos tasks route through ruflo FIRST. Tessl skills layer on TOP as combinations, NOT as primary or alternative scan.
 
 Apply BEFORE running `mcp__tessl__search` or installing new tiles:
 
-1. **tessl catalog** — match work to the 13 tessl skills via the trigger map above
-2. **ruflo catalog** — scan the per-plugin tables below; skip ⚠️/🎯/📦/📝-flagged skills
-3. **Combined match** — if either covers the work, invoke via `Skill(...)` tool
-4. **Gap → search** — only if NEITHER catalog covers, run `mcp__tessl__search`
-5. **Gap → install** — only if a relevant new tile surfaces, gate by 5-check safe-install protocol from CLAUDE.md
+1. **Ruflo memory recall** — `mcp__ruflo__memory_search` (namespace=`argos-decisions` + `argos-phaseN-scope`) + `mcp__ruflo__agentdb_pattern-search` for prior context. "Did we already solve this? What was the methodology last time? What were the findings?"
+2. **Ruflo scope store + swarm-vs-single decision** — `mcp__ruflo__memory_store` task scope + goals in `argos-<task-name>-scope` namespace BEFORE any code action. Decide: parallel/swarm? Spawn native `Agent` workers using ruflo's 60+ `subagent_type` labels. Single? Proceed inline.
+3. **Ruflo skill match** — scan the per-plugin tables below; skip ⚠️ STUB / 🎯 DOMAIN / 📦 DEPRECATED / 📝 GUIDANCE tags. Invoke matched ruflo skills via `Skill(...)` tool.
+4. **Tessl combination layer** — match work to the 13 tessl skills via the trigger map above; invoke as COMBINATION on top of the ruflo flow (e.g. `tessl__sqlite-node-best-practices` invoked INSIDE a ruflo `test-gaps` + `memory_store` flow, not as a parallel scan).
+5. **Gap → search** — only if NEITHER catalog covers, run `mcp__tessl__search`.
+6. **Gap → install** — only if a relevant new tile surfaces, gate by 5-check safe-install protocol from CLAUDE.md.
+7. **Findings persist** — `agentdb_pattern-store` each finding as it lands; `memory_store` decisions/pivots in `argos-decisions`; `agentdb_pattern-store` completion record at task end (score, deferred items, PR number).
+
+See [`RUFLO.md`](./RUFLO.md) §Per-phase ruflo workflow pattern for the full 5-step task lifecycle. Hook `~/.claude/hooks/ruflo-task-routing-gate.sh` mechanically enforces this scan order.
 
 ### Per-plugin catalog
 
