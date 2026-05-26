@@ -363,3 +363,7 @@ docs/carbon-website/
 .agents/
 # GitHub-MCP skill cache (auto-generated)
 .github/skills/
+# Stryker mutation-testing artifacts — html/json reports regenerated per
+# `npm run test:mutation` run; large, not human-edited.
+reports/mutation/
+.stryker-tmp/
