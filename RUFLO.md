@@ -84,6 +84,38 @@ Per roman-rr's audit (https://gist.github.com/roman-rr/ed603b676af019b8740423d2b
 | Hooks | NOT integrated into Argos's `.husky/` — explicit decision; ruflo daemon ≠ critical path. |
 | Plugins | Marketplace `ruvnet/ruflo` added. Plugin install required for tool surface — see `~/.claude/settings.json` `enabledPlugins`. |
 
+## Per-task intelligence-graph flow (always-on for fix/audit/review/debug verbs)
+
+Beyond the per-phase 5-step pattern below, every fix/audit/review/debug task MUST use ruflo's intelligence-graph layer — the Learning Loop documented by upstream `ruvnet/ruflo` USERGUIDE.md as **RETRIEVE → JUDGE → DISTILL → CONSOLIDATE → ROUTE**.
+
+| Step | Mandatory tools | Optional |
+|---|---|---|
+| RETRIEVE | `memory_search smart=true` (NOT default false — RRF + MMR + recency reranking) + `agentdb_pattern-search` | `memory_search_unified`, `embeddings_rabitq_search` |
+| JUDGE | per-finding `agentdb_pattern-store` + `agentdb_causal-edge` linking finding → completion (or → prior obs) | `embeddings_compare` validates cluster cohesion vs prior obs |
+| DISTILL | `agentdb_hierarchical-store` tier=`semantic` (HIGH) / `episodic` (MED) / `working` (LOW) | `agentdb_consolidate`, `agentdb_context-synthesize` |
+| CONSOLIDATE | `agentdb_pattern-store` type=`*-completion` + `agentdb_feedback` (`{taskId, success, quality}`) closes loop | `agentdb_graph-pathfinder personalized-pagerank` |
+| ROUTE | for review tasks: `Agent({subagent_type: security-architect / tdd-london-swarm / sparc-refine / code-reviewer / performance-engineer})` | `hooks_explain`, `hooks_coverage-suggest` |
+
+**Acceptance criterion**: ≥3 of {smart=true memory_search, causal-edge, hierarchical-store, agentdb_feedback} fire in first task turn without explicit user prompting.
+
+### Worked example: Phase 7 WS cheap audit (2026-05-26)
+
+11-tool sequence used live, persisted in `argos-phase7-scope` + `argos-decisions` namespaces:
+
+1. `memory_search smart=true` — recalled `argos-phase5-7-cheap-audit-pivot-2026-05-26` decision (RRF + MMR backend, 3 query variants generated)
+2. `memory_store` — `phase7-cheap-audit-scope-2026-05-26` namespace=`argos-phase7-scope`
+3-6. `agentdb_pattern-store` × 4 (HIGH-1 / HIGH-2 / MED-3 / LOW-4 findings) → returned `entry_*` patternIds
+7-10. `agentdb_causal-edge` × 4 — linked each finding patternId → completion patternId (relation=`caused`, weight=1.0)
+11-14. `agentdb_hierarchical-store` × 4 — HIGH → tier=`semantic`, MED → `episodic`, LOW → `working`
+15-16. `embeddings_compare` × 2 — HIGH-1 vs prior obs 5620 = 0.618 SIMILAR (validated cluster); HIGH-2 vs `tak-connection.ts` jitter ref = 0.568 (validated code reuse)
+17. `embeddings_rabitq_build` — 68 vectors, 32× compression, 402ms
+18. `agentdb_graph-pathfinder personalized-pagerank` — 4 finding nodes at depth 1 from completion hub (proved cluster topology)
+19. `agentdb_feedback` — `{taskId: 'phase7-cheap-audit-wire-full-power-2026-05-26', success: true, quality: 0.9}`
+20. Native `Agent({subagent_type: 'security-architect'})` — produced 5-finding security verdict (✅ ship + 2 follow-ups: time-windowed slow-consumer counter + verify shouldReconnect excludes close 4001)
+21. `hooks_coverage-suggest src/lib/websocket/base.ts` — surfaced 26.79% current coverage / 80% target / 53% gap / priority 8/10 as concrete next-PR item
+
+Result: ruflo used at intelligence-graph layer (~70% of agentdb surface) vs prior logbook-only (~5%). Actionable next-PR item surfaced from coverage data. Security verdict from subagent + 2 follow-ups landed in `argos-phase7-scope`.
+
 ## Per-phase ruflo workflow pattern
 
 For multi-phase work like the mutation testing roadmap:

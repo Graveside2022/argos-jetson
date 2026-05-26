@@ -107,6 +107,28 @@ Synchronizer token (server-validated hidden field), double-submit cookie, SameSi
 - **Perf measurement is native**: chrome-devtools/Lighthouse measure; web-performance only guides.
 - **Out of scope**: Rust tactical (blue-dragon) — these skills are JS/TS/web; use cargo clippy/audit for that.
 
+## Per-task ruflo intelligence-graph invocation pattern (always-on)
+
+Source of truth: [`RUFLO.md`](./RUFLO.md) §Per-task intelligence-graph flow. Replicated here for skill-routing convenience.
+
+For every Argos task containing a fix/audit/review/debug/refactor verb, walk the Learning Loop (per upstream `ruvnet/ruflo` USERGUIDE.md):
+
+| Order | Tool | Purpose |
+|---|---|---|
+| 1 | `mcp__ruflo__memory_search` with `smart=true` | RETRIEVE — RRF + MMR + recency reranking surfaces prior decisions / methodologies |
+| 2 | `mcp__ruflo__agentdb_pattern-search` | RETRIEVE — per-namespace pattern recall |
+| 3 | `mcp__ruflo__memory_store` (scope key in `argos-<task>-scope`) | RETRIEVE → JUDGE — scope + swarm-vs-single decision |
+| 4 | `mcp__ruflo__agentdb_pattern-store` per finding | JUDGE — persist finding patternId |
+| 5 | `mcp__ruflo__agentdb_causal-edge` per finding | JUDGE — link finding patternId → completion patternId (or → prior obs) |
+| 6 | `mcp__ruflo__agentdb_hierarchical-store` per finding | DISTILL — tier = `semantic` (HIGH) / `episodic` (MED) / `working` (LOW) |
+| 7 | `mcp__ruflo__embeddings_compare` (optional) | DISTILL — validate cluster cohesion vs prior obs |
+| 8 | `mcp__ruflo__agentdb_pattern-store` type=`*-completion` | CONSOLIDATE — closing record |
+| 9 | `mcp__ruflo__agentdb_feedback` `{taskId, success, quality}` | CONSOLIDATE — close learning loop |
+| 10 | `mcp__ruflo__agentdb_graph-pathfinder personalized-pagerank` (optional) | CONSOLIDATE — cluster topology |
+| 11 | Native `Agent({subagent_type: ...})` | ROUTE — security-architect / tdd-london-swarm / sparc-refine / code-reviewer / performance-engineer for review tasks |
+
+Acceptance: ≥3 of {smart=true, causal-edge, hierarchical-store, agentdb_feedback} fire in first task turn without explicit user prompting. Tessl skills (below) layer ON TOP as combinations, NOT as alternatives.
+
 ## Ruflo skill catalog (2026-05-26 — full enumeration with honesty tags)
 
 **106 ruflo skill cards** across 32 ruflo plugins are installed at user scope (full doc in [`RUFLO.md`](./RUFLO.md)). Counts below replace the earlier "~50" estimate. **Each skill card is a markdown doc, not an executor.** Whether the work behind the doc actually runs depends on the backing MCP tool — classified per [RUFLO.md](./RUFLO.md) + roman-rr audit + Phase 4 demo.
