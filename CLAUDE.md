@@ -19,6 +19,19 @@ Project rules clean-slate as of 2026-05-20. Four rule surfaces are active in thi
 5. **Decisions / pivots** → `mcp__ruflo__memory_store` each in `argos-decisions` namespace.
 6. **Task end** → `mcp__ruflo__agentdb_pattern-store` completion record (score, deferred items, PR number).
 
+### Intelligence-graph layer (always-on for fix/audit/review/debug verbs)
+
+Steps 1-6 are MINIMUM. For Argos prompts containing `fix add implement debug refactor build run test review migrate deploy wire port patch update audit`, ALSO use the Learning Loop **RETRIEVE → JUDGE → DISTILL → CONSOLIDATE → ROUTE** — see [`RUFLO.md`](./RUFLO.md) §Per-task intelligence-graph flow for the full tool mapping table + the Phase 7 worked example.
+
+Mandatory on every fix/audit/review/debug task:
+- `memory_search smart=true` at RETRIEVE (RRF + MMR + recency, not default false)
+- per-finding `agentdb_causal-edge` linking → completion patternId
+- per-finding `agentdb_hierarchical-store` tier=`semantic` (HIGH) / `episodic` (MED) / `working` (LOW)
+- task-end `agentdb_feedback {taskId, success, quality}` to close the loop
+- review tasks → `Agent({subagent_type: 'security-architect'|'tdd-london-swarm'|'sparc-refine'|...})`
+
+Acceptance: ≥3 of these 4 deep-layer tools fire in first task turn without explicit user prompting.
+
 ### Theater tools to SKIP (per RUFLO.md audit + Argos Phase 4 demo)
 
 `coordination_orchestrate`, `agent_spawn`, `swarm_init`, `hive-mind_*` (verifySignature returns true), `wasm_agent_*` (echoes input), `neural_train` (hardcoded += 100), `autopilot_*`, `claims_*`, `daa_*`. Skip these — use native equivalents (`Agent` tool for orchestration, `/loop` + `ScheduleWakeup` for autonomous loops, git+PR for cross-machine sync).
