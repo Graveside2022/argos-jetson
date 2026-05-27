@@ -10,7 +10,7 @@
 
 import { z } from 'zod';
 
-import { AltMetersBounds } from './common-bounds';
+import { AltMetersBounds, BandwidthHzBounds, FreqMhzBounds, RssiDbmBounds } from './common-bounds';
 
 /**
  * Physical bounds for signal statistics (FINDING-13 hardening).
@@ -77,12 +77,12 @@ export const SignalInputSchema = z
 			})
 			.optional(),
 		// Signal characteristics
-		frequency: z.number().min(1).max(6000),
-		power: z.number().min(-120).max(0),
+		frequency: FreqMhzBounds,
+		power: RssiDbmBounds,
 		timestamp: z.union([z.number().positive(), z.string().datetime()]),
 		source: z.string().optional(),
 		// Optional metadata
-		bandwidth: z.number().positive().optional(),
+		bandwidth: BandwidthHzBounds.optional(),
 		modulation: z.string().optional(),
 		confidence: z.number().min(0).max(1).optional(),
 		noiseFloor: NoiseFloorBounds.optional(),

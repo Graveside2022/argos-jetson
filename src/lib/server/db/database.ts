@@ -45,6 +45,8 @@ export class RFDatabase {
 	constructor(dbPath: string = './rf_signals.db') {
 		this.db = new Database(dbPath);
 		this.db.pragma('journal_mode = WAL');
+		this.db.pragma('foreign_keys = ON'); // FINDING-PHASE5-DB-2: defense-in-depth alongside schema.sql
+		this.db.pragma('busy_timeout = 5000'); // FINDING-PHASE5-DB-1: retry instead of throwing SQLITE_BUSY on lock
 		this.db.pragma('synchronous = NORMAL');
 		this.db.pragma('cache_size = -64000'); // 64MB (negative = KB)
 		this.db.pragma('mmap_size = 134217728'); // 128MB

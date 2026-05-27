@@ -37,6 +37,10 @@ interface Subscription {
 		minSignal?: number;
 		deviceTypes?: string[];
 	};
+	// FINDING MED-3: count of consecutive over-threshold broadcasts.
+	// Reset to 0 on healthy send. When >= SLOW_CONSUMER_THRESHOLD,
+	// the socket is closed with code 4001.
+	slowConsumerCount?: number;
 }
 
 export class WebSocketManager extends EventEmitter {
@@ -51,6 +55,14 @@ export class WebSocketManager extends EventEmitter {
 	private readonly CACHE_EXPIRY = 300000; // 5 minutes
 	private readonly KISMET_API_URL = env.KISMET_API_URL;
 	private readonly KISMET_API_KEY = env.KISMET_API_KEY;
+
+	// Backpressure thresholds (FINDING MED-3). Tuned for Argos/Jetson Orin
+	// (64 GB RAM, ~5 concurrent operators, 2 s broadcast cadence, 256 KB
+	// server maxPayload). 4 MB = 16× maxPayload mirror = ~80 s of lag at
+	// typical 50 KB Kismet device-list payload; sustained beyond that is
+	// a stuck client, not a transient stutter.
+	private readonly MAX_BUFFER_BYTES = 4_194_304; // 4 MB
+	private readonly SLOW_CONSUMER_THRESHOLD = 3; // = 6 s sustained at 2 s POLL_INTERVAL
 
 	// Polling state — shared with kismet-poller module
 	private pollerState: PollerState = {
@@ -265,13 +277,38 @@ export class WebSocketManager extends EventEmitter {
 			.filter((device) => this.matchesFilters(device, sub.filters));
 	}
 
+	/**
+	 * FINDING MED-3: per-client backpressure handling. Returns true if the
+	 * caller should skip sending to this client (either slow or just closed).
+	 * Resets the slow-consumer counter when the client buffer is healthy.
+	 */
+	private shouldSkipForBackpressure(client: WebSocket, sub: Subscription): boolean {
+		if (client.bufferedAmount > this.MAX_BUFFER_BYTES) {
+			sub.slowConsumerCount = (sub.slowConsumerCount ?? 0) + 1;
+			logger.warn('Slow consumer; skipping broadcast', {
+				bufferedAmount: client.bufferedAmount,
+				slowConsumerCount: sub.slowConsumerCount
+			});
+			if (sub.slowConsumerCount >= this.SLOW_CONSUMER_THRESHOLD) {
+				logger.error('Closing slow consumer after sustained backpressure', {
+					slowConsumerCount: sub.slowConsumerCount
+				});
+				client.close(4001, 'Too slow');
+			}
+			return true;
+		}
+		sub.slowConsumerCount = 0;
+		return false;
+	}
+
 	/** Broadcast message to clients with optional filter */
 	public broadcast(message: WebSocketMessage, filter?: (sub: Subscription) => boolean) {
 		const data = JSON.stringify(message);
 		this.clients.forEach((sub, client) => {
-			if (client.readyState === WebSocket.OPEN) {
-				if (!filter || filter(sub)) client.send(data);
-			}
+			if (client.readyState !== WebSocket.OPEN) return;
+			if (filter && !filter(sub)) return;
+			if (this.shouldSkipForBackpressure(client, sub)) return;
+			client.send(data);
 		});
 	}
 

@@ -17,14 +17,7 @@ export default defineConfig({
 	...baseConfig,
 	test: {
 		...baseConfig.test,
-		include: [
-			'src/lib/server/middleware/**/*.{test,spec}.{js,ts}',
-			'tests/unit/rate-limit-middleware.test.ts',
-			'tests/unit/rate-limit-middleware-internals.test.ts',
-			'tests/unit/response-pipeline.test.ts',
-			'tests/unit/ws-origin-guard.test.ts',
-			'tests/unit/ws-connection-handler.test.ts'
-		],
+		include: ['src/lib/server/hardware/**/*.{test,spec}.{js,ts}'],
 		exclude: ['node_modules/**', '.stryker-tmp/**'],
 		coverage: { enabled: false },
 		// Bump from inherited maxWorkers:1 (RPi5-era) to 2. With stryker's

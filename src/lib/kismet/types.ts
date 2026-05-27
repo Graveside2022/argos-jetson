@@ -12,6 +12,8 @@
 
 import { z } from 'zod';
 
+import { RssiDbmBounds } from '$lib/schemas/common-bounds';
+
 /**
  * MAC address regex pattern
  */
@@ -32,21 +34,11 @@ export const KismetDeviceSchema = z
 		firstSeen: z.number().int().positive().optional(),
 		lastSeen: z.number().int().positive().optional(),
 		signal: z.object({
-			last_signal: z
-				.number()
-				.min(-120)
-				.max(0)
-				.optional()
-				.describe('Last signal strength (dBm)'),
-			max_signal: z
-				.number()
-				.min(-120)
-				.max(0)
-				.optional()
-				.describe('Max signal strength (dBm)'),
-			min_signal: z.number().min(-120).max(0).optional().describe('Min signal strength (dBm)')
+			last_signal: RssiDbmBounds.optional().describe('Last signal strength (dBm)'),
+			max_signal: RssiDbmBounds.optional().describe('Max signal strength (dBm)'),
+			min_signal: RssiDbmBounds.optional().describe('Min signal strength (dBm)')
 		}),
-		signalStrength: z.number().min(-120).max(0).optional(),
+		signalStrength: RssiDbmBounds.optional(),
 		manufacturer: z.string().optional().describe('Device manufacturer'),
 		manuf: z.string().optional().describe('Manufacturer alias'),
 		type: z.string().describe('Device type (AP, client, etc.)'),
