@@ -9,7 +9,8 @@ import {
 	spawnGnssSdr,
 	spawnGnssSdrMonitor,
 	spawnRtknavi,
-	spawnSocatNmeaBridge
+	spawnSocatNmeaBridge,
+	spawnWindowManager
 } from './gnss-sdr-vnc-processes';
 import { GNSS_SDR_VNC_DISPLAY } from './gnss-sdr-vnc-types';
 
@@ -86,12 +87,27 @@ describe('spawnRtknavi + spawnGnssSdrMonitor', () => {
 	});
 });
 
+describe('spawnWindowManager', () => {
+	it('invokes /usr/bin/openbox with --sm-disable + rc.xml + DISPLAY=:98', () => {
+		spawnWindowManager();
+		expect(spawnCalls).toHaveLength(1);
+		expect(spawnCalls[0].cmd).toBe('/usr/bin/openbox');
+		expect(spawnCalls[0].args[0]).toBe('--sm-disable');
+		expect(spawnCalls[0].args[1]).toBe('--config-file');
+		expect(spawnCalls[0].args[2]).toMatch(/argos-gnss-sdr-openbox-rc\.xml$/);
+		expect(spawnCalls[0].env?.DISPLAY).toBe(GNSS_SDR_VNC_DISPLAY);
+	});
+});
+
 describe('spawnSocatNmeaBridge', () => {
-	it('bridges the NMEA fifo to TCP :50001 in fork mode for gpsd', () => {
+	it('bridges the NMEA fifo to TCP :50001 in fork mode for gpsd, loopback-bound', () => {
 		spawnSocatNmeaBridge();
 		expect(spawnCalls[0].cmd).toBe('/usr/bin/socat');
 		expect(spawnCalls[0].args[0]).toBe('PIPE:/tmp/argos-gnss-sdr.nmea');
-		expect(spawnCalls[0].args[1]).toBe('TCP-LISTEN:50001,reuseaddr,fork');
+		// `bind=127.0.0.1` is required — without it socat defaults to wildcard and
+		// any LAN client can inject a spoofed NMEA fix into gpsd (HIGH-sev finding
+		// from the security audit landed alongside the openbox follow-up).
+		expect(spawnCalls[0].args[1]).toBe('TCP-LISTEN:50001,bind=127.0.0.1,reuseaddr,fork');
 	});
 });
 
