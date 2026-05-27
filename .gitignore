@@ -8,6 +8,16 @@
 node_modules/
 .setup-cache/
 
+# ── gnss-sdr output droppings (RINEX, PVT, NMEA dumps; runtime-only) ──
+GSDR*.??[NOM]
+PVT_*.geojson
+PVT_*.gpx
+PVT_*.kml
+gnss_sdr_pvt.nmea
+gnss_sdr_observables.dat
+acq_dump.dat
+tracking_ch_*.dat
+
 # Graphify AST knowledge-graph output + Serena LSP session
 graphify-out/
 .serena/

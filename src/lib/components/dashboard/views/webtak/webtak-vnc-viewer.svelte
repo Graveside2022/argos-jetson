@@ -19,9 +19,17 @@
 		onDisconnect?: (reason: string) => void;
 		/** Request the VNC server to resize to match the container. Default false. */
 		resizeSession?: boolean;
+		/**
+		 * Letterbox mode (aspect-preserving fit) instead of fill-and-clip. Set true
+		 * when the remote framebuffer aspect won't match the iframe panel aspect
+		 * (e.g. 1920x1080 server inside a 4:3 panel). Default false retains the
+		 * existing fill-clip behavior for WebTAK browser sessions (where the
+		 * remote Chromium auto-resizes to match the iframe).
+		 */
+		aspectFit?: boolean;
 	}
 
-	let { wsUrl, onDisconnect, resizeSession = false }: Props = $props();
+	let { wsUrl, onDisconnect, resizeSession = false, aspectFit = false }: Props = $props();
 
 	type RfbLike = {
 		scaleViewport: boolean;
@@ -58,7 +66,11 @@
 
 	function configureRfb(instance: RfbLike): void {
 		instance.scaleViewport = true;
-		instance.clipViewport = true;
+		// clipViewport=false in aspectFit mode → noVNC letterboxes (preserves the
+		// remote framebuffer aspect inside the canvas, fills the rest with the
+		// background color). Without this, a 1920x1080 framebuffer inside a
+		// non-16:9 iframe panel gets non-uniformly stretched / clipped.
+		instance.clipViewport = !aspectFit;
 		instance.resizeSession = resizeSession;
 		instance.viewOnly = false;
 		instance.focusOnClick = true;

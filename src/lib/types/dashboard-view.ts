@@ -33,7 +33,8 @@ export type ActiveView =
 	| 'sdrpp'
 	| 'trunk-recorder'
 	| 'uas-scan'
-	| 'wireshark';
+	| 'wireshark'
+	| 'gnss-sdr';
 
 export const VALID_VIEWS: ReadonlySet<string> = new Set<ActiveView>([
 	'map',
@@ -61,5 +62,6 @@ export const VALID_VIEWS: ReadonlySet<string> = new Set<ActiveView>([
 	'sparrow-wifi',
 	'sdrpp',
 	'uas-scan',
-	'wireshark'
+	'wireshark',
+	'gnss-sdr'
 ]);
