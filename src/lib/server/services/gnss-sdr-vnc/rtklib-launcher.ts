@@ -25,7 +25,7 @@ import { mkdirSync, writeFileSync } from 'fs';
 import { homedir } from 'os';
 import { join as joinPath } from 'path';
 
-import { GNSS_SDR_CONF_DIR, GNSS_SDR_NMEA_FIFO, GNSS_SDR_RTCM_PORT } from './gnss-sdr-vnc-types';
+import { GNSS_SDR_CONF_DIR, GNSS_SDR_RTCM_PORT } from './gnss-sdr-vnc-types';
 
 /** Where the running rtknavi_qt/rtkplot_qt look for their default .ini. */
 function defaultIniPath(name: string): string {
@@ -39,30 +39,25 @@ function templatePath(name: string): string {
 
 /**
  * Write the rtknavi_qt .ini that points its primary input stream at the
- * gnss-sdr RTCM TCP server, and the rtkplot_qt .ini that tails the NMEA
- * fifo. Idempotent.
+ * gnss-sdr RTCM TCP server. Idempotent.
  *
- * Both files are also copied into `~/.config/` so the GUIs pick them up
- * on next launch without command-line flags.
+ * The .ini is also copied into `~/.config/` so rtknavi_qt picks it up on
+ * next launch without command-line flags. gnss-sdr-monitor (which replaced
+ * rtkplot_qt in the stack) listens on UDP 1234 by default and needs no
+ * pre-seeded config.
  */
-export function writeRtklibTemplates(): { rtknaviPath: string; rtkplotPath: string } {
+export function writeRtklibTemplates(): { rtknaviPath: string } {
 	mkdirSync(GNSS_SDR_CONF_DIR, { recursive: true });
 	mkdirSync(joinPath(homedir(), '.config'), { recursive: true });
 
 	const rtknaviIni = buildRtknaviIni();
-	const rtkplotIni = buildRtkplotIni();
-
 	const rtknaviTemplate = templatePath('rtknavi_qt.ini');
-	const rtkplotTemplate = templatePath('rtkplot_qt.ini');
 	const rtknaviRuntime = defaultIniPath('rtknavi_qt.ini');
-	const rtkplotRuntime = defaultIniPath('rtkplot_qt.ini');
 
 	writeFileSync(rtknaviTemplate, rtknaviIni, { mode: 0o644 });
-	writeFileSync(rtkplotTemplate, rtkplotIni, { mode: 0o644 });
 	writeFileSync(rtknaviRuntime, rtknaviIni, { mode: 0o644 });
-	writeFileSync(rtkplotRuntime, rtkplotIni, { mode: 0o644 });
 
-	return { rtknaviPath: rtknaviRuntime, rtkplotPath: rtkplotRuntime };
+	return { rtknaviPath: rtknaviRuntime };
 }
 
 /**
@@ -105,24 +100,6 @@ function buildRtknaviIni(): string {
 		'logstr1_type=0',
 		'logstr2_type=0',
 		'logstr3_type=0',
-		''
-	].join('\n');
-}
-
-/**
- * rtkplot_qt config — opens NMEA from the named pipe at startup.
- * The Plot/Open-Solution dialog defaults to the path the .ini specifies.
- */
-function buildRtkplotIni(): string {
-	return [
-		'; Argos-generated rtkplot_qt.ini — auto-loads the NMEA fifo at startup.',
-		'[plot]',
-		'time_label=0',
-		'auto_scale=1',
-		'show_stats=1',
-		'',
-		'[file]',
-		'solution_file=' + GNSS_SDR_NMEA_FIFO,
 		''
 	].join('\n');
 }

@@ -27,8 +27,8 @@ import {
 	removeNmeaFifo,
 	setVncBackground,
 	spawnGnssSdr,
+	spawnGnssSdrMonitor,
 	spawnRtknavi,
-	spawnRtkplot,
 	spawnSocatNmeaBridge,
 	spawnWebsockify,
 	spawnXtigervnc,
@@ -92,9 +92,9 @@ async function spawnStackProcesses(options: GnssSdrStartOptions): Promise<void> 
 	await delay(GNSS_SDR_INIT_DELAY_MS);
 	assertNoSpawnError();
 
-	logger.info('[gnss-sdr-vnc] spawning rtknavi_qt + rtkplot_qt');
+	logger.info('[gnss-sdr-vnc] spawning rtknavi_qt + gnss-sdr-monitor');
 	spawnRtknavi();
-	spawnRtkplot();
+	spawnGnssSdrMonitor();
 	await delay(RTKLIB_INIT_DELAY_MS);
 	assertNoSpawnError();
 

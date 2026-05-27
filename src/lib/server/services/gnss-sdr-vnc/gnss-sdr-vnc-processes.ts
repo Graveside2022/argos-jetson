@@ -9,7 +9,7 @@
  *                   Qt diagnostics (kept off in our config); waits a moment
  *                   before the RTKLIB GUIs attach to its RTCM/NMEA streams
  *   3. rtknavi_qt — Qt5 GUI on the VNC display
- *   4. rtkplot_qt — Qt5 GUI on the VNC display
+ *   4. gnss-sdr-monitor — Qt5 GUI consuming gnss-sdr Monitor protobuf (UDP 1234)
  *   5. websockify — bridges VNC TCP to a WebSocket for noVNC
  *   6. socat      — bridges /tmp/argos-gnss-sdr.nmea -> TCP for gpsd
  *
@@ -44,6 +44,8 @@ import {
 	GNSS_SDR_CONF_DIR,
 	GNSS_SDR_DEPTH,
 	GNSS_SDR_GEOMETRY,
+	GNSS_SDR_LD_PRELOAD_LIBUHD,
+	GNSS_SDR_MONITOR_BIN,
 	GNSS_SDR_NMEA_BRIDGE_PORT,
 	GNSS_SDR_NMEA_FIFO,
 	GNSS_SDR_VNC_DISPLAY,
@@ -51,7 +53,6 @@ import {
 	GNSS_SDR_WS_PORT,
 	type GnssSdrStartOptions,
 	RTKNAVI_QT_BIN,
-	RTKPLOT_QT_BIN,
 	SOCAT_BIN
 } from './gnss-sdr-vnc-types';
 
@@ -62,7 +63,7 @@ const SCOPE = 'gnss-sdr-vnc';
 let xvncProcess: ChildProcess | null = null;
 let gnssSdrProcess: ChildProcess | null = null;
 let rtknaviProcess: ChildProcess | null = null;
-let rtkplotProcess: ChildProcess | null = null;
+let gnssSdrMonitorProcess: ChildProcess | null = null;
 let websockifyProcess: ChildProcess | null = null;
 let socatProcess: ChildProcess | null = null;
 
@@ -189,7 +190,10 @@ export function spawnGnssSdr(confPath: string): void {
 	gnssSdrProcess = spawnImpl(GNSS_SDR_BIN, ['--config_file', confPath], {
 		env: {
 			...process.env,
-			DISPLAY: GNSS_SDR_VNC_DISPLAY
+			DISPLAY: GNSS_SDR_VNC_DISPLAY,
+			// Force older libuhd at runtime so apt's gr-uhd plugin sees an
+			// ABI-compatible UHD library (see GNSS_SDR_LD_PRELOAD_LIBUHD doc).
+			LD_PRELOAD: GNSS_SDR_LD_PRELOAD_LIBUHD
 		},
 		cwd: GNSS_SDR_CONF_DIR,
 		stdio: ['ignore', 'pipe', 'pipe'],
@@ -238,28 +242,29 @@ export function spawnRtknavi(): void {
 	});
 }
 
-/** Spawn `rtkplot_qt`, rendering into the VNC framebuffer. */
-export function spawnRtkplot(): void {
-	rtkplotProcess = spawnImpl(RTKPLOT_QT_BIN, [], {
+/** Spawn `gnss-sdr-monitor`, rendering into the VNC framebuffer.
+ *  Consumes gnss-sdr's Monitor block UDP protobuf on port 1234. */
+export function spawnGnssSdrMonitor(): void {
+	gnssSdrMonitorProcess = spawnImpl(GNSS_SDR_MONITOR_BIN, [], {
 		env: { ...process.env, DISPLAY: GNSS_SDR_VNC_DISPLAY },
 		stdio: 'ignore',
 		detached: true
 	});
-	rtkplotProcess.unref();
-	rtkplotProcess.on('exit', (code, signal) => {
-		logger.info(`[${SCOPE}] rtkplot_qt exited`, { code, signal });
-		rtkplotProcess = null;
+	gnssSdrMonitorProcess.unref();
+	gnssSdrMonitorProcess.on('exit', (code, signal) => {
+		logger.info(`[${SCOPE}] gnss-sdr-monitor exited`, { code, signal });
+		gnssSdrMonitorProcess = null;
 	});
-	rtkplotProcess.on('error', (err) => {
-		recordSpawnError('rtkplot_qt', err);
-		rtkplotProcess = null;
+	gnssSdrMonitorProcess.on('error', (err) => {
+		recordSpawnError('gnss-sdr-monitor', err);
+		gnssSdrMonitorProcess = null;
 	});
 }
 
 /** Center the Qt windows in the VNC framebuffer (wmctrl). */
 export function centerRtklibWindows(): void {
 	centerVncWindow(GNSS_SDR_VNC_DISPLAY, 'RTKNAVI');
-	centerVncWindow(GNSS_SDR_VNC_DISPLAY, 'RTKPLOT');
+	centerVncWindow(GNSS_SDR_VNC_DISPLAY, 'gnss-sdr-monitor');
 }
 
 /** Spawn websockify bridging VNC port -> WebSocket. */
@@ -335,8 +340,8 @@ export async function killAllProcesses(): Promise<void> {
 	socatProcess = null;
 	await killProc(websockifyProcess, 'websockify');
 	websockifyProcess = null;
-	await killProc(rtkplotProcess, 'rtkplot_qt');
-	rtkplotProcess = null;
+	await killProc(gnssSdrMonitorProcess, 'gnss-sdr-monitor');
+	gnssSdrMonitorProcess = null;
 	await killProc(rtknaviProcess, 'rtknavi_qt');
 	rtknaviProcess = null;
 	await killProc(gnssSdrProcess, 'gnss-sdr');
@@ -351,7 +356,7 @@ export function isStackAlive(): boolean {
 		xvncProcess,
 		gnssSdrProcess,
 		rtknaviProcess,
-		rtkplotProcess,
+		gnssSdrMonitorProcess,
 		websockifyProcess,
 		socatProcess
 	];
@@ -364,7 +369,7 @@ export function _resetModuleStateForTest(): void {
 	xvncProcess = null;
 	gnssSdrProcess = null;
 	rtknaviProcess = null;
-	rtkplotProcess = null;
+	gnssSdrMonitorProcess = null;
 	websockifyProcess = null;
 	socatProcess = null;
 	errorTracker.clear();

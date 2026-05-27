@@ -42,12 +42,39 @@ export const GNSS_SDR_DEPTH = 24;
 /** Path to the gnss-sdr binary built from source by Phase 1. */
 export const GNSS_SDR_BIN = '/usr/local/bin/gnss-sdr';
 
-/** RTKLIB Qt5 binary paths (built from rtklibexplorer/RTKLIB). */
+/** RTKLIB rtknavi_qt — real-time PVT + DOP + numeric position panel + future RTK base-station support. */
 export const RTKNAVI_QT_BIN = '/usr/local/bin/rtknavi_qt';
-export const RTKPLOT_QT_BIN = '/usr/local/bin/rtkplot_qt';
+
+/**
+ * gnss-sdr-monitor — Qt5 GUI from acebrianjuan/gnss-sdr-monitor that
+ * consumes gnss-sdr's native Monitor block protobuf stream over UDP
+ * (port {@link GNSS_SDR_MONITOR_UDP_PORT}). Shows per-SV C/N₀ bars,
+ * 4-constellation sky-plot, per-channel acquisition/tracking state —
+ * the receiver-internal view that surfaces jam/spoof signals. Replaces
+ * RTKLIB's `rtkplot_qt` (which gave a generic survey-grade plot) with
+ * a tool purpose-built for gnss-sdr's telemetry.
+ */
+export const GNSS_SDR_MONITOR_BIN = '/usr/local/bin/gnss-sdr-monitor';
 
 /** socat for the NMEA→gpsd TCP bridge. */
 export const SOCAT_BIN = '/usr/bin/socat';
+
+/**
+ * LD_PRELOAD path forced when spawning `gnss-sdr`.
+ *
+ * Ubuntu jammy ships two libuhd versions side-by-side: the older 4.1.0 (the
+ * one apt's `libgnuradio-uhd` was compiled against) and the newer 4.10.0
+ * (default link target for our source-built gnss-sdr binary). Loading gnss-sdr
+ * against 4.10.0 triggers the gr-uhd component to abort at startup with an
+ * "ABI compatibility mismatch" warning followed by exit code 1. Forcing the
+ * older library at runtime via LD_PRELOAD restores ABI parity with the apt
+ * gnuradio plugin without re-building anything.
+ *
+ * Verified 2026-05-27: `LD_PRELOAD=/usr/lib/aarch64-linux-gnu/libuhd.so.4.1.0
+ * uhd_find_devices --args type=b200` resolves the B205mini cleanly; gnss-sdr
+ * boots past the gr-uhd init step.
+ */
+export const GNSS_SDR_LD_PRELOAD_LIBUHD = '/usr/lib/aarch64-linux-gnu/libuhd.so.4.1.0';
 
 /** Directory holding the generated gnss-sdr.conf + RTKLIB .ini files. */
 export const GNSS_SDR_CONF_DIR = '/var/lib/argos/gnss-sdr';
@@ -78,6 +105,19 @@ export interface GnssSdrStartOptions {
 	sampleRate?: number;
 	/** Total RX gain in dB. Defaults to 50. */
 	gain?: number;
+	/**
+	 * USRP serial number used to filter UHD device discovery. Required for
+	 * USB-attached B-series radios because v0.0.21's UHD signal source wraps
+	 * `device_address` as `addr=` (Ethernet IP/hostname) which fails when the
+	 * B205mini is on USB. Setting `device_serial` instead populates UHD's
+	 * `serial=` filter — UHD's USB transport then targets a specific radio
+	 * without firing the X300 Ethernet probe (which itself triggers a DNS
+	 * lookup that aborts the start when no DNS is reachable).
+	 *
+	 * When left undefined, the auto-detector in spawnStackProcesses probes
+	 * `uhd_find_devices` once and pins the discovered serial.
+	 */
+	deviceSerial?: string;
 }
 
 /** Result returned from every control action (start/stop/status). */

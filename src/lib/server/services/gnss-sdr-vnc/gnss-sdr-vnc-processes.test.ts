@@ -7,8 +7,8 @@ import {
 	_setSpawnImplForTest,
 	isStackAlive,
 	spawnGnssSdr,
+	spawnGnssSdrMonitor,
 	spawnRtknavi,
-	spawnRtkplot,
 	spawnSocatNmeaBridge
 } from './gnss-sdr-vnc-processes';
 import { GNSS_SDR_VNC_DISPLAY } from './gnss-sdr-vnc-types';
@@ -66,16 +66,16 @@ describe('spawnGnssSdr', () => {
 	});
 });
 
-describe('spawnRtknavi + spawnRtkplot', () => {
+describe('spawnRtknavi + spawnGnssSdrMonitor', () => {
 	it('invokes /usr/local/bin/rtknavi_qt with DISPLAY=:98', () => {
 		spawnRtknavi();
 		expect(spawnCalls[0].cmd).toBe('/usr/local/bin/rtknavi_qt');
 		expect(spawnCalls[0].env?.DISPLAY).toBe(GNSS_SDR_VNC_DISPLAY);
 	});
 
-	it('invokes /usr/local/bin/rtkplot_qt with DISPLAY=:98', () => {
-		spawnRtkplot();
-		expect(spawnCalls[0].cmd).toBe('/usr/local/bin/rtkplot_qt');
+	it('invokes /usr/local/bin/gnss-sdr-monitor with DISPLAY=:98', () => {
+		spawnGnssSdrMonitor();
+		expect(spawnCalls[0].cmd).toBe('/usr/local/bin/gnss-sdr-monitor');
 		expect(spawnCalls[0].env?.DISPLAY).toBe(GNSS_SDR_VNC_DISPLAY);
 	});
 });

@@ -48,6 +48,7 @@ export interface ResolvedConfig {
 	sampleRate: number;
 	gain: number;
 	freq: number;
+	deviceSerial: string | null;
 }
 
 /**
@@ -76,7 +77,15 @@ export function resolveConfig(options: GnssSdrStartOptions = {}): ResolvedConfig
 		);
 	}
 
-	return { constellations, sampleRate, gain, freq: GPS_L1_FREQ_HZ };
+	const deviceSerial = options.deviceSerial?.trim() || null;
+
+	return {
+		constellations,
+		sampleRate,
+		gain,
+		freq: GPS_L1_FREQ_HZ,
+		deviceSerial
+	};
 }
 
 /**
@@ -85,12 +94,16 @@ export function resolveConfig(options: GnssSdrStartOptions = {}): ResolvedConfig
  * port. The PVT block emits NMEA to {@link GNSS_SDR_NMEA_FIFO}, which the
  * socat bridge tails and forwards to gpsd on TCP {@link GNSS_SDR_NMEA_BRIDGE_PORT}.
  */
-// eslint-disable-next-line max-lines-per-function
+// eslint-disable-next-line max-lines-per-function, complexity
 export function generateGnssSdrConf(options: GnssSdrStartOptions = {}): string {
 	const cfg = resolveConfig(options);
-	const channels1cCount = 6;
-	const channels1bCount = cfg.constellations === 'L1_GPS_ONLY' ? 0 : 4;
-	const channels1gCount = cfg.constellations === 'L1_GPS_ONLY' ? 0 : 4;
+	// Doc canonical (my-first-fix, conf/RealTime_input/USRP_realtime, monitoring tutorial):
+	// 8 channels per constellation, 8 in_acquisition (parallel SV search across all
+	// channels = faster first fix).
+	const channels1cCount = 8;
+	const channels1bCount = cfg.constellations === 'L1_GPS_ONLY' ? 0 : 8;
+	const channels1gCount = cfg.constellations === 'L1_GPS_ONLY' ? 0 : 8;
+	const channelsInAcquisition = channels1cCount;
 	const internalFs = Math.min(cfg.sampleRate, 4_000_000);
 
 	const lines: string[] = [
@@ -100,14 +113,22 @@ export function generateGnssSdrConf(options: GnssSdrStartOptions = {}): string {
 		'; ─── global ────────────────────────────────────────────────────────',
 		`GNSS-SDR.internal_fs_sps=${internalFs}`,
 		'',
-		'; ─── signal source — B205mini via UHD, auto-discovered over USB ────',
+		'; ─── signal source — B205mini via UHD ──────────────────────────────',
+		'; v0.0.21 wraps SignalSource.device_address as UHD addr= (Ethernet IP),',
+		'; so for USB-attached B-series radios we use SignalSource.device_serial',
+		'; instead — that populates UHD serial= which targets a specific USB',
+		'; device without triggering the X300 Ethernet auto-probe (which itself',
+		'; does a DNS lookup that aborts gnss-sdr when no DNS is reachable).',
 		'SignalSource.implementation=UHD_Signal_Source',
-		"SignalSource.device_address=''",
+		...(cfg.deviceSerial ? [`SignalSource.device_serial=${cfg.deviceSerial}`] : []),
 		'SignalSource.item_type=gr_complex',
 		`SignalSource.sampling_frequency=${cfg.sampleRate}`,
 		`SignalSource.freq=${cfg.freq}`,
 		`SignalSource.gain=${cfg.gain}`,
-		'SignalSource.subdevice=A:0',
+		'; B205mini exposes the RX daughterboard as `A:A` (UHD enumerates the single',
+		'; ADC slot as channel A on board A). `A:0` is the USRP1 convention and will',
+		'; trip an AssertionError on B-series radios — verified live 2026-05-27.',
+		'SignalSource.subdevice=A:A',
 		'SignalSource.samples=0',
 		'SignalSource.repeat=false',
 		'SignalSource.enable_throttle_control=false',
@@ -119,23 +140,28 @@ export function generateGnssSdrConf(options: GnssSdrStartOptions = {}): string {
 		`Channels_1C.count=${channels1cCount}`,
 		`Channels_1B.count=${channels1bCount}`,
 		`Channels_1G.count=${channels1gCount}`,
-		'Channels.in_acquisition=1',
+		`Channels.in_acquisition=${channelsInAcquisition}`,
 		'Channel.signal=1C',
 		'',
 		'; ─── acquisition (GPS L1 C/A) ───────────────────────────────────────',
 		'Acquisition_1C.implementation=GPS_L1_CA_PCPS_Acquisition',
 		'Acquisition_1C.item_type=gr_complex',
 		'Acquisition_1C.coherent_integration_time_ms=1',
-		'Acquisition_1C.threshold=0.01',
+		'; pfa=0.01 (statistically-derived probability of false alarm; supersedes a',
+		'; raw threshold and is the canonical doc value from my-first-fix).',
+		'Acquisition_1C.pfa=0.01',
 		'Acquisition_1C.doppler_max=10000',
-		'Acquisition_1C.doppler_step=500',
+		'Acquisition_1C.doppler_step=250',
 		'Acquisition_1C.bit_transition_flag=false',
 		'Acquisition_1C.max_dwells=1',
+		'Acquisition_1C.blocking=true',
 		'',
 		'; ─── tracking ───────────────────────────────────────────────────────',
 		'Tracking_1C.implementation=GPS_L1_CA_DLL_PLL_Tracking',
 		'Tracking_1C.item_type=gr_complex',
-		'Tracking_1C.pll_bw_hz=30.0',
+		'; pll_bw_hz=40 matches the my-first-fix canonical value (40 Hz PLL is the',
+		'; established default; 50 Hz is the sp-block default; 30 is conservative).',
+		'Tracking_1C.pll_bw_hz=40.0',
 		'Tracking_1C.dll_bw_hz=4.0',
 		'Tracking_1C.early_late_space_chips=0.5',
 		'',
@@ -192,7 +218,10 @@ export function generateGnssSdrConf(options: GnssSdrStartOptions = {}): string {
 		'',
 		'; ─── monitor (UDP protobuf telemetry, future panel) ────────────────',
 		'Monitor.enable_monitor=true',
-		'Monitor.decimation_factor=50',
+		'; Param name is `decimator_factor` not `decimation_factor` (verified against',
+		'; canonical monitoring tutorial 2026-05-27). With observations at 20 ms,',
+		'; decimator_factor=50 means one Monitor sample/sec into gnss-sdr-monitor.',
+		'Monitor.decimator_factor=50',
 		'Monitor.client_addresses=127.0.0.1',
 		`Monitor.udp_port=${GNSS_SDR_MONITOR_UDP_PORT}`,
 		''
