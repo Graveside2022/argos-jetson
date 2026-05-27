@@ -100,11 +100,14 @@ describe('spawnWindowManager', () => {
 });
 
 describe('spawnSocatNmeaBridge', () => {
-	it('bridges the NMEA fifo to TCP :50001 in fork mode for gpsd', () => {
+	it('bridges the NMEA fifo to TCP :50001 in fork mode for gpsd, loopback-bound', () => {
 		spawnSocatNmeaBridge();
 		expect(spawnCalls[0].cmd).toBe('/usr/bin/socat');
 		expect(spawnCalls[0].args[0]).toBe('PIPE:/tmp/argos-gnss-sdr.nmea');
-		expect(spawnCalls[0].args[1]).toBe('TCP-LISTEN:50001,reuseaddr,fork');
+		// `bind=127.0.0.1` is required — without it socat defaults to wildcard and
+		// any LAN client can inject a spoofed NMEA fix into gpsd (HIGH-sev finding
+		// from the security audit landed alongside the openbox follow-up).
+		expect(spawnCalls[0].args[1]).toBe('TCP-LISTEN:50001,bind=127.0.0.1,reuseaddr,fork');
 	});
 });
 

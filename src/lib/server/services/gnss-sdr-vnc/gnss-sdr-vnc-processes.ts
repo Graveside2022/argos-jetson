@@ -170,13 +170,49 @@ export function removeNmeaFifo(): void {
 
 // Lazy-write openbox rc.xml to /tmp so openbox can mmap it. Idempotent;
 // survives multiple stack restarts. Same recipe as the gnu-radio-vnc stack.
+//
+// Use `flag: 'wx'` (O_EXCL) + `mode: 0o600` to defeat the local-user symlink
+// race in /tmp: an attacker pre-creating `argos-gnss-sdr-openbox-rc.xml` as a
+// symlink would otherwise redirect our write through their symlink and let
+// them inject their own openbox config (arbitrary X11 keybinds inside our
+// framebuffer). On EEXIST we read the file back; if its content matches the
+// embedded XML we accept and reuse it (idempotent restart). If it differs,
+// we refuse to overwrite and use a session-private path instead.
 let writtenRcXmlPath: string | null = null;
+
+function writeSessionPrivateRcXml(): string {
+	const fallback = joinPath(tmpdir(), `argos-gnss-sdr-openbox-rc.${process.pid}.xml`);
+	writeFileSync(fallback, openboxRcXml, { mode: 0o600, flag: 'wx' });
+	return fallback;
+}
+
+function tryReuseExistingRcXml(path: string): string {
+	try {
+		const onDisk = readFileSync(path, 'utf8');
+		if (onDisk === openboxRcXml) return path;
+		logger.warn(
+			`[${SCOPE}] openbox rc.xml exists with unexpected content; using session-private path`
+		);
+	} catch (readErr) {
+		logger.warn(`[${SCOPE}] openbox rc.xml exists but unreadable; using session-private path`, {
+			err: (readErr as Error).message
+		});
+	}
+	return writeSessionPrivateRcXml();
+}
+
 function ensureRcXmlOnDisk(): string {
 	if (writtenRcXmlPath) return writtenRcXmlPath;
 	const path = joinPath(tmpdir(), 'argos-gnss-sdr-openbox-rc.xml');
-	writeFileSync(path, openboxRcXml, 'utf8');
-	writtenRcXmlPath = path;
-	return path;
+	try {
+		writeFileSync(path, openboxRcXml, { mode: 0o600, flag: 'wx' });
+		writtenRcXmlPath = path;
+		return path;
+	} catch (err) {
+		if ((err as NodeJS.ErrnoException).code !== 'EEXIST') throw err;
+		writtenRcXmlPath = tryReuseExistingRcXml(path);
+		return writtenRcXmlPath;
+	}
 }
 
 /**
@@ -417,12 +453,20 @@ export function spawnWebsockify(): void {
  * listening socket, gpsd connects and picks up the SDR stream as a
  * secondary GPS source.
  *
- * Arg string: `PIPE:/tmp/argos-gnss-sdr.nmea TCP-LISTEN:50001,reuseaddr,fork`
+ * `bind=127.0.0.1` is required — without it socat defaults to wildcard, and
+ * any LAN client could telnet :50001 and inject a spoofed NMEA fix into gpsd
+ * (which the tactical map and Kismet geo then blindly trust). Operator-grade
+ * defect on a field-deployed Argos.
+ *
+ * Arg string: `PIPE:/tmp/argos-gnss-sdr.nmea TCP-LISTEN:50001,bind=127.0.0.1,reuseaddr,fork`
  */
 export function spawnSocatNmeaBridge(): void {
 	socatProcess = spawnImpl(
 		SOCAT_BIN,
-		[`PIPE:${GNSS_SDR_NMEA_FIFO}`, `TCP-LISTEN:${GNSS_SDR_NMEA_BRIDGE_PORT},reuseaddr,fork`],
+		[
+			`PIPE:${GNSS_SDR_NMEA_FIFO}`,
+			`TCP-LISTEN:${GNSS_SDR_NMEA_BRIDGE_PORT},bind=127.0.0.1,reuseaddr,fork`
+		],
 		{ stdio: 'ignore', detached: true }
 	);
 	socatProcess.unref();
