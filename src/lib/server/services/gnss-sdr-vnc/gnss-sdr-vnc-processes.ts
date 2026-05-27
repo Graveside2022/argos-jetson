@@ -99,6 +99,55 @@ export function getSpawnError(): Error | null {
 	return errorTracker.get();
 }
 
+// ─────────────────── post-ready crash watchdog ───────────────────────────
+//
+// `waitForStackReady` returning true is a "first-fix" check, not a liveness
+// guarantee. If any of the managed children dies AFTER that point (e.g. UHD
+// loses the radio on USB unplug), `startGnssSdrVnc` has already returned
+// success — and the B205 lock stays claimed until the next explicit stop.
+// Audit MED finding 2026-05-27.
+//
+// The watchdog attaches a one-shot `exit` listener to each ChildProcess
+// after ready. When ANY child exits, the registered handler fires once with
+// the dying child's label; the caller (control-service) reacts by calling
+// stopGnssSdrVnc(), which kills the rest of the stack and releases B205.
+//
+// disarm BEFORE intentional shutdown so the listener doesn't double-fire
+// during normal stop.
+
+type CrashHandler = (label: string) => void;
+let watchdogListeners: Array<{ proc: ChildProcess; listener: () => void }> = [];
+
+export function armCrashWatchdog(onCrash: CrashHandler): void {
+	disarmCrashWatchdog();
+	const procs: ReadonlyArray<readonly [ChildProcess | null, string]> = [
+		[xvncProcess, 'Xtigervnc'],
+		[gnssSdrProcess, 'gnss-sdr'],
+		[rtknaviProcess, 'rtknavi_qt'],
+		[gnssSdrMonitorProcess, 'gnss-sdr-monitor'],
+		[websockifyProcess, 'websockify'],
+		[socatProcess, 'socat']
+	];
+	let fired = false;
+	for (const [proc, label] of procs) {
+		if (!proc) continue;
+		const listener = (): void => {
+			if (fired) return;
+			fired = true;
+			onCrash(label);
+		};
+		proc.once('exit', listener);
+		watchdogListeners.push({ proc, listener });
+	}
+}
+
+export function disarmCrashWatchdog(): void {
+	for (const { proc, listener } of watchdogListeners) {
+		proc.off('exit', listener);
+	}
+	watchdogListeners = [];
+}
+
 // ─────────────────────────── helpers ─────────────────────────────────────
 
 /**

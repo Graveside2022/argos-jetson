@@ -43,6 +43,7 @@ const SIGKILL_GRACE_MS = 500;
 const SPAWN_WAIT_MS = 1500;
 
 async function releaseB205(): Promise<void> {
+	resourceManager.unregisterPreemptHandler(BD_OWNER, HardwareDevice.B205);
 	await resourceManager.release(BD_OWNER, HardwareDevice.B205).catch((err) => {
 		logger.warn('[bluedragon] B205 release failed', {
 			err: errMsg(err),
@@ -53,8 +54,21 @@ async function releaseB205(): Promise<void> {
 }
 
 async function claimB205(): Promise<BluedragonControlResult | null> {
-	const claim = await resourceManager.acquire(BD_OWNER, HardwareDevice.B205);
-	if (claim.success) return null;
+	// Use acquireWithPreempt so a competing B205 consumer (gnss-sdr-vnc, or
+	// another bluedragon instance) that registered a preempt handler gets
+	// stopped gracefully instead of returning b205-locked to the operator.
+	const claim = await resourceManager.acquireWithPreempt(BD_OWNER, HardwareDevice.B205);
+	if (claim.success) {
+		if (claim.preempted) {
+			logger.info('[bluedragon] B205 acquired via preempt', { previous: claim.preempted });
+		}
+		// Register our own preempt handler so OTHER tools can preempt us.
+		resourceManager.registerPreemptHandler(BD_OWNER, HardwareDevice.B205, async () => {
+			logger.info('[bluedragon] preempted by another B205 consumer — stopping');
+			await stopBluedragon();
+		});
+		return null;
+	}
 	logger.warn('[bluedragon] B205 unavailable', { owner: claim.owner });
 	return {
 		success: false,
