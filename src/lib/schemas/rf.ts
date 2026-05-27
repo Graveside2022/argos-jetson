@@ -10,6 +10,8 @@
 
 import { z } from 'zod';
 
+import { FreqMhzBounds, RssiDbmBounds } from './common-bounds';
+
 /**
  * Device Type Schema - Validates SDR device type. PR9b adds 'b205' alongside
  * 'hackrf'; 'auto' picks the first wired SDR (current resolver returns hackrf).
@@ -28,8 +30,8 @@ const FrequencyRangeSchema = z.union([
 	// Format 1: start/stop/step
 	z
 		.object({
-			start: z.number().min(1).max(6000).describe('Start frequency in MHz'),
-			stop: z.number().min(1).max(6000).describe('Stop frequency in MHz'),
+			start: FreqMhzBounds.describe('Start frequency in MHz'),
+			stop: FreqMhzBounds.describe('Stop frequency in MHz'),
 			step: z.number().min(0.001).max(100).optional().describe('Step size in MHz')
 		})
 		.refine((data) => data.stop > data.start, {
@@ -38,14 +40,14 @@ const FrequencyRangeSchema = z.union([
 	// Format 2: start/end
 	z
 		.object({
-			start: z.number().min(1).max(6000).describe('Start frequency in MHz'),
-			end: z.number().min(1).max(6000).describe('End frequency in MHz')
+			start: FreqMhzBounds.describe('Start frequency in MHz'),
+			end: FreqMhzBounds.describe('End frequency in MHz')
 		})
 		.refine((data) => data.end > data.start, {
 			message: 'End frequency must be greater than start frequency'
 		}),
 	// Format 3: plain number
-	z.number().min(1).max(6000).describe('Center frequency in MHz')
+	FreqMhzBounds.describe('Center frequency in MHz')
 ]);
 
 /**
@@ -57,7 +59,7 @@ const FrequencyRangeSchema = z.union([
  * - cycleTime: 1-300 seconds per frequency
  */
 export const StartSweepRequestSchema = z.object({
-	deviceType: DeviceTypeSchema.optional(),
+	deviceType: DeviceTypeSchema,
 	frequencies: z
 		.array(FrequencyRangeSchema)
 		.min(1, 'At least one frequency range required')
@@ -69,14 +71,14 @@ export const StartSweepRequestSchema = z.object({
  * Stop Sweep Request Schema - Validates sweep stop requests
  */
 export const StopSweepRequestSchema = z.object({
-	deviceType: DeviceTypeSchema.optional()
+	deviceType: DeviceTypeSchema
 });
 
 /**
  * Emergency Stop Request Schema - Validates emergency stop requests
  */
 export const EmergencyStopRequestSchema = z.object({
-	deviceType: DeviceTypeSchema.optional()
+	deviceType: DeviceTypeSchema
 });
 
 /**
@@ -133,7 +135,7 @@ export const KismetRawDeviceSchema = z
 		'kismet.device.base.frequency': z.number().optional(),
 		'kismet.device.base.signal': z
 			.object({
-				'kismet.common.signal.last_signal': z.number().optional()
+				'kismet.common.signal.last_signal': RssiDbmBounds.optional()
 			})
 			.optional(),
 		'kismet.device.base.last_time': z.number().optional(),

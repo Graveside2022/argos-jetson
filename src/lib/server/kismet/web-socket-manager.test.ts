@@ -2,8 +2,9 @@ import { EventEmitter } from 'events';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { WebSocket } from 'ws';
 
-const { infoMock, errorMock } = vi.hoisted(() => ({
+const { infoMock, warnMock, errorMock } = vi.hoisted(() => ({
 	infoMock: vi.fn(),
+	warnMock: vi.fn(),
 	errorMock: vi.fn()
 }));
 
@@ -17,7 +18,7 @@ vi.mock('$lib/server/env', () => ({
 vi.mock('$lib/utils/logger', () => ({
 	logger: {
 		info: infoMock,
-		warn: vi.fn(),
+		warn: warnMock,
 		error: errorMock,
 		debug: vi.fn()
 	}
@@ -38,6 +39,7 @@ import { WebSocketManager } from './web-socket-manager';
  */
 class FakeWS extends EventEmitter {
 	readyState: number = WebSocket.OPEN;
+	bufferedAmount = 0;
 	send = vi.fn();
 	close = vi.fn();
 }
@@ -184,5 +186,91 @@ describe('WebSocketManager client message parsing — accepts well-formed (FINDI
 			'Invalid client message shape',
 			expect.anything()
 		);
+	});
+});
+
+describe('WebSocketManager.broadcast — FINDING MED-3: backpressure', () => {
+	let mgr: WebSocketManager;
+	const BIG_BUFFER = 5_000_000; // > MAX_BUFFER_BYTES (4 MB)
+
+	beforeEach(() => {
+		infoMock.mockClear();
+		warnMock.mockClear();
+		errorMock.mockClear();
+		mgr = getManager();
+	});
+
+	afterEach(() => {
+		mgr.destroy();
+		globalThis.__argos_wsManager = undefined;
+	});
+
+	function makeMessage() {
+		return {
+			type: 'device_update' as const,
+			data: {},
+			timestamp: '2026-05-26T18:00:00Z'
+		};
+	}
+
+	it('skips send + emits warn when bufferedAmount exceeds MAX_BUFFER_BYTES', () => {
+		const ws = new FakeWS();
+		ws.bufferedAmount = BIG_BUFFER;
+		mgr.addClient(ws as unknown as WebSocket);
+		ws.send.mockClear();
+
+		mgr.broadcast(makeMessage());
+
+		expect(ws.send).not.toHaveBeenCalled();
+		expect(warnMock).toHaveBeenCalledWith(
+			'Slow consumer; skipping broadcast',
+			expect.objectContaining({ slowConsumerCount: 1 })
+		);
+	});
+
+	it('closes the socket with code 4001 after SLOW_CONSUMER_THRESHOLD consecutive over-buffer broadcasts', () => {
+		const ws = new FakeWS();
+		ws.bufferedAmount = BIG_BUFFER;
+		mgr.addClient(ws as unknown as WebSocket);
+		ws.send.mockClear();
+
+		mgr.broadcast(makeMessage());
+		mgr.broadcast(makeMessage());
+		expect(ws.close).not.toHaveBeenCalled();
+
+		mgr.broadcast(makeMessage()); // 3rd over-buffer broadcast
+
+		expect(ws.close).toHaveBeenCalledWith(4001, 'Too slow');
+		expect(errorMock).toHaveBeenCalledWith(
+			'Closing slow consumer after sustained backpressure',
+			expect.objectContaining({ slowConsumerCount: 3 })
+		);
+	});
+
+	it('resets slowConsumerCount on a healthy send so transient stutter does not close', () => {
+		const ws = new FakeWS();
+		ws.bufferedAmount = BIG_BUFFER;
+		mgr.addClient(ws as unknown as WebSocket);
+
+		mgr.broadcast(makeMessage()); // count=1
+		ws.bufferedAmount = 100; // back under threshold
+		mgr.broadcast(makeMessage()); // sends; resets count
+		ws.bufferedAmount = BIG_BUFFER; // stutter again
+		mgr.broadcast(makeMessage()); // count=1 again, NOT 2
+		mgr.broadcast(makeMessage()); // count=2
+
+		expect(ws.close).not.toHaveBeenCalled();
+	});
+
+	it('sends normally to fast consumers with bufferedAmount under threshold', () => {
+		const ws = new FakeWS();
+		ws.bufferedAmount = 1024;
+		mgr.addClient(ws as unknown as WebSocket);
+		ws.send.mockClear();
+
+		mgr.broadcast(makeMessage());
+
+		expect(ws.send).toHaveBeenCalledTimes(1);
+		expect(ws.close).not.toHaveBeenCalled();
 	});
 });
