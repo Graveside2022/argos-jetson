@@ -31,6 +31,7 @@ import {
 	spawnRtknavi,
 	spawnSocatNmeaBridge,
 	spawnWebsockify,
+	spawnWindowManager,
 	spawnXtigervnc,
 	waitForStackReady,
 	writeGeneratedConf
@@ -86,6 +87,14 @@ async function spawnStackProcesses(options: GnssSdrStartOptions): Promise<void> 
 	assertNoSpawnError();
 
 	setVncBackground();
+
+	// openbox WM brings the mouse cursor + titlebars + EWMH (drag/resize) into
+	// the framebuffer. Must start BEFORE the Qt clients so their windows get
+	// decorated on first map.
+	logger.info('[gnss-sdr-vnc] spawning openbox window manager');
+	spawnWindowManager();
+	await delay(SHORT_DELAY_MS);
+	assertNoSpawnError();
 
 	logger.info('[gnss-sdr-vnc] spawning gnss-sdr', { confPath });
 	spawnGnssSdr(confPath);

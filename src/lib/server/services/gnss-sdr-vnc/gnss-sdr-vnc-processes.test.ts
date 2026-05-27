@@ -9,7 +9,8 @@ import {
 	spawnGnssSdr,
 	spawnGnssSdrMonitor,
 	spawnRtknavi,
-	spawnSocatNmeaBridge
+	spawnSocatNmeaBridge,
+	spawnWindowManager
 } from './gnss-sdr-vnc-processes';
 import { GNSS_SDR_VNC_DISPLAY } from './gnss-sdr-vnc-types';
 
@@ -82,6 +83,18 @@ describe('spawnRtknavi + spawnGnssSdrMonitor', () => {
 	it('invokes /usr/local/bin/gnss-sdr-monitor with DISPLAY=:98', () => {
 		spawnGnssSdrMonitor();
 		expect(spawnCalls[0].cmd).toBe('/usr/local/bin/gnss-sdr-monitor');
+		expect(spawnCalls[0].env?.DISPLAY).toBe(GNSS_SDR_VNC_DISPLAY);
+	});
+});
+
+describe('spawnWindowManager', () => {
+	it('invokes /usr/bin/openbox with --sm-disable + rc.xml + DISPLAY=:98', () => {
+		spawnWindowManager();
+		expect(spawnCalls).toHaveLength(1);
+		expect(spawnCalls[0].cmd).toBe('/usr/bin/openbox');
+		expect(spawnCalls[0].args[0]).toBe('--sm-disable');
+		expect(spawnCalls[0].args[1]).toBe('--config-file');
+		expect(spawnCalls[0].args[2]).toMatch(/argos-gnss-sdr-openbox-rc\.xml$/);
 		expect(spawnCalls[0].env?.DISPLAY).toBe(GNSS_SDR_VNC_DISPLAY);
 	});
 });

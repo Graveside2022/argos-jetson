@@ -23,7 +23,8 @@
 import { type ChildProcess, spawn as nativeSpawn } from 'child_process';
 import { existsSync, mkdirSync, readFileSync, statSync, unlinkSync, writeFileSync } from 'fs';
 import { connect as netConnect } from 'net';
-import { dirname } from 'path';
+import { tmpdir } from 'os';
+import { dirname, join as joinPath } from 'path';
 
 import { logger } from '$lib/utils/logger';
 
@@ -38,6 +39,7 @@ import {
 	spawnXtigervnc as spawnXtigervncShared,
 	waitForStackReady as waitForStackReadyShared
 } from '../vnc-common/spawn-helpers';
+import openboxRcXml from './etc/openbox-rc.xml?raw';
 import { GENERATED_CONF_PATH, generateGnssSdrConf } from './gnss-sdr-config-generator';
 import {
 	GNSS_SDR_BIN,
@@ -73,6 +75,7 @@ let rtknaviProcess: ChildProcess | null = null;
 let gnssSdrMonitorProcess: ChildProcess | null = null;
 let websockifyProcess: ChildProcess | null = null;
 let socatProcess: ChildProcess | null = null;
+let wmProcess: ChildProcess | null = null;
 
 const errorTracker = createSpawnErrorTracker(SCOPE);
 
@@ -164,6 +167,49 @@ export function removeNmeaFifo(): void {
 }
 
 // ─────────────────────────── spawn ───────────────────────────────────────
+
+// Lazy-write openbox rc.xml to /tmp so openbox can mmap it. Idempotent;
+// survives multiple stack restarts. Same recipe as the gnu-radio-vnc stack.
+let writtenRcXmlPath: string | null = null;
+function ensureRcXmlOnDisk(): string {
+	if (writtenRcXmlPath) return writtenRcXmlPath;
+	const path = joinPath(tmpdir(), 'argos-gnss-sdr-openbox-rc.xml');
+	writeFileSync(path, openboxRcXml, 'utf8');
+	writtenRcXmlPath = path;
+	return path;
+}
+
+/**
+ * Spawn openbox as the in-framebuffer window manager.
+ *
+ * Without a WM, the Xtigervnc framebuffer has no cursor, no titlebars, and no
+ * EWMH support — operators can't drag-resize, focus-cycle, or even see the
+ * mouse pointer inside the noVNC iframe. openbox (~400 KB, EWMH-compliant)
+ * gives all three. `--sm-disable` skips the X session manager (headless Xvnc
+ * has none); rc.xml is the standard Debian openbox config minus the
+ * GRC-specific application rule (which is a no-op for Qt apps anyway).
+ *
+ * Must spawn AFTER Xtigervnc (the WM needs a display to attach to) but BEFORE
+ * any Qt window maps (windows that map before the WM registers may be
+ * decoration-less for the rest of their lifetime).
+ */
+export function spawnWindowManager(): void {
+	const rcXml = ensureRcXmlOnDisk();
+	wmProcess = spawnImpl('/usr/bin/openbox', ['--sm-disable', '--config-file', rcXml], {
+		env: { ...process.env, DISPLAY: GNSS_SDR_VNC_DISPLAY },
+		stdio: 'ignore',
+		detached: true
+	});
+	wmProcess.unref();
+	wmProcess.on('exit', (code, signal) => {
+		logger.info(`[${SCOPE}] openbox exited`, { code, signal });
+		wmProcess = null;
+	});
+	wmProcess.on('error', (err) => {
+		recordSpawnError('openbox', err);
+		wmProcess = null;
+	});
+}
 
 /** Spawn Xtigervnc on display :98 / port 5998. */
 export function spawnXtigervnc(): void {
@@ -415,7 +461,7 @@ async function killProc(ref: ChildProcess | null, name: string): Promise<void> {
 	return killVncProcess(ref, name, SCOPE);
 }
 
-/** Tear down all six processes in reverse spawn order. */
+/** Tear down all seven processes in reverse spawn order. */
 export async function killAllProcesses(): Promise<void> {
 	await killProc(socatProcess, 'socat');
 	socatProcess = null;
@@ -427,14 +473,17 @@ export async function killAllProcesses(): Promise<void> {
 	rtknaviProcess = null;
 	await killProc(gnssSdrProcess, 'gnss-sdr');
 	gnssSdrProcess = null;
+	await killProc(wmProcess, 'openbox');
+	wmProcess = null;
 	await killProc(xvncProcess, 'Xtigervnc');
 	xvncProcess = null;
 }
 
-/** All six managed processes alive. */
+/** All seven managed processes alive. */
 export function isStackAlive(): boolean {
 	const refs = [
 		xvncProcess,
+		wmProcess,
 		gnssSdrProcess,
 		rtknaviProcess,
 		gnssSdrMonitorProcess,
@@ -524,5 +573,6 @@ export function _resetModuleStateForTest(): void {
 	gnssSdrMonitorProcess = null;
 	websockifyProcess = null;
 	socatProcess = null;
+	wmProcess = null;
 	errorTracker.clear();
 }
