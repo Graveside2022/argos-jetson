@@ -17,6 +17,50 @@
 	let vncKey = $state(0);
 	let stopping = $state(false);
 	let starting = $state(false);
+	let telecommanding = $state(false);
+	let telecommandStatus = $state('');
+
+	type TelecommandVerb = 'reset' | 'standby' | 'coldstart' | 'hotstart' | 'warmstart';
+
+	interface TelecommandResponse {
+		success?: boolean;
+		response?: string;
+		error?: string;
+	}
+
+	function formatTelecommandResult(verb: TelecommandVerb, data: TelecommandResponse): string {
+		if (data.success) return `${verb} → ${data.response ?? 'OK'}`;
+		const reason = data.error ?? data.response ?? 'unknown';
+		return `${verb} failed: ${reason}`;
+	}
+
+	async function postTelecommand(verb: TelecommandVerb): Promise<string> {
+		try {
+			const res = await fetch('/api/gnss-sdr/control', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				credentials: 'same-origin',
+				body: JSON.stringify({ action: 'telecommand', telecommand: verb })
+			});
+			return formatTelecommandResult(verb, (await res.json()) as TelecommandResponse);
+		} catch (err) {
+			return `${verb} failed: ${err instanceof Error ? err.message : String(err)}`;
+		}
+	}
+
+	function handleTelecommand(verb: TelecommandVerb): () => Promise<void> {
+		return async () => {
+			if (telecommanding) return;
+			telecommanding = true;
+			telecommandStatus = '';
+			telecommandStatus = await postTelecommand(verb);
+			telecommanding = false;
+			// Auto-clear status after 4 seconds so the toolbar doesn't accumulate stale text.
+			setTimeout(() => {
+				telecommandStatus = '';
+			}, 4000);
+		};
+	}
 
 	interface StatusResponse {
 		isRunning?: boolean;
@@ -128,6 +172,36 @@
 
 {#snippet actions()}
 	{#if serviceStatus === 'running'}
+		{#if telecommandStatus}
+			<span class="tc-status" title={telecommandStatus}>{telecommandStatus}</span>
+		{/if}
+		<Button
+			variant="outline"
+			size="sm"
+			onclick={handleTelecommand('standby')}
+			disabled={telecommanding}
+			title="Pause acquisition + tracking (front-end keeps streaming; saves CPU)"
+		>
+			Standby
+		</Button>
+		<Button
+			variant="outline"
+			size="sm"
+			onclick={handleTelecommand('coldstart')}
+			disabled={telecommanding}
+			title="Resume from standby and search all SVs"
+		>
+			Cold Start
+		</Button>
+		<Button
+			variant="outline"
+			size="sm"
+			onclick={handleTelecommand('reset')}
+			disabled={telecommanding}
+			title="Full receiver reset (no iframe disconnect; harness respawns gnss-sdr)"
+		>
+			Reset
+		</Button>
 		<Button variant="outline" size="sm" onclick={handleStop} disabled={stopping}>
 			{stopping ? 'Stopping…' : 'Stop'}
 		</Button>
@@ -172,7 +246,12 @@
 		/>
 	{:else}
 		{#key vncKey}
-			<WebtakVncViewer {wsUrl} onDisconnect={handleDisconnect} resizeSession={true} />
+			<WebtakVncViewer
+				{wsUrl}
+				onDisconnect={handleDisconnect}
+				resizeSession={true}
+				aspectFit={true}
+			/>
 		{/key}
 	{/if}
 </ToolViewWrapper>
@@ -223,5 +302,18 @@
 
 	.start-list li {
 		margin-bottom: 4px;
+	}
+
+	.tc-status {
+		font-family: 'Fira Code', monospace;
+		font-size: 10px;
+		color: var(--text-secondary);
+		padding: 2px 8px;
+		border: 1px solid var(--border);
+		border-radius: 2px;
+		max-width: 220px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 </style>

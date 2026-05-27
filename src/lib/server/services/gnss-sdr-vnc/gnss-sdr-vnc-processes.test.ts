@@ -50,11 +50,12 @@ afterEach(() => {
 });
 
 describe('spawnGnssSdr', () => {
-	it('invokes /usr/local/bin/gnss-sdr with the config file flag', () => {
+	it('wraps gnss-sdr through /usr/local/bin/gnss-sdr-harness.sh (telecommand exit-42 respawn)', () => {
 		spawnGnssSdr('/var/lib/argos/gnss-sdr/gnss-sdr.conf');
 		expect(spawnCalls).toHaveLength(1);
-		expect(spawnCalls[0].cmd).toBe('/usr/local/bin/gnss-sdr');
+		expect(spawnCalls[0].cmd).toBe('/usr/local/bin/gnss-sdr-harness.sh');
 		expect(spawnCalls[0].args).toEqual([
+			'/usr/local/bin/gnss-sdr',
 			'--config_file',
 			'/var/lib/argos/gnss-sdr/gnss-sdr.conf'
 		]);
@@ -63,6 +64,11 @@ describe('spawnGnssSdr', () => {
 	it('propagates DISPLAY=:98 in the spawn env so Qt diagnostics land in the VNC framebuffer', () => {
 		spawnGnssSdr('/tmp/x.conf');
 		expect(spawnCalls[0].env?.DISPLAY).toBe(GNSS_SDR_VNC_DISPLAY);
+	});
+
+	it('forces LD_PRELOAD of libuhd 4.1.0 so gr-uhd plugin sees ABI-compatible UHD', () => {
+		spawnGnssSdr('/tmp/x.conf');
+		expect(spawnCalls[0].env?.LD_PRELOAD).toBe('/usr/lib/aarch64-linux-gnu/libuhd.so.4.1.0');
 	});
 });
 

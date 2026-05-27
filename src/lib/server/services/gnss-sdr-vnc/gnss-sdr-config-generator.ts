@@ -224,6 +224,14 @@ export function generateGnssSdrConf(options: GnssSdrStartOptions = {}): string {
 		'Monitor.decimator_factor=50',
 		'Monitor.client_addresses=127.0.0.1',
 		`Monitor.udp_port=${GNSS_SDR_MONITOR_UDP_PORT}`,
+		'',
+		'; ─── telecommand TCP/IP (runtime control: reset/standby/warmstart) ─',
+		'; Requires the gnss-sdr-harness.sh wrapper to handle the exit-code-42',
+		'; re-exec triggered by the `reset` command. The Argos backend opens a TCP',
+		'; socket to localhost:3333, sends a one-word command + CRLF, reads the',
+		'; OK/ERROR response back. Never expose port 3333 outside loopback.',
+		'GNSS-SDR.telecommand_enabled=true',
+		'GNSS-SDR.telecommand_tcp_port=3333',
 		''
 	);
 

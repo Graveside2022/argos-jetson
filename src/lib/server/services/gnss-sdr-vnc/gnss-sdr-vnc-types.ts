@@ -33,14 +33,34 @@ export const GNSS_SDR_WS_PORT = 6083;
 /** URL path segment served by websockify. */
 export const GNSS_SDR_WS_PATH = '/websockify';
 
-/** Geometry passed to Xtigervnc (`WxH`). Matches SDR++ for consistency. */
-export const GNSS_SDR_GEOMETRY = '1440x900';
+/**
+ * Geometry passed to Xtigervnc (`WxH`). 1920x1080 = 16:9 — matches the typical
+ * Argos dashboard panel aspect, so noVNC's `scaleViewport` letterboxes cleanly
+ * without squishing the two tiled Qt windows. Wider than SDR++'s 1440x900 since
+ * we host TWO native GUIs side-by-side (rtknavi_qt + gnss-sdr-monitor) and need
+ * ~960 px per window to fit their default layouts.
+ */
+export const GNSS_SDR_GEOMETRY = '1920x1080';
+
+/** Pixel width of the Xtigervnc framebuffer (kept in sync with GNSS_SDR_GEOMETRY). */
+export const GNSS_SDR_FB_WIDTH = 1920;
+
+/** Pixel height of the Xtigervnc framebuffer (kept in sync with GNSS_SDR_GEOMETRY). */
+export const GNSS_SDR_FB_HEIGHT = 1080;
 
 /** Color depth for the virtual framebuffer. */
 export const GNSS_SDR_DEPTH = 24;
 
 /** Path to the gnss-sdr binary built from source by Phase 1. */
 export const GNSS_SDR_BIN = '/usr/local/bin/gnss-sdr';
+
+/**
+ * Wrapper shell script shipped by gnss-sdr (`utils/scripts/gnss-sdr-harness.sh`).
+ * Re-executes the child whenever it exits with code 42, which is how the
+ * telecommand `reset` command signals a clean restart while keeping the
+ * harness PID stable. Installed at host setup time.
+ */
+export const GNSS_SDR_HARNESS_BIN = '/usr/local/bin/gnss-sdr-harness.sh';
 
 /** RTKLIB rtknavi_qt — real-time PVT + DOP + numeric position panel + future RTK base-station support. */
 export const RTKNAVI_QT_BIN = '/usr/local/bin/rtknavi_qt';
@@ -90,6 +110,23 @@ export const GNSS_SDR_RTCM_PORT = 2101;
 
 /** UDP port for gnss-sdr's internal Monitor block (protobuf telemetry). Reserved for future panel. */
 export const GNSS_SDR_MONITOR_UDP_PORT = 1234;
+
+/** TCP port for gnss-sdr's telecommand interface (runtime control: reset/standby/warmstart/etc). */
+export const GNSS_SDR_TELECOMMAND_PORT = 3333;
+
+/** Telecommand client default localhost (always loopback — never expose externally). */
+export const GNSS_SDR_TELECOMMAND_HOST = '127.0.0.1';
+
+/** Whitelisted telecommand verbs (drop everything else as a precaution). */
+export type GnssSdrTelecommand = 'reset' | 'standby' | 'coldstart' | 'hotstart' | 'warmstart';
+
+/** Response shape from the telecommand API helper. */
+export interface GnssSdrTelecommandResult {
+	success: boolean;
+	command: string;
+	response: string;
+	error?: string;
+}
 
 /** Owner string passed to resourceManager.acquire(...) for B205 mutex. */
 export const GNSS_SDR_OWNER = 'gnss-sdr';

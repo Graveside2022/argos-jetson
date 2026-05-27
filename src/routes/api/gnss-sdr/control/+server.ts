@@ -21,7 +21,11 @@ import {
 	startGnssSdrVnc,
 	stopGnssSdrVnc
 } from '$lib/server/services/gnss-sdr-vnc/gnss-sdr-vnc-control-service';
-import type { GnssSdrStartOptions } from '$lib/server/services/gnss-sdr-vnc/gnss-sdr-vnc-types';
+import { sendGnssSdrTelecommand } from '$lib/server/services/gnss-sdr-vnc/gnss-sdr-vnc-processes';
+import type {
+	GnssSdrStartOptions,
+	GnssSdrTelecommand
+} from '$lib/server/services/gnss-sdr-vnc/gnss-sdr-vnc-types';
 import { logger } from '$lib/utils/logger';
 
 import type { RequestHandler } from './$types';
@@ -29,6 +33,8 @@ import type { RequestHandler } from './$types';
 interface RequestBody {
 	action?: string;
 	options?: GnssSdrStartOptions;
+	telecommand?: GnssSdrTelecommand;
+	telecommandArgs?: string;
 }
 
 // eslint-disable-next-line complexity
@@ -50,6 +56,11 @@ export const POST: RequestHandler = async ({ request }) => {
 			return json(await stopGnssSdrVnc());
 		case 'status':
 			return json(getGnssSdrVncStatus());
+		case 'telecommand':
+			if (!body.telecommand) {
+				return json({ success: false, error: 'missing telecommand verb' }, { status: 400 });
+			}
+			return json(await sendGnssSdrTelecommand(body.telecommand, body.telecommandArgs));
 		default:
 			return json(
 				{ success: false, error: `unknown action: ${String(action)}` },

@@ -22,12 +22,12 @@
 
 import { type ChildProcess, spawn as nativeSpawn } from 'child_process';
 import { existsSync, mkdirSync, readFileSync, statSync, unlinkSync, writeFileSync } from 'fs';
+import { connect as netConnect } from 'net';
 import { dirname } from 'path';
 
 import { logger } from '$lib/utils/logger';
 
 import {
-	centerVncWindow,
 	createSpawnErrorTracker,
 	isPortOpen,
 	isWebsockifyResponding as isWebsockifyRespondingShared,
@@ -43,15 +43,22 @@ import {
 	GNSS_SDR_BIN,
 	GNSS_SDR_CONF_DIR,
 	GNSS_SDR_DEPTH,
+	GNSS_SDR_FB_HEIGHT,
+	GNSS_SDR_FB_WIDTH,
 	GNSS_SDR_GEOMETRY,
+	GNSS_SDR_HARNESS_BIN,
 	GNSS_SDR_LD_PRELOAD_LIBUHD,
 	GNSS_SDR_MONITOR_BIN,
 	GNSS_SDR_NMEA_BRIDGE_PORT,
 	GNSS_SDR_NMEA_FIFO,
+	GNSS_SDR_TELECOMMAND_HOST,
+	GNSS_SDR_TELECOMMAND_PORT,
 	GNSS_SDR_VNC_DISPLAY,
 	GNSS_SDR_VNC_PORT,
 	GNSS_SDR_WS_PORT,
 	type GnssSdrStartOptions,
+	type GnssSdrTelecommand,
+	type GnssSdrTelecommandResult,
 	RTKNAVI_QT_BIN,
 	SOCAT_BIN
 } from './gnss-sdr-vnc-types';
@@ -185,9 +192,14 @@ export function setVncBackground(): void {
 	setVncBackgroundShared(GNSS_SDR_VNC_DISPLAY, SCOPE);
 }
 
-/** Spawn `gnss-sdr` with the generated config file. */
+/**
+ * Spawn `gnss-sdr` via `gnss-sdr-harness.sh` so the telecommand `reset`
+ * command (which makes gnss-sdr exit with code 42) is auto-respawned by the
+ * harness without us re-firing the full Argos start flow. The harness is a
+ * 6-line POSIX shell wrapper installed by Phase 1 at /usr/local/bin/.
+ */
 export function spawnGnssSdr(confPath: string): void {
-	gnssSdrProcess = spawnImpl(GNSS_SDR_BIN, ['--config_file', confPath], {
+	gnssSdrProcess = spawnImpl(GNSS_SDR_HARNESS_BIN, [GNSS_SDR_BIN, '--config_file', confPath], {
 		env: {
 			...process.env,
 			DISPLAY: GNSS_SDR_VNC_DISPLAY,
@@ -224,13 +236,25 @@ export function spawnGnssSdr(confPath: string): void {
 	});
 }
 
-/** Spawn `rtknavi_qt`, rendering into the VNC framebuffer. */
+/**
+ * Spawn `rtknavi_qt`, rendering into the VNC framebuffer.
+ *
+ * Passes Qt's standard X11 `-geometry WxH+X+Y` argument so the window
+ * sizes + positions itself at startup WITHOUT relying on a window manager
+ * (Xtigervnc runs barefoot; xdotool's `windowsize` is silently ignored
+ * without a WM in the framebuffer). Left half: 960×1080 at (0,0).
+ */
 export function spawnRtknavi(): void {
-	rtknaviProcess = spawnImpl(RTKNAVI_QT_BIN, [], {
-		env: { ...process.env, DISPLAY: GNSS_SDR_VNC_DISPLAY },
-		stdio: 'ignore',
-		detached: true
-	});
+	const halfW = Math.floor(GNSS_SDR_FB_WIDTH / 2);
+	rtknaviProcess = spawnImpl(
+		RTKNAVI_QT_BIN,
+		['-geometry', `${halfW}x${GNSS_SDR_FB_HEIGHT}+0+0`],
+		{
+			env: { ...process.env, DISPLAY: GNSS_SDR_VNC_DISPLAY },
+			stdio: 'ignore',
+			detached: true
+		}
+	);
 	rtknaviProcess.unref();
 	rtknaviProcess.on('exit', (code, signal) => {
 		logger.info(`[${SCOPE}] rtknavi_qt exited`, { code, signal });
@@ -242,14 +266,24 @@ export function spawnRtknavi(): void {
 	});
 }
 
-/** Spawn `gnss-sdr-monitor`, rendering into the VNC framebuffer.
- *  Consumes gnss-sdr's Monitor block UDP protobuf on port 1234. */
+/**
+ * Spawn `gnss-sdr-monitor`, rendering into the VNC framebuffer. Consumes
+ * gnss-sdr's Monitor block UDP protobuf on port 1234.
+ *
+ * Right half: 960×1080 at (960,0). Same Qt `-geometry` convention as
+ * spawnRtknavi — works without a window manager.
+ */
 export function spawnGnssSdrMonitor(): void {
-	gnssSdrMonitorProcess = spawnImpl(GNSS_SDR_MONITOR_BIN, [], {
-		env: { ...process.env, DISPLAY: GNSS_SDR_VNC_DISPLAY },
-		stdio: 'ignore',
-		detached: true
-	});
+	const halfW = Math.floor(GNSS_SDR_FB_WIDTH / 2);
+	gnssSdrMonitorProcess = spawnImpl(
+		GNSS_SDR_MONITOR_BIN,
+		['-geometry', `${halfW}x${GNSS_SDR_FB_HEIGHT}+${halfW}+0`],
+		{
+			env: { ...process.env, DISPLAY: GNSS_SDR_VNC_DISPLAY },
+			stdio: 'ignore',
+			detached: true
+		}
+	);
 	gnssSdrMonitorProcess.unref();
 	gnssSdrMonitorProcess.on('exit', (code, signal) => {
 		logger.info(`[${SCOPE}] gnss-sdr-monitor exited`, { code, signal });
@@ -261,10 +295,57 @@ export function spawnGnssSdrMonitor(): void {
 	});
 }
 
-/** Center the Qt windows in the VNC framebuffer (wmctrl). */
+/**
+ * Tile a window matching `windowSearchName` inside the VNC framebuffer.
+ *
+ * Two Qt GUIs share the framebuffer (rtknavi_qt + gnss-sdr-monitor); centering
+ * both via `vnc-common/centerVncWindow` would overlap them. This helper moves +
+ * resizes each window to a horizontal half: `position='left'` → upper-left
+ * quadrant of width FB_WIDTH/2, `position='right'` → right half. xdotool
+ * handles both windowmove + windowsize in one bash script so each window is
+ * always full-height and exactly half the framebuffer width.
+ */
+function tileWindow(display: string, windowSearchName: string, position: 'left' | 'right'): void {
+	if (!nativeSpawn || typeof nativeSpawn !== 'function') return;
+	// Allow bracket-character regex classes for case-insensitive matching of the
+	// Qt window titles (e.g. `[Rr]tk[Nn]avi`). Still injection-proof: no shell
+	// metachars permitted beyond brackets, alphanumerics, space, dash, underscore.
+	if (!/^[\w \-.[\]]{1,128}$/.test(windowSearchName)) {
+		logger.warn(`[${SCOPE}] refusing to tile window — unsafe name`, { windowSearchName });
+		return;
+	}
+	const halfW = Math.floor(GNSS_SDR_FB_WIDTH / 2);
+	const xOffset = position === 'left' ? 0 : halfW;
+	const script = `
+		WID=$(xdotool search --name "${windowSearchName}" 2>/dev/null | head -1)
+		if [ -n "$WID" ]; then
+			xdotool windowsize "$WID" ${halfW} ${GNSS_SDR_FB_HEIGHT}
+			xdotool windowmove "$WID" ${xOffset} 0
+		fi
+	`;
+	const proc = nativeSpawn('/bin/bash', ['-c', script], {
+		env: { ...process.env, DISPLAY: display },
+		stdio: 'ignore'
+	});
+	proc.unref();
+}
+
+/**
+ * Tile the two Qt GUIs side-by-side at framebuffer half-width each.
+ *
+ *   |─── rtknavi_qt ───|─── gnss-sdr-monitor ───|
+ *   0                 960                      1920
+ *
+ * Window titles (verified via xdotool against the live Xtigervnc 2026-05-27):
+ *   - `RtkNavi Qt ver. EX 2.5.0` — match with case-insensitive regex `[Rr]tk[Nn]avi`
+ *   - `gnss-sdr-monitor` — exact lowercase match
+ */
+const RTKNAVI_TITLE_REGEX = '[Rr]tk[Nn]avi';
+const MONITOR_TITLE_REGEX = 'gnss-sdr-monitor';
+
 export function centerRtklibWindows(): void {
-	centerVncWindow(GNSS_SDR_VNC_DISPLAY, 'RTKNAVI');
-	centerVncWindow(GNSS_SDR_VNC_DISPLAY, 'gnss-sdr-monitor');
+	tileWindow(GNSS_SDR_VNC_DISPLAY, RTKNAVI_TITLE_REGEX, 'left');
+	tileWindow(GNSS_SDR_VNC_DISPLAY, MONITOR_TITLE_REGEX, 'right');
 }
 
 /** Spawn websockify bridging VNC port -> WebSocket. */
@@ -361,6 +442,77 @@ export function isStackAlive(): boolean {
 		socatProcess
 	];
 	return refs.every((r) => r !== null);
+}
+
+// ─────────────────────────── telecommand TCP client ──────────────────────
+
+const TELECOMMAND_TIMEOUT_MS = 3000;
+const TELECOMMAND_WHITELIST: ReadonlySet<string> = new Set<GnssSdrTelecommand>([
+	'reset',
+	'standby',
+	'coldstart',
+	'hotstart',
+	'warmstart'
+]);
+
+/**
+ * Send a single-line telecommand to the running gnss-sdr instance over TCP and
+ * wait for the OK/ERROR response. The verb is whitelisted to one of the
+ * documented commands; extra args (e.g. `warmstart`'s `dd/mm/yyyy ...`) come
+ * through as the optional `args` string and are appended after a space.
+ *
+ * Wire protocol per gnss-sdr docs: lowercase verb + optional space-separated
+ * args, terminated by `\r\n`. Response is OK or ERROR (with explanatory text).
+ */
+export async function sendGnssSdrTelecommand(
+	verb: GnssSdrTelecommand,
+	args?: string
+): Promise<GnssSdrTelecommandResult> {
+	if (!TELECOMMAND_WHITELIST.has(verb)) {
+		return { success: false, command: verb, response: '', error: `unknown verb: ${verb}` };
+	}
+	// args is concatenated into the wire payload — reject control chars +
+	// anything that could split into a second command (no \r or \n).
+	if (args && !/^[\w\s./-]{0,128}$/.test(args)) {
+		return { success: false, command: verb, response: '', error: 'invalid args' };
+	}
+	const payload = args ? `${verb} ${args}\r\n` : `${verb}\r\n`;
+
+	return new Promise<GnssSdrTelecommandResult>((resolve) => {
+		const socket = netConnect(GNSS_SDR_TELECOMMAND_PORT, GNSS_SDR_TELECOMMAND_HOST);
+		let response = '';
+		const finish = (success: boolean, error?: string): void => {
+			try {
+				socket.end();
+			} catch {
+				/* already closed */
+			}
+			resolve({ success, command: verb, response: response.trim(), error });
+		};
+		const timer = setTimeout(
+			() => finish(false, 'telecommand timeout'),
+			TELECOMMAND_TIMEOUT_MS
+		);
+		socket.on('connect', () => {
+			socket.write(payload);
+		});
+		socket.on('data', (chunk: Buffer) => {
+			response += chunk.toString();
+			if (response.includes('OK') || response.includes('ERROR')) {
+				clearTimeout(timer);
+				const ok = response.includes('OK') && !response.includes('ERROR');
+				finish(ok, ok ? undefined : response.trim());
+			}
+		});
+		socket.on('error', (err: Error) => {
+			clearTimeout(timer);
+			finish(false, err.message);
+		});
+		socket.on('close', () => {
+			clearTimeout(timer);
+			if (!response) finish(false, 'telecommand connection closed without response');
+		});
+	});
 }
 
 /** Reset all module-scoped refs to null. Test-only. */
