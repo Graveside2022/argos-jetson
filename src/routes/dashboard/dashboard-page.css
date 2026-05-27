@@ -1,33 +1,11 @@
 /* Dashboard page layout styles — extracted from +page.svelte */
 
-/* Main content wrapper - flex column to stack content + terminal panel */
-.dashboard-main {
-	flex: 1;
-	display: flex;
-	flex-direction: column;
-	overflow: hidden;
-	min-width: 0;
-}
-
 /* Content area - takes remaining space above terminal panel */
 .dashboard-content {
 	flex: 1;
 	display: flex;
 	overflow: hidden;
 	min-height: 0;
-}
-
-/* Panel follows rail position */
-.dashboard-content.content-right {
-	flex-direction: row-reverse;
-}
-
-.dashboard-content.content-top {
-	flex-direction: column;
-}
-
-.dashboard-content.content-bottom {
-	flex-direction: column-reverse;
 }
 
 .tool-iframe {
