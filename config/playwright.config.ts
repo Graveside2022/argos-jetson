@@ -12,6 +12,11 @@ export default defineConfig({
 	],
 	use: {
 		baseURL: process.env.TEST_URL || 'http://localhost:5173',
+		// Argos /api/* requires ARGOS_API_KEY (per hooks.server.ts handleApiAuth).
+		// Inject when set so e2e specs hitting hardware endpoints get past auth.
+		extraHTTPHeaders: process.env.ARGOS_API_KEY
+			? { 'X-API-Key': process.env.ARGOS_API_KEY }
+			: undefined,
 		trace: 'on-first-retry',
 		screenshot: 'only-on-failure',
 		video: 'retain-on-failure'
