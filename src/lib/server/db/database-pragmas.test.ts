@@ -72,9 +72,9 @@ describe('database connection pragmas (FINDING-PHASE5-DB-1 + DB-2)', () => {
 				parent_id INTEGER NOT NULL REFERENCES parent(id)
 			);
 		`);
-		expect(() =>
-			db.prepare('INSERT INTO child (id, parent_id) VALUES (1, 999)').run()
-		).toThrow(/FOREIGN KEY constraint failed/);
+		expect(() => db.prepare('INSERT INTO child (id, parent_id) VALUES (1, 999)').run()).toThrow(
+			/FOREIGN KEY constraint failed/
+		);
 	});
 
 	it('pragma sequence is idempotent (callable twice without error)', () => {

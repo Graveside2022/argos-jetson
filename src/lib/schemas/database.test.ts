@@ -62,8 +62,9 @@ describe('DbSignalSchema — bounds regressions', () => {
 
 	test('property: any in-range power is accepted', () => {
 		fc.assert(
-			fc.property(fc.double({ min: -150, max: 0, noNaN: true }), (power) =>
-				DbSignalSchema.safeParse(validSignal({ power })).success
+			fc.property(
+				fc.double({ min: -150, max: 0, noNaN: true }),
+				(power) => DbSignalSchema.safeParse(validSignal({ power })).success
 			)
 		);
 	});

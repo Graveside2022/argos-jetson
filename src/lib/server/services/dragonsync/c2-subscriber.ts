@@ -39,10 +39,27 @@ let c2StaleTimer: ReturnType<typeof setInterval> | null = null;
  * HackRF is optional for C2 — held by OpenWebRX / NovaSDR / GSM-Evil on a
  * typical deployment. If we can't claim it, skip C2 silently and let the
  * rest of the stack come up. Returns true if claimed.
+ *
+ * Uses cooperative pre-emption with `forceOnOrphan: true` so a stale lock
+ * from a prior process never blocks legitimate C2 startup. Registers a
+ * preempt handler so other HackRF consumers can claim the device back —
+ * stopping C2 is non-destructive (no recordings, only ephemeral scanner state).
  */
 export async function claimHackRFForC2(): Promise<boolean> {
-	const claim = await resourceManager.acquire(C2_OWNER, HardwareDevice.HACKRF);
-	if (claim.success || claim.owner === C2_OWNER) return true;
+	const claim = await resourceManager.acquireWithPreempt(C2_OWNER, HardwareDevice.HACKRF, {
+		forceOnOrphan: true
+	});
+	if (claim.success || claim.owner === C2_OWNER) {
+		if (claim.preempted) {
+			logger.info('[dragonsync] HackRF acquired via preempt', { previous: claim.preempted });
+		}
+		resourceManager.registerPreemptHandler(C2_OWNER, HardwareDevice.HACKRF, async () => {
+			logger.info('[dragonsync] C2 preempted by another HackRF consumer — stopping');
+			stopC2Subscriber();
+			await releaseHackRFFromC2();
+		});
+		return true;
+	}
 	logger.info('[dragonsync] HackRF held by competitor — skipping C2 scanner', {
 		owner: claim.owner
 	});
@@ -50,6 +67,7 @@ export async function claimHackRFForC2(): Promise<boolean> {
 }
 
 export async function releaseHackRFFromC2(): Promise<void> {
+	resourceManager.unregisterPreemptHandler(C2_OWNER, HardwareDevice.HACKRF);
 	await resourceManager.release(C2_OWNER, HardwareDevice.HACKRF).catch(() => undefined);
 }
 

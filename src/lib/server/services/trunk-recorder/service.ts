@@ -121,8 +121,29 @@ function resolveStartPreset(presetId: string): { preset: Preset } | { error: Sta
 }
 
 async function claimHackRf(): Promise<StartResult | null> {
-	const claim = await resourceManager.acquire(TOOL_NAME, HardwareDevice.HACKRF);
-	if (claim.success) return null;
+	// Cooperative pre-emption: orphan owners (stale lock from a prior process)
+	// get force-released; live competitors with a registered preempt handler
+	// stop gracefully and we acquire on retry. Trunk-recorder takes EXCLUSIVE
+	// ownership during a recording — registers its handler so other HackRF
+	// consumers (gsm-evil, sdrpp, etc.) can request handoff. The stop()
+	// callback does `docker stop` which is graceful (TDMA frames flush).
+	const claim = await resourceManager.acquireWithPreempt(TOOL_NAME, HardwareDevice.HACKRF, {
+		forceOnOrphan: true
+	});
+	if (claim.success) {
+		if (claim.preempted) {
+			logger.info('[trunk-recorder] HackRF acquired via preempt', {
+				previous: claim.preempted
+			});
+		}
+		resourceManager.registerPreemptHandler(TOOL_NAME, HardwareDevice.HACKRF, async () => {
+			logger.warn(
+				'[trunk-recorder] preempted mid-recording — stopping (TDMA frames flush via docker stop)'
+			);
+			await stop();
+		});
+		return null;
+	}
 	state.status = 'stopped';
 	return {
 		success: false,
@@ -163,6 +184,7 @@ export async function stop(): Promise<{ success: boolean; message: string }> {
 			err: String(err)
 		});
 	}
+	resourceManager.unregisterPreemptHandler(TOOL_NAME, HardwareDevice.HACKRF);
 	await resourceManager.release(TOOL_NAME, HardwareDevice.HACKRF);
 	await resourceManager.refreshNow(HardwareDevice.HACKRF);
 	state.activePresetId = null;

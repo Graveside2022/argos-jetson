@@ -91,9 +91,9 @@ describe('StartSweepRequestSchema — frequency range bounds', () => {
 	});
 
 	test('rejects empty frequencies array', () => {
-		expect(
-			StartSweepRequestSchema.safeParse({ ...valid, frequencies: [] }).success
-		).toBe(false);
+		expect(StartSweepRequestSchema.safeParse({ ...valid, frequencies: [] }).success).toBe(
+			false
+		);
 	});
 
 	test('property: any in-range start < stop accepted', () => {

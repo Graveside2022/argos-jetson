@@ -88,8 +88,9 @@ describe('SimplifiedSignalSchema — bounds via common-bounds', () => {
 
 	test('property: any in-range frequency accepted', () => {
 		fc.assert(
-			fc.property(fc.double({ min: 1, max: 6000, noNaN: true }), (frequency) =>
-				SimplifiedSignalSchema.safeParse(valid({ frequency })).success
+			fc.property(
+				fc.double({ min: 1, max: 6000, noNaN: true }),
+				(frequency) => SimplifiedSignalSchema.safeParse(valid({ frequency })).success
 			)
 		);
 	});

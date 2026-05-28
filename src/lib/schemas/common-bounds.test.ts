@@ -26,8 +26,9 @@ describe('LatBounds [-90, 90]', () => {
 	});
 	test('property: any value in [-90, 90] is accepted', () => {
 		fc.assert(
-			fc.property(fc.double({ min: -90, max: 90, noNaN: true }), (v) =>
-				LatBounds.safeParse(v).success
+			fc.property(
+				fc.double({ min: -90, max: 90, noNaN: true }),
+				(v) => LatBounds.safeParse(v).success
 			)
 		);
 	});
@@ -44,8 +45,9 @@ describe('LonBounds [-180, 180]', () => {
 	});
 	test('property: any value in [-180, 180] is accepted', () => {
 		fc.assert(
-			fc.property(fc.double({ min: -180, max: 180, noNaN: true }), (v) =>
-				LonBounds.safeParse(v).success
+			fc.property(
+				fc.double({ min: -180, max: 180, noNaN: true }),
+				(v) => LonBounds.safeParse(v).success
 			)
 		);
 	});
@@ -62,8 +64,9 @@ describe('AltMetersBounds [-500, 50_000]', () => {
 	});
 	test('property: any value in [-500, 50_000] is accepted', () => {
 		fc.assert(
-			fc.property(fc.double({ min: -500, max: 50_000, noNaN: true }), (v) =>
-				AltMetersBounds.safeParse(v).success
+			fc.property(
+				fc.double({ min: -500, max: 50_000, noNaN: true }),
+				(v) => AltMetersBounds.safeParse(v).success
 			)
 		);
 	});
@@ -84,8 +87,9 @@ describe('RssiDbmBounds [-150, 0]', () => {
 	});
 	test('property: any value in [-150, 0] is accepted', () => {
 		fc.assert(
-			fc.property(fc.double({ min: -150, max: 0, noNaN: true }), (v) =>
-				RssiDbmBounds.safeParse(v).success
+			fc.property(
+				fc.double({ min: -150, max: 0, noNaN: true }),
+				(v) => RssiDbmBounds.safeParse(v).success
 			)
 		);
 	});
@@ -105,8 +109,9 @@ describe('FreqMhzBounds [1, 6000]', () => {
 	});
 	test('property: any value in [1, 6000] MHz is accepted', () => {
 		fc.assert(
-			fc.property(fc.double({ min: 1, max: 6000, noNaN: true }), (v) =>
-				FreqMhzBounds.safeParse(v).success
+			fc.property(
+				fc.double({ min: 1, max: 6000, noNaN: true }),
+				(v) => FreqMhzBounds.safeParse(v).success
 			)
 		);
 	});
@@ -129,8 +134,9 @@ describe('BandwidthHzBounds (0, 100_000_000]', () => {
 	});
 	test('property: any value in (0, 100_000_000] is accepted', () => {
 		fc.assert(
-			fc.property(fc.double({ min: 0.001, max: 100_000_000, noNaN: true }), (v) =>
-				BandwidthHzBounds.safeParse(v).success
+			fc.property(
+				fc.double({ min: 0.001, max: 100_000_000, noNaN: true }),
+				(v) => BandwidthHzBounds.safeParse(v).success
 			)
 		);
 	});

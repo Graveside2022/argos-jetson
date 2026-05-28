@@ -132,7 +132,11 @@ async function killGsmProcesses(): Promise<void> {
 /** Force-release HackRF and re-acquire for gsm-scan */
 async function forceReleaseAndReacquire(): Promise<{ success: boolean; owner?: string }> {
 	await resourceManager.forceRelease(HardwareDevice.HACKRF);
-	return resourceManager.acquire('gsm-scan', HardwareDevice.HACKRF);
+	// forceOnOrphan: true handles the rare race where ANOTHER process grabbed
+	// the device between forceRelease and our retry (e.g. an orphan stamping).
+	return resourceManager.acquireWithPreempt('gsm-scan', HardwareDevice.HACKRF, {
+		forceOnOrphan: true
+	});
 }
 
 /** Handle stale lock recovery when no GSM processes are running */
@@ -178,7 +182,15 @@ export async function acquireHackrf(): Promise<PrerequisiteResult> {
 	const events: ScanEvent[] = [];
 	events.push(createUpdateEvent('[SCAN] Acquiring SDR hardware...'));
 
-	let acquireResult = await resourceManager.acquire('gsm-scan', HardwareDevice.HACKRF);
+	// Cooperative pre-emption: orphan owners get force-released; cooperative
+	// competitors release via their preempt handler. The legacy
+	// attemptRecovery (below) handles the live-process case where the holder
+	// has no preempt handler registered.
+	let acquireResult = await resourceManager.acquireWithPreempt(
+		'gsm-scan',
+		HardwareDevice.HACKRF,
+		{ forceOnOrphan: true }
+	);
 
 	if (!acquireResult.success) {
 		const owner = acquireResult.owner || 'unknown';

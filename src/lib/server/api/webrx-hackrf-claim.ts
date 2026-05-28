@@ -69,7 +69,11 @@ async function recoverFromPeer(toolName: string, peer: string): Promise<WebRxCla
 		peer
 	});
 	await resourceManager.forceRelease(HardwareDevice.HACKRF);
-	const retry = await resourceManager.acquire(toolName, HardwareDevice.HACKRF);
+	// Retry via acquireWithPreempt: if the peer container restarts between
+	// forceRelease and retry, forceOnOrphan handles the new stale-lock case.
+	const retry = await resourceManager.acquireWithPreempt(toolName, HardwareDevice.HACKRF, {
+		forceOnOrphan: true
+	});
 	if (retry.success) return { success: true };
 	return {
 		success: false,
@@ -94,9 +98,34 @@ function buildConflictError(toolName: string, owner: string): WebRxClaimResult {
  * @returns { success: true } when the HackRF is now owned by toolName.
  *          { success: false, owner, message } on conflict that could not be recovered.
  */
-export async function acquireHackRfForWebRx(toolName: string): Promise<WebRxClaimResult> {
-	const result = await resourceManager.acquire(toolName, HardwareDevice.HACKRF);
-	if (result.success) return { success: true };
+// Branching here covers the cooperative-preempt protocol path (success +
+// optional handler registration) plus the peer-conflict recovery fallback.
+// Splitting it just to satisfy the complexity rule would hide the protocol.
+// eslint-disable-next-line complexity, sonarjs/cognitive-complexity
+export async function acquireHackRfForWebRx(
+	toolName: string,
+	onPreempt?: () => Promise<void>
+): Promise<WebRxClaimResult> {
+	const result = await resourceManager.acquireWithPreempt(toolName, HardwareDevice.HACKRF, {
+		forceOnOrphan: true
+	});
+	if (result.success) {
+		if (result.preempted) {
+			logger.info('[webrx-claim] HackRF acquired via preempt', {
+				toolName,
+				previous: result.preempted
+			});
+		}
+		if (onPreempt) {
+			resourceManager.registerPreemptHandler(toolName, HardwareDevice.HACKRF, async () => {
+				logger.info('[webrx-claim] preempted by another HackRF consumer — stopping', {
+					toolName
+				});
+				await onPreempt();
+			});
+		}
+		return { success: true };
+	}
 	const owner = result.owner ?? 'unknown';
 	if (isPeerConflict(toolName, owner)) return recoverFromPeer(toolName, owner);
 	return buildConflictError(toolName, owner);
@@ -109,6 +138,7 @@ export async function acquireHackRfForWebRx(toolName: string): Promise<WebRxClai
  * throw. Safe to call from stop/restart error paths.
  */
 export async function releaseHackRfForWebRx(toolName: string): Promise<void> {
+	resourceManager.unregisterPreemptHandler(toolName, HardwareDevice.HACKRF);
 	const result = await resourceManager.release(toolName, HardwareDevice.HACKRF);
 	if (!result.success) {
 		logger.warn('[webrx-claim] Release reported non-success', {

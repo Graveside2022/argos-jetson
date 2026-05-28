@@ -30,7 +30,9 @@ describe('StartSpectrumRequestSchema (HackRF)', () => {
 	});
 
 	test('accepts payload without device (default fires)', () => {
-		expect(StartSpectrumRequestSchema.safeParse({ config: validHackrfConfig }).success).toBe(true);
+		expect(StartSpectrumRequestSchema.safeParse({ config: validHackrfConfig }).success).toBe(
+			true
+		);
 	});
 
 	test('rejects startFreq below 1 MHz', () => {

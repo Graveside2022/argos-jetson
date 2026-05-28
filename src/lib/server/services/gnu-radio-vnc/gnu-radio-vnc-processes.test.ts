@@ -42,7 +42,7 @@ describe('gnu-radio-vnc-processes', () => {
 
 		expect(calls).toHaveLength(1);
 		const argv = calls[0].args;
-		expect(argv).toContain(':95');
+		expect(argv).toContain(':99');
 		expect(argv).toContain('-geometry');
 		expect(argv).toContain('1440x900');
 		expect(argv).toContain('-SecurityTypes');
@@ -65,7 +65,7 @@ describe('gnu-radio-vnc-processes', () => {
 		spawnGnuRadioCompanion();
 
 		const env = (calls[0].env ?? {}) as Record<string, string>;
-		expect(env.DISPLAY).toBe(':95');
+		expect(env.DISPLAY).toBe(':99');
 		expect(env.QT_QPA_PLATFORM).toBe('xcb');
 	});
 
@@ -83,7 +83,7 @@ describe('gnu-radio-vnc-processes', () => {
 		expect(argv[argv.length - 1]).toBe('/tmp/argos-grc-demo.grc');
 	});
 
-	it('spawnWebsockify bridges 6084 → localhost:5995', () => {
+	it('spawnWebsockify bridges 6084 → localhost:5999 (canonical per ADR 0005)', () => {
 		const calls: Array<{ args: string[] }> = [];
 		const mockSpawn: unknown = (_cmd: string, args: string[]) => {
 			calls.push({ args: args as string[] });
@@ -95,7 +95,7 @@ describe('gnu-radio-vnc-processes', () => {
 
 		const argv = calls[0].args;
 		expect(argv).toContain('6084');
-		expect(argv).toContain('localhost:5995');
+		expect(argv).toContain('localhost:5999');
 	});
 
 	it('spawnWindowManager invokes openbox with --sm-disable + DISPLAY=:95', () => {
@@ -116,6 +116,6 @@ describe('gnu-radio-vnc-processes', () => {
 		expect(calls[0].cmd).toBe('/usr/bin/openbox');
 		expect(calls[0].args).toContain('--sm-disable');
 		expect(calls[0].args).toContain('--config-file');
-		expect(calls[0].env.DISPLAY).toBe(':95');
+		expect(calls[0].env.DISPLAY).toBe(':99');
 	});
 });

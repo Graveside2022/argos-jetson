@@ -39,7 +39,8 @@ const COMPONENT_VIEWS: Partial<Record<ActiveView, () => Promise<{ default: Compo
 	sightline: () => import('$lib/components/dashboard/views/SightlineView.svelte'),
 	'sparrow-wifi': () => import('$lib/components/dashboard/views/SparrowView.svelte'),
 	spiderfoot: () => import('$lib/components/dashboard/views/SpiderfootView.svelte'),
-	webtak: () => import('$lib/components/dashboard/views/WebTAKView.svelte')
+	webtak: () => import('$lib/components/dashboard/views/WebTAKView.svelte'),
+	'gnss-sdr': () => import('$lib/components/dashboard/views/GnssSdrView.svelte')
 };
 
 // Tools with no built-in UI — preserve the exact titles from the old chain.

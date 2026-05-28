@@ -8,6 +8,7 @@
 		Map,
 		Radar,
 		RadioTower,
+		Satellite,
 		Settings,
 		Waypoints,
 		Zap
@@ -22,7 +23,7 @@
 	} from '$lib/stores/dashboard/dashboard-store.svelte';
 	import { themeStore } from '$lib/stores/theme-store.svelte';
 
-	const VIEW_TOGGLE_IDS = new Set(['webtak', 'uas-scan']);
+	const VIEW_TOGGLE_IDS = new Set(['webtak', 'uas-scan', 'gnss-sdr']);
 
 	function handleClick(id: string) {
 		if (id === 'dashboard') toggleBottomTab('dashboard');
@@ -108,6 +109,17 @@
 			onclick={() => handleClick('uas-scan')}
 		>
 			<RadioTower size={18} />
+		</button>
+		<!-- GNSS-SDR (software GNSS receiver + RTKLIB sky-plot / nav iframe) -->
+		<button
+			class="rail-btn"
+			class:active={activeView.current === 'gnss-sdr'}
+			title="GNSS-SDR — Software GPS Receiver"
+			aria-label="GNSS-SDR"
+			aria-pressed={activeView.current === 'gnss-sdr'}
+			onclick={() => handleClick('gnss-sdr')}
+		>
+			<Satellite size={18} />
 		</button>
 		<!-- Logo (waypoints) — brand mark, always white -->
 		<button

@@ -37,6 +37,7 @@ Mutation score before / after: 68.7 / 94.1
 ## Survivors triaged in
 
 `docs/mutation-baseline-2026-05-26-phase4.md` — committed alongside this PR. Contains:
+
 - Methodology pivot rationale
 - Full-hardware partial baseline (300/1478 = 68.7%)
 - Per-file test additions table

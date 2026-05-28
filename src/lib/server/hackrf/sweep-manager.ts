@@ -141,7 +141,20 @@ export class SweepManager extends EventEmitter {
 		frequencies: Array<{ value: number; unit: string }>,
 		cycleTime: number
 	): Promise<boolean> {
-		return startCycle(this._cycleInit(), frequencies, cycleTime);
+		const ok = await startCycle(this._cycleInit(), frequencies, cycleTime);
+		if (ok) {
+			// Register our preempt handler so OTHER HackRF consumers (gsm-evil,
+			// trunk-recorder, sdrpp, webrx, etc.) can preempt the sweep gracefully.
+			resourceManager.registerPreemptHandler(
+				'hackrf-sweep',
+				HardwareDevice.HACKRF,
+				async () => {
+					logger.info('[hackrf-sweep] preempted by another HackRF consumer — stopping');
+					await this.stopSweep();
+				}
+			);
+		}
+		return ok;
 	}
 
 	async stopSweep(): Promise<void> {
@@ -164,6 +177,7 @@ export class SweepManager extends EventEmitter {
 		this.mutableState.status = { state: SystemStatus.Idle };
 		this._emitEvent('status', this.mutableState.status);
 		this._emitEvent('status_change', { status: 'stopped' });
+		resourceManager.unregisterPreemptHandler('hackrf-sweep', HardwareDevice.HACKRF);
 		await resourceManager.release('hackrf-sweep', HardwareDevice.HACKRF);
 		setTimeout(() => this._emitEvent('status', { state: SystemStatus.Idle }), 100);
 		logger.info('Sweep stopped successfully');

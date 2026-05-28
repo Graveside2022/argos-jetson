@@ -4,11 +4,7 @@
 import * as fc from 'fast-check';
 import { describe, expect, test } from 'vitest';
 
-import {
-	CoverageRequestSchema,
-	P2PRequestSchema,
-	RouteRequestSchema
-} from './rf-propagation';
+import { CoverageRequestSchema, P2PRequestSchema, RouteRequestSchema } from './rf-propagation';
 
 const baseCoverage = {
 	lat: 47.5,
@@ -30,15 +26,21 @@ describe('CoverageRequestSchema', () => {
 	});
 
 	test('rejects frequency outside [1, 100000] MHz (CloudRF wide range)', () => {
-		expect(CoverageRequestSchema.safeParse({ ...baseCoverage, frequency: 0 }).success).toBe(false);
+		expect(CoverageRequestSchema.safeParse({ ...baseCoverage, frequency: 0 }).success).toBe(
+			false
+		);
 		expect(
 			CoverageRequestSchema.safeParse({ ...baseCoverage, frequency: 100_001 }).success
 		).toBe(false);
 	});
 
 	test('rejects txHeight outside [0.5, 500] m', () => {
-		expect(CoverageRequestSchema.safeParse({ ...baseCoverage, txHeight: 0.4 }).success).toBe(false);
-		expect(CoverageRequestSchema.safeParse({ ...baseCoverage, txHeight: 501 }).success).toBe(false);
+		expect(CoverageRequestSchema.safeParse({ ...baseCoverage, txHeight: 0.4 }).success).toBe(
+			false
+		);
+		expect(CoverageRequestSchema.safeParse({ ...baseCoverage, txHeight: 501 }).success).toBe(
+			false
+		);
 	});
 
 	test('rejects polarization not 0/1', () => {
@@ -69,14 +71,20 @@ describe('CoverageRequestSchema', () => {
 	});
 
 	test('rejects txPower outside [0.001, 100] W', () => {
-		expect(CoverageRequestSchema.safeParse({ ...baseCoverage, txPower: 0 }).success).toBe(false);
-		expect(CoverageRequestSchema.safeParse({ ...baseCoverage, txPower: 101 }).success).toBe(false);
+		expect(CoverageRequestSchema.safeParse({ ...baseCoverage, txPower: 0 }).success).toBe(
+			false
+		);
+		expect(CoverageRequestSchema.safeParse({ ...baseCoverage, txPower: 101 }).success).toBe(
+			false
+		);
 	});
 
 	test('property: in-range polarization (0 or 1) accepted', () => {
 		fc.assert(
-			fc.property(fc.constantFrom(0, 1), (pol) =>
-				CoverageRequestSchema.safeParse({ ...baseCoverage, polarization: pol }).success
+			fc.property(
+				fc.constantFrom(0, 1),
+				(pol) =>
+					CoverageRequestSchema.safeParse({ ...baseCoverage, polarization: pol }).success
 			)
 		);
 	});
@@ -127,8 +135,6 @@ describe('RouteRequestSchema', () => {
 	});
 
 	test('rejects empty waypoints', () => {
-		expect(
-			RouteRequestSchema.safeParse({ ...validRoute, waypoints: [] }).success
-		).toBe(false);
+		expect(RouteRequestSchema.safeParse({ ...validRoute, waypoints: [] }).success).toBe(false);
 	});
 });

@@ -36,7 +36,15 @@ const KNOWN_TOOL_NAMES: ReadonlySet<string> = new Set([
 	'sparrow-wifi',
 	'wardragon-fpv-detect',
 	'uas-scanner',
-	'c2-scanner'
+	'c2-scanner',
+	// B205 owners. Without these, applyNullScan clears state.owner during the
+	// brief UHD warmup window when getB205BlockingProcesses returns [], so the
+	// next acquireWithPreempt sees a free device and skips the preempt path —
+	// the registered handler never fires and the holding tool keeps running.
+	// Reproduced by tests/e2e/vnc-preempt-cycle.spec.ts T1 (gnss-sdr ↔ gnu-radio).
+	'gnss-sdr',
+	'gnu-radio-vnc',
+	'bluedragon'
 ]);
 
 /**

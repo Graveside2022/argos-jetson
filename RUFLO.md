@@ -6,13 +6,13 @@ This doc is the **honest** routing reference. Most ruflo features are theater (p
 
 ## TL;DR
 
-| Use ruflo FOR | Skip ruflo FOR — use the real tool |
-|---|---|
-| Cross-session vector memory (`memory_store/search`) | Multi-agent orchestration → Claude Code's `Agent` tool |
-| Per-project pattern memory (`agentdb_pattern-store/search`) | Distributed consensus → git + GitHub branch protection |
-| Agent-type taxonomy labels (60+ subagent_type names) | Autonomous loops → `/loop` + `ScheduleWakeup` + `Monitor` |
-| Cross-session decision recall | Sandboxed execution → native `Agent` subagents |
-| | "Neural" learning / SONA / HNSW claims |
+| Use ruflo FOR                                               | Skip ruflo FOR — use the real tool                        |
+| ----------------------------------------------------------- | --------------------------------------------------------- |
+| Cross-session vector memory (`memory_store/search`)         | Multi-agent orchestration → Claude Code's `Agent` tool    |
+| Per-project pattern memory (`agentdb_pattern-store/search`) | Distributed consensus → git + GitHub branch protection    |
+| Agent-type taxonomy labels (60+ subagent_type names)        | Autonomous loops → `/loop` + `ScheduleWakeup` + `Monitor` |
+| Cross-session decision recall                               | Sandboxed execution → native `Agent` subagents            |
+|                                                             | "Neural" learning / SONA / HNSW claims                    |
 
 ## Real capabilities — keep
 
@@ -24,14 +24,14 @@ Use for: engineering decisions, plan checkpoints, "did we already solve this?" r
 
 ```typescript
 mcp__ruflo__memory_store({
-  value: "Phase 4 decision: cheap-audit substitute methodology proposed as default for layers with low marginal source-bug detection from mutation testing alone.",
-  namespace: "argos-decisions"
+	value: 'Phase 4 decision: cheap-audit substitute methodology proposed as default for layers with low marginal source-bug detection from mutation testing alone.',
+	namespace: 'argos-decisions'
 });
 
 mcp__ruflo__memory_search({
-  query: "Phase 4 hardware bugs",
-  namespace: "argos-decisions",
-  topK: 5
+	query: 'Phase 4 hardware bugs',
+	namespace: 'argos-decisions',
+	topK: 5
 });
 ```
 
@@ -49,52 +49,52 @@ Pattern: pick the ruflo label that names the work, pass to Agent tool's `subagen
 
 Per roman-rr's audit (https://gist.github.com/roman-rr/ed603b676af019b8740423d2bb8e4bf6) + our Phase 4 demo confirming each finding:
 
-| Tool / claim | Reality |
-|---|---|
-| `coordination_orchestrate` | Records orchestration request; doesn't execute. Ruflo's own note: "use agent_spawn + Task tool for execution" |
-| `agent_spawn` | Registers metadata in `.claude-flow/agents/store.json`; doesn't execute. Same note. |
-| `swarm_init`, `swarm_status` | Bookkeeping only. State JSON in `.claude-flow/swarm/swarm-state.json`. No live coordination. |
-| `hive-mind_*` consensus (Byzantine/Raft/Queen/Gossip/CRDT) | `verifySignature()` unconditionally returns `true`. "Consensus" = majority vote on a JSON dict. Single-process EventEmitter. |
-| `wasm_agent_*` | Literally echoes input back. No WASM runtime. No LLM call. |
-| `neural_train`, `neural_predict` | Fake metrics. Hardcoded `totalTokensSaved += 100` per cache hit. No real counting. |
-| `autopilot_*` | Partial / stub. Real autonomous loops use `/loop` + `ScheduleWakeup`. |
-| `claims_*`, `daa_*` | Bookkeeping + ceremony, no executor. |
-| Token optimizer "30-50% reduction" | Individually fabricated percentages summed. No real token counting code. |
-| `agent_execute` | Calls direct Anthropic API w/ `ANTHROPIC_API_KEY` env var. Bypasses Claude Code session. Risk: separate billing scope, separate auth chain. |
+| Tool / claim                                               | Reality                                                                                                                                     |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `coordination_orchestrate`                                 | Records orchestration request; doesn't execute. Ruflo's own note: "use agent_spawn + Task tool for execution"                               |
+| `agent_spawn`                                              | Registers metadata in `.claude-flow/agents/store.json`; doesn't execute. Same note.                                                         |
+| `swarm_init`, `swarm_status`                               | Bookkeeping only. State JSON in `.claude-flow/swarm/swarm-state.json`. No live coordination.                                                |
+| `hive-mind_*` consensus (Byzantine/Raft/Queen/Gossip/CRDT) | `verifySignature()` unconditionally returns `true`. "Consensus" = majority vote on a JSON dict. Single-process EventEmitter.                |
+| `wasm_agent_*`                                             | Literally echoes input back. No WASM runtime. No LLM call.                                                                                  |
+| `neural_train`, `neural_predict`                           | Fake metrics. Hardcoded `totalTokensSaved += 100` per cache hit. No real counting.                                                          |
+| `autopilot_*`                                              | Partial / stub. Real autonomous loops use `/loop` + `ScheduleWakeup`.                                                                       |
+| `claims_*`, `daa_*`                                        | Bookkeeping + ceremony, no executor.                                                                                                        |
+| Token optimizer "30-50% reduction"                         | Individually fabricated percentages summed. No real token counting code.                                                                    |
+| `agent_execute`                                            | Calls direct Anthropic API w/ `ANTHROPIC_API_KEY` env var. Bypasses Claude Code session. Risk: separate billing scope, separate auth chain. |
 
 ## When to use ruflo in Argos
 
-| Situation | Action |
-|---|---|
-| Persist engineering decision across sessions | `memory_store` namespace=argos-decisions |
-| Store per-PR findings (bug list, methodology, score) | `agentdb_pattern-store` type=phase-completion |
-| Recall prior decisions in new session | `memory_search` + `pattern-search` (with retrieval-tier awareness) |
-| Multi-agent slice execution | Native `Agent({run_in_background: true})` — NOT ruflo's coordination_orchestrate |
-| Long-running task | `/loop` + `ScheduleWakeup` — NOT ruflo's autopilot |
-| Cross-machine sync | git + PR — NOT ruflo's hive-mind |
-| "Swarm" branding in plan docs | Use as conceptual label; execute via native Agent |
+| Situation                                            | Action                                                                           |
+| ---------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Persist engineering decision across sessions         | `memory_store` namespace=argos-decisions                                         |
+| Store per-PR findings (bug list, methodology, score) | `agentdb_pattern-store` type=phase-completion                                    |
+| Recall prior decisions in new session                | `memory_search` + `pattern-search` (with retrieval-tier awareness)               |
+| Multi-agent slice execution                          | Native `Agent({run_in_background: true})` — NOT ruflo's coordination_orchestrate |
+| Long-running task                                    | `/loop` + `ScheduleWakeup` — NOT ruflo's autopilot                               |
+| Cross-machine sync                                   | git + PR — NOT ruflo's hive-mind                                                 |
+| "Swarm" branding in plan docs                        | Use as conceptual label; execute via native Agent                                |
 
 ## Argos-specific wiring
 
-| Layer | Status |
-|---|---|
-| Ruflo MCP server | Registered at user scope (`~/.claude.json` top-level `mcpServers.ruflo`). Available across all projects. |
-| Daemon | `npx ruflo@latest mcp start` (auto-launched by Claude Code on MCP handshake) |
-| `.claude-flow/` + `.swarm/` directories | Created by `npx ruflo init` (per-machine state). Should be `.gitignore`d. |
-| Hooks | NOT integrated into Argos's `.husky/` — explicit decision; ruflo daemon ≠ critical path. |
-| Plugins | Marketplace `ruvnet/ruflo` added. Plugin install required for tool surface — see `~/.claude/settings.json` `enabledPlugins`. |
+| Layer                                   | Status                                                                                                                       |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Ruflo MCP server                        | Registered at user scope (`~/.claude.json` top-level `mcpServers.ruflo`). Available across all projects.                     |
+| Daemon                                  | `npx ruflo@latest mcp start` (auto-launched by Claude Code on MCP handshake)                                                 |
+| `.claude-flow/` + `.swarm/` directories | Created by `npx ruflo init` (per-machine state). Should be `.gitignore`d.                                                    |
+| Hooks                                   | NOT integrated into Argos's `.husky/` — explicit decision; ruflo daemon ≠ critical path.                                     |
+| Plugins                                 | Marketplace `ruvnet/ruflo` added. Plugin install required for tool surface — see `~/.claude/settings.json` `enabledPlugins`. |
 
 ## Per-task intelligence-graph flow (always-on for fix/audit/review/debug verbs)
 
 Beyond the per-phase 5-step pattern below, every fix/audit/review/debug task MUST use ruflo's intelligence-graph layer — the Learning Loop documented by upstream `ruvnet/ruflo` USERGUIDE.md as **RETRIEVE → JUDGE → DISTILL → CONSOLIDATE → ROUTE**.
 
-| Step | Mandatory tools | Optional |
-|---|---|---|
-| RETRIEVE | `memory_search smart=true` (NOT default false — RRF + MMR + recency reranking) + `agentdb_pattern-search` | `memory_search_unified`, `embeddings_rabitq_search` |
-| JUDGE | per-finding `agentdb_pattern-store` + `agentdb_causal-edge` linking finding → completion (or → prior obs) | `embeddings_compare` validates cluster cohesion vs prior obs |
-| DISTILL | `agentdb_hierarchical-store` tier=`semantic` (HIGH) / `episodic` (MED) / `working` (LOW) | `agentdb_consolidate`, `agentdb_context-synthesize` |
-| CONSOLIDATE | `agentdb_pattern-store` type=`*-completion` + `agentdb_feedback` (`{taskId, success, quality}`) closes loop | `agentdb_graph-pathfinder personalized-pagerank` |
-| ROUTE | for review tasks: `Agent({subagent_type: security-architect / tdd-london-swarm / sparc-refine / code-reviewer / performance-engineer})` | `hooks_explain`, `hooks_coverage-suggest` |
+| Step        | Mandatory tools                                                                                                                         | Optional                                                     |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| RETRIEVE    | `memory_search smart=true` (NOT default false — RRF + MMR + recency reranking) + `agentdb_pattern-search`                               | `memory_search_unified`, `embeddings_rabitq_search`          |
+| JUDGE       | per-finding `agentdb_pattern-store` + `agentdb_causal-edge` linking finding → completion (or → prior obs)                               | `embeddings_compare` validates cluster cohesion vs prior obs |
+| DISTILL     | `agentdb_hierarchical-store` tier=`semantic` (HIGH) / `episodic` (MED) / `working` (LOW)                                                | `agentdb_consolidate`, `agentdb_context-synthesize`          |
+| CONSOLIDATE | `agentdb_pattern-store` type=`*-completion` + `agentdb_feedback` (`{taskId, success, quality}`) closes loop                             | `agentdb_graph-pathfinder personalized-pagerank`             |
+| ROUTE       | for review tasks: `Agent({subagent_type: security-architect / tdd-london-swarm / sparc-refine / code-reviewer / performance-engineer})` | `hooks_explain`, `hooks_coverage-suggest`                    |
 
 **Acceptance criterion**: ≥3 of {smart=true memory_search, causal-edge, hierarchical-store, agentdb_feedback} fire in first task turn without explicit user prompting.
 
@@ -104,15 +104,15 @@ Beyond the per-phase 5-step pattern below, every fix/audit/review/debug task MUS
 
 1. `memory_search smart=true` — recalled `argos-phase5-7-cheap-audit-pivot-2026-05-26` decision (RRF + MMR backend, 3 query variants generated)
 2. `memory_store` — `phase7-cheap-audit-scope-2026-05-26` namespace=`argos-phase7-scope`
-3-6. `agentdb_pattern-store` × 4 (HIGH-1 / HIGH-2 / MED-3 / LOW-4 findings) → returned `entry_*` patternIds
-7-10. `agentdb_causal-edge` × 4 — linked each finding patternId → completion patternId (relation=`caused`, weight=1.0)
-11-14. `agentdb_hierarchical-store` × 4 — HIGH → tier=`semantic`, MED → `episodic`, LOW → `working`
-15-16. `embeddings_compare` × 2 — HIGH-1 vs prior obs 5620 = 0.618 SIMILAR (validated cluster); HIGH-2 vs `tak-connection.ts` jitter ref = 0.568 (validated code reuse)
-17. `embeddings_rabitq_build` — 68 vectors, 32× compression, 402ms
-18. `agentdb_graph-pathfinder personalized-pagerank` — 4 finding nodes at depth 1 from completion hub (proved cluster topology)
-19. `agentdb_feedback` — `{taskId: 'phase7-cheap-audit-wire-full-power-2026-05-26', success: true, quality: 0.9}`
-20. Native `Agent({subagent_type: 'security-architect'})` — produced 5-finding security verdict (✅ ship + 2 follow-ups: time-windowed slow-consumer counter + verify shouldReconnect excludes close 4001)
-21. `hooks_coverage-suggest src/lib/websocket/base.ts` — surfaced 26.79% current coverage / 80% target / 53% gap / priority 8/10 as concrete next-PR item
+   3-6. `agentdb_pattern-store` × 4 (HIGH-1 / HIGH-2 / MED-3 / LOW-4 findings) → returned `entry_*` patternIds
+   7-10. `agentdb_causal-edge` × 4 — linked each finding patternId → completion patternId (relation=`caused`, weight=1.0)
+   11-14. `agentdb_hierarchical-store` × 4 — HIGH → tier=`semantic`, MED → `episodic`, LOW → `working`
+   15-16. `embeddings_compare` × 2 — HIGH-1 vs prior obs 5620 = 0.618 SIMILAR (validated cluster); HIGH-2 vs `tak-connection.ts` jitter ref = 0.568 (validated code reuse)
+3. `embeddings_rabitq_build` — 68 vectors, 32× compression, 402ms
+4. `agentdb_graph-pathfinder personalized-pagerank` — 4 finding nodes at depth 1 from completion hub (proved cluster topology)
+5. `agentdb_feedback` — `{taskId: 'phase7-cheap-audit-wire-full-power-2026-05-26', success: true, quality: 0.9}`
+6. Native `Agent({subagent_type: 'security-architect'})` — produced 5-finding security verdict (✅ ship + 2 follow-ups: time-windowed slow-consumer counter + verify shouldReconnect excludes close 4001)
+7. `hooks_coverage-suggest src/lib/websocket/base.ts` — surfaced 26.79% current coverage / 80% target / 53% gap / priority 8/10 as concrete next-PR item
 
 Result: ruflo used at intelligence-graph layer (~70% of agentdb surface) vs prior logbook-only (~5%). Actionable next-PR item surfaced from coverage data. Security verdict from subagent + 2 follow-ups landed in `argos-phase7-scope`.
 

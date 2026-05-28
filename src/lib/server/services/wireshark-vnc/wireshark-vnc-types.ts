@@ -8,14 +8,19 @@
  * and WebTAK (:99/5999/6080) so all four stacks can run simultaneously.
  */
 
+// Canonical port/display constants come from `vnc-common/port-allocation`
+// per ADR 0005 — single source of truth across all five VNC tools.
+import { getVncAllocation } from '../vnc-common/port-allocation';
+const _WS_ALLOC = getVncAllocation('wireshark-vnc');
+
 /** X display number used by Xtigervnc and Wireshark. */
-export const WIRESHARK_VNC_DISPLAY = ':96';
+export const WIRESHARK_VNC_DISPLAY = _WS_ALLOC.display;
 
 /** TCP port where Xtigervnc serves the VNC protocol on localhost. */
-export const WIRESHARK_VNC_PORT = 5996;
+export const WIRESHARK_VNC_PORT = _WS_ALLOC.vncPort;
 
 /** TCP port where websockify exposes the VNC session as a WebSocket. */
-export const WIRESHARK_WS_PORT = 6083;
+export const WIRESHARK_WS_PORT = _WS_ALLOC.wsPort;
 
 /** URL path segment served by websockify. */
 export const WIRESHARK_WS_PATH = '/websockify';

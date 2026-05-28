@@ -222,7 +222,9 @@ describe('detectNetworkDevices — parseNetworkUSRPLineFields malformed addr', (
 		// This guards against the bug where matchgroup[1] could become an empty string
 		// and silently flow through DetectedHardwareSchema as an invalid hardware row.
 		execMock.mockResolvedValue({
-			stdout: ['  Device Address:', '    addr: ', '    serial: ABC123', '    type: x'].join('\n')
+			stdout: ['  Device Address:', '    addr: ', '    serial: ABC123', '    type: x'].join(
+				'\n'
+			)
 		});
 		const result = await detectNetworkDevices();
 		expect(result.filter((r) => r.id?.startsWith('usrp-net-'))).toEqual([]);
