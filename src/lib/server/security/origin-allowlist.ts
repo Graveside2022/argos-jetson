@@ -29,6 +29,10 @@
 const DEFAULT_LOCALHOST_ORIGINS: readonly string[] = [
 	'http://localhost:5173',
 	'http://127.0.0.1:5173',
+	'http://localhost:5174',
+	'http://127.0.0.1:5174',
+	'http://localhost:5180',
+	'http://127.0.0.1:5180',
 	'http://localhost:3000',
 	'http://127.0.0.1:3000'
 ];
@@ -47,9 +51,21 @@ function parseExtraOrigins(): string[] {
 		.filter((s) => s.length > 0);
 }
 
-/** Full effective allowlist: localhost defaults + `ARGOS_CORS_ORIGINS` additions. */
+/**
+ * Dev-server origins derived from $VITE_PORT (set by `scripts/dev/dev-start.sh`).
+ * Covers every aoe-worktree dev port (5191-5269 per `port-for-worktree.sh`)
+ * automatically — operators no longer need to edit `ARGOS_CORS_ORIGINS` per
+ * worktree. Returns empty when VITE_PORT is unset (production server).
+ */
+function vitePortOrigins(): string[] {
+	const port = process.env.VITE_PORT;
+	if (!port || !/^\d+$/.test(port)) return [];
+	return [`http://localhost:${port}`, `http://127.0.0.1:${port}`];
+}
+
+/** Full effective allowlist: localhost defaults + VITE_PORT + `ARGOS_CORS_ORIGINS`. */
 export function getAllowedOrigins(): string[] {
-	return [...DEFAULT_LOCALHOST_ORIGINS, ...parseExtraOrigins()];
+	return [...DEFAULT_LOCALHOST_ORIGINS, ...vitePortOrigins(), ...parseExtraOrigins()];
 }
 
 /**
