@@ -5,7 +5,10 @@
 # ============================================================
 
 # ── Dependencies ─────────────────────────────────────────────
-node_modules/
+# No trailing slash — must match the spin-worktree.sh symlink
+# (worktrees symlink node_modules to the main repo's install rather
+# than running `npm install` per worktree).
+node_modules
 .setup-cache/
 
 # ── gnss-sdr output droppings (RINEX, PVT, NMEA dumps; runtime-only) ──
@@ -155,6 +158,8 @@ tests/visual/diffs/
 tests/visual/baselines/
 tests/reports/
 browser-test.png
+# One-off chrome-devtools / playwright scratch captures (no test wiring)
+_p6-screenshots/
 
 # Stryker mutation testing — sandbox + report artifacts (large binaries)
 .stryker-tmp/
