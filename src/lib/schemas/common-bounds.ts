@@ -22,3 +22,17 @@ export const AltMetersBounds = z.number().min(-500).max(50_000);
 
 /** RSSI in dBm: positive dBm is unphysical for received signals; -150 is well below thermal noise floor. */
 export const RssiDbmBounds = z.number().min(-150).max(0);
+
+/**
+ * Frequency in MHz: HackRF 1 MHz – 6 GHz, B205mini 70 MHz – 6 GHz.
+ * Upper limit is the wider envelope; per-device gating lives in spectrum.ts
+ * (common-bounds owns universal physical constants only, not device caps).
+ */
+export const FreqMhzBounds = z.number().min(1).max(6000);
+
+/**
+ * Signal bandwidth in Hz: HackRF max 20 MHz, B205mini max 61.44 MHz.
+ * Upper bound 100 MHz leaves headroom for future wideband SDRs (USRP X310 =
+ * 160 MHz) while rejecting obviously corrupt values.
+ */
+export const BandwidthHzBounds = z.number().positive().max(100_000_000);

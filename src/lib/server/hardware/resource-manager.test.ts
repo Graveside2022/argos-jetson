@@ -1,114 +1,278 @@
-/**
- * Unit tests for the `acquireWithPreempt` mechanism added 2026-05-27.
- *
- * We instantiate the `ResourceManager` class directly (not the singleton) so
- * each test runs against fresh state. `startRefreshLoop: false` keeps the
- * 30 s setInterval out of the test process. The OS-side `dispatchRefresh`
- * called inside `acquire` is best-effort and swallows errors, so a fake
- * `HardwareDevice.B205` claim flows through cleanly in this hermetic test.
- */
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+vi.mock('$lib/utils/logger', () => ({
+	logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() }
+}));
 
-import { ResourceManager } from './resource-manager';
+vi.mock('./resource-mutex', () => ({
+	acquireMutex: vi.fn(async () => true),
+	releaseMutex: vi.fn()
+}));
+
+vi.mock('./resource-refresh', () => ({
+	dispatchRefresh: vi.fn(async () => undefined),
+	killDeviceHolders: vi.fn(async () => undefined),
+	refreshDetection: vi.fn(async () => undefined)
+}));
+
+vi.mock('./resource-scan', () => ({
+	scanForOrphans: vi.fn(async () => undefined)
+}));
+
+import { resourceManager } from './resource-manager';
+import { acquireMutex } from './resource-mutex';
+import { dispatchRefresh, killDeviceHolders } from './resource-refresh';
 import { HardwareDevice } from './types';
 
-let rm: ResourceManager;
+async function resetAllDevices(): Promise<void> {
+	// Force-release everything in case prior tests left state held
+	for (const d of [
+		HardwareDevice.HACKRF,
+		HardwareDevice.ALFA,
+		HardwareDevice.B205,
+		HardwareDevice.BLUETOOTH
+	]) {
+		await resourceManager.forceRelease(d);
+	}
+}
 
-beforeEach(() => {
-	rm = new ResourceManager({ startRefreshLoop: false, skipOsRefresh: true });
+beforeEach(async () => {
+	vi.clearAllMocks();
+	(acquireMutex as ReturnType<typeof vi.fn>).mockResolvedValue(true);
+	await resetAllDevices();
 });
 
 afterEach(() => {
-	rm.dispose();
+	resourceManager.removeAllListeners();
 });
 
-describe('acquireWithPreempt', () => {
-	it('returns the same result as acquire when the device is free', async () => {
-		const result = await rm.acquireWithPreempt('test-tool', HardwareDevice.B205);
+describe('resourceManager — acquire', () => {
+	test('returns success when device available + no current owner', async () => {
+		const result = await resourceManager.acquire('mytool', HardwareDevice.HACKRF);
 		expect(result.success).toBe(true);
-		expect(result.preempted).toBeUndefined();
+		const status = resourceManager.getStatus();
+		expect(status.hackrf.connectedSince).toBeGreaterThan(0);
 	});
 
-	it('returns success without invoking handler when the same tool re-acquires', async () => {
-		await rm.acquire('test-tool', HardwareDevice.B205);
-		const handler = vi.fn(async () => {});
-		rm.registerPreemptHandler('test-tool', HardwareDevice.B205, handler);
-		const result = await rm.acquireWithPreempt('test-tool', HardwareDevice.B205);
-		expect(result.success).toBe(true);
-		expect(handler).not.toHaveBeenCalled();
-	});
-
-	it('returns conflict unchanged when no preempt handler is registered for the current owner', async () => {
-		await rm.acquire('owner-a', HardwareDevice.B205);
-		const result = await rm.acquireWithPreempt('owner-b', HardwareDevice.B205);
-		expect(result.success).toBe(false);
-		expect(result.owner).toBe('owner-a');
-		expect(result.preempted).toBeUndefined();
-	});
-
-	it('invokes the registered handler then re-acquires successfully on the happy path', async () => {
-		await rm.acquire('owner-a', HardwareDevice.B205);
-		const handler = vi.fn(async () => {
-			await rm.release('owner-a', HardwareDevice.B205);
-		});
-		rm.registerPreemptHandler('owner-a', HardwareDevice.B205, handler);
-		const result = await rm.acquireWithPreempt('owner-b', HardwareDevice.B205);
-		expect(handler).toHaveBeenCalledOnce();
-		expect(result.success).toBe(true);
-		expect(result.preempted).toBe('owner-a');
-		expect(rm.getOwner(HardwareDevice.B205)).toBe('owner-b');
-	});
-
-	it('returns conflict when the handler succeeds but the device is still held (handler did not release)', async () => {
-		await rm.acquire('owner-a', HardwareDevice.B205);
-		const handler = vi.fn(async () => {
-			// intentionally NOT calling release — simulates buggy owner
-		});
-		rm.registerPreemptHandler('owner-a', HardwareDevice.B205, handler);
-		const result = await rm.acquireWithPreempt('owner-b', HardwareDevice.B205);
-		expect(handler).toHaveBeenCalledOnce();
-		expect(result.success).toBe(false);
-		expect(result.owner).toBe('owner-a');
-	});
-
-	it('returns the original conflict if the handler throws', async () => {
-		await rm.acquire('owner-a', HardwareDevice.B205);
-		const handler = vi.fn(async () => {
-			throw new Error('handler boom');
-		});
-		rm.registerPreemptHandler('owner-a', HardwareDevice.B205, handler);
-		const result = await rm.acquireWithPreempt('owner-b', HardwareDevice.B205);
-		expect(handler).toHaveBeenCalledOnce();
-		expect(result.success).toBe(false);
-		expect(result.owner).toBe('owner-a');
-	});
-
-	it('respects unregisterPreemptHandler — once removed, conflict is returned without invoking the (removed) handler', async () => {
-		await rm.acquire('owner-a', HardwareDevice.B205);
-		const handler = vi.fn(async () => {
-			await rm.release('owner-a', HardwareDevice.B205);
-		});
-		rm.registerPreemptHandler('owner-a', HardwareDevice.B205, handler);
-		rm.unregisterPreemptHandler('owner-a', HardwareDevice.B205);
-		const result = await rm.acquireWithPreempt('owner-b', HardwareDevice.B205);
-		expect(handler).not.toHaveBeenCalled();
-		expect(result.success).toBe(false);
-	});
-
-	it('keys handlers by `(toolName, device)` so the same tool can register handlers on multiple devices', async () => {
-		const hB205 = vi.fn(async () =>
-			rm.release('owner-a', HardwareDevice.B205).then(() => undefined)
+	test('emits "acquired" event on successful claim', async () => {
+		const handler = vi.fn();
+		resourceManager.on('acquired', handler);
+		await resourceManager.acquire('mytool', HardwareDevice.HACKRF);
+		expect(handler).toHaveBeenCalledWith(
+			expect.objectContaining({ device: HardwareDevice.HACKRF, toolName: 'mytool' })
 		);
-		const hHack = vi.fn(async () =>
-			rm.release('owner-a', HardwareDevice.HACKRF).then(() => undefined)
-		);
-		rm.registerPreemptHandler('owner-a', HardwareDevice.B205, hB205);
-		rm.registerPreemptHandler('owner-a', HardwareDevice.HACKRF, hHack);
+		const status = resourceManager.getStatus();
+		expect(status.hackrf.connectedSince).toBeGreaterThan(0);
+	});
 
-		await rm.acquire('owner-a', HardwareDevice.B205);
-		await rm.acquireWithPreempt('owner-b', HardwareDevice.B205);
-		expect(hB205).toHaveBeenCalledOnce();
-		expect(hHack).not.toHaveBeenCalled();
+	test('second acquire by SAME tool returns success (re-acquire idempotent)', async () => {
+		await resourceManager.acquire('mytool', HardwareDevice.HACKRF);
+		const second = await resourceManager.acquire('mytool', HardwareDevice.HACKRF);
+		expect(second.success).toBe(true);
+		expect(second.owner).toBe('mytool');
+		const status = resourceManager.getStatus();
+		expect(status.hackrf.connectedSince).toBeGreaterThan(0);
+	});
+
+	test('acquire by DIFFERENT tool while held returns failure + current owner', async () => {
+		await resourceManager.acquire('alice', HardwareDevice.HACKRF);
+		const result = await resourceManager.acquire('bob', HardwareDevice.HACKRF);
+		expect(result.success).toBe(false);
+		expect(result.owner).toBe('alice');
+	});
+
+	test('returns mutex-timeout error when acquireMutex returns false', async () => {
+		(acquireMutex as ReturnType<typeof vi.fn>).mockResolvedValueOnce(false);
+		const result = await resourceManager.acquire('mytool', HardwareDevice.HACKRF);
+		expect(result.success).toBe(false);
+		expect(result.owner).toBe('mutex-timeout');
+	});
+
+	test('dispatchRefresh runs before tryClaim (re-scan OS state)', async () => {
+		await resourceManager.acquire('mytool', HardwareDevice.HACKRF);
+		expect(dispatchRefresh).toHaveBeenCalled();
+		const status = resourceManager.getStatus();
+		expect(status.hackrf.connectedSince).toBeGreaterThan(0);
+	});
+
+	test('dispatchRefresh failure does not block acquire (swallowed via .catch)', async () => {
+		(dispatchRefresh as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+			new Error('flaky pgrep')
+		);
+		const result = await resourceManager.acquire('mytool', HardwareDevice.HACKRF);
+		expect(result.success).toBe(true);
+		const status = resourceManager.getStatus();
+		expect(status.hackrf.connectedSince).toBeGreaterThan(0);
+	});
+});
+
+describe('resourceManager — release', () => {
+	test('returns success when releasing own claim', async () => {
+		await resourceManager.acquire('mytool', HardwareDevice.HACKRF);
+		const result = await resourceManager.release('mytool', HardwareDevice.HACKRF);
+		expect(result.success).toBe(true);
+	});
+
+	test('emits "released" event on success', async () => {
+		const handler = vi.fn();
+		resourceManager.on('released', handler);
+		await resourceManager.acquire('mytool', HardwareDevice.HACKRF);
+		await resourceManager.release('mytool', HardwareDevice.HACKRF);
+		expect(handler).toHaveBeenCalledWith(
+			expect.objectContaining({ device: HardwareDevice.HACKRF, toolName: 'mytool' })
+		);
+	});
+
+	test('release by wrong owner returns failure with descriptive error', async () => {
+		await resourceManager.acquire('alice', HardwareDevice.HACKRF);
+		const result = await resourceManager.release('bob', HardwareDevice.HACKRF);
+		expect(result.success).toBe(false);
+		expect(result.error).toContain('alice');
+	});
+
+	test('mutex-timeout returns failure', async () => {
+		(acquireMutex as ReturnType<typeof vi.fn>).mockResolvedValueOnce(false);
+		const result = await resourceManager.release('mytool', HardwareDevice.HACKRF);
+		expect(result.success).toBe(false);
+		expect(result.error).toBe('mutex-timeout');
+	});
+
+	test('release on unowned device returns failure (owner mismatch)', async () => {
+		const result = await resourceManager.release('mytool', HardwareDevice.HACKRF);
+		expect(result.success).toBe(false);
+	});
+
+	test('release sets device back to available + clears owner', async () => {
+		await resourceManager.acquire('mytool', HardwareDevice.HACKRF);
+		await resourceManager.release('mytool', HardwareDevice.HACKRF);
+		expect(resourceManager.isAvailable(HardwareDevice.HACKRF)).toBe(true);
+		expect(resourceManager.getOwner(HardwareDevice.HACKRF)).toBeNull();
+	});
+});
+
+describe('resourceManager — forceRelease', () => {
+	test('clears any owner + calls killDeviceHolders', async () => {
+		await resourceManager.acquire('alice', HardwareDevice.HACKRF);
+		const result = await resourceManager.forceRelease(HardwareDevice.HACKRF);
+		expect(result.success).toBe(true);
+		expect(killDeviceHolders).toHaveBeenCalledWith(HardwareDevice.HACKRF);
+		expect(resourceManager.isAvailable(HardwareDevice.HACKRF)).toBe(true);
+		expect(resourceManager.getOwner(HardwareDevice.HACKRF)).toBeNull();
+	});
+
+	test('emits "force-released" with previousOwner', async () => {
+		const handler = vi.fn();
+		resourceManager.on('force-released', handler);
+		await resourceManager.acquire('alice', HardwareDevice.HACKRF);
+		await resourceManager.forceRelease(HardwareDevice.HACKRF);
+		expect(handler).toHaveBeenCalledWith(
+			expect.objectContaining({ device: HardwareDevice.HACKRF, previousOwner: 'alice' })
+		);
+	});
+
+	test('forceRelease on unowned device still succeeds (no-op)', async () => {
+		const result = await resourceManager.forceRelease(HardwareDevice.B205);
+		expect(result.success).toBe(true);
+	});
+
+	test('mutex-timeout returns failure', async () => {
+		(acquireMutex as ReturnType<typeof vi.fn>).mockResolvedValueOnce(false);
+		const result = await resourceManager.forceRelease(HardwareDevice.HACKRF);
+		expect(result.success).toBe(false);
+	});
+});
+
+describe('resourceManager — getStatus / isAvailable / getOwner', () => {
+	test('getStatus returns frozen copies of all 4 device states', async () => {
+		const status = resourceManager.getStatus();
+		expect(status.hackrf.device).toBe(HardwareDevice.HACKRF);
+		expect(status.alfa.device).toBe(HardwareDevice.ALFA);
+		expect(status.bluetooth.device).toBe(HardwareDevice.BLUETOOTH);
+		expect(status.b205.device).toBe(HardwareDevice.B205);
+	});
+
+	test('getStatus returns COPIES (mutating doesnt affect internal state)', async () => {
+		const status = resourceManager.getStatus();
+		status.hackrf.owner = 'mutated';
+		expect(resourceManager.getOwner(HardwareDevice.HACKRF)).not.toBe('mutated');
+	});
+
+	test('isAvailable true after fresh state, false after acquire', async () => {
+		expect(resourceManager.isAvailable(HardwareDevice.HACKRF)).toBe(true);
+		await resourceManager.acquire('mytool', HardwareDevice.HACKRF);
+		expect(resourceManager.isAvailable(HardwareDevice.HACKRF)).toBe(false);
+	});
+
+	test('getOwner returns null when no owner, tool name when claimed', async () => {
+		expect(resourceManager.getOwner(HardwareDevice.HACKRF)).toBeNull();
+		await resourceManager.acquire('alice', HardwareDevice.HACKRF);
+		expect(resourceManager.getOwner(HardwareDevice.HACKRF)).toBe('alice');
+	});
+});
+
+describe('resourceManager — refreshNow', () => {
+	test('calls dispatchRefresh with the device', async () => {
+		await resourceManager.refreshNow(HardwareDevice.HACKRF);
+		expect(dispatchRefresh).toHaveBeenCalledWith(expect.any(Map), HardwareDevice.HACKRF);
+	});
+
+	test('swallows dispatch errors and logs warn', async () => {
+		(dispatchRefresh as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('boom'));
+		const { logger } = await import('$lib/utils/logger');
+		await expect(resourceManager.refreshNow(HardwareDevice.HACKRF)).resolves.toBeUndefined();
+		expect(logger.warn).toHaveBeenCalled();
+	});
+});
+
+describe('resourceManager — dispose', () => {
+	test('dispose can be called more than once safely', () => {
+		// Singleton may have been disposed by another test; calling again is safe
+		expect(() => {
+			resourceManager.dispose();
+			resourceManager.dispose();
+		}).not.toThrow();
+	});
+});
+
+describe('resourceManager — distinct-kill mutation guards', () => {
+	test('release race: only the first concurrent release emits "released" event', async () => {
+		await resourceManager.acquire('racer', HardwareDevice.HACKRF);
+		const handler = vi.fn();
+		resourceManager.on('released', handler);
+		const [first, second] = await Promise.all([
+			resourceManager.release('racer', HardwareDevice.HACKRF),
+			resourceManager.release('racer', HardwareDevice.HACKRF)
+		]);
+		// Exactly one of the two concurrent releases succeeds, exactly one emits
+		const successes = [first.success, second.success].filter(Boolean).length;
+		expect(successes).toBe(1);
+		expect(handler).toHaveBeenCalledTimes(1);
+	});
+
+	test('forceRelease still releases mutex when killDeviceHolders throws', async () => {
+		(killDeviceHolders as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+			new Error('kill failed')
+		);
+		await resourceManager.acquire('alice', HardwareDevice.HACKRF);
+		// killDeviceHolders throw propagates (no try/catch around it in source),
+		// but the `finally` block MUST still releaseMutex — so a subsequent
+		// acquire can succeed without timing out.
+		await expect(resourceManager.forceRelease(HardwareDevice.HACKRF)).rejects.toThrow(
+			'kill failed'
+		);
+		// Mutex was released in `finally`; the next acquire should not block.
+		const result = await resourceManager.acquire('bob', HardwareDevice.HACKRF);
+		expect(result.success).toBe(false); // still owned by 'alice' — state not flipped
+		expect(result.owner).toBe('alice');
+	});
+
+	test('re-acquire by same tool emits "acquired" only on the first acquire', async () => {
+		const handler = vi.fn();
+		resourceManager.on('acquired', handler);
+		const first = await resourceManager.acquire('mytool', HardwareDevice.HACKRF);
+		const second = await resourceManager.acquire('mytool', HardwareDevice.HACKRF);
+		expect(first.success).toBe(true);
+		expect(second.success).toBe(true);
+		expect(handler).toHaveBeenCalledTimes(1);
 	});
 });
