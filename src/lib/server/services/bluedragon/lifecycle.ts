@@ -57,7 +57,9 @@ async function claimB205(): Promise<BluedragonControlResult | null> {
 	// Use acquireWithPreempt so a competing B205 consumer (gnss-sdr-vnc, or
 	// another bluedragon instance) that registered a preempt handler gets
 	// stopped gracefully instead of returning b205-locked to the operator.
-	const claim = await resourceManager.acquireWithPreempt(BD_OWNER, HardwareDevice.B205);
+	const claim = await resourceManager.acquireWithPreempt(BD_OWNER, HardwareDevice.B205, {
+		forceOnOrphan: true
+	});
 	if (claim.success) {
 		if (claim.preempted) {
 			logger.info('[bluedragon] B205 acquired via preempt', { previous: claim.preempted });
