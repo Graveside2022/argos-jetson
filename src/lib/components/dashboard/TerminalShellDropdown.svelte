@@ -1,4 +1,6 @@
 <script lang="ts">
+	import Add from 'carbon-icons-svelte/lib/Add.svelte';
+
 	import type { ShellInfo } from '$lib/types/terminal';
 
 	interface Props {
@@ -19,17 +21,7 @@
 		title="New terminal"
 		onclick={onToggleShellDropdown}
 	>
-		<svg
-			width="14"
-			height="14"
-			viewBox="0 0 24 24"
-			fill="none"
-			stroke="currentColor"
-			stroke-width="2"
-		>
-			<line x1="12" y1="5" x2="12" y2="19" />
-			<line x1="5" y1="12" x2="19" y2="12" />
-		</svg>
+		<Add size={14} />
 	</button>
 	{#if showShellDropdown}
 		<div class="dropdown-menu">
@@ -56,7 +48,7 @@
 		align-items: center;
 		margin-left: var(--space-1);
 		padding-left: var(--space-2);
-		border-left: 1px solid var(--border);
+		border-left: 1px solid var(--cds-border-subtle);
 	}
 
 	.toolbar-btn {
@@ -69,7 +61,7 @@
 		background: transparent;
 		border: none;
 		border-radius: var(--radius-sm);
-		color: var(--foreground-muted);
+		color: var(--cds-text-secondary);
 		cursor: pointer;
 		transition:
 			background 0.1s ease,
@@ -77,16 +69,16 @@
 	}
 
 	.toolbar-btn:hover {
-		background: var(--surface-elevated);
-		color: var(--foreground);
+		background: var(--cds-background);
+		color: var(--cds-text-primary);
 	}
 
 	.dropdown-menu {
 		position: absolute;
 		top: calc(100% + 4px);
 		left: 0;
-		background: var(--card);
-		border: 1px solid var(--border);
+		background: var(--cds-layer);
+		border: 1px solid var(--cds-border-subtle);
 		border-radius: var(--radius-md);
 		padding: var(--space-2);
 		box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
@@ -104,8 +96,8 @@
 		background: transparent;
 		border: none;
 		border-radius: var(--radius-sm);
-		color: var(--foreground-muted);
-		font-size: var(--text-sm);
+		color: var(--cds-text-secondary);
+		font-size: var(--cds-label-01-font-size);
 		text-align: left;
 		cursor: pointer;
 		transition: background 0.1s ease;
@@ -113,8 +105,8 @@
 	}
 
 	.dropdown-item:hover {
-		background: var(--surface-elevated);
-		color: var(--foreground);
+		background: var(--cds-background);
+		color: var(--cds-text-primary);
 	}
 
 	.dropdown-item__name {
@@ -122,10 +114,10 @@
 	}
 
 	.default-badge {
-		font-size: var(--text-status);
+		font-size: 0.625rem;
 		padding: 1px 4px;
-		background: var(--surface-elevated);
+		background: var(--cds-background);
 		border-radius: var(--radius-sm);
-		color: var(--foreground-secondary);
+		color: var(--cds-text-helper);
 	}
 </style>

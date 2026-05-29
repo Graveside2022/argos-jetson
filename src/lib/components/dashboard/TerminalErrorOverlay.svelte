@@ -1,5 +1,7 @@
 <!-- Terminal connection error overlay shown when WebSocket retries are exhausted -->
 <script lang="ts">
+	import Terminal from 'carbon-icons-svelte/lib/Terminal.svelte';
+
 	interface Props {
 		maxRetries: number;
 	}
@@ -9,19 +11,7 @@
 
 <div class="error-overlay">
 	<div class="error-content">
-		<svg
-			width="32"
-			height="32"
-			viewBox="0 0 24 24"
-			fill="none"
-			stroke="currentColor"
-			stroke-width="1.5"
-			stroke-linecap="round"
-			stroke-linejoin="round"
-		>
-			<polyline points="4 17 10 11 4 5" />
-			<line x1="12" y1="19" x2="20" y2="19" />
-		</svg>
+		<Terminal size={32} />
 		<span class="error-title">Terminal Unavailable</span>
 		<span class="error-detail"
 			>Could not connect to terminal server after {maxRetries} attempts.</span
@@ -37,7 +27,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		background: rgba(17, 17, 17, 0.9);
+		background: var(--cds-overlay);
 		z-index: 10;
 	}
 	.error-content {
@@ -46,30 +36,30 @@
 		align-items: center;
 		gap: 8px;
 		padding: 32px;
-		color: var(--foreground-secondary, #888888);
+		color: var(--cds-text-helper);
 		text-align: center;
 	}
 	.error-content svg {
-		color: var(--foreground-tertiary, #999999);
+		color: var(--cds-text-helper);
 	}
 	.error-title {
-		font-family: var(--font-secondary, Geist, sans-serif);
+		font-family: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
 		font-size: 16px;
 		font-weight: 600;
-		color: var(--foreground);
+		color: var(--cds-text-primary);
 	}
 	.error-detail {
-		font-family: var(--font-secondary, Geist, sans-serif);
+		font-family: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
 		font-size: 14px;
-		color: var(--foreground-secondary, #888888);
+		color: var(--cds-text-helper);
 	}
 	.error-cmd {
-		font-family: var(--font-mono, 'Fira Code', monospace);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 14px;
-		background: var(--card);
+		background: var(--cds-layer);
 		padding: 8px 16px;
 		border-radius: 4px;
-		color: var(--interactive);
-		border: 1px solid var(--border);
+		color: var(--cds-link-primary);
+		border: 1px solid var(--cds-border-subtle);
 	}
 </style>
