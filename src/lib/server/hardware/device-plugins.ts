@@ -56,7 +56,12 @@ const b205Plugin: HardwareDevicePlugin = {
 	displayName: 'USRP B205mini',
 	detect: b205Mgr.detectB205,
 	getBlockingProcesses: b205Mgr.getB205BlockingProcesses,
-	killHolders: b205Mgr.killB205BlockingProcesses,
+	killHolders: async () => {
+		// Force-release order: stop the systemd service first so it cannot
+		// respawn the process we are about to kill, then kill any stragglers.
+		await b205Mgr.stopServices();
+		await b205Mgr.killB205BlockingProcesses();
+	},
 	async scanOrphans(state) {
 		const detected = await b205Mgr.detectB205();
 		const processes = await b205Mgr.getB205BlockingProcesses();
@@ -96,7 +101,12 @@ const hackrfPlugin: HardwareDevicePlugin = {
 	displayName: 'HackRF One',
 	detect: hackrfMgr.detectHackRF,
 	getBlockingProcesses: hackrfMgr.getHackrfBlockingProcesses,
-	killHolders: hackrfMgr.killHackrfBlockingProcesses,
+	killHolders: async () => {
+		// Force-release order: kill blocking processes first, then stop the
+		// docker containers so a lingering container cannot re-grab the device.
+		await hackrfMgr.killHackrfBlockingProcesses();
+		await hackrfMgr.stopContainers();
+	},
 	async scanOrphans(state) {
 		const detected = await hackrfMgr.detectHackRF();
 		const processes = await hackrfMgr.getHackrfBlockingProcesses();
