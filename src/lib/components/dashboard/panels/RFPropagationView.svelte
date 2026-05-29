@@ -205,22 +205,22 @@
 
 	.panel-section {
 		padding: 10px 14px;
-		border-bottom: 1px solid var(--border);
+		border-bottom: 1px solid var(--cds-border-subtle);
 	}
 
 	.compute-section {
 		padding: 10px 14px;
-		border-bottom: 1px solid var(--border);
+		border-bottom: 1px solid var(--cds-border-subtle);
 	}
 
 	.compute-btn {
 		width: 100%;
 		height: 32px;
-		background: var(--primary);
-		color: var(--primary-foreground, #ffffff);
+		background: var(--cds-link-primary);
+		color: var(--cds-text-on-color);
 		border: none;
 		border-radius: 4px;
-		font-family: var(--font-mono, 'Fira Code', monospace);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 11px;
 		font-weight: 600;
 		letter-spacing: 0.8px;
@@ -245,35 +245,35 @@
 
 	.compute-elapsed {
 		margin-top: 6px;
-		font-family: var(--font-mono, 'Fira Code', monospace);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 13px;
 		font-weight: 600;
-		color: var(--primary);
+		color: var(--cds-link-primary);
 		text-align: center;
 		letter-spacing: 1px;
 	}
 
 	.compute-hint {
 		margin-top: 4px;
-		font-family: var(--font-mono, 'Fira Code', monospace);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 9px;
-		color: var(--foreground-secondary, #888888);
+		color: var(--cds-text-helper);
 		text-align: center;
 		letter-spacing: 0.5px;
 	}
 
 	.compute-hint--warn {
-		color: var(--warning, #d4a054);
+		color: var(--cds-support-warning);
 	}
 
 	.compute-error {
 		margin-top: 8px;
 		padding: 6px 10px;
-		background: color-mix(in srgb, var(--error, #ff5c33) 15%, transparent);
-		border: 1px solid color-mix(in srgb, var(--error, #ff5c33) 40%, transparent);
+		background: color-mix(in srgb, var(--cds-support-error) 15%, transparent);
+		border: 1px solid color-mix(in srgb, var(--cds-support-error) 40%, transparent);
 		border-radius: 4px;
-		color: var(--error, #ff5c33);
-		font-family: var(--font-mono, 'Fira Code', monospace);
+		color: var(--cds-support-error);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 10px;
 		line-height: 1.4;
 		word-break: break-word;
