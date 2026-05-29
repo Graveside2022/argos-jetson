@@ -2,7 +2,9 @@
 
 **Diagnostic Model Context Protocol servers for tactical RF intelligence**
 
-Argos ships with 7 specialized diagnostic MCP servers that expose system diagnostics, hardware debugging, and RF/network analysis capabilities to Claude Code. Each server is purpose-aligned, independently deployable, and production-ready.
+> **⚠️ Dev-phase status (2026-05-29):** these diagnostic MCP servers are **designed and coded** (`src/lib/server/mcp/`) but **NOT yet installed/deployed**. Argos is in active development; this server layer is expected to be **redesigned** before the final product. Read this document as design intent, not shipped behavior.
+
+Argos defines 7 specialized diagnostic MCP servers intended to expose system diagnostics, hardware debugging, and RF/network analysis capabilities to Claude Code. Each is purpose-aligned and independently deployable by design.
 
 ## Architecture
 
