@@ -326,8 +326,8 @@
 	}
 
 	.category-description {
-		font-size: var(--text-xs);
-		color: var(--foreground-secondary, #888888);
+		font-size: 0.6875rem;
+		color: var(--cds-text-helper);
 		line-height: 1.4;
 		margin: 0;
 		padding: 0 var(--space-1);

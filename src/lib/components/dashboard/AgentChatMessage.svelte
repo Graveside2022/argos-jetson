@@ -62,8 +62,8 @@
 	}
 
 	.message-timestamp {
-		font-size: var(--text-status);
-		color: var(--muted-foreground);
+		font-size: 0.625rem;
+		color: var(--cds-text-helper);
 	}
 
 	.message-content {
@@ -75,18 +75,18 @@
 	}
 
 	.message.user .message-content {
-		background: var(--card);
-		border: 1px solid var(--border);
+		background: var(--cds-layer);
+		border: 1px solid var(--cds-border-subtle);
 	}
 
 	.message.assistant .message-content {
-		background: var(--surface-hover, #1e1e1e);
+		background: var(--cds-layer-hover);
 	}
 
 	.message.system .message-content {
-		background: var(--muted);
+		background: var(--cds-layer);
 		border-left: 3px solid var(--chart-1);
 		font-size: 12px;
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 	}
 </style>
