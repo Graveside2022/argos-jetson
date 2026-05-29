@@ -297,9 +297,9 @@
 		flex-direction: column;
 		gap: 0.75rem;
 		padding: 1rem;
-		background: var(--card);
-		color: var(--foreground);
-		border: 1px solid var(--border);
+		background: var(--cds-layer);
+		color: var(--cds-text-primary);
+		border: 1px solid var(--cds-border-subtle);
 		max-width: 640px;
 		font-family: 'Fira Code', monospace;
 		font-size: 11px;
@@ -319,13 +319,13 @@
 		font-size: 10px;
 		letter-spacing: 1.2px;
 		text-transform: uppercase;
-		color: var(--muted-foreground, #9ca3af);
+		color: var(--cds-text-helper);
 	}
 	.preset-form input[type='text'],
 	.preset-form textarea {
-		background: var(--background);
-		color: var(--foreground);
-		border: 1px solid var(--border);
+		background: var(--cds-background);
+		color: var(--cds-text-primary);
+		border: 1px solid var(--cds-border-subtle);
 		padding: 0.4rem 0.5rem;
 		font-family: inherit;
 		font-size: 11px;
@@ -337,14 +337,14 @@
 		opacity: 0.6;
 	}
 	fieldset {
-		border: 1px solid var(--border);
+		border: 1px solid var(--cds-border-subtle);
 		padding: 0.5rem;
 	}
 	fieldset legend {
 		font-size: 10px;
 		letter-spacing: 1.2px;
 		text-transform: uppercase;
-		color: var(--muted-foreground, #9ca3af);
+		color: var(--cds-text-helper);
 		padding: 0 0.25rem;
 	}
 	.channel-row {
@@ -359,7 +359,7 @@
 		font-size: 10px;
 		letter-spacing: 1.2px;
 		text-transform: uppercase;
-		color: var(--muted-foreground, #9ca3af);
+		color: var(--cds-text-helper);
 		padding: 0.25rem 0;
 	}
 	.advanced-grid {
@@ -380,9 +380,9 @@
 		font-size: 11px;
 		letter-spacing: 1px;
 		text-transform: uppercase;
-		border: 1px solid var(--border);
-		background: var(--card);
-		color: var(--foreground);
+		border: 1px solid var(--cds-border-subtle);
+		background: var(--cds-layer);
+		color: var(--cds-text-primary);
 		cursor: pointer;
 	}
 	.btn:disabled {
@@ -390,13 +390,13 @@
 		cursor: not-allowed;
 	}
 	.btn-save {
-		border-color: #8bbfa0;
-		color: #8bbfa0;
+		border-color: var(--cds-support-success);
+		color: var(--cds-support-success);
 	}
 	.btn-ghost {
 		background: transparent;
-		border: 1px dashed var(--border);
-		color: var(--muted-foreground, #9ca3af);
+		border: 1px dashed var(--cds-border-subtle);
+		color: var(--cds-text-helper);
 		padding: 0.25rem 0.75rem;
 		font-family: inherit;
 		font-size: 11px;

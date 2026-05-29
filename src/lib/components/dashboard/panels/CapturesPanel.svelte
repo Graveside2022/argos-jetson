@@ -187,7 +187,7 @@
 		flex-direction: column;
 		height: 100%;
 		overflow: hidden;
-		font-family: var(--font-mono, 'Fira Code', monospace);
+		font-family: var(--cds-code-01-font-family);
 	}
 
 	.captures-toolbar {
@@ -197,13 +197,13 @@
 		padding: 6px 12px;
 		height: 36px;
 		min-height: 36px;
-		border-bottom: 1px solid var(--border);
+		border-bottom: 1px solid var(--cds-border-subtle);
 	}
 
 	.captures-title {
 		font-size: 14px;
 		font-weight: 600;
-		color: var(--foreground-secondary);
+		color: var(--cds-text-helper);
 		letter-spacing: 1.5px;
 	}
 
@@ -213,7 +213,7 @@
 
 	.captures-count {
 		font-size: 14px;
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 	}
 
 	.captures-empty {
@@ -226,16 +226,16 @@
 	}
 
 	.empty-title {
-		font-family: var(--font-sans, 'Geist', system-ui, sans-serif);
+		font-family: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
 		font-size: 14px;
-		color: var(--foreground-secondary);
+		color: var(--cds-text-helper);
 		margin: 0;
 	}
 
 	.empty-sub {
-		font-family: var(--font-sans, 'Geist', system-ui, sans-serif);
+		font-family: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
 		font-size: 12px;
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 		margin: 0;
 	}
 
@@ -250,11 +250,11 @@
 		display: flex;
 		align-items: center;
 		padding: 6px 12px;
-		background: var(--surface-header);
-		border-bottom: 1px solid var(--border);
+		background: var(--cds-background);
+		border-bottom: 1px solid var(--cds-border-subtle);
 		font-size: 13px;
 		font-weight: 600;
-		color: var(--foreground-secondary);
+		color: var(--cds-text-helper);
 	}
 
 	.table-body {
@@ -268,12 +268,12 @@
 		align-items: center;
 		padding: 5px 12px;
 		font-size: 16px;
-		color: var(--foreground);
-		border-bottom: 1px solid var(--border);
+		color: var(--cds-text-primary);
+		border-bottom: 1px solid var(--cds-border-subtle);
 	}
 
 	.table-row:hover {
-		background: var(--surface-hover);
+		background: var(--cds-layer-hover);
 	}
 
 	.col-freq {
@@ -294,90 +294,90 @@
 	.col-time {
 		width: 100px;
 		flex-shrink: 0;
-		color: var(--foreground-secondary);
+		color: var(--cds-text-helper);
 	}
 
 	.col-source {
 		width: 80px;
 		flex-shrink: 0;
-		color: var(--foreground-secondary);
+		color: var(--cds-text-helper);
 	}
 
 	.power-strong {
-		color: var(--status-healthy, #8bbfa0);
+		color: var(--cds-support-success);
 	}
 
 	.power-moderate {
-		color: var(--primary);
+		color: var(--cds-link-primary);
 	}
 
 	.power-weak {
-		color: var(--status-warning, #d4a054);
+		color: var(--cds-support-warning);
 	}
 
 	.power-none {
-		color: var(--foreground-tertiary);
+		color: var(--cds-text-helper);
 	}
 
 	.gsm-chip {
 		padding: 2px 8px;
 		border-radius: 3px;
-		font-family: var(--font-mono, 'Fira Code', monospace);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 12px;
 		font-weight: 600;
 		letter-spacing: 0.8px;
-		background: var(--surface-hover);
-		color: var(--muted-foreground);
+		background: var(--cds-layer-hover);
+		color: var(--cds-text-helper);
 	}
 
 	.gsm-chip.chip-running {
-		background: var(--status-healthy, #8bbfa0);
-		color: var(--background);
+		background: var(--cds-support-success);
+		color: var(--cds-background);
 	}
 
 	.gsm-chip.chip-transition {
-		background: var(--status-warning, #d4a054);
-		color: var(--background);
+		background: var(--cds-support-warning);
+		color: var(--cds-background);
 	}
 
 	.europe-tag {
-		font-family: var(--font-mono, 'Fira Code', monospace);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 12px;
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 		letter-spacing: 0.5px;
 		opacity: 0.7;
 	}
 
 	.scan-btn {
 		padding: 4px 14px;
-		font-family: var(--font-mono, 'Fira Code', monospace);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 13px;
 		font-weight: 600;
 		letter-spacing: 0.8px;
-		border: 1px solid var(--border);
+		border: 1px solid var(--cds-border-subtle);
 		border-radius: 3px;
 		cursor: pointer;
 		flex-shrink: 0;
 	}
 
 	.scan-start {
-		background: color-mix(in srgb, var(--status-healthy, #8bbfa0) 20%, var(--card));
-		color: var(--status-healthy, #8bbfa0);
-		border-color: color-mix(in srgb, var(--status-healthy, #8bbfa0) 40%, var(--border));
+		background: color-mix(in srgb, var(--cds-support-success) 20%, var(--cds-layer));
+		color: var(--cds-support-success);
+		border-color: color-mix(in srgb, var(--cds-support-success) 40%, var(--cds-border-subtle));
 	}
 
 	.scan-start:hover:not(:disabled) {
-		background: color-mix(in srgb, var(--status-healthy, #8bbfa0) 30%, var(--card));
+		background: color-mix(in srgb, var(--cds-support-success) 30%, var(--cds-layer));
 	}
 
 	.scan-stop {
-		background: color-mix(in srgb, var(--status-error-panel, #c45b4a) 20%, var(--card));
-		color: var(--status-error-panel, #c45b4a);
-		border-color: color-mix(in srgb, var(--status-error-panel, #c45b4a) 40%, var(--border));
+		background: color-mix(in srgb, var(--cds-support-error) 20%, var(--cds-layer));
+		color: var(--cds-support-error);
+		border-color: color-mix(in srgb, var(--cds-support-error) 40%, var(--cds-border-subtle));
 	}
 
 	.scan-stop:hover:not(:disabled) {
-		background: color-mix(in srgb, var(--status-error-panel, #c45b4a) 30%, var(--card));
+		background: color-mix(in srgb, var(--cds-support-error) 30%, var(--cds-layer));
 	}
 
 	.scan-btn:disabled {
