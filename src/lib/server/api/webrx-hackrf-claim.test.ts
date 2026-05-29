@@ -8,9 +8,11 @@ const mockCanonicalize = vi.fn((owner: string) => owner);
 
 vi.mock('$lib/server/hardware/resource-manager', () => ({
 	resourceManager: {
-		acquire: mockAcquire,
+		acquireWithPreempt: mockAcquire,
 		release: mockRelease,
-		forceRelease: mockForceRelease
+		forceRelease: mockForceRelease,
+		registerPreemptHandler: vi.fn(),
+		unregisterPreemptHandler: vi.fn()
 	}
 }));
 
@@ -41,10 +43,10 @@ describe('acquireHackRfForWebRx — success path', () => {
 		expect(result.message).toBeUndefined();
 	});
 
-	it('calls resourceManager.acquire with toolName and HACKRF device', async () => {
+	it('calls resourceManager.acquireWithPreempt with toolName, HACKRF device, forceOnOrphan', async () => {
 		mockAcquire.mockResolvedValueOnce({ success: true });
 		await acquireHackRfForWebRx('openwebrx');
-		expect(mockAcquire).toHaveBeenCalledWith('openwebrx', 'hackrf');
+		expect(mockAcquire).toHaveBeenCalledWith('openwebrx', 'hackrf', { forceOnOrphan: true });
 	});
 
 	it('does NOT call forceRelease on first-try success', async () => {
