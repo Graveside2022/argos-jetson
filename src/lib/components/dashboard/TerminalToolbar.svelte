@@ -1,5 +1,13 @@
 <!-- Terminal toolbar: right-side action buttons for TerminalPanel -->
 <script lang="ts">
+	import Close from 'carbon-icons-svelte/lib/Close.svelte';
+	import DocumentView from 'carbon-icons-svelte/lib/DocumentView.svelte';
+	import Maximize from 'carbon-icons-svelte/lib/Maximize.svelte';
+	import Minimize from 'carbon-icons-svelte/lib/Minimize.svelte';
+	import OverflowMenuVertical from 'carbon-icons-svelte/lib/OverflowMenuVertical.svelte';
+	import Screen from 'carbon-icons-svelte/lib/Screen.svelte';
+	import SplitScreen from 'carbon-icons-svelte/lib/SplitScreen.svelte';
+
 	import {
 		closeTerminalPanel,
 		terminalPanelState,
@@ -28,16 +36,7 @@
 			title="Unsplit terminal"
 			onclick={() => unsplit()}
 		>
-			<svg
-				width="14"
-				height="14"
-				viewBox="0 0 24 24"
-				fill="none"
-				stroke="currentColor"
-				stroke-width="2"
-			>
-				<rect x="3" y="3" width="18" height="18" rx="2" />
-			</svg>
+			<Screen size={14} />
 		</button>
 	{:else}
 		<button
@@ -46,35 +45,14 @@
 			title="Split terminal"
 			onclick={onSplit}
 		>
-			<svg
-				width="14"
-				height="14"
-				viewBox="0 0 24 24"
-				fill="none"
-				stroke="currentColor"
-				stroke-width="2"
-			>
-				<rect x="3" y="3" width="18" height="18" rx="2" />
-				<line x1="12" y1="3" x2="12" y2="21" />
-			</svg>
+			<SplitScreen size={14} />
 		</button>
 	{/if}
 
 	<!-- More menu -->
 	<div class="more-menu-wrapper">
 		<button class="toolbar-btn" aria-label="More actions" onclick={onToggleMoreMenu}>
-			<svg
-				width="14"
-				height="14"
-				viewBox="0 0 24 24"
-				fill="none"
-				stroke="currentColor"
-				stroke-width="2"
-			>
-				<circle cx="12" cy="12" r="1" />
-				<circle cx="12" cy="5" r="1" />
-				<circle cx="12" cy="19" r="1" />
-			</svg>
+			<OverflowMenuVertical size={14} />
 		</button>
 
 		{#if showMoreMenu}
@@ -109,33 +87,9 @@
 		onclick={toggleMaximize}
 	>
 		{#if terminalPanelState.current.isMaximized}
-			<svg
-				width="14"
-				height="14"
-				viewBox="0 0 24 24"
-				fill="none"
-				stroke="currentColor"
-				stroke-width="2"
-			>
-				<polyline points="4 14 10 14 10 20" />
-				<polyline points="20 10 14 10 14 4" />
-				<line x1="14" y1="10" x2="21" y2="3" />
-				<line x1="3" y1="21" x2="10" y2="14" />
-			</svg>
+			<Minimize size={14} />
 		{:else}
-			<svg
-				width="14"
-				height="14"
-				viewBox="0 0 24 24"
-				fill="none"
-				stroke="currentColor"
-				stroke-width="2"
-			>
-				<polyline points="15 3 21 3 21 9" />
-				<polyline points="9 21 3 21 3 15" />
-				<line x1="21" y1="3" x2="14" y2="10" />
-				<line x1="3" y1="21" x2="10" y2="14" />
-			</svg>
+			<Maximize size={14} />
 		{/if}
 	</button>
 
@@ -146,19 +100,7 @@
 		title="View system logs"
 		onclick={() => onCreateSession('scripts/tmux/tmux-logs.sh')}
 	>
-		<svg
-			width="14"
-			height="14"
-			viewBox="0 0 24 24"
-			fill="none"
-			stroke="currentColor"
-			stroke-width="2"
-		>
-			<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-			<line x1="12" y1="8" x2="20" y2="8" />
-			<line x1="8" y1="12" x2="20" y2="12" />
-			<line x1="16" y1="16" x2="20" y2="16" />
-		</svg>
+		<DocumentView size={14} />
 	</button>
 
 	<!-- Close panel button -->
@@ -168,17 +110,7 @@
 		title="Close panel"
 		onclick={closeTerminalPanel}
 	>
-		<svg
-			width="14"
-			height="14"
-			viewBox="0 0 24 24"
-			fill="none"
-			stroke="currentColor"
-			stroke-width="2"
-		>
-			<line x1="18" y1="6" x2="6" y2="18" />
-			<line x1="6" y1="6" x2="18" y2="18" />
-		</svg>
+		<Close size={14} />
 	</button>
 </div>
 
@@ -200,7 +132,7 @@
 		background: transparent;
 		border: none;
 		border-radius: var(--radius-sm);
-		color: var(--foreground-muted);
+		color: var(--cds-text-secondary);
 		cursor: pointer;
 		transition:
 			background 0.1s ease,
@@ -208,8 +140,8 @@
 	}
 
 	.toolbar-btn:hover {
-		background: var(--surface-elevated);
-		color: var(--foreground);
+		background: var(--cds-background);
+		color: var(--cds-text-primary);
 	}
 
 	.more-menu-wrapper {
@@ -221,8 +153,8 @@
 	.dropdown-menu {
 		position: absolute;
 		top: calc(100% + 4px);
-		background: var(--card);
-		border: 1px solid var(--border);
+		background: var(--cds-layer);
+		border: 1px solid var(--cds-border-subtle);
 		border-radius: var(--radius-md);
 		padding: var(--space-2);
 		box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
@@ -244,8 +176,8 @@
 		background: transparent;
 		border: none;
 		border-radius: var(--radius-sm);
-		color: var(--foreground-muted);
-		font-size: var(--text-sm);
+		color: var(--cds-text-secondary);
+		font-size: var(--cds-label-01-font-size);
 		text-align: left;
 		cursor: pointer;
 		transition: background 0.1s ease;
@@ -253,18 +185,18 @@
 	}
 
 	.dropdown-item:hover {
-		background: var(--surface-elevated);
-		color: var(--foreground);
+		background: var(--cds-background);
+		color: var(--cds-text-primary);
 	}
 
 	.dropdown-item.danger:hover {
-		background: color-mix(in srgb, var(--destructive) 10%, transparent);
-		color: var(--destructive);
+		background: color-mix(in srgb, var(--cds-support-error) 10%, transparent);
+		color: var(--cds-support-error);
 	}
 
 	.dropdown-divider {
 		height: 1px;
-		background: var(--border);
+		background: var(--cds-border-subtle);
 		margin: var(--space-1) 0;
 	}
 </style>
