@@ -18,7 +18,7 @@ vi.mock('./claim', () => ({
 }));
 
 vi.mock('$lib/server/hardware/resource-manager', () => ({
-	resourceManager: { refreshNow: vi.fn() }
+	resourceManager: { refreshNow: vi.fn(), registerPreemptHandler: vi.fn() }
 }));
 
 vi.mock('$lib/server/api/webrx-control-lock', () => ({

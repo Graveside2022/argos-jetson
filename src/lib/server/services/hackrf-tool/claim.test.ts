@@ -13,7 +13,11 @@ vi.mock('$lib/server/services/gsm-evil/gsm-evil-control-helpers', () => ({
 	acquireHackRfResource: vi.fn()
 }));
 vi.mock('$lib/server/hardware/resource-manager', () => ({
-	resourceManager: { acquire: vi.fn(), release: vi.fn() }
+	resourceManager: {
+		acquireWithPreempt: vi.fn(),
+		release: vi.fn(),
+		unregisterPreemptHandler: vi.fn()
+	}
 }));
 
 import { acquireHackRfForWebRx, releaseHackRfForWebRx } from '$lib/server/api/webrx-hackrf-claim';
@@ -48,14 +52,17 @@ describe('acquireHackRf', () => {
 		expect(res).toEqual({ success: false, owner: 'novasdr', message: 'busy by novasdr' });
 	});
 
-	it("policy 'direct' routes to resourceManager.acquire (success)", async () => {
-		vi.mocked(resourceManager.acquire).mockResolvedValue({ success: true });
+	it("policy 'direct' routes to resourceManager.acquireWithPreempt (success)", async () => {
+		vi.mocked(resourceManager.acquireWithPreempt).mockResolvedValue({ success: true });
 		const res = await acquireHackRf('trunk-recorder', 'direct');
 		expect(res.success).toBe(true);
 	});
 
 	it("policy 'direct' produces mapped error on failure", async () => {
-		vi.mocked(resourceManager.acquire).mockResolvedValue({ success: false, owner: 'gsm-evil' });
+		vi.mocked(resourceManager.acquireWithPreempt).mockResolvedValue({
+			success: false,
+			owner: 'gsm-evil'
+		});
 		const res = await acquireHackRf('trunk-recorder', 'direct');
 		expect(res.success).toBe(false);
 		expect(res.owner).toBe('gsm-evil');
