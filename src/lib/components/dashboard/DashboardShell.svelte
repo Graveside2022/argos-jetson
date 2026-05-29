@@ -59,9 +59,8 @@
 		display: flex;
 		flex-direction: row;
 		overflow: hidden;
-		background: var(--background);
-		color: var(--foreground);
-		font-family: var(--font-sans);
+		background: var(--cds-background);
+		color: var(--cds-text-primary);
 	}
 
 	.shell-right {

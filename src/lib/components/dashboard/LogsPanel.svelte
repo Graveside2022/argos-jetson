@@ -21,7 +21,7 @@
 		display: flex;
 		flex-direction: column;
 		height: 100%;
-		background: var(--card);
+		background: var(--cds-layer);
 	}
 
 	.logs-header {
@@ -31,14 +31,14 @@
 		height: 32px;
 		min-height: 32px;
 		padding: 0 var(--space-3);
-		background: var(--card);
-		border-bottom: 1px solid var(--border);
+		background: var(--cds-layer);
+		border-bottom: 1px solid var(--cds-border-subtle);
 	}
 
 	.logs-title {
-		font-size: var(--text-sm);
+		font-size: var(--cds-label-01-font-size);
 		font-weight: 500;
-		color: var(--foreground-muted);
+		color: var(--cds-text-helper);
 		letter-spacing: 0.05em;
 	}
 
@@ -46,8 +46,8 @@
 		width: 6px;
 		height: 6px;
 		border-radius: 50%;
-		background: var(--success);
-		box-shadow: 0 0 8px var(--success);
+		background: var(--cds-support-success);
+		box-shadow: 0 0 8px var(--cds-support-success);
 		animation: pulse 2s infinite ease-in-out;
 	}
 
