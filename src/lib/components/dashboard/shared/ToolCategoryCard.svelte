@@ -36,9 +36,9 @@
 <style>
 	.category-card {
 		padding: 8px 12px;
-		background: var(--surface-elevated, #151515);
+		background: var(--cds-background);
 		border: none;
-		border-bottom: 1px solid var(--border);
+		border-bottom: 1px solid var(--cds-border-subtle);
 		border-radius: 0;
 		display: flex;
 		flex-direction: column;
@@ -50,8 +50,8 @@
 	}
 
 	.category-card:hover {
-		border-color: var(--interactive);
-		background: var(--surface-hover, #1e1e1e);
+		border-color: var(--cds-link-primary);
+		background: var(--cds-layer-hover);
 	}
 
 	.category-header {
@@ -64,21 +64,21 @@
 		width: 20px;
 		height: 20px;
 		flex-shrink: 0;
-		color: var(--foreground-secondary, #888888);
+		color: var(--cds-text-helper);
 	}
 
 	.category-name {
 		flex: 1;
-		font-family: var(--font-mono, 'Fira Code', monospace);
-		font-size: var(--text-xs);
+		font-family: var(--cds-code-01-font-family);
+		font-size: 0.6875rem;
 		font-weight: 600;
 		letter-spacing: 1.2px;
-		color: var(--foreground);
+		color: var(--cds-text-primary);
 	}
 
 	.chevron-right {
 		flex-shrink: 0;
-		color: var(--foreground-tertiary, #999999);
+		color: var(--cds-text-helper);
 	}
 
 	.chevron-right :global(svg) {
@@ -86,19 +86,19 @@
 	}
 
 	.category-description {
-		font-size: var(--text-xs);
-		color: var(--foreground-secondary, #888888);
+		font-size: 0.6875rem;
+		color: var(--cds-text-helper);
 		line-height: 1.4;
 		margin: 0;
 	}
 
 	.category-meta {
-		font-size: var(--text-xs);
-		color: var(--foreground-tertiary, #999999);
+		font-size: 0.6875rem;
+		color: var(--cds-text-helper);
 	}
 
 	.tool-count {
-		font-family: var(--font-mono);
+		font-family: var(--cds-code-01-font-family);
 		font-variant-numeric: tabular-nums;
 	}
 </style>
