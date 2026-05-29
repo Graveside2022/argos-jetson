@@ -127,7 +127,7 @@
 <style>
 	.rf-advanced {
 		padding: 10px 14px;
-		border-bottom: 1px solid var(--border);
+		border-bottom: 1px solid var(--cds-border-subtle);
 	}
 
 	.section-toggle {
@@ -142,17 +142,17 @@
 	}
 
 	.section-label {
-		font-family: var(--font-mono, 'Fira Code', monospace);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 9px;
 		font-weight: 600;
 		letter-spacing: 1.2px;
 		text-transform: uppercase;
-		color: var(--foreground-secondary, #888888);
+		color: var(--cds-text-helper);
 	}
 
 	.chevron {
 		font-size: 10px;
-		color: var(--foreground-secondary, #888888);
+		color: var(--cds-text-helper);
 		transition: transform 0.15s;
 		transform: rotate(-90deg);
 	}

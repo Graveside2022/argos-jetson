@@ -101,19 +101,19 @@
 <style>
 	.rf-controls {
 		padding: 10px 14px;
-		border-bottom: 1px solid var(--border);
+		border-bottom: 1px solid var(--cds-border-subtle);
 		display: flex;
 		flex-direction: column;
 		gap: 8px;
 	}
 
 	.section-label {
-		font-family: var(--font-mono, 'Fira Code', monospace);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 9px;
 		font-weight: 600;
 		letter-spacing: 1.2px;
 		text-transform: uppercase;
-		color: var(--foreground-secondary, #888888);
+		color: var(--cds-text-helper);
 		margin: 0;
 	}
 
