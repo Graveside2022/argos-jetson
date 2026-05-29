@@ -1,7 +1,8 @@
 <script lang="ts">
 	import './gp-config-view.css';
 
-	import { Save, Unplug } from '@lucide/svelte';
+	import Save from 'carbon-icons-svelte/lib/Save.svelte';
+	import Unlink from 'carbon-icons-svelte/lib/Unlink.svelte';
 	import { untrack } from 'svelte';
 
 	import Separator from '$lib/components/chassis/forms/Separator.svelte';
@@ -107,11 +108,8 @@
 >
 	{#snippet actions()}
 		{#if gpStatus.current.status === 'connected'}
-			<button
-				class="inline-flex items-center gap-1.5 rounded-md border border-red-500/50 bg-red-600/20 px-3 py-1.5 text-sm font-medium text-red-400 transition-colors hover:bg-red-600/30"
-				onclick={handleDisconnect}
-			>
-				<Unplug size={12} />
+			<button class="disconnect-btn" onclick={handleDisconnect}>
+				<Unlink size={12} />
 				Disconnect
 			</button>
 		{/if}
