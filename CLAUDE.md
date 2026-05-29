@@ -25,11 +25,9 @@ repowise init --index-only -y -x "docs/carbon-design-system/" -x "docs/carbon-we
 
 ## Argos-specific @-imports
 
-@RUFLO.md
 @SKILL-ROUTING.md
 @AGENTS.md
 
 ## Refs
 
 User-global: `~/.claude/CLAUDE.md` + 8 workflow files.
-Project memory: cross-session via `mcp__ruflo__memory_*` namespace `argos-decisions` / `argos-<task>-scope`.

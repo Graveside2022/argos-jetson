@@ -496,8 +496,6 @@ npm run test:unit  # Verify tests pass
 **### 8.1 CLAUDE.md Generators**
 
 1. \***\*Claude Code /init\*\***: Built-in, analyzes project structure
-2. \***\*AI-Powered Generator\*\***: [CLAUDE.md Generator for Sonnet 4+](https://github.com/ruvnet/claude-flow)
-3. \***\*Templates\*\***: [CLAUDE-MD Templates Collection](https://github.com/ruvnet/claude-flow/wiki/CLAUDE-MD-Templates)
 
 **### 8.2 Example Repositories**
 
