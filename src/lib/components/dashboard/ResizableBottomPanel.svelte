@@ -129,8 +129,8 @@
 	.resizable-panel {
 		display: flex;
 		flex-direction: column;
-		background: var(--card, #1a1a1a);
-		border-top: 1px solid var(--border, #2e2e2e);
+		background: var(--cds-layer);
+		border-top: 1px solid var(--cds-border-subtle);
 		flex-shrink: 0;
 		overflow: hidden;
 		transition: height 0.15s ease;
@@ -144,32 +144,32 @@
 		height: 12px;
 		min-height: 12px;
 		flex-shrink: 0;
-		background: var(--surface-elevated);
+		background: var(--cds-layer);
 		cursor: ns-resize;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		border-bottom: 1px solid var(--border, #2e2e2e);
+		border-bottom: 1px solid var(--cds-border-subtle);
 		transition: background 0.15s ease;
 	}
 
 	.drag-handle:hover,
 	.drag-handle:focus {
-		background: var(--surface-hover);
+		background: var(--cds-layer-hover);
 		outline: none;
 	}
 
 	.drag-indicator {
 		width: 40px;
 		height: 4px;
-		background: var(--text-inactive);
+		background: var(--cds-text-disabled);
 		border-radius: 3px;
 		transition: background 0.15s ease;
 	}
 
 	.drag-handle:hover .drag-indicator,
 	.drag-handle:focus .drag-indicator {
-		background: var(--foreground-secondary);
+		background: var(--cds-text-secondary);
 	}
 
 	.panel-body {

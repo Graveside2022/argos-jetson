@@ -56,7 +56,7 @@
 	{#if action}
 		<div class="panel-status__action">{@render action()}</div>
 	{:else if showRetryButton}
-		<Button kind="tertiary" size="small" on:click={onRetry}>{retryLabel}</Button>
+		<Button kind="tertiary" size="small" on:click={() => onRetry?.()}>{retryLabel}</Button>
 	{/if}
 </div>
 
