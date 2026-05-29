@@ -99,8 +99,8 @@
 		top: calc(100% + 6px);
 		right: 0;
 		min-width: 260px;
-		background: var(--card);
-		border: 1px solid var(--border);
+		background: var(--cds-layer);
+		border: 1px solid var(--cds-border-subtle);
 		border-radius: 6px;
 		padding: 12px;
 		box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
@@ -118,17 +118,17 @@
 	}
 
 	.popup-title {
-		font-family: var(--font-mono);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 10px;
 		font-weight: 600;
 		letter-spacing: 1.2px;
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 	}
 
 	.popup-source {
-		font-family: var(--font-mono);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 10px;
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 		margin-bottom: 4px;
 	}
 
@@ -140,22 +140,22 @@
 	}
 
 	.metric-label {
-		font-family: var(--font-mono);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 10px;
-		color: var(--primary);
+		color: var(--cds-link-primary);
 		letter-spacing: 0.5px;
 	}
 
 	.metric-value {
-		font-family: var(--font-mono);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 14px;
 		font-weight: 600;
-		color: var(--foreground);
+		color: var(--cds-text-primary);
 	}
 
 	.divider {
 		height: 1px;
-		background: var(--border);
+		background: var(--cds-border-subtle);
 		margin: 2px 0;
 	}
 
@@ -166,24 +166,24 @@
 	}
 
 	.key {
-		font-family: var(--font-mono);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 11px;
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 	}
 
 	.val {
-		font-family: var(--font-mono);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 11px;
-		color: var(--foreground);
+		color: var(--cds-text-primary);
 		text-align: right;
 	}
 
 	.val.accent {
-		color: var(--success);
+		color: var(--cds-support-success);
 	}
 
 	.val.warn {
-		color: var(--destructive);
+		color: var(--cds-support-error);
 	}
 
 	.footer {
@@ -194,17 +194,17 @@
 	}
 
 	.footer-meta {
-		font-family: var(--font-mono);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 10px;
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 	}
 
 	.action-btn {
 		background: none;
-		border: 1px solid var(--border);
+		border: 1px solid var(--cds-border-subtle);
 		border-radius: 4px;
-		color: var(--foreground);
-		font-family: var(--font-mono);
+		color: var(--cds-text-primary);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 10px;
 		padding: 2px 8px;
 		cursor: pointer;
@@ -212,6 +212,6 @@
 	}
 
 	.action-btn:hover {
-		background: var(--surface-hover);
+		background: var(--cds-layer-hover);
 	}
 </style>
