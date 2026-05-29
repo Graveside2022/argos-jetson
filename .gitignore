@@ -387,3 +387,8 @@ reports/mutation/
 # `npx ruflo init`. See RUFLO.md for the integration.
 .claude-flow/
 .swarm/
+
+# Repowise index artifacts — machine-local, index-only mode (no LLM).
+# Regenerated via `repowise init --index-only`. See CLAUDE.md "Repowise index".
+.repowise/
+.repowise-workspace.yaml
