@@ -15,7 +15,7 @@
 
 <style>
 	.separator {
-		background: var(--border);
+		background: var(--cds-border-subtle);
 		flex-shrink: 0;
 	}
 
