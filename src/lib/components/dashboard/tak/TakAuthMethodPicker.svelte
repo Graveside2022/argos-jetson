@@ -31,10 +31,10 @@
 		align-items: center;
 		gap: 0.625rem;
 		padding: 0.5rem 0.75rem;
-		border: 1px solid hsl(var(--border) / 0.4);
+		border: 1px solid hsl(var(--cds-border-subtle) / 0.4);
 		border-radius: 0.375rem;
-		background: hsl(var(--muted) / 0.1);
-		color: hsl(var(--muted-foreground));
+		background: hsl(var(--cds-layer) / 0.1);
+		color: hsl(var(--cds-text-helper));
 		font-size: 0.75rem;
 		font-weight: 500;
 		cursor: pointer;
@@ -45,15 +45,15 @@
 	}
 
 	:global(.auth-method-group .bx--radio-button-wrapper.auth-chip:hover) {
-		background: hsl(var(--muted) / 0.3);
+		background: hsl(var(--cds-layer) / 0.3);
 	}
 
 	:global(
 		.auth-method-group .bx--radio-button-wrapper.auth-chip:has(input[type='radio']:checked)
 	) {
-		border-color: hsl(var(--primary) / 0.6);
-		background: hsl(var(--primary) / 0.1);
-		color: hsl(var(--foreground));
+		border-color: hsl(var(--cds-link-primary) / 0.6);
+		background: hsl(var(--cds-link-primary) / 0.1);
+		color: hsl(var(--cds-text-primary));
 	}
 
 	/* Vertical stack spacing — Carbon's default vertical group spacing */
