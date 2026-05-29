@@ -203,7 +203,7 @@
 		position: relative;
 		width: 100%;
 		height: 100%;
-		background: var(--background);
+		background: var(--cds-background);
 	}
 
 	.status-panel {
@@ -215,8 +215,8 @@
 	}
 
 	.status-card {
-		background: var(--card);
-		border: 1px solid var(--border);
+		background: var(--cds-layer);
+		border: 1px solid var(--cds-border-subtle);
 		padding: 28px 36px;
 		max-width: 460px;
 		font-family: 'Fira Code', monospace;
@@ -224,25 +224,25 @@
 	}
 
 	.status-card.error {
-		border-color: var(--destructive);
+		border-color: var(--cds-support-error);
 	}
 
 	.status-title {
 		font-size: 11px;
 		font-weight: 600;
 		letter-spacing: 1.2px;
-		color: var(--primary);
+		color: var(--cds-link-primary);
 		margin: 0 0 8px;
 		text-transform: uppercase;
 	}
 
 	.status-card.error .status-title {
-		color: var(--destructive);
+		color: var(--cds-support-error);
 	}
 
 	.status-desc {
 		font-size: 10px;
-		color: var(--text-secondary);
+		color: var(--cds-text-secondary);
 		line-height: 1.6;
 		margin: 0;
 	}
@@ -251,8 +251,8 @@
 		width: 28px;
 		height: 28px;
 		margin: 0 auto 16px;
-		border: 2px solid var(--border);
-		border-top-color: var(--primary);
+		border: 2px solid var(--cds-border-subtle);
+		border-top-color: var(--cds-link-primary);
 		border-radius: 50%;
 		animation: spin 0.9s linear infinite;
 	}
@@ -265,8 +265,8 @@
 
 	.action-btn {
 		background: transparent;
-		border: 1px solid var(--border);
-		color: var(--text-secondary);
+		border: 1px solid var(--cds-border-subtle);
+		color: var(--cds-text-secondary);
 		padding: 4px 12px;
 		font-family: 'Fira Code', monospace;
 		font-size: 10px;
@@ -276,15 +276,15 @@
 	}
 
 	.action-btn:hover {
-		color: var(--foreground);
-		border-color: var(--foreground);
+		color: var(--cds-text-primary);
+		border-color: var(--cds-text-primary);
 	}
 
 	.retry-btn {
 		margin-top: 16px;
 		padding: 6px 18px;
-		background: var(--primary);
-		color: var(--background);
+		background: var(--cds-link-primary);
+		color: var(--cds-background);
 		border: none;
 		font-family: 'Fira Code', monospace;
 		font-size: 10px;

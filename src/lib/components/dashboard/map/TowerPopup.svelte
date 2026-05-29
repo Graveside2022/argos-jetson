@@ -66,9 +66,9 @@
 
 	.popup-title {
 		font-weight: 600;
-		font-size: var(--text-brand);
+		font-size: 0.8125rem;
 		margin-bottom: 8px;
-		color: var(--foreground);
+		color: var(--cds-text-primary);
 	}
 
 	.popup-row {
@@ -79,17 +79,17 @@
 	}
 
 	.popup-label {
-		color: var(--foreground-secondary);
+		color: var(--cds-text-helper);
 		letter-spacing: 0.05em;
 	}
 
 	.popup-value {
-		color: var(--foreground-muted);
-		font-family: var(--font-primary, monospace);
+		color: var(--cds-text-secondary);
+		font-family: var(--cds-code-01-font-family);
 	}
 
 	.popup-divider {
-		border-top: 1px solid var(--border);
+		border-top: 1px solid var(--cds-border-subtle);
 		margin: 4px 0;
 	}
 
