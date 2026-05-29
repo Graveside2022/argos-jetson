@@ -3,6 +3,7 @@
 <script lang="ts">
 	import 'maplibre-gl/dist/maplibre-gl.css';
 
+	import LocationCurrent from 'carbon-icons-svelte/lib/LocationCurrent.svelte';
 	import {
 		CircleLayer,
 		CustomControl,
@@ -98,35 +99,7 @@
 						onclick={ms.handleLocateClick}
 						title="Center on my location"
 					>
-						<svg
-							width="20"
-							height="20"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="2"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-						>
-							<circle cx="12" cy="12" r="8" /><circle
-								cx="12"
-								cy="12"
-								r="3"
-								fill="currentColor"
-							/>
-							<line x1="12" y1="2" x2="12" y2="4" /><line
-								x1="12"
-								y1="20"
-								x2="12"
-								y2="22"
-							/>
-							<line x1="2" y1="12" x2="4" y2="12" /><line
-								x1="20"
-								y1="12"
-								x2="22"
-								y2="12"
-							/>
-						</svg>
+						<LocationCurrent size={20} />
 					</button>
 				</div>
 			</CustomControl>
@@ -451,7 +424,7 @@
 		position: absolute;
 		bottom: 16px;
 		left: 12px;
-		background: color-mix(in srgb, var(--background) 80%, transparent);
+		background: color-mix(in srgb, var(--cds-background) 80%, transparent);
 		border-radius: 2px;
 		padding: 6px 10px;
 		display: flex;
@@ -465,7 +438,7 @@
 		display: flex;
 		align-items: center;
 		gap: 8px;
-		font-family: var(--font-mono, 'Fira Code', monospace);
+		font-family: var(--cds-code-01-font-family);
 		white-space: nowrap;
 	}
 
@@ -473,42 +446,42 @@
 		display: flex;
 		align-items: center;
 		gap: 12px;
-		font-family: var(--font-mono, 'Fira Code', monospace);
+		font-family: var(--cds-code-01-font-family);
 		white-space: nowrap;
 	}
 
 	.legend-gps-tag {
 		font-size: 14px;
 		font-weight: 600;
-		color: var(--primary);
+		color: var(--cds-link-primary);
 		letter-spacing: 1px;
 	}
 
 	.legend-sep {
 		font-size: 14px;
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 	}
 
 	.legend-location {
 		font-size: 14px;
-		color: var(--foreground-muted);
+		color: var(--cds-text-secondary);
 		letter-spacing: 0.5px;
 	}
 
 	.legend-coord {
 		font-size: 14px;
-		color: var(--foreground-muted);
+		color: var(--cds-text-secondary);
 	}
 
 	.legend-mgrs {
 		font-size: 14px;
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 		letter-spacing: 0.5px;
 	}
 
 	.legend-asl {
 		font-size: 14px;
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 		letter-spacing: 0.5px;
 	}
 </style>
