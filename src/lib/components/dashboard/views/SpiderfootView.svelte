@@ -20,6 +20,6 @@
 		width: 100%;
 		height: 100%;
 		border: none;
-		background: var(--background);
+		background: var(--cds-background);
 	}
 </style>
