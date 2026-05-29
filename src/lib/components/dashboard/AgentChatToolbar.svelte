@@ -1,6 +1,7 @@
 <!-- Agent chat toolbar — status badge and clear button -->
 <script lang="ts">
-	import { Trash2 } from '@lucide/svelte';
+	import Layers from 'carbon-icons-svelte/lib/Layers.svelte';
+	import TrashCan from 'carbon-icons-svelte/lib/TrashCan.svelte';
 
 	import TooltipIcon from '$lib/components/chassis/forms/TooltipIcon.svelte';
 
@@ -15,19 +16,7 @@
 
 <div class="chat-toolbar">
 	<div class="toolbar-left">
-		<svg
-			width="16"
-			height="16"
-			viewBox="0 0 24 24"
-			fill="none"
-			stroke="currentColor"
-			stroke-width="2"
-			class="agent-icon"
-		>
-			<path d="M12 2L2 7l10 5 10-5-10-5z" />
-			<path d="M2 17l10 5 10-5" />
-			<path d="M2 12l10 5 10-5" />
-		</svg>
+		<Layers size={16} class="agent-icon" />
 		<span class="toolbar-title">Argos Agent</span>
 		{#if !isCheckingLLM}
 			<span class="llm-badge" class:online={llmProvider !== 'unavailable'}>
@@ -36,7 +25,7 @@
 		{/if}
 	</div>
 	<div class="toolbar-right">
-		<TooltipIcon tooltipText="Clear chat" icon={Trash2} onClick={onClear} />
+		<TooltipIcon tooltipText="Clear chat" icon={TrashCan} onClick={onClear} />
 	</div>
 </div>
 
@@ -48,8 +37,8 @@
 		height: 36px;
 		min-height: 36px;
 		padding: 0 12px;
-		background: var(--card);
-		border-bottom: 1px solid var(--border);
+		background: var(--cds-layer);
+		border-bottom: 1px solid var(--cds-border-subtle);
 	}
 
 	.toolbar-left {
@@ -59,26 +48,26 @@
 	}
 
 	.agent-icon {
-		color: var(--interactive, #4a8af4);
+		color: var(--cds-link-primary);
 	}
 
 	.toolbar-title {
-		color: var(--foreground);
+		color: var(--cds-text-primary);
 		font-weight: 500;
 	}
 
 	.llm-badge {
 		padding: 2px 8px;
 		border-radius: 3px;
-		background: var(--border);
-		color: var(--muted-foreground);
+		background: var(--cds-border-subtle);
+		color: var(--cds-text-helper);
 		font-size: 11px;
 		text-transform: uppercase;
 	}
 
 	.llm-badge.online {
-		background: color-mix(in srgb, var(--success) 20%, transparent);
-		color: var(--success);
+		background: color-mix(in srgb, var(--cds-support-success) 20%, transparent);
+		color: var(--cds-support-success);
 	}
 
 	.toolbar-right {
