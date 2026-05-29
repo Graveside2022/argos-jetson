@@ -9,7 +9,7 @@ export const GET = createHandler(async () => {
 	const position = await getGpsPosition();
 
 	return new Response(JSON.stringify(position), {
-		status: position.success ? 200 : 503,
+		status: 200,
 		headers: { 'Content-Type': 'application/json' }
 	});
 });
