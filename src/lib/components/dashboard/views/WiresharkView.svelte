@@ -1,8 +1,8 @@
 <script lang="ts">
+	import { Button } from 'carbon-components-svelte';
 	import { onDestroy, onMount } from 'svelte';
 
 	import PanelStatus from '$lib/components/chassis/PanelStatus.svelte';
-	import Button from '$lib/components/ui/button/button.svelte';
 	import { activeView } from '$lib/stores/dashboard/dashboard-store.svelte';
 
 	import ToolViewWrapper from './ToolViewWrapper.svelte';
@@ -148,7 +148,7 @@
 </script>
 
 {#snippet stopAction()}
-	<Button variant="outline" size="sm" onclick={handleStop} disabled={stopping}>
+	<Button kind="tertiary" size="small" on:click={handleStop} disabled={stopping}>
 		{stopping ? 'Stopping…' : 'Stop'}
 	</Button>
 {/snippet}
@@ -212,21 +212,21 @@
 	.status-label {
 		font-family: 'Fira Code', monospace;
 		font-size: 12px;
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 		text-transform: uppercase;
 		letter-spacing: 1.2px;
 	}
 	.status-detail {
 		font-family: 'Fira Code', monospace;
 		font-size: 11px;
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 		max-width: 40rem;
 		text-align: center;
 	}
 	.status-hint {
 		font-family: 'Fira Code', monospace;
 		font-size: 10px;
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 	}
 	.capture-ribbon {
 		position: absolute;
@@ -235,14 +235,14 @@
 		display: flex;
 		gap: 1rem;
 		padding: 0.25rem 0.5rem;
-		background: var(--card);
-		border: 1px solid var(--border);
+		background: var(--cds-layer);
+		border: 1px solid var(--cds-border-subtle);
 		border-radius: 3px;
 		font-family: 'Fira Code', monospace;
 		font-size: 10px;
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 	}
 	.capture-ribbon code {
-		color: var(--primary);
+		color: var(--cds-link-primary);
 	}
 </style>
