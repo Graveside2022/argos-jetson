@@ -1,33 +1,11 @@
 {
-	"$comment": "Argos project-scope settings (shared, committed). Policy: GitHub WRITES (PRs/issues/merges/reviews) are hard-locked to github-mcp (mcp__github__*) — octocode has no write tools, so this holds automatically. octocode's GitHub READ tools (githubSearchCode = cross-repo grep, githubGetFileContent = pull docs from GitHub links, githubViewRepoStructure, etc.) are intentionally ALLOWED for code research. Bash gh is restricted to {workflow,secret,auth} by the user-global gh-cli-restrict.sh hook. Unwanted claude.ai connectors (Slack/Linear/Indeed/firecrawl) are denied as defense-in-depth — they are not currently bridged into CLI tool sessions anyway. Atlassian (Jira+Confluence) intentionally left available. Personal overrides go in .claude/settings.local.json (gitignored).",
-	"permissions": {
-		"deny": [
-			"mcp__claude_ai_Slack__*",
-			"mcp__claude_ai_Linear__*",
-			"mcp__claude_ai_Indeed__*",
-			"mcp__claude_ai_firecrawl__*",
-			"mcp__claude_ai_firecrawl_claude_desktop__*"
-		],
-		"allow": [
-			"mcp__github__*",
-			"mcp__octocode__*",
-			"Bash(git *)",
-			"Bash(gh workflow *)",
-			"Bash(gh secret *)",
-			"Bash(gh auth status*)"
-		]
-	},
-	"hooks": {
-		"PostToolUse": [
-			{
-				"matcher": "mcp__github__merge_pull_request",
-				"hooks": [
-					{
-						"type": "command",
-						"command": "bash ${CLAUDE_PROJECT_DIR}/scripts/claude-hooks/auto-post-merge-fanout.sh"
-					}
-				]
-			}
-		]
-	}
+  "permissions": {
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)"
+    ]
+  },
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  }
 }

@@ -1,27 +1,25 @@
-# Argos CLAUDE.md
+# Argos — Claude Code Configuration
 
-Inherits user-global `~/.claude/CLAUDE.md` (Karpathy + per-turn disclosure + halt rule + 8 workflow @-imports). Project files add invariants only — NEVER override.
+## Rules
 
-## Argos invariants
+- Do what has been asked; nothing more, nothing less
+- NEVER create files unless absolutely necessary — prefer editing existing files
+- NEVER create documentation files unless explicitly requested
+- NEVER save working files or tests to root — use `/src`, `/tests`, `/docs`, `/config`, `/scripts`
+- ALWAYS read a file before editing it
+- NEVER commit secrets, credentials, or .env files
+- NEVER add a `Co-Authored-By` trailer to user commits unless this project's `.claude/settings.json` has `attribution.commit` set (#2078). The Claude Code Bash tool may suggest one in its default commit-message template — ignore it. `Co-Authored-By` is semantic authorship attribution under git/GitHub convention; the tool is the facilitator, not a co-author.
+- Keep files under 300 lines (beyond that is hard to review)
+- Keep cyclomatic AND cognitive complexity per function below 5 — refactor/extract if over
+- Validate input at system boundaries
 
-| Item             | Value                                                    |
-| ---------------- | -------------------------------------------------------- |
-| v1 UI port       | `:5173` (customer-facing)                                |
-| v2 Mk II UI port | `:5174`                                                  |
-| Sentry project   | `us-army-2k/argos` (id `4511395679043584`)               |
-| OTel env flag    | `OTEL_ENABLED=1`                                         |
-| GitHub repo      | `christianpeirson/argos-jetson`                          |
-| Node engine      | `>=22.11` (pinned)                                       |
-| Daily PR LOC cap | 2000 (admin override RESERVED for dev→main rollups only) |
-| Branch model     | v1=`origin/v1`, v2=`origin/main`, dev=`origin/dev`       |
+## Build & Test
 
-## Argos-specific @-imports
+- ALWAYS run tests after code changes
+- ALWAYS verify build succeeds before committing
 
-@RUFLO.md
-@SKILL-ROUTING.md
+```bash
+npm run build && npm test
+```
+
 @AGENTS.md
-
-## Refs
-
-User-global: `~/.claude/CLAUDE.md` + 8 workflow files.
-Project memory: cross-session via `mcp__ruflo__memory_*` namespace `argos-decisions` / `argos-<task>-scope`.
