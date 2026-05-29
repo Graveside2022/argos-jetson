@@ -28,29 +28,29 @@
 <style>
 	.panel-header {
 		padding: var(--space-3) var(--space-4);
-		border-bottom: 1px solid var(--border);
+		border-bottom: 1px solid var(--cds-border-subtle);
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-2);
 	}
 
 	.panel-title {
-		font-family: var(--font-mono, 'Fira Code', monospace);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 12px;
 		font-weight: 600;
 		letter-spacing: 1.5px;
-		color: var(--foreground-muted, #bbbbbb);
+		color: var(--cds-text-secondary);
 	}
 
 	.back-btn {
 		display: flex;
 		align-items: center;
 		gap: var(--space-2);
-		background: var(--surface-hover, #1e1e1e);
-		border: 1px solid var(--border);
+		background: var(--cds-layer-hover);
+		border: 1px solid var(--cds-border-subtle);
 		border-radius: var(--radius-sm);
-		color: var(--interactive, #4a8af4);
-		font-size: var(--text-xs);
+		color: var(--cds-link-primary);
+		font-size: 0.6875rem;
 		cursor: pointer;
 		padding: var(--space-1) var(--space-3);
 		transition: all 0.15s ease;
@@ -58,9 +58,9 @@
 	}
 
 	.back-btn:hover {
-		background: var(--secondary);
-		border-color: var(--interactive);
-		color: var(--foreground);
+		background: var(--cds-layer);
+		border-color: var(--cds-link-primary);
+		color: var(--cds-text-primary);
 	}
 
 	.back-btn :global(svg) {
@@ -68,7 +68,7 @@
 	}
 
 	.back-label {
-		letter-spacing: var(--letter-spacing-wide);
-		font-weight: var(--font-weight-medium);
+		letter-spacing: 0.025em;
+		font-weight: 500;
 	}
 </style>
