@@ -11,7 +11,6 @@ Typical development session baseline (before running builds/tests):
 | VS Code Server (Antigravity) | ~1,250 MB           | 6 processes, OOM-protected at -500 |
 | Claude CLI + subagents       | ~650-1,000 MB       | oom_score_adj=200 (kill target)    |
 | Vite dev server              | ~350 MB             | OOM-protected at -500 via wrapper  |
-| Chroma + claude-mem          | ~475 MB             | Vector DB for Claude memory        |
 | Chromium debug browser       | ~400 MB             | 3 processes                        |
 | System/kernel                | ~500 MB             | Reserved                           |
 | **Total baseline**           | **~3,600-4,000 MB** |                                    |
@@ -56,12 +55,11 @@ A systemd service ensures critical development tools stay online, even if they c
 
 The monitor checks the following ports every 10 seconds:
 
-| Service               | Port   | Action on Failure                                       |
-| --------------------- | ------ | ------------------------------------------------------- |
-| **Vite Dev Server**   | `5173` | Restarts the `npm run dev` tmux session                 |
-| **Chromium Debugger** | `9224` | Restarts headless Chromium (and Xvfb/Display :99)       |
-| **Debug Proxy**       | `99`   | Restarts `socat` to expose debugger on port 99          |
-| **Claude Mem Plugin** | N/A    | Checks every 60s for plugin updates and applies patches |
+| Service               | Port   | Action on Failure                                 |
+| --------------------- | ------ | ------------------------------------------------- |
+| **Vite Dev Server**   | `5173` | Restarts the `npm run dev` tmux session           |
+| **Chromium Debugger** | `9224` | Restarts headless Chromium (and Xvfb/Display :99) |
+| **Debug Proxy**       | `99`   | Restarts `socat` to expose debugger on port 99    |
 
 Circuit breaker: after 10 consecutive failures, stops retrying for 5 minutes to prevent restart storms.
 
@@ -92,7 +90,7 @@ Userspace OOM killer that acts before the kernel OOM killer (which can freeze th
 - **Config**: `/etc/default/earlyoom`
 - **Threshold**: `-m 10 -s 50` (kill when <10% RAM free AND <50% swap free)
 - **Reporting**: `-r 60` (log memory stats every 60 seconds)
-- **Avoid list**: init, sshd, tailscaled, NetworkManager, dockerd, systemd, vite, chroma, Xvfb, chromium
+- **Avoid list**: init, sshd, tailscaled, NetworkManager, dockerd, systemd, vite, Xvfb, chromium
 - **Prefer list**: ollama, bun (kill these first)
 
 ```bash

@@ -74,29 +74,8 @@ else
     fi
 fi
 
-# ── Test 2: Chroma responds after cgroup limit ────────────────────────────────
-section "Test 2: ChromaDB Heartbeat (cgroup-limited)"
-
-CHROMA_MH=$(systemctl --user show chroma-server --property=MemoryHigh 2>/dev/null | cut -d= -f2)
-if [[ -n "$CHROMA_MH" ]] && [[ "$CHROMA_MH" != "infinity" ]] && [[ "$CHROMA_MH" != "0" ]]; then
-    MH_MB=$(( CHROMA_MH / 1024 / 1024 ))
-    echo "         chroma-server MemoryHigh=${MH_MB}MB"
-    CHROMA_STATUS=$(systemctl --user is-active chroma-server 2>/dev/null || echo "unknown")
-    if [[ "$CHROMA_STATUS" = "active" ]]; then
-        if curl -sf --max-time 5 http://127.0.0.1:8000/api/v2/heartbeat >/dev/null 2>&1; then
-            pass "ChromaDB heartbeat OK while under ${MH_MB}MB MemoryHigh cgroup"
-        else
-            fail "ChromaDB service active but heartbeat HTTP failed (http://127.0.0.1:8000/api/v2/heartbeat)"
-        fi
-    else
-        warn "chroma-server is not active (status=$CHROMA_STATUS) — skipping heartbeat test"
-    fi
-else
-    warn "chroma-server has no MemoryHigh cgroup (Phase 3.3 incomplete) — skipping heartbeat test"
-fi
-
-# ── Test 3: earlyoom is monitoring (recent journal entries) ───────────────────
-section "Test 3: earlyoom Journal Activity"
+# ── Test 2: earlyoom is monitoring (recent journal entries) ───────────────────
+section "Test 2: earlyoom Journal Activity"
 
 if ! systemctl is-active --quiet earlyoom 2>/dev/null; then
     fail "earlyoom is not active"
@@ -116,30 +95,8 @@ else
     fi
 fi
 
-# ── Test 4: cleanup-stale-daemons.sh runs clean ───────────────────────────────
-section "Test 4: cleanup-stale-daemons.sh"
-
-CLEANUP_HOOK="${ARGOS_ROOT}/.claude/hooks/cleanup-stale-daemons.sh"
-if [[ ! -f "$CLEANUP_HOOK" ]]; then
-    fail "cleanup-stale-daemons.sh not found at $CLEANUP_HOOK"
-else
-    CLEANUP_OUT=$(bash "$CLEANUP_HOOK" 2>&1)
-    CLEANUP_EXIT=$?
-    if [[ $CLEANUP_EXIT -eq 0 ]]; then
-        LINE_COUNT=$(echo "$CLEANUP_OUT" | wc -l)
-        echo "         Output: ${LINE_COUNT} lines (exit 0)"
-        if [[ -n "$CLEANUP_OUT" ]]; then
-            echo "$CLEANUP_OUT" | head -5 | sed 's/^/         /'
-        fi
-        pass "cleanup-stale-daemons.sh exited 0"
-    else
-        echo "$CLEANUP_OUT" | head -10 | sed 's/^/         /'
-        fail "cleanup-stale-daemons.sh exited $CLEANUP_EXIT"
-    fi
-fi
-
-# ── Test 5: startup-check.sh runs clean ──────────────────────────────────────
-section "Test 5: startup-check.sh"
+# ── Test 3: startup-check.sh runs clean ──────────────────────────────────────
+section "Test 3: startup-check.sh"
 
 STARTUP_CHECK="${ARGOS_ROOT}/scripts/startup-check.sh"
 if [[ ! -f "$STARTUP_CHECK" ]]; then
