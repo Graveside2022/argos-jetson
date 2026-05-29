@@ -17,12 +17,10 @@
 	}
 </script>
 
-<div class="rounded-lg border border-border/60 bg-card/40 p-3">
-	<span class="mb-2 block text-base font-semibold tracking-widest text-muted-foreground"
-		>SERVER CONFIGURATION</span
-	>
+<div class="gp-section">
+	<span class="gp-label">SERVER CONFIGURATION</span>
 
-	<div class="flex flex-col gap-2">
+	<div class="gp-fields">
 		<TextInput
 			labelText="Portal Address"
 			placeholder="vpn.example.mil"
@@ -48,3 +46,27 @@
 		/>
 	</div>
 </div>
+
+<style>
+	.gp-section {
+		padding: 0.75rem;
+		border: 1px solid color-mix(in srgb, var(--cds-border-subtle) 60%, transparent);
+		border-radius: 0.5rem;
+		background: color-mix(in srgb, var(--cds-layer) 40%, transparent);
+	}
+
+	.gp-label {
+		display: block;
+		margin-bottom: 0.5rem;
+		font-size: 1rem;
+		font-weight: 600;
+		letter-spacing: 0.1em;
+		color: var(--cds-text-helper);
+	}
+
+	.gp-fields {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+</style>
