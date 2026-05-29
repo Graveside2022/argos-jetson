@@ -1,9 +1,8 @@
 <!-- @constitutional-exemption Article-IV-4.3 issue:#11 — Component state handling (loading/error/empty UI) deferred to UX improvement phase -->
 <script lang="ts">
+	import { Button, Tag } from 'carbon-components-svelte';
+	import ChevronLeft from 'carbon-icons-svelte/lib/ChevronLeft.svelte';
 	import type { Snippet } from 'svelte';
-
-	import Badge from '$lib/components/ui/badge/badge.svelte';
-	import Button from '$lib/components/ui/button/button.svelte';
 
 	interface Props {
 		title: string;
@@ -18,26 +17,12 @@
 
 <div class="tool-view">
 	<div class="tool-view-header">
-		<Button variant="ghost" size="sm" onclick={onBack}>
-			<svg
-				width="16"
-				height="16"
-				viewBox="0 0 24 24"
-				fill="none"
-				stroke="currentColor"
-				stroke-width="2"
-				stroke-linecap="round"
-				stroke-linejoin="round"
-			>
-				<polyline points="15 18 9 12 15 6" />
-			</svg>
+		<Button kind="ghost" size="small" icon={ChevronLeft} iconDescription="Back" on:click={onBack}>
 			Back
 		</Button>
 		<span class="tool-view-title">{title}</span>
 		{#if status}
-			<Badge variant="default" class="bg-green-600/20 text-green-400 border-green-600/30"
-				>{status}</Badge
-			>
+			<Tag type="green" size="sm">{status}</Tag>
 		{/if}
 		{#if actions}
 			<div class="tool-view-actions">
@@ -63,17 +48,17 @@
 		min-height: 48px;
 		display: flex;
 		align-items: center;
-		gap: var(--space-3);
-		padding: 0 var(--space-4);
-		background: var(--surface-elevated, #151515);
-		border-bottom: 1px solid var(--border);
+		gap: var(--cds-spacing-04);
+		padding: 0 var(--cds-spacing-05);
+		background: var(--cds-layer);
+		border-bottom: 1px solid var(--cds-border-subtle);
 	}
 
 	.tool-view-title {
-		font-family: var(--font-mono, 'Fira Code', monospace);
-		font-size: 14px;
+		font-family: var(--cds-code-02-font-family);
+		font-size: var(--cds-code-02-font-size);
 		font-weight: 600;
-		color: var(--foreground);
+		color: var(--cds-text-primary);
 		letter-spacing: 1.5px;
 	}
 
