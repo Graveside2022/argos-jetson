@@ -1,20 +1,6 @@
 <script lang="ts">
-	import Badge from '$lib/components/ui/badge/badge.svelte';
-	import Button from '$lib/components/ui/button/button.svelte';
-	import TableRoot from '$lib/components/ui/table/table.svelte';
-	import TableBody from '$lib/components/ui/table/table-body.svelte';
-	import TableCell from '$lib/components/ui/table/table-cell.svelte';
-	import TableHead from '$lib/components/ui/table/table-head.svelte';
-	import TableHeader from '$lib/components/ui/table/table-header.svelte';
-	import TableRow from '$lib/components/ui/table/table-row.svelte';
-	const Table = {
-		Root: TableRoot,
-		Body: TableBody,
-		Cell: TableCell,
-		Head: TableHead,
-		Header: TableHeader,
-		Row: TableRow
-	};
+	import { Button } from 'carbon-components-svelte';
+
 	import type { ScanResult } from '$lib/stores/gsm-evil-store.svelte';
 
 	let {
@@ -27,133 +13,276 @@
 		onselect: (frequency: string) => void;
 	} = $props();
 
+	// Signal-quality domain colors are kept literal (data-viz domain rule); each
+	// strength maps to a scoped class defined in the style block below.
 	const QUALITY_CLASSES: Record<string, string> = {
-		excellent: 'bg-green-500/20 text-green-400 border-green-500/30',
-		'very strong': 'bg-green-500/20 text-green-400 border-green-500/30',
-		strong: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-		good: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-		moderate: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
-		weak: 'bg-red-500/20 text-red-400 border-red-500/30'
+		excellent: 'q-excellent',
+		'very strong': 'q-excellent',
+		strong: 'q-strong',
+		good: 'q-good',
+		moderate: 'q-moderate',
+		weak: 'q-weak'
 	};
 
 	function getQualityClass(strength: string): string {
-		return (
-			QUALITY_CLASSES[strength.toLowerCase()] ??
-			'bg-gray-500/20 text-gray-400 border-gray-500/30'
-		);
+		return QUALITY_CLASSES[strength.toLowerCase()] ?? 'q-unknown';
 	}
 </script>
 
-<div class="mt-4 bg-black/30 border border-border rounded-lg p-4">
-	<h4 class="text-base font-semibold text-foreground mb-4 text-center uppercase tracking-wide">
-		<span class="text-destructive">Scan</span> Results
-	</h4>
+<div class="results-card">
+	<h4 class="results-title"><span class="results-title-accent">Scan</span> Results</h4>
 	<div class="table-container">
 		{#if scanResults.length > 0}
-			<Table.Root>
-				<Table.Header>
-					<Table.Row>
-						<Table.Head class="text-xs uppercase tracking-wide">Frequency</Table.Head>
-						<Table.Head class="text-xs uppercase tracking-wide">Signal</Table.Head>
-						<Table.Head class="text-xs uppercase tracking-wide">Quality</Table.Head>
-						<Table.Head class="text-xs uppercase tracking-wide">Channel Type</Table.Head
-						>
-						<Table.Head class="text-xs uppercase tracking-wide text-center"
-							>GSM Frames</Table.Head
-						>
-						<Table.Head class="text-xs uppercase tracking-wide text-center"
-							>Activity</Table.Head
-						>
-						<Table.Head class="text-xs uppercase tracking-wide">Action</Table.Head>
-					</Table.Row>
-				</Table.Header>
-				<Table.Body>
+			<table class="results-table">
+				<thead>
+					<tr>
+						<th class="rh">Frequency</th>
+						<th class="rh">Signal</th>
+						<th class="rh">Quality</th>
+						<th class="rh">Channel Type</th>
+						<th class="rh rh-center">GSM Frames</th>
+						<th class="rh rh-center">Activity</th>
+						<th class="rh">Action</th>
+					</tr>
+				</thead>
+				<tbody>
 					{#each scanResults.sort((a, b) => (b.frameCount || 0) - (a.frameCount || 0)) as result (result.frequency)}
-						<Table.Row
-							class={selectedFrequency === result.frequency
-								? 'bg-green-500/10 border-l-2 border-l-green-400'
-								: ''}
-						>
-							<Table.Cell class="font-semibold font-mono text-foreground"
-								>{result.frequency} MHz</Table.Cell
-							>
-							<Table.Cell class="text-muted-foreground font-mono"
-								>{result.power !== undefined && result.power > -100
+						<tr class="results-row" class:row-selected={selectedFrequency === result.frequency}>
+							<td class="cell-freq">{result.frequency} MHz</td>
+							<td class="cell-signal">
+								{result.power !== undefined && result.power > -100
 									? result.power.toFixed(1) + ' dBm'
-									: result.strength || 'N/A'}</Table.Cell
-							>
-							<Table.Cell>
-								<Badge variant="outline" class={getQualityClass(result.strength)}
-									>{result.strength}</Badge
-								>
-							</Table.Cell>
-							<Table.Cell>
+									: result.strength || 'N/A'}
+							</td>
+							<td>
+								<span class="qual-tag {getQualityClass(result.strength)}">{result.strength}</span>
+							</td>
+							<td>
 								{#if result.channelType}
-									<Badge
-										variant={result.controlChannel ? 'secondary' : 'outline'}
-										class={result.controlChannel
-											? 'bg-blue-500/20 text-blue-400 border-blue-500/30 font-mono'
-											: 'font-mono'}
-									>
+									<span class="chan-tag" class:chan-control={result.controlChannel}>
 										{result.channelType}
-									</Badge>
+									</span>
 								{:else}
-									<span class="text-muted-foreground">-</span>
+									<span class="cell-muted">-</span>
 								{/if}
-							</Table.Cell>
-							<Table.Cell class="text-center">
+							</td>
+							<td class="cell-center">
 								{#if result.frameCount !== undefined}
-									<span class="font-semibold text-blue-400 font-mono"
-										>{result.frameCount}</span
-									>
+									<span class="frame-count">{result.frameCount}</span>
 								{:else}
-									<span class="text-muted-foreground italic">-</span>
+									<span class="cell-muted cell-italic">-</span>
 								{/if}
-							</Table.Cell>
-							<Table.Cell class="text-center">
+							</td>
+							<td class="cell-center">
 								{#if result.hasGsmActivity}
-									<span class="text-green-400 text-lg font-bold">✓</span>
+									<span class="act-yes">✓</span>
 								{:else}
-									<span class="text-red-400 text-lg font-bold">✗</span>
+									<span class="act-no">✗</span>
 								{/if}
-							</Table.Cell>
-							<Table.Cell>
+							</td>
+							<td>
 								<Button
-									variant={selectedFrequency === result.frequency
-										? 'default'
-										: 'outline'}
-									size="sm"
-									class="uppercase text-xs"
-									onclick={() => onselect(result.frequency)}
+									kind={selectedFrequency === result.frequency ? 'primary' : 'tertiary'}
+									size="small"
+									on:click={() => onselect(result.frequency)}
 									disabled={selectedFrequency === result.frequency}
 								>
 									{selectedFrequency === result.frequency ? 'Selected' : 'Select'}
 								</Button>
-							</Table.Cell>
-						</Table.Row>
+							</td>
+						</tr>
 					{/each}
-				</Table.Body>
-			</Table.Root>
+				</tbody>
+			</table>
 		{:else}
-			<div class="flex items-center justify-center min-h-[300px] text-center">
-				<p class="text-muted-foreground">No results available</p>
+			<div class="results-empty">
+				<p class="cell-muted">No results available</p>
 			</div>
 		{/if}
 	</div>
 	{#if scanResults.length > 0}
-		<p class="text-center text-xs text-muted-foreground mt-4 italic">
+		<p class="results-footer">
 			Found {scanResults.length} active frequencies • Sorted by GSM frame count
 		</p>
 	{/if}
 </div>
 
 <style>
+	/* Signal-quality + channel colors are literal hex (data-viz domain, charts phase). */
+	.results-card {
+		margin-top: 1rem;
+		padding: 1rem;
+		background: var(--cds-layer);
+		border: 1px solid var(--cds-border-subtle);
+		border-radius: 0.5rem;
+	}
+
+	.results-title {
+		margin: 0 0 1rem;
+		text-align: center;
+		font-size: 1rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.025em;
+		color: var(--cds-text-primary);
+	}
+
+	.results-title-accent {
+		color: var(--cds-support-error);
+	}
+
 	.table-container {
 		overflow-x: auto;
+		overflow-y: auto;
 		border-radius: 0.375rem;
-		border: 1px solid var(--color-border);
+		border: 1px solid var(--cds-border-subtle);
 		min-height: 300px;
 		max-height: 400px;
-		overflow-y: auto;
+	}
+
+	.results-table {
+		width: 100%;
+		border-collapse: collapse;
+	}
+
+	.rh {
+		text-align: left;
+		font-size: 0.75rem;
+		text-transform: uppercase;
+		letter-spacing: 0.025em;
+		color: var(--cds-text-helper);
+		padding: 0.5rem;
+	}
+
+	.rh-center {
+		text-align: center;
+	}
+
+	.results-row td {
+		padding: 0.5rem;
+	}
+
+	.results-row.row-selected {
+		background: color-mix(in srgb, #22c55e 10%, transparent);
+		box-shadow: inset 2px 0 0 #4ade80;
+	}
+
+	.cell-freq {
+		font-family: var(--cds-code-01-font-family);
+		font-weight: 600;
+		color: var(--cds-text-primary);
+	}
+
+	.cell-signal {
+		font-family: var(--cds-code-01-font-family);
+		color: var(--cds-text-helper);
+	}
+
+	.cell-muted {
+		color: var(--cds-text-helper);
+	}
+
+	.cell-italic {
+		font-style: italic;
+	}
+
+	.cell-center {
+		text-align: center;
+	}
+
+	.frame-count {
+		font-family: var(--cds-code-01-font-family);
+		font-weight: 600;
+		color: #60a5fa;
+	}
+
+	.act-yes {
+		font-size: 1.125rem;
+		font-weight: 700;
+		color: #4ade80;
+	}
+
+	.act-no {
+		font-size: 1.125rem;
+		font-weight: 700;
+		color: #f87171;
+	}
+
+	.qual-tag {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.0625rem 0.5rem;
+		border-radius: 0.375rem;
+		border: 1px solid;
+		font-size: 0.75rem;
+	}
+
+	.q-excellent {
+		background: color-mix(in srgb, #22c55e 20%, transparent);
+		color: #4ade80;
+		border-color: color-mix(in srgb, #22c55e 30%, transparent);
+	}
+
+	.q-strong {
+		background: color-mix(in srgb, #10b981 20%, transparent);
+		color: #34d399;
+		border-color: color-mix(in srgb, #10b981 30%, transparent);
+	}
+
+	.q-good {
+		background: color-mix(in srgb, #eab308 20%, transparent);
+		color: #facc15;
+		border-color: color-mix(in srgb, #eab308 30%, transparent);
+	}
+
+	.q-moderate {
+		background: color-mix(in srgb, #f59e0b 20%, transparent);
+		color: #fbbf24;
+		border-color: color-mix(in srgb, #f59e0b 30%, transparent);
+	}
+
+	.q-weak {
+		background: color-mix(in srgb, #ef4444 20%, transparent);
+		color: #f87171;
+		border-color: color-mix(in srgb, #ef4444 30%, transparent);
+	}
+
+	.q-unknown {
+		background: color-mix(in srgb, #6b7280 20%, transparent);
+		color: #9ca3af;
+		border-color: color-mix(in srgb, #6b7280 30%, transparent);
+	}
+
+	.chan-tag {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.0625rem 0.5rem;
+		border-radius: 0.375rem;
+		border: 1px solid var(--cds-border-subtle);
+		font-family: var(--cds-code-01-font-family);
+		font-size: 0.75rem;
+		color: var(--cds-text-helper);
+	}
+
+	.chan-tag.chan-control {
+		background: color-mix(in srgb, #3b82f6 20%, transparent);
+		color: #60a5fa;
+		border-color: color-mix(in srgb, #3b82f6 30%, transparent);
+	}
+
+	.results-empty {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 300px;
+		text-align: center;
+	}
+
+	.results-footer {
+		text-align: center;
+		font-size: 0.75rem;
+		font-style: italic;
+		color: var(--cds-text-helper);
+		margin-top: 1rem;
 	}
 </style>
