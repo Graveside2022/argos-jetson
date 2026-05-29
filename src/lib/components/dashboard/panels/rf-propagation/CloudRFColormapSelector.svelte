@@ -44,7 +44,7 @@
 		font-size: 9px;
 		text-transform: uppercase;
 		letter-spacing: 1.2px;
-		color: var(--foreground-secondary);
+		color: var(--cds-text-helper);
 		margin-bottom: 2px;
 	}
 
@@ -71,11 +71,11 @@
 	}
 
 	.cm-btn:hover {
-		background: var(--surface-hover);
+		background: var(--cds-layer-hover);
 	}
 
 	.cm-btn.selected {
-		border-left-color: var(--primary);
+		border-left-color: var(--cds-link-primary);
 	}
 
 	.swatch {
@@ -88,6 +88,6 @@
 	.cm-name {
 		font-family: 'Fira Code', monospace;
 		font-size: 10px;
-		color: var(--foreground);
+		color: var(--cds-text-primary);
 	}
 </style>
