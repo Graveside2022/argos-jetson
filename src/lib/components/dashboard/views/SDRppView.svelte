@@ -1,8 +1,8 @@
 <script lang="ts">
+	import { Button } from 'carbon-components-svelte';
 	import { onDestroy, onMount } from 'svelte';
 
 	import PanelStatus from '$lib/components/chassis/PanelStatus.svelte';
-	import Button from '$lib/components/ui/button/button.svelte';
 	import { activeView } from '$lib/stores/dashboard/dashboard-store.svelte';
 
 	import ToolViewWrapper from './ToolViewWrapper.svelte';
@@ -100,7 +100,7 @@
 </script>
 
 {#snippet stopAction()}
-	<Button variant="outline" size="sm" onclick={handleStop} disabled={stopping}>
+	<Button kind="tertiary" size="small" on:click={handleStop} disabled={stopping}>
 		{stopping ? 'Stopping…' : 'Stop'}
 	</Button>
 {/snippet}
