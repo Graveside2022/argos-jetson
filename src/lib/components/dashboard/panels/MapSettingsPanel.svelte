@@ -1,5 +1,9 @@
 <script lang="ts">
-	import { ChevronLeft, ChevronRight, Globe, Layers, Radio } from '@lucide/svelte';
+	import ChevronLeft from 'carbon-icons-svelte/lib/ChevronLeft.svelte';
+	import ChevronRight from 'carbon-icons-svelte/lib/ChevronRight.svelte';
+	import Globe from 'carbon-icons-svelte/lib/Globe.svelte';
+	import Layers from 'carbon-icons-svelte/lib/Layers.svelte';
+	import Radio from 'carbon-icons-svelte/lib/Radio.svelte';
 
 	import {
 		mapSettingsView,
