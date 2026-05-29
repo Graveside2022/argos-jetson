@@ -3,7 +3,7 @@
 /* ---- Right position ---- */
 .icon-rail[data-position='right'] {
 	border-right: none;
-	border-left: 1px solid var(--border);
+	border-left: 1px solid var(--cds-border-subtle);
 }
 
 /* ---- Top position ---- */
@@ -14,7 +14,7 @@
 	height: var(--icon-rail-width);
 	min-height: var(--icon-rail-width);
 	border-right: none;
-	border-bottom: 1px solid var(--border);
+	border-bottom: 1px solid var(--cds-border-subtle);
 	padding: 0 10px;
 }
 
@@ -36,7 +36,7 @@
 	height: var(--icon-rail-width);
 	min-height: var(--icon-rail-width);
 	border-right: none;
-	border-top: 1px solid var(--border);
+	border-top: 1px solid var(--cds-border-subtle);
 	padding: 0 10px;
 }
 
