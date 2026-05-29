@@ -9,9 +9,13 @@
 import { existsSync, statSync } from 'fs';
 import { resolve as resolvePath } from 'path';
 
+import { errMsg } from '$lib/server/api/error-utils';
+import { resourceManager } from '$lib/server/hardware/resource-manager';
+import { HardwareDevice } from '$lib/server/hardware/types';
 import { logger } from '$lib/utils/logger';
 
 import { createVncShutdownHandler } from '../vnc-common/spawn-helpers';
+import { reapPriorVncStack } from '../vnc-common/stack-leak-guard';
 import {
 	getCurrentFlowgraph,
 	isAnyProcessAlive,
@@ -29,6 +33,8 @@ import {
 	type GnuRadioVncControlResult,
 	type GnuRadioVncStatusResult
 } from './gnu-radio-vnc-types';
+
+const GNU_RADIO_OWNER = 'gnu-radio-vnc';
 
 function isTestEnv(): boolean {
 	return process.env.NODE_ENV === 'test' || Boolean(process.env.VITEST);
@@ -80,6 +86,9 @@ function resolveFlowgraphOrError(flowgraph: string | undefined): {
 
 async function performStartup(resolvedFlowgraph: string | undefined): Promise<Error | null> {
 	try {
+		// Canonical pre-spawn reaper — closes stack-leak loophole where a
+		// prior Xtigervnc :99/openbox survives a half-failed start.
+		await reapPriorVncStack('gnu-radio-vnc');
 		spawnXtigervnc();
 		await new Promise((r) => setTimeout(r, 250));
 		// Window manager spawned BEFORE the GUI app so client decorations
@@ -103,12 +112,59 @@ async function performStartup(resolvedFlowgraph: string | undefined): Promise<Er
 // this the stack would orphan when the server restarts. Idempotent.
 const registerShutdownHandler = createVncShutdownHandler('gnu-radio-vnc', killAllProcesses);
 
+async function releaseB205(): Promise<void> {
+	resourceManager.unregisterPreemptHandler(GNU_RADIO_OWNER, HardwareDevice.B205);
+	await resourceManager.release(GNU_RADIO_OWNER, HardwareDevice.B205).catch((err) => {
+		// Surface release failures so debugging is possible; release is safe to
+		// retry (resource-manager.ts:166 returns a structured error not a throw).
+		logger.warn('[gnu-radio-vnc] B205 release failed', {
+			err: errMsg(err),
+			owner: GNU_RADIO_OWNER,
+			device: HardwareDevice.B205
+		});
+	});
+}
+
+// Use acquireWithPreempt so a competing B205 consumer (bluedragon, gnss-sdr-vnc)
+// that registered a preempt handler gets stopped gracefully instead of returning
+// b205-locked to the operator. Mirrors the gnss-sdr-vnc + bluedragon pattern
+// (gnss-sdr-vnc-control-service.ts:54-83, bluedragon/lifecycle.ts:56-78).
+async function claimB205(): Promise<GnuRadioVncControlResult | null> {
+	const claim = await resourceManager.acquireWithPreempt(GNU_RADIO_OWNER, HardwareDevice.B205, {
+		forceOnOrphan: true
+	});
+	if (claim.success) {
+		if (claim.preempted) {
+			logger.info('[gnu-radio-vnc] B205 acquired via preempt', { previous: claim.preempted });
+		}
+		// Register our preempt handler so OTHER tools can preempt us. Calls the
+		// public stop API so the VNC stack + lock are released together.
+		resourceManager.registerPreemptHandler(GNU_RADIO_OWNER, HardwareDevice.B205, async () => {
+			logger.info('[gnu-radio-vnc] preempted by another B205 consumer — stopping');
+			await stopGnuRadioVnc();
+		});
+		return null;
+	}
+	logger.warn('[gnu-radio-vnc] B205 unavailable', { owner: claim.owner });
+	return {
+		success: false,
+		message: `B205 is in use by ${claim.owner ?? 'another tool'}`,
+		error: `b205-locked-by:${claim.owner ?? 'unknown'}`
+	};
+}
+
 export async function startGnuRadioVnc(flowgraph?: string): Promise<GnuRadioVncControlResult> {
 	registerShutdownHandler();
 	if (isAnyProcessAlive()) return buildAlreadyRunningResult();
 
+	const claimError = await claimB205();
+	if (claimError) return claimError;
+
 	const { resolved, error } = resolveFlowgraphOrError(flowgraph);
-	if (error) return error;
+	if (error) {
+		await releaseB205();
+		return error;
+	}
 
 	// Record flowgraph synchronously so getGnuRadioVncStatus() reflects it on
 	// the next tick (spawnGnuRadioCompanion below runs inside fire-and-forget
@@ -122,10 +178,20 @@ export async function startGnuRadioVnc(flowgraph?: string): Promise<GnuRadioVncC
 	// is static and known now. A spawn failure is logged + the stack reaped async,
 	// since there is no longer a response to carry the error.
 	void performStartup(resolved).then(async (startupErr) => {
-		if (startupErr) {
-			logger.error('GRC VNC spawn failed', { error: startupErr.message });
-			await killAllProcesses();
+		if (!startupErr) return;
+		logger.error('GRC VNC spawn failed', { error: startupErr.message });
+		// Race-guard: if stopGnuRadioVnc() already ran during the fire-and-forget
+		// window, our B205 claim was already released. Re-check ownership before
+		// duplicating cleanup. The resource-manager.release call itself is safe
+		// (returns a structured "not owner" error rather than throwing), but the
+		// preceding unregisterPreemptHandler call in releaseB205 would erase a
+		// handler the next start() already installed if start/stop interleave.
+		if (resourceManager.getOwner(HardwareDevice.B205) !== GNU_RADIO_OWNER) {
+			logger.info('[gnu-radio-vnc] startup failed but stop already cleaned up — skipping');
+			return;
 		}
+		await killAllProcesses();
+		await releaseB205();
 	});
 
 	return buildStartedResult(resolved);
@@ -133,9 +199,11 @@ export async function startGnuRadioVnc(flowgraph?: string): Promise<GnuRadioVncC
 
 export async function stopGnuRadioVnc(): Promise<GnuRadioVncControlResult> {
 	if (!isAnyProcessAlive() && !getCurrentFlowgraph()) {
+		await releaseB205();
 		return { success: true, message: 'GNU Radio VNC stack already stopped' };
 	}
 	await killAllProcesses();
+	await releaseB205();
 	return { success: true, message: 'GNU Radio VNC stack stopped' };
 }
 

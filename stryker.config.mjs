@@ -43,10 +43,10 @@ export default {
 	timeoutFactor: 2,
 	dryRunTimeoutMinutes: 10,
 	mutate: [
-		'src/lib/server/middleware/**/*.ts',
-		'!src/lib/server/middleware/**/*.test.ts',
-		'!src/lib/server/middleware/**/*.spec.ts',
-		'!src/lib/server/middleware/**/*.d.ts'
+		'src/lib/server/hardware/**/*.ts',
+		'!src/lib/server/hardware/**/*.test.ts',
+		'!src/lib/server/hardware/**/*.spec.ts',
+		'!src/lib/server/hardware/**/*.d.ts'
 	],
 	ignorePatterns: [
 		'node_modules',

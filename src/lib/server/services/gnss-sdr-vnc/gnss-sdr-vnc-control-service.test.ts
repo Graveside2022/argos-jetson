@@ -78,7 +78,13 @@ describe('gnss-sdr-vnc-control-service', () => {
 	});
 
 	it('start refuses with friendly error when B205 is locked by another tool', async () => {
-		(resourceManager.acquire as unknown as ReturnType<typeof vi.spyOn>).mockResolvedValueOnce({
+		// Mock acquireWithPreempt directly to return a conflict — covers the path
+		// where the holder has a registered preempt handler that fails (or the
+		// handler runs but the device is still busy on retry). The orphan-fallback
+		// path (forceOnOrphan: true) is exercised separately in resource-manager
+		// unit tests; this test asserts the friendly-error PROPAGATION up to the
+		// public start API when the manager genuinely cannot acquire.
+		vi.spyOn(resourceManager, 'acquireWithPreempt').mockResolvedValueOnce({
 			success: false,
 			owner: 'sdrpp'
 		} as never);

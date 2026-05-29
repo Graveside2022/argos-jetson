@@ -106,9 +106,22 @@ async function recoverStaleHackRfLock(
 /**
  * Acquire HackRF via the resource manager, recovering stale locks if needed.
  * Returns an early-exit error result or null on success.
+ *
+ * Acquire ladder:
+ *   1. `acquireWithPreempt({ forceOnOrphan: true })` — orphan owners get
+ *      force-released; cooperative competitors release via their preempt
+ *      handler (covers the common stale-lock case the legacy
+ *      `recoverStaleHackRfLock` was built for).
+ *   2. On still-conflict (live process holding HackRF without handler),
+ *      fall through to bespoke `recoverStaleHackRfLock` which inspects
+ *      pgrep + kills grgsm_livemon/GsmEvil/tshark before retry.
  */
 export async function acquireHackRfResource(): Promise<GsmEvilStartResult | null> {
-	let acquireResult = await resourceManager.acquire('gsm-evil', HardwareDevice.HACKRF);
+	let acquireResult = await resourceManager.acquireWithPreempt(
+		'gsm-evil',
+		HardwareDevice.HACKRF,
+		{ forceOnOrphan: true }
+	);
 	if (!acquireResult.success) {
 		const owner = acquireResult.owner || 'unknown';
 		acquireResult = await recoverStaleHackRfLock(owner);

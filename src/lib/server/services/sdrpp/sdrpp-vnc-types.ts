@@ -8,14 +8,21 @@
  * all three to run simultaneously.
  */
 
+// Canonical port/display constants come from the central registry in
+// `vnc-common/port-allocation` (single source of truth per ADR 0005).
+// SDR++'s canonical slot is `:97/5997/6082`.
+import { getVncAllocation } from '../vnc-common/port-allocation';
+
+const _SDRPP_ALLOC = getVncAllocation('sdrpp');
+
 /** X display number used by Xtigervnc and SDR++. */
-export const SDRPP_VNC_DISPLAY = ':97';
+export const SDRPP_VNC_DISPLAY = _SDRPP_ALLOC.display;
 
 /** TCP port where Xtigervnc serves the VNC protocol on localhost. */
-export const SDRPP_VNC_PORT = 5997;
+export const SDRPP_VNC_PORT = _SDRPP_ALLOC.vncPort;
 
 /** TCP port where websockify exposes the VNC session as a WebSocket. */
-export const SDRPP_WS_PORT = 6082;
+export const SDRPP_WS_PORT = _SDRPP_ALLOC.wsPort;
 
 /** URL path segment served by websockify. */
 export const SDRPP_WS_PATH = '/websockify';

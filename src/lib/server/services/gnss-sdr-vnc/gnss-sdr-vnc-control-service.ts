@@ -16,12 +16,16 @@ import { delay } from '$lib/utils/delay';
 import { logger } from '$lib/utils/logger';
 
 import { createVncShutdownHandler, throwIfSpawnError } from '../vnc-common/spawn-helpers';
+import { reapPriorVncStack } from '../vnc-common/stack-leak-guard';
 import {
+	armCrashWatchdog,
 	centerRtklibWindows,
 	clearSpawnError,
+	disarmCrashWatchdog,
 	ensureNmeaFifo,
 	getSpawnError,
 	isStackAlive,
+	isWindowManagerAlive,
 	killAllProcesses,
 	killOrphansByPort,
 	removeNmeaFifo,
@@ -51,12 +55,30 @@ const SHORT_DELAY_MS = 400;
 const SOCAT_INIT_DELAY_MS = 200;
 
 async function releaseB205(): Promise<void> {
+	resourceManager.unregisterPreemptHandler(GNSS_SDR_OWNER, HardwareDevice.B205);
 	await resourceManager.release(GNSS_SDR_OWNER, HardwareDevice.B205).catch(() => undefined);
 }
 
 async function claimB205(): Promise<GnssSdrVncControlResult | null> {
-	const claim = await resourceManager.acquire(GNSS_SDR_OWNER, HardwareDevice.B205);
-	if (claim.success) return null;
+	// Use acquireWithPreempt so a competing B205 consumer (bluedragon) that
+	// registered a preempt handler gets stopped gracefully instead of
+	// returning b205-locked to the operator. dragonsync's FPV scanner uses
+	// forceRelease (a hammer) — that path is unchanged.
+	const claim = await resourceManager.acquireWithPreempt(GNSS_SDR_OWNER, HardwareDevice.B205, {
+		forceOnOrphan: true
+	});
+	if (claim.success) {
+		if (claim.preempted) {
+			logger.info('[gnss-sdr-vnc] B205 acquired via preempt', { previous: claim.preempted });
+		}
+		// Register our preempt handler so OTHER tools can preempt us. Calls
+		// the public stop API so all six processes + lock are released.
+		resourceManager.registerPreemptHandler(GNSS_SDR_OWNER, HardwareDevice.B205, async () => {
+			logger.info('[gnss-sdr-vnc] preempted by another B205 consumer — stopping');
+			await stopGnssSdrVnc();
+		});
+		return null;
+	}
 	logger.warn('[gnss-sdr-vnc] B205 unavailable', { owner: claim.owner });
 	return {
 		success: false,
@@ -89,12 +111,23 @@ async function spawnStackProcesses(options: GnssSdrStartOptions): Promise<void> 
 	setVncBackground();
 
 	// openbox WM brings the mouse cursor + titlebars + EWMH (drag/resize) into
-	// the framebuffer. Must start BEFORE the Qt clients so their windows get
-	// decorated on first map.
+	// the framebuffer. Must come up BEFORE the Qt apps so client decorations
+	// (titlebar/resize handles) are negotiated via _NET_FRAME_EXTENTS at first
+	// map. Without this the rtknavi_qt + gnss-sdr-monitor windows render
+	// undecorated and have no focus-switch UI.
 	logger.info('[gnss-sdr-vnc] spawning openbox window manager');
 	spawnWindowManager();
 	await delay(SHORT_DELAY_MS);
 	assertNoSpawnError();
+	// Visibility guard: if openbox launched and exited within the delay window
+	// (missing binary or distro-default `/etc/xdg/openbox/rc.xml` per ADR 0005
+	// Startup checks), surface a clear operator error now instead of letting
+	// the Qt apps spawn with undecorated/invisible windows.
+	if (!isWindowManagerAlive()) {
+		throw new Error(
+			'[gnss-sdr-vnc] openbox window manager not alive after spawn — verify `openbox` package is installed and `/etc/xdg/openbox/rc.xml` exists'
+		);
+	}
 
 	logger.info('[gnss-sdr-vnc] spawning gnss-sdr', { confPath });
 	spawnGnssSdr(confPath);
@@ -157,13 +190,26 @@ export async function startGnssSdrVnc(
 		const conflict = await claimB205();
 		if (conflict) return conflict;
 
-		await killOrphansByPort();
+		// Canonical pre-spawn reaper — supersedes the prior killOrphansByPort
+		// call by also sweeping display-argv processes (e.g. orphan openbox)
+		// with SIGTERM → SIGKILL escalation.
+		await reapPriorVncStack('gnss-sdr-vnc');
 		await spawnStackProcesses(options);
 
 		if (!(await waitForStackReady())) {
 			await releaseB205();
 			return cleanupFailedStart();
 		}
+
+		// Audit MED: arm post-ready crash watchdog so the B205 lock is released
+		// if any managed child dies AFTER waitForStackReady returned true (e.g.
+		// USB unplug, OOM-kill).
+		armCrashWatchdog((label) => {
+			logger.error('[gnss-sdr-vnc] managed child crashed after ready — releasing stack', {
+				label
+			});
+			void stopGnssSdrVnc();
+		});
 
 		logger.info('[gnss-sdr-vnc] stack ready', { wsPort: GNSS_SDR_WS_PORT });
 		return successResult('GNSS-SDR VNC stack started');
@@ -185,6 +231,9 @@ export async function startGnssSdrVnc(
 export async function stopGnssSdrVnc(): Promise<GnssSdrVncControlResult> {
 	try {
 		logger.info('[gnss-sdr-vnc] stopping stack');
+		// Disarm BEFORE killAllProcesses so the watchdog doesn't fire during
+		// our own intentional shutdown.
+		disarmCrashWatchdog();
 		await killAllProcesses();
 		await killOrphansByPort();
 		removeNmeaFifo();

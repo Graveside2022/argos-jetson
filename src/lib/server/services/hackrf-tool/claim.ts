@@ -24,7 +24,14 @@ async function acquireStaleOnly(): Promise<ClaimResult> {
 }
 
 async function acquireDirect(toolName: string): Promise<ClaimResult> {
-	const res = await resourceManager.acquire(toolName, HardwareDevice.HACKRF);
+	// Cooperative pre-emption: orphan owners (stale lock from a prior
+	// process) get force-released; live competitors with a registered
+	// preempt handler stop gracefully and we acquire on retry. The
+	// preempt handler for `toolName` itself is the caller's responsibility
+	// (the facade can't see the driver's stop closure).
+	const res = await resourceManager.acquireWithPreempt(toolName, HardwareDevice.HACKRF, {
+		forceOnOrphan: true
+	});
 	if (res.success) return { success: true };
 	const owner = res.owner ?? 'unknown';
 	return {
@@ -53,5 +60,6 @@ export async function releaseHackRf(
 		await releaseHackRfForWebRx(toolName);
 		return;
 	}
+	resourceManager.unregisterPreemptHandler(toolName, HardwareDevice.HACKRF);
 	await resourceManager.release(toolName, HardwareDevice.HACKRF).catch(() => undefined);
 }

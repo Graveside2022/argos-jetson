@@ -13,6 +13,8 @@
 
 import { z } from 'zod';
 
+import { AltMetersBounds, FreqMhzBounds, RssiDbmBounds } from './common-bounds';
+
 /**
  * DbSignal Schema - Validates signal records from database
  *
@@ -38,9 +40,9 @@ export const DbSignalSchema = z.object({
 	timestamp: z.number().int().positive(),
 	latitude: z.number().min(-90).max(90),
 	longitude: z.number().min(-180).max(180),
-	altitude: z.number().optional(),
-	power: z.number().min(-120).max(0),
-	frequency: z.number().min(1).max(6000),
+	altitude: AltMetersBounds.optional(),
+	power: RssiDbmBounds,
+	frequency: FreqMhzBounds,
 	bandwidth: z.number().positive().nullable().optional(),
 	modulation: z.string().min(1).nullable().optional(),
 	source: z.string().min(1),
@@ -70,8 +72,8 @@ export const DbDeviceSchema = z.object({
 	manufacturer: z.string().min(1).optional(),
 	first_seen: z.number().int().positive(),
 	last_seen: z.number().int().positive(),
-	avg_power: z.number().optional(),
-	freq_min: z.number().positive().optional(),
-	freq_max: z.number().positive().optional(),
+	avg_power: RssiDbmBounds.optional(),
+	freq_min: FreqMhzBounds.optional(),
+	freq_max: FreqMhzBounds.optional(),
 	metadata: z.string().optional()
 });

@@ -111,13 +111,43 @@ export function getLastPollError(): string | null {
 // Public API — start
 // ---------------------------------------------------------------------------
 
+/**
+ * Register the cooperative preempt handler so OTHER B205 consumers can
+ * preempt the FPV scanner gracefully instead of force-releasing the
+ * systemd unit. Single source of truth for the handler body — called
+ * from both the happy-path acquire and the post-forceRelease retry path
+ * so the two registrations cannot drift.
+ */
+function registerFpvPreemptHandler(): void {
+	resourceManager.registerPreemptHandler(FPV_OWNER, HardwareDevice.B205, async () => {
+		logger.info('[dragonsync] FPV preempted by another B205 consumer — stopping FPV service');
+		await stopService(FPV_SERVICE);
+		await resourceManager.release(FPV_OWNER, HardwareDevice.B205).catch(() => undefined);
+	});
+}
+
 async function claimB205ForFpv(): Promise<DragonSyncControlResult | null> {
-	const claim = await resourceManager.acquire(FPV_OWNER, HardwareDevice.B205);
-	if (claim.success || claim.owner === FPV_OWNER) return null;
-	logger.info('[dragonsync] B205 held by competitor, force-releasing', { owner: claim.owner });
+	// Use acquireWithPreempt for cooperative handoff: if a competing B205
+	// consumer (bluedragon, gnss-sdr-vnc, gnu-radio-vnc) registered a
+	// preempt handler, that handler stops the competitor gracefully and
+	// our acquire retries automatically. Falls back to forceRelease only
+	// when the holder has no handler (legacy service or bare host process).
+	const claim = await resourceManager.acquireWithPreempt(FPV_OWNER, HardwareDevice.B205, {
+		forceOnOrphan: true
+	});
+	if (claim.success || claim.owner === FPV_OWNER) {
+		registerFpvPreemptHandler();
+		return null;
+	}
+	logger.info('[dragonsync] B205 held by competitor with no handler, force-releasing', {
+		owner: claim.owner
+	});
 	await resourceManager.forceRelease(HardwareDevice.B205);
 	const retry = await resourceManager.acquire(FPV_OWNER, HardwareDevice.B205);
-	if (retry.success) return null;
+	if (retry.success) {
+		registerFpvPreemptHandler();
+		return null;
+	}
 	return {
 		success: false,
 		message: `B205 unavailable (held by ${retry.owner})`,
@@ -193,6 +223,7 @@ const STOP_SERVICES: readonly [string, string][] = [
 ];
 
 async function releaseAllSdrClaims(): Promise<void> {
+	resourceManager.unregisterPreemptHandler(FPV_OWNER, HardwareDevice.B205);
 	await resourceManager.release(FPV_OWNER, HardwareDevice.B205).catch(() => undefined);
 	await releaseHackRFFromC2();
 }

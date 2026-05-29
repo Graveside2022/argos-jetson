@@ -21,14 +21,19 @@
  * coexist.
  */
 
+// Canonical port/display constants come from `vnc-common/port-allocation`
+// per ADR 0005 — single source of truth across all five VNC tools.
+import { getVncAllocation } from '../vnc-common/port-allocation';
+const _GNSS_ALLOC = getVncAllocation('gnss-sdr-vnc');
+
 /** X display number used by Xtigervnc and the Qt5 GUIs. */
-export const GNSS_SDR_VNC_DISPLAY = ':98';
+export const GNSS_SDR_VNC_DISPLAY = _GNSS_ALLOC.display;
 
 /** TCP port where Xtigervnc serves the VNC protocol on localhost. */
-export const GNSS_SDR_VNC_PORT = 5998;
+export const GNSS_SDR_VNC_PORT = _GNSS_ALLOC.vncPort;
 
 /** TCP port where websockify exposes the VNC session as a WebSocket. */
-export const GNSS_SDR_WS_PORT = 6083;
+export const GNSS_SDR_WS_PORT = _GNSS_ALLOC.wsPort;
 
 /** URL path segment served by websockify. */
 export const GNSS_SDR_WS_PATH = '/websockify';

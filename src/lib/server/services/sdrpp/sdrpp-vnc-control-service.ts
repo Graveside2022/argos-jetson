@@ -15,6 +15,7 @@ import { delay } from '$lib/utils/delay';
 import { logger } from '$lib/utils/logger';
 
 import { createVncShutdownHandler, throwIfSpawnError } from '../vnc-common/spawn-helpers';
+import { reapPriorVncStack } from '../vnc-common/stack-leak-guard';
 import {
 	centerSdrppWindow,
 	clearSpawnError,
@@ -38,12 +39,30 @@ import {
 const SDRPP_OWNER = 'sdrpp';
 
 async function releaseHackrf(): Promise<void> {
+	resourceManager.unregisterPreemptHandler(SDRPP_OWNER, HardwareDevice.HACKRF);
 	await resourceManager.release(SDRPP_OWNER, HardwareDevice.HACKRF).catch(() => undefined);
 }
 
 async function claimHackrf(): Promise<SdrppVncControlResult | null> {
-	const claim = await resourceManager.acquire(SDRPP_OWNER, HardwareDevice.HACKRF);
-	if (claim.success) return null;
+	// Cooperative handoff: orphan owners (stale lock from a prior process) get
+	// force-released via {forceOnOrphan: true}; live competitors with a
+	// registered preempt handler stop gracefully and we acquire on retry.
+	const claim = await resourceManager.acquireWithPreempt(SDRPP_OWNER, HardwareDevice.HACKRF, {
+		forceOnOrphan: true
+	});
+	if (claim.success) {
+		if (claim.preempted) {
+			logger.info('[sdrpp-vnc] HackRF acquired via preempt', { previous: claim.preempted });
+		}
+		// Register our preempt handler so OTHER HackRF consumers (gsm-evil,
+		// trunk-recorder, webrx, etc.) can preempt us. Calls the public stop
+		// API so the VNC stack + lock are released together.
+		resourceManager.registerPreemptHandler(SDRPP_OWNER, HardwareDevice.HACKRF, async () => {
+			logger.info('[sdrpp-vnc] preempted by another HackRF consumer — stopping');
+			await stopSdrppVnc();
+		});
+		return null;
+	}
 	logger.warn('[sdrpp-vnc] HackRF unavailable', { owner: claim.owner });
 	return {
 		success: false,
@@ -119,7 +138,9 @@ export async function startSdrppVnc(): Promise<SdrppVncControlResult> {
 		const conflict = await claimHackrf();
 		if (conflict) return conflict;
 
-		await killOrphansByPort();
+		// Canonical pre-spawn reaper — supersedes the prior killOrphansByPort
+		// by also sweeping :<display>-argv processes with SIGTERM → SIGKILL.
+		await reapPriorVncStack('sdrpp');
 		await spawnStackProcesses();
 
 		if (!(await waitForStackReady())) {

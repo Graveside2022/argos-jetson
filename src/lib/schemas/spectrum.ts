@@ -72,6 +72,6 @@ const SpectrumConfigSchema = z
 // ─── Request bodies for /api/spectrum/* ──────────────────────────────────
 
 export const StartSpectrumRequestSchema = z.object({
-	device: DeviceTypeSchema.optional(),
+	device: DeviceTypeSchema,
 	config: SpectrumConfigSchema
 });

@@ -9,14 +9,19 @@
  * stacks can run simultaneously.
  */
 
+// Canonical port/display constants come from `vnc-common/port-allocation`
+// per ADR 0005 — single source of truth across all five VNC tools.
+import { getVncAllocation } from '../vnc-common/port-allocation';
+const _GR_ALLOC = getVncAllocation('gnu-radio-vnc');
+
 /** X display number used by Xtigervnc and gnuradio-companion. */
-export const GNU_RADIO_VNC_DISPLAY = ':95';
+export const GNU_RADIO_VNC_DISPLAY = _GR_ALLOC.display;
 
 /** TCP port where Xtigervnc serves the VNC protocol on localhost. */
-export const GNU_RADIO_VNC_PORT = 5995;
+export const GNU_RADIO_VNC_PORT = _GR_ALLOC.vncPort;
 
 /** TCP port where websockify exposes the VNC session as a WebSocket. */
-export const GNU_RADIO_WS_PORT = 6084;
+export const GNU_RADIO_WS_PORT = _GR_ALLOC.wsPort;
 
 /** URL path segment served by websockify. */
 export const GNU_RADIO_WS_PATH = '/websockify';

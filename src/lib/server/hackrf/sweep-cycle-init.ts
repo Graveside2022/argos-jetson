@@ -75,12 +75,24 @@ function checkStaleState(ctx: CycleInitContext): boolean {
 	return true;
 }
 
-/** Acquire HackRF hardware resource */
+/** Acquire HackRF hardware resource.
+ *
+ * Uses cooperative pre-emption: orphan owners (stale lock from a prior process)
+ * get force-released; live competitors with a registered preempt handler stop
+ * gracefully and we acquire on retry. The preempt handler for `hackrf-sweep`
+ * itself is registered by `SweepManager.startCycle` once acquire succeeds —
+ * `ctx` here doesn't carry the manager reference and shouldn't.
+ */
 async function acquireHardware(ctx: CycleInitContext): Promise<boolean> {
-	const result = await resourceManager.acquire('hackrf-sweep', HardwareDevice.HACKRF);
+	const result = await resourceManager.acquireWithPreempt('hackrf-sweep', HardwareDevice.HACKRF, {
+		forceOnOrphan: true
+	});
 	if (!result.success) {
 		ctx.emitError(`HackRF is in use by ${result.owner}. Stop it first.`, 'resource_conflict');
 		return false;
+	}
+	if (result.preempted) {
+		logger.info('[hackrf-sweep] HackRF acquired via preempt', { previous: result.preempted });
 	}
 	return true;
 }

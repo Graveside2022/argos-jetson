@@ -17,6 +17,7 @@
 import { withWebRxLock } from '$lib/server/api/webrx-control-lock';
 import { resourceManager } from '$lib/server/hardware/resource-manager';
 import { HardwareDevice } from '$lib/server/hardware/types';
+import { logger } from '$lib/utils/logger';
 
 import { acquireHackRf, releaseHackRf } from './claim';
 import { unsupportedActionResponse } from './response';
@@ -51,8 +52,25 @@ async function maybeAcquireClaim(
 ): Promise<Response | null> {
 	if (!needsLifecycleClaim(driver, action)) return null;
 	const claim = await acquireHackRf(driver.toolName, driver.recoveryPolicy);
-	if (claim.success) return null;
-	return driver.buildConflictResponse(claim);
+	if (!claim.success) return driver.buildConflictResponse(claim);
+	// Register a preempt handler so other HackRF consumers can claim the
+	// device back. The handler invokes the driver's own stop API so the
+	// tool tears down cleanly (process kill + state reset) rather than
+	// having its lock yanked underneath it.
+	resourceManager.registerPreemptHandler(driver.toolName, HardwareDevice.HACKRF, async () => {
+		logger.info('[hackrf-tool] preempted by another HackRF consumer — stopping', {
+			tool: driver.toolName
+		});
+		try {
+			await driver.stop({});
+		} catch (err) {
+			logger.warn('[hackrf-tool] driver.stop threw during preempt', {
+				tool: driver.toolName,
+				err: err instanceof Error ? err.message : String(err)
+			});
+		}
+	});
+	return null;
 }
 
 /** Run a mutating action (start/stop/restart) with claim + refresh handling. */

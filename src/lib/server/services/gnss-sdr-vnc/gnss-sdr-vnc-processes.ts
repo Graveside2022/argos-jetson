@@ -70,12 +70,12 @@ const SCOPE = 'gnss-sdr-vnc';
 // ───────────────────────────── module state ──────────────────────────────
 
 let xvncProcess: ChildProcess | null = null;
+let wmProcess: ChildProcess | null = null;
 let gnssSdrProcess: ChildProcess | null = null;
 let rtknaviProcess: ChildProcess | null = null;
 let gnssSdrMonitorProcess: ChildProcess | null = null;
 let websockifyProcess: ChildProcess | null = null;
 let socatProcess: ChildProcess | null = null;
-let wmProcess: ChildProcess | null = null;
 
 const errorTracker = createSpawnErrorTracker(SCOPE);
 
@@ -97,6 +97,56 @@ export function clearSpawnError(): void {
 
 export function getSpawnError(): Error | null {
 	return errorTracker.get();
+}
+
+// ─────────────────── post-ready crash watchdog ───────────────────────────
+//
+// `waitForStackReady` returning true is a "first-fix" check, not a liveness
+// guarantee. If any of the managed children dies AFTER that point (e.g. UHD
+// loses the radio on USB unplug), `startGnssSdrVnc` has already returned
+// success — and the B205 lock stays claimed until the next explicit stop.
+// Audit MED finding 2026-05-27.
+//
+// The watchdog attaches a one-shot `exit` listener to each ChildProcess
+// after ready. When ANY child exits, the registered handler fires once with
+// the dying child's label; the caller (control-service) reacts by calling
+// stopGnssSdrVnc(), which kills the rest of the stack and releases B205.
+//
+// disarm BEFORE intentional shutdown so the listener doesn't double-fire
+// during normal stop.
+
+type CrashHandler = (label: string) => void;
+let watchdogListeners: Array<{ proc: ChildProcess; listener: () => void }> = [];
+
+export function armCrashWatchdog(onCrash: CrashHandler): void {
+	disarmCrashWatchdog();
+	const procs: ReadonlyArray<readonly [ChildProcess | null, string]> = [
+		[xvncProcess, 'Xtigervnc'],
+		[wmProcess, 'openbox'],
+		[gnssSdrProcess, 'gnss-sdr'],
+		[rtknaviProcess, 'rtknavi_qt'],
+		[gnssSdrMonitorProcess, 'gnss-sdr-monitor'],
+		[websockifyProcess, 'websockify'],
+		[socatProcess, 'socat']
+	];
+	let fired = false;
+	for (const [proc, label] of procs) {
+		if (!proc) continue;
+		const listener = (): void => {
+			if (fired) return;
+			fired = true;
+			onCrash(label);
+		};
+		proc.once('exit', listener);
+		watchdogListeners.push({ proc, listener });
+	}
+}
+
+export function disarmCrashWatchdog(): void {
+	for (const { proc, listener } of watchdogListeners) {
+		proc.off('exit', listener);
+	}
+	watchdogListeners = [];
 }
 
 // ─────────────────────────── helpers ─────────────────────────────────────
@@ -239,6 +289,14 @@ export function spawnWindowManager(): void {
 	wmProcess.unref();
 	wmProcess.on('exit', (code, signal) => {
 		logger.info(`[${SCOPE}] openbox exited`, { code, signal });
+		// Non-zero exit BEFORE the stack is ready means openbox launched but
+		// immediately failed (missing binary, missing rc.xml, permission error).
+		// Surface via recordSpawnError so the next assertNoSpawnError() in the
+		// start path raises with a clear message instead of leaving operators
+		// with silently undecorated Qt windows.
+		if (code !== null && code !== 0) {
+			recordSpawnError('openbox', new Error(`openbox exited code=${code} signal=${signal}`));
+		}
 		wmProcess = null;
 	});
 	wmProcess.on('error', (err) => {
@@ -267,6 +325,18 @@ export function spawnXtigervnc(): void {
 			}
 		}
 	);
+}
+
+/**
+ * Liveness probe for the openbox window manager. Returns true only when
+ * the spawn handle is live + has a pid + has not exited. Used by the
+ * start orchestrator to surface a silent openbox death (e.g. `openbox`
+ * package not installed, `/etc/xdg/openbox/rc.xml` missing) immediately
+ * after the spawn-delay window — instead of letting the stack come up
+ * with undecorated/unrendered Qt windows.
+ */
+export function isWindowManagerAlive(): boolean {
+	return wmProcess !== null && wmProcess.pid !== undefined && wmProcess.exitCode === null;
 }
 
 /** Set X11 background to the dark theme. */
@@ -517,6 +587,8 @@ export async function killAllProcesses(): Promise<void> {
 	rtknaviProcess = null;
 	await killProc(gnssSdrProcess, 'gnss-sdr');
 	gnssSdrProcess = null;
+	// openbox dies before Xtigervnc so the WM can close cleanly before its
+	// display goes away (avoids ICE/SM stderr noise from a parent X gone).
 	await killProc(wmProcess, 'openbox');
 	wmProcess = null;
 	await killProc(xvncProcess, 'Xtigervnc');
@@ -612,6 +684,7 @@ export async function sendGnssSdrTelecommand(
 /** @internal */
 export function _resetModuleStateForTest(): void {
 	xvncProcess = null;
+	wmProcess = null;
 	gnssSdrProcess = null;
 	rtknaviProcess = null;
 	gnssSdrMonitorProcess = null;

@@ -15,6 +15,7 @@ import { delay } from '$lib/utils/delay';
 import { logger } from '$lib/utils/logger';
 
 import { createVncShutdownHandler, throwIfSpawnError } from '../vnc-common/spawn-helpers';
+import { reapPriorVncStack } from '../vnc-common/stack-leak-guard';
 import {
 	centerSparrowWindow,
 	clearSpawnError,
@@ -218,6 +219,10 @@ export async function startSparrowVnc(): Promise<SparrowVncControlResult> {
 	}
 	const rejection = await claimAlfa();
 	if (rejection) return rejection;
+	// Canonical pre-spawn reaper — closes the stack-leak loophole where a
+	// prior Xtigervnc/openbox bound to :<display> survives a failed-mid-way
+	// start. SIGTERM → SIGKILL escalation ensures X socket release.
+	await reapPriorVncStack('sparrow');
 	try {
 		return await runStartPipeline();
 	} catch (error: unknown) {

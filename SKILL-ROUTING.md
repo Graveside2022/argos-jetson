@@ -106,3 +106,53 @@ Synchronizer token (server-validated hidden field), double-submit cookie, SameSi
 - **RTK + `npm run verify`**: lint-and-validate defers to the project wrapper, not raw shell.
 - **Perf measurement is native**: chrome-devtools/Lighthouse measure; web-performance only guides.
 - **Out of scope**: Rust tactical (blue-dragon) — these skills are JS/TS/web; use cargo clippy/audit for that.
+
+## Per-task ruflo intelligence-graph invocation pattern (always-on)
+
+Source of truth: [`RUFLO.md`](./RUFLO.md) §Per-task intelligence-graph flow. Replicated here for skill-routing convenience.
+
+For every Argos task containing a fix/audit/review/debug/refactor verb, walk the Learning Loop (per upstream `ruvnet/ruflo` USERGUIDE.md):
+
+| Order | Tool                                                                    | Purpose                                                                                                              |
+| ----- | ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| 1     | `mcp__ruflo__memory_search` with `smart=true`                           | RETRIEVE — RRF + MMR + recency reranking surfaces prior decisions / methodologies                                    |
+| 2     | `mcp__ruflo__agentdb_pattern-search`                                    | RETRIEVE — per-namespace pattern recall                                                                              |
+| 3     | `mcp__ruflo__memory_store` (scope key in `argos-<task>-scope`)          | RETRIEVE → JUDGE — scope + swarm-vs-single decision                                                                  |
+| 4     | `mcp__ruflo__agentdb_pattern-store` per finding                         | JUDGE — persist finding patternId                                                                                    |
+| 5     | `mcp__ruflo__agentdb_causal-edge` per finding                           | JUDGE — link finding patternId → completion patternId (or → prior obs)                                               |
+| 6     | `mcp__ruflo__agentdb_hierarchical-store` per finding                    | DISTILL — tier = `semantic` (HIGH) / `episodic` (MED) / `working` (LOW)                                              |
+| 7     | `mcp__ruflo__embeddings_compare` (optional)                             | DISTILL — validate cluster cohesion vs prior obs                                                                     |
+| 8     | `mcp__ruflo__agentdb_pattern-store` type=`*-completion`                 | CONSOLIDATE — closing record                                                                                         |
+| 9     | `mcp__ruflo__agentdb_feedback` `{taskId, success, quality}`             | CONSOLIDATE — close learning loop                                                                                    |
+| 10    | `mcp__ruflo__agentdb_graph-pathfinder personalized-pagerank` (optional) | CONSOLIDATE — cluster topology                                                                                       |
+| 11    | Native `Agent({subagent_type: ...})`                                    | ROUTE — security-architect / tdd-london-swarm / sparc-refine / code-reviewer / performance-engineer for review tasks |
+
+Acceptance: ≥3 of {smart=true, causal-edge, hierarchical-store, agentdb_feedback} fire in first task turn without explicit user prompting. Tessl skills (below) layer ON TOP as combinations, NOT as alternatives.
+
+## Ruflo skill catalog — summary
+
+**106 ruflo skill cards across 32 plugins** are installed at user scope. Full per-plugin enumeration with descriptions + honesty tags is in [`docs/skill-routing-ruflo-catalog.md`](./docs/skill-routing-ruflo-catalog.md) (extracted 2026-05-27 to keep this file lean — load on demand via `Read`/`rtk grep`). **Each skill card is a markdown doc, not an executor** — whether the work behind it runs depends on the backing MCP tool.
+
+**Tally**: 69 REAL ✅ · 16 STUB ⚠️ · 4 GUIDANCE 📝 · 16 DOMAIN 🎯 · 1 DEPRECATED 📦 — **106 total**. Combined with the 13 tessl skills, practical Argos-relevant invocation surface is ~50-60 skills.
+
+### Argos fit categories (decision shortcut)
+
+- **HIGH-fit — USE**: `ruflo-rag-memory`, `ruflo-agentdb`, `ruflo-ruvector`, `ruflo-cost-tracker`, `ruflo-adr`, `ruflo-jujutsu`, `ruflo-knowledge-graph`, `ruflo-plugin-creator`, `ruflo-goals`, `ruflo-testgen` (test-gaps), `ruflo-aidefence`, `ruflo-rvf`, `ruflo-core`.
+- **MEDIUM-fit — prefer native MCP**: `ruflo-browser` (chrome-devtools), `ruflo-observability` (OTel), `ruflo-security-audit` (CodeQL + Dependabot), `ruflo-loop-workers` (`/loop` + CronCreate), `ruflo-migrations`, `ruflo-docs`, `ruflo-ddd`, `ruflo-intelligence`, `ruflo-ruvllm`.
+- **SKIP entirely — STUB / DOMAIN**: `ruflo-agent`, `ruflo-autopilot`, `ruflo-daa`, `ruflo-federation`, `ruflo-swarm/swarm-init`, `ruflo-workflows`, `ruflo-intelligence/neural-train`, `ruflo-iot-cognitum`, `ruflo-market-data`, `ruflo-neural-trader`, `ruflo-sparc`.
+
+### Skill scan order — RUFLO PRIMARY, TESSL COMBINATION (INVERTED 2026-05-26)
+
+Per user directive 2026-05-26 (post PR #251 + #252), the prior tessl-first scan order is INVERTED. All Argos tasks route through ruflo FIRST. Tessl skills layer on TOP as combinations, NOT as primary or alternative scan.
+
+Apply BEFORE running `mcp__tessl__search` or installing new tiles:
+
+1. **Ruflo memory recall** — `mcp__ruflo__memory_search` (namespace=`argos-decisions` + `argos-phaseN-scope`) + `mcp__ruflo__agentdb_pattern-search` for prior context. "Did we already solve this? What was the methodology last time? What were the findings?"
+2. **Ruflo scope store + swarm-vs-single decision** — `mcp__ruflo__memory_store` task scope + goals in `argos-<task-name>-scope` namespace BEFORE any code action. Decide: parallel/swarm? Spawn native `Agent` workers using ruflo's 60+ `subagent_type` labels. Single? Proceed inline.
+3. **Ruflo skill match** — scan the per-plugin tables in [`docs/skill-routing-ruflo-catalog.md`](./docs/skill-routing-ruflo-catalog.md); skip ⚠️ STUB / 🎯 DOMAIN / 📦 DEPRECATED / 📝 GUIDANCE tags. Invoke matched ruflo skills via `Skill(...)` tool.
+4. **Tessl combination layer** — match work to the 13 tessl skills via the trigger map above; invoke as COMBINATION on top of the ruflo flow (e.g. `tessl__sqlite-node-best-practices` invoked INSIDE a ruflo `test-gaps` + `memory_store` flow, not as a parallel scan).
+5. **Gap → search** — only if NEITHER catalog covers, run `mcp__tessl__search`.
+6. **Gap → install** — only if a relevant new tile surfaces, gate by 5-check safe-install protocol from CLAUDE.md.
+7. **Findings persist** — `agentdb_pattern-store` each finding as it lands; `memory_store` decisions/pivots in `argos-decisions`; `agentdb_pattern-store` completion record at task end (score, deferred items, PR number).
+
+See [`RUFLO.md`](./RUFLO.md) §Per-phase ruflo workflow pattern for the full 5-step task lifecycle. Hook `~/.claude/hooks/ruflo-task-routing-gate.sh` mechanically enforces this scan order.

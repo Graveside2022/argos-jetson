@@ -16,6 +16,7 @@ import { delay } from '$lib/utils/delay';
 import { logger } from '$lib/utils/logger';
 
 import { throwIfSpawnError } from '../vnc-common/spawn-helpers';
+import { reapPriorVncStack } from '../vnc-common/stack-leak-guard';
 import {
 	assertWiresharkGroupMember,
 	clearSpawnError,
@@ -152,7 +153,9 @@ async function runStart(iface: string, filter: string): Promise<WiresharkVncCont
 		return filterRejectedResult(filter, filterError);
 	}
 
-	await killOrphansByPort();
+	// Canonical pre-spawn reaper — supersedes killOrphansByPort with
+	// :<display>-argv sweep + SIGTERM → SIGKILL escalation.
+	await reapPriorVncStack('wireshark-vnc');
 	await spawnStackProcesses(iface, filter);
 
 	if (!(await waitForStackReady())) return cleanupFailedStart();
