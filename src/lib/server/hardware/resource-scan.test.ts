@@ -12,7 +12,8 @@ vi.mock('./hackrf-manager', () => ({
 
 vi.mock('./alfa-manager', () => ({
 	detectAdapter: vi.fn(),
-	getAlfaBlockingProcesses: vi.fn()
+	getAlfaBlockingProcesses: vi.fn(),
+	killAlfaBlockingProcesses: vi.fn()
 }));
 
 import * as alfaMgr from './alfa-manager';
@@ -50,6 +51,10 @@ describe('resource-scan — scanForOrphans (HackRF process detection)', () => {
 	});
 
 	test('found HackRF process: state set to isAvailable=false + owner=process-name', async () => {
+		// A process holding the device implies it is present, so detection returns
+		// true; isDetected now mirrors the real detect result (not inferred from
+		// process presence) — consistent with the B205/ALFA plugins.
+		(hackrfMgr.detectHackRF as ReturnType<typeof vi.fn>).mockResolvedValue(true);
 		(hackrfMgr.getHackrfBlockingProcesses as ReturnType<typeof vi.fn>).mockResolvedValue([
 			{ pid: '1', name: 'hackrf_sweep' }
 		]);
@@ -71,14 +76,15 @@ describe('resource-scan — scanForOrphans (HackRF process detection)', () => {
 		expect(state.get(HardwareDevice.HACKRF)?.owner).toBeNull();
 	});
 
-	test('process found short-circuits detectHackRF call', async () => {
+	test('detection is probed even when a process is found (no short-circuit)', async () => {
 		(hackrfMgr.getHackrfBlockingProcesses as ReturnType<typeof vi.fn>).mockResolvedValue([
 			{ pid: '1', name: 'hackrf_sweep' }
 		]);
 		const state = setupStateMap();
 		await scanForOrphans(state);
-		// detectHackRF should NOT be called when a process was found
-		expect(hackrfMgr.detectHackRF).not.toHaveBeenCalled();
+		// scanOrphans always probes detectHackRF first for ground-truth isDetected,
+		// even when a process owns the device — consistent with B205/ALFA plugins.
+		expect(hackrfMgr.detectHackRF).toHaveBeenCalledTimes(1);
 	});
 });
 

@@ -21,6 +21,12 @@ vi.mock('../../../src/lib/server/services/gnu-radio-vnc/gnu-radio-vnc-processes'
 	spawnXtigervnc: vi.fn()
 }));
 
+// performStartup now reaps any leaked prior VNC stack before spawning; stub it
+// so the background startup reaches the spawn step deterministically in tests.
+vi.mock('../../../src/lib/server/services/vnc-common/stack-leak-guard', () => ({
+	reapPriorVncStack: vi.fn(async () => 0)
+}));
+
 import { startGnuRadioVnc } from '../../../src/lib/server/services/gnu-radio-vnc/gnu-radio-vnc-control-service';
 import { spawnXtigervnc } from '../../../src/lib/server/services/gnu-radio-vnc/gnu-radio-vnc-processes';
 
@@ -41,7 +47,8 @@ describe('startGnuRadioVnc — non-blocking (SPD-5)', () => {
 
 	test('still kicks off the stack spawn in the background', async () => {
 		await startGnuRadioVnc();
-		// The first spawn fires synchronously inside performStartup before any await.
-		expect(spawnXtigervnc).toHaveBeenCalledTimes(1);
+		// performStartup reaps any leaked prior stack (one await) before the first
+		// spawn, so the spawn lands on a later microtask — wait for it.
+		await vi.waitFor(() => expect(spawnXtigervnc).toHaveBeenCalledTimes(1));
 	});
 });
