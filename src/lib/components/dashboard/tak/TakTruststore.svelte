@@ -1,5 +1,9 @@
 <script lang="ts">
-	import Input from '$lib/components/ui/input/input.svelte';
+	import Checkmark from 'carbon-icons-svelte/lib/Checkmark.svelte';
+	import Close from 'carbon-icons-svelte/lib/Close.svelte';
+	import Upload from 'carbon-icons-svelte/lib/Upload.svelte';
+
+	import PasswordInput from '$lib/components/chassis/forms/PasswordInput.svelte';
 	import type { TakServerConfig } from '$lib/types/tak';
 
 	interface Props {
@@ -49,35 +53,19 @@
 	}
 </script>
 
-<div class="flex flex-col gap-2.5">
-	<span class="text-xs font-semibold tracking-widest text-muted-foreground">TRUST STORE</span>
-	<p class="text-[10px] leading-relaxed text-muted-foreground/70">
-		Upload the <strong class="text-muted-foreground">root CA truststore</strong> (.p12) — e.g.
-		<code class="rounded bg-muted/50 px-1 text-foreground/80">truststore-root.p12</code>
+<div class="trust-section">
+	<span class="trust-label">TRUST STORE</span>
+	<p class="trust-help">
+		Upload the <strong class="trust-help-strong">root CA truststore</strong> (.p12) — e.g.
+		<code class="trust-help-code">truststore-root.p12</code>
 	</p>
 
 	<!-- File picker -->
-	<label class="flex flex-col gap-1 text-[11px] font-medium text-muted-foreground">
+	<label class="trust-field">
 		Truststore File (.p12)
-		<label
-			class="group flex cursor-pointer items-center gap-2 rounded-md border border-dashed border-border/60 bg-muted/10 px-3 py-2 transition-colors hover:border-primary/50 hover:bg-muted/20"
-		>
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				width="16"
-				height="16"
-				viewBox="0 0 24 24"
-				fill="none"
-				stroke="currentColor"
-				stroke-width="2"
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				class="shrink-0 text-muted-foreground/60 group-hover:text-primary"
-				><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline
-					points="17 8 12 3 7 8"
-				/><line x1="12" y1="3" x2="12" y2="15" /></svg
-			>
-			<span class="text-[11px] text-muted-foreground group-hover:text-foreground">
+		<label class="trust-dropzone">
+			<Upload size={16} class="trust-icon" />
+			<span class="trust-filename">
 				{truststoreFile && truststoreFile.length > 0
 					? truststoreFile[0].name
 					: 'Choose .p12 file...'}
@@ -87,86 +75,201 @@
 	</label>
 
 	<!-- Password -->
-	<label class="flex flex-col gap-1 text-[11px] font-medium text-muted-foreground">
-		Truststore Password
-		<Input
-			type="password"
-			bind:value={config.truststorePass}
-			placeholder="atakatak"
-			class="h-8 text-xs"
-		/>
-	</label>
+	<PasswordInput
+		labelText="Truststore Password"
+		placeholder="atakatak"
+		bind:value={config.truststorePass}
+		size="sm"
+	/>
 
 	<!-- Upload button -->
-	<div class="flex items-center gap-2">
-		<button
-			onclick={uploadTruststore}
-			class="inline-flex items-center gap-1.5 rounded-md border border-primary/50 bg-primary/15 px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-primary/30"
-		>
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				width="14"
-				height="14"
-				viewBox="0 0 24 24"
-				fill="none"
-				stroke="currentColor"
-				stroke-width="2"
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline
-					points="17 8 12 3 7 8"
-				/><line x1="12" y1="3" x2="12" y2="15" /></svg
-			>
+	<div class="trust-actions">
+		<button class="trust-upload-btn" onclick={uploadTruststore}>
+			<Upload size={14} />
 			Upload Truststore
 		</button>
 		{#if truststoreStatus}
-			<span class="text-[10px] text-muted-foreground">{truststoreStatus}</span>
+			<span class="trust-status">{truststoreStatus}</span>
 		{/if}
 	</div>
 
 	<!-- Status indicator -->
 	{#if config.truststorePath}
-		<div
-			class="flex items-center justify-between rounded-md border border-green-500/30 bg-green-500/10 px-2.5 py-1.5"
-		>
-			<div class="flex items-center gap-1.5">
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					width="14"
-					height="14"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2.5"
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					class="text-green-400"><polyline points="20 6 9 17 4 12" /></svg
-				>
-				<span class="text-[10px] font-medium text-green-400">Truststore loaded</span>
+		<div class="trust-loaded">
+			<div class="trust-loaded-info">
+				<Checkmark size={14} class="trust-check" />
+				<span class="trust-loaded-text">Truststore loaded</span>
 			</div>
-			<button
-				onclick={() => onTruststoreCleared?.()}
-				class="inline-flex items-center gap-1 rounded border border-red-500/40 bg-red-500/10 px-2 py-0.5 text-[10px] font-medium text-red-400 transition-colors hover:bg-red-500/25"
-			>
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					width="12"
-					height="12"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					><line x1="18" y1="6" x2="6" y2="18" /><line
-						x1="6"
-						y1="6"
-						x2="18"
-						y2="18"
-					/></svg
-				>
+			<button class="trust-clear-btn" onclick={() => onTruststoreCleared?.()}>
+				<Close size={12} />
 				Clear
 			</button>
 		</div>
 	{/if}
 </div>
+
+<style>
+	.trust-section {
+		display: flex;
+		flex-direction: column;
+		gap: 0.625rem;
+	}
+
+	.trust-label {
+		font-size: 0.75rem;
+		font-weight: 600;
+		letter-spacing: 0.1em;
+		color: var(--cds-text-helper);
+	}
+
+	.trust-help {
+		font-size: 0.625rem;
+		line-height: 1.625;
+		color: color-mix(in srgb, var(--cds-text-helper) 70%, transparent);
+	}
+
+	.trust-help-strong {
+		color: var(--cds-text-helper);
+	}
+
+	.trust-help-code {
+		border-radius: 0.25rem;
+		padding: 0 0.25rem;
+		background: color-mix(in srgb, var(--cds-layer) 50%, transparent);
+		color: color-mix(in srgb, var(--cds-text-primary) 80%, transparent);
+		font-family: var(--cds-code-01-font-family);
+	}
+
+	.trust-field {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		font-size: 0.6875rem;
+		font-weight: 500;
+		color: var(--cds-text-helper);
+	}
+
+	.trust-dropzone {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.5rem 0.75rem;
+		border: 1px dashed color-mix(in srgb, var(--cds-border-subtle) 60%, transparent);
+		border-radius: 0.375rem;
+		background: color-mix(in srgb, var(--cds-layer) 10%, transparent);
+		cursor: pointer;
+		transition:
+			border-color 0.15s ease,
+			background-color 0.15s ease;
+	}
+
+	.trust-dropzone:hover {
+		border-color: color-mix(in srgb, var(--cds-link-primary) 50%, transparent);
+		background: color-mix(in srgb, var(--cds-layer) 20%, transparent);
+	}
+
+	.trust-dropzone :global(.trust-icon) {
+		flex-shrink: 0;
+		color: color-mix(in srgb, var(--cds-text-helper) 60%, transparent);
+	}
+
+	.trust-dropzone:hover :global(.trust-icon) {
+		color: var(--cds-link-primary);
+	}
+
+	.trust-filename {
+		font-size: 0.6875rem;
+		color: var(--cds-text-helper);
+	}
+
+	.trust-dropzone:hover .trust-filename {
+		color: var(--cds-text-primary);
+	}
+
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
+	}
+
+	.trust-actions {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.trust-upload-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		border: 1px solid color-mix(in srgb, var(--cds-link-primary) 50%, transparent);
+		border-radius: 0.375rem;
+		background: color-mix(in srgb, var(--cds-link-primary) 15%, transparent);
+		padding: 0.375rem 0.75rem;
+		font-size: 0.75rem;
+		font-weight: 500;
+		color: var(--cds-text-primary);
+		cursor: pointer;
+		transition: background-color 0.15s ease;
+	}
+
+	.trust-upload-btn:hover {
+		background: color-mix(in srgb, var(--cds-link-primary) 30%, transparent);
+	}
+
+	.trust-status {
+		font-size: 0.625rem;
+		color: var(--cds-text-helper);
+	}
+
+	.trust-loaded {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0.375rem 0.625rem;
+		border: 1px solid color-mix(in srgb, var(--cds-support-success) 30%, transparent);
+		border-radius: 0.375rem;
+		background: color-mix(in srgb, var(--cds-support-success) 10%, transparent);
+	}
+
+	.trust-loaded-info {
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+	}
+
+	.trust-loaded :global(.trust-check) {
+		color: var(--cds-support-success);
+	}
+
+	.trust-loaded-text {
+		font-size: 0.625rem;
+		font-weight: 500;
+		color: var(--cds-support-success);
+	}
+
+	.trust-clear-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		border: 1px solid color-mix(in srgb, var(--cds-support-error) 40%, transparent);
+		border-radius: 0.25rem;
+		background: color-mix(in srgb, var(--cds-support-error) 10%, transparent);
+		padding: 0.125rem 0.5rem;
+		font-size: 0.625rem;
+		font-weight: 500;
+		color: var(--cds-support-error);
+		cursor: pointer;
+		transition: background-color 0.15s ease;
+	}
+
+	.trust-clear-btn:hover {
+		background: color-mix(in srgb, var(--cds-support-error) 25%, transparent);
+	}
+</style>
