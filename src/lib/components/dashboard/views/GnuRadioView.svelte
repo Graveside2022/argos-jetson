@@ -1,7 +1,7 @@
 <script lang="ts">
+	import { Button, InlineLoading } from 'carbon-components-svelte';
 	import { onMount } from 'svelte';
 
-	import Button from '$lib/components/ui/button/button.svelte';
 	import { activeView } from '$lib/stores/dashboard/dashboard-store.svelte';
 
 	import ToolViewWrapper from './ToolViewWrapper.svelte';
@@ -127,7 +127,7 @@
 </script>
 
 {#snippet stopAction()}
-	<Button variant="outline" size="sm" onclick={handleStop} disabled={stopping}>
+	<Button kind="tertiary" size="small" on:click={handleStop} disabled={stopping}>
 		{stopping ? 'Stopping…' : 'Stop'}
 	</Button>
 {/snippet}
@@ -140,17 +140,16 @@
 		</div>
 	{:else if serviceStatus === 'checking' || serviceStatus === 'starting'}
 		<div class="grc-status">
-			<div class="spinner" aria-hidden="true"></div>
-			<p class="status-label">
-				{serviceStatus === 'starting' ? 'LAUNCHING GNU RADIO…' : 'CONNECTING…'}
-			</p>
+			<InlineLoading
+				description={serviceStatus === 'starting' ? 'LAUNCHING GNU RADIO…' : 'CONNECTING…'}
+			/>
 			<p class="status-detail">Spawning Xtigervnc + gnuradio-companion + websockify</p>
 		</div>
 	{:else if serviceStatus === 'stopped'}
 		<div class="grc-status">
 			<p class="status-label">GNU RADIO UNAVAILABLE</p>
 			<p class="status-detail">{errorMsg || 'Service not running'}</p>
-			<button class="retry-btn" onclick={reconnect}>START GNU RADIO</button>
+			<Button kind="primary" size="small" on:click={reconnect}>START GNU RADIO</Button>
 		</div>
 	{:else if serviceStatus === 'disabled'}
 		<div class="grc-status">
@@ -162,7 +161,7 @@
 		<div class="grc-status">
 			<p class="status-label error">CONNECTION FAILED</p>
 			<p class="status-detail">{errorMsg || 'Unknown error'}</p>
-			<button class="retry-btn" onclick={reconnect}>RETRY</button>
+			<Button kind="primary" size="small" on:click={reconnect}>RETRY</Button>
 		</div>
 	{:else}
 		{#key vncKey}
@@ -186,26 +185,26 @@
 		gap: 0.5rem;
 	}
 	.status-label {
-		font-family: 'Fira Code', monospace;
-		font-size: 12px;
-		color: var(--muted-foreground);
+		font-family: var(--cds-code-01-font-family);
+		font-size: var(--cds-label-01-font-size);
+		color: var(--cds-text-helper);
 		text-transform: uppercase;
 		letter-spacing: 1.2px;
 	}
 	.status-label.error {
-		color: var(--destructive);
+		color: var(--cds-support-error);
 	}
 	.status-detail {
-		font-family: 'Fira Code', monospace;
-		font-size: 11px;
-		color: var(--muted-foreground);
+		font-family: var(--cds-code-01-font-family);
+		font-size: var(--cds-label-01-font-size);
+		color: var(--cds-text-helper);
 		max-width: 40rem;
 		text-align: center;
 	}
 	.status-hint {
-		font-family: 'Fira Code', monospace;
-		font-size: 10px;
-		color: var(--muted-foreground);
+		font-family: var(--cds-code-01-font-family);
+		font-size: var(--cds-label-01-font-size);
+		color: var(--cds-text-helper);
 	}
 	.flowgraph-ribbon {
 		position: absolute;
@@ -214,44 +213,14 @@
 		display: flex;
 		gap: 1rem;
 		padding: 0.25rem 0.5rem;
-		background: var(--card);
-		border: 1px solid var(--border);
+		background: var(--cds-layer);
+		border: 1px solid var(--cds-border-subtle);
 		border-radius: 3px;
-		font-family: 'Fira Code', monospace;
-		font-size: 10px;
-		color: var(--muted-foreground);
+		font-family: var(--cds-code-01-font-family);
+		font-size: var(--cds-label-01-font-size);
+		color: var(--cds-text-helper);
 	}
 	.flowgraph-ribbon code {
-		color: var(--primary);
-	}
-	.retry-btn {
-		margin-top: 0.5rem;
-		padding: 0.35rem 1rem;
-		font-family: 'Fira Code', monospace;
-		font-size: 11px;
-		text-transform: uppercase;
-		letter-spacing: 1px;
-		color: var(--primary);
-		border: 1px solid var(--border);
-		border-radius: 4px;
-		background: var(--card);
-		cursor: pointer;
-		transition: border-color 0.15s;
-	}
-	.retry-btn:hover {
-		border-color: var(--primary);
-	}
-	.spinner {
-		width: 24px;
-		height: 24px;
-		border: 2px solid var(--border);
-		border-top-color: var(--primary);
-		border-radius: 50%;
-		animation: spin 0.8s linear infinite;
-	}
-	@keyframes spin {
-		to {
-			transform: rotate(360deg);
-		}
+		color: var(--cds-link-primary);
 	}
 </style>
