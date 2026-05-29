@@ -9,6 +9,7 @@
 </script>
 
 <script lang="ts">
+	import Close from 'carbon-icons-svelte/lib/Close.svelte';
 	import { tick } from 'svelte';
 
 	import {
@@ -148,7 +149,7 @@
 					onclick={() => onCloseClick(tab.id, cIdx)}
 					onkeydown={(e) => onCloseKey(e, tab.id)}
 				>
-					×
+					<Close size={16} />
 				</button>
 			{/if}
 		{/each}
@@ -185,25 +186,24 @@
 		height: 28px;
 		padding: 0 12px;
 		background: transparent;
-		color: var(--foreground-muted, var(--foreground));
+		color: var(--cds-text-helper);
 		border: 0;
 		border-radius: 4px 4px 0 0;
-		font:
-			500 12px/1 'Geist',
-			system-ui,
-			sans-serif;
+		font-weight: 500;
+		font-size: var(--cds-label-01-font-size);
+		line-height: 1;
 		cursor: pointer;
 	}
 
 	.editor-tab-bar__tab:hover,
 	.editor-tab-bar__tab.active {
-		background: var(--surface-elevated, var(--card));
-		color: var(--foreground);
+		background: var(--cds-layer);
+		color: var(--cds-text-primary);
 	}
 
 	.editor-tab-bar__tab:focus-visible,
 	.editor-tab-bar__close:focus-visible {
-		outline: 2px solid var(--ring, var(--primary));
+		outline: 2px solid var(--cds-border-strong);
 		outline-offset: -2px;
 	}
 
@@ -227,19 +227,15 @@
 		padding: 2px;
 		margin-left: -4px;
 		background: transparent;
-		color: var(--foreground-muted, var(--foreground));
+		color: var(--cds-text-helper);
 		border: 0;
 		border-radius: 4px;
-		font:
-			400 14px/1 'Geist',
-			system-ui,
-			sans-serif;
 		cursor: pointer;
 	}
 
 	.editor-tab-bar__close:hover {
-		background: var(--card);
-		color: var(--foreground);
+		background: var(--cds-layer);
+		color: var(--cds-text-primary);
 	}
 
 	.editor-tab-bar__trailing {

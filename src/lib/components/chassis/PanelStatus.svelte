@@ -3,6 +3,7 @@
 </script>
 
 <script lang="ts">
+	import { Button, InlineLoading } from 'carbon-components-svelte';
 	import type { Snippet } from 'svelte';
 
 	interface Props {
@@ -43,7 +44,7 @@
 			{@render icon()}
 		</div>
 	{:else if state === 'loading'}
-		<div class="panel-status__spinner" aria-hidden="true"></div>
+		<InlineLoading />
 	{/if}
 
 	<p class="panel-status__title">{title}</p>
@@ -55,9 +56,7 @@
 	{#if action}
 		<div class="panel-status__action">{@render action()}</div>
 	{:else if showRetryButton}
-		<button type="button" class="panel-status__retry" onclick={onRetry}>
-			{retryLabel}
-		</button>
+		<Button kind="tertiary" size="small" on:click={onRetry}>{retryLabel}</Button>
 	{/if}
 </div>
 
@@ -67,11 +66,11 @@
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		gap: 8px;
-		padding: 24px 16px;
+		gap: var(--cds-spacing-03);
+		padding: var(--cds-spacing-06) var(--cds-spacing-05);
 		min-height: 120px;
 		text-align: center;
-		font-family: 'Fira Code', monospace;
+		font-family: var(--cds-code-01-font-family);
 	}
 
 	.panel-status__icon {
@@ -80,80 +79,35 @@
 		justify-content: center;
 		width: 28px;
 		height: 28px;
-		color: var(--muted-foreground);
-	}
-
-	.panel-status__spinner {
-		width: 24px;
-		height: 24px;
-		border: 2px solid var(--border);
-		border-top-color: var(--muted-foreground);
-		border-radius: 50%;
-		animation: panel-status-spin 1s linear infinite;
-	}
-
-	@keyframes panel-status-spin {
-		to {
-			transform: rotate(360deg);
-		}
+		color: var(--cds-text-helper);
 	}
 
 	.panel-status__title {
 		margin: 0;
-		font-size: 12px;
+		font-size: var(--cds-label-01-font-size);
 		font-weight: 500;
 		letter-spacing: 0.2px;
-		color: var(--foreground-muted, var(--foreground));
+		color: var(--cds-text-primary);
 	}
 
 	.panel-status--error .panel-status__title,
 	.panel-status--disconnected .panel-status__title {
-		color: var(--destructive);
+		color: var(--cds-support-error);
 	}
 
 	.panel-status--disabled .panel-status__title {
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 	}
 
 	.panel-status__detail {
 		margin: 0;
 		max-width: 32ch;
-		font-size: 11px;
+		font-size: var(--cds-label-01-font-size);
 		line-height: 1.45;
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 	}
 
 	.panel-status__action {
 		margin-top: 4px;
-	}
-
-	.panel-status__retry {
-		margin-top: 4px;
-		padding: 6px 16px;
-		background: transparent;
-		border: 1px solid var(--border);
-		color: var(--foreground);
-		font-family: 'Fira Code', monospace;
-		font-size: 11px;
-		font-weight: 500;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-		cursor: pointer;
-		transition: background 0.1s;
-	}
-
-	.panel-status__retry:hover {
-		background: var(--border);
-	}
-
-	.panel-status__retry:focus-visible {
-		outline: 2px solid var(--ring, var(--foreground));
-		outline-offset: 2px;
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.panel-status__spinner {
-			animation: none;
-		}
 	}
 </style>
