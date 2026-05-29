@@ -64,8 +64,8 @@
 		top: calc(100% + 6px);
 		right: 0;
 		min-width: 240px;
-		background: var(--card);
-		border: 1px solid var(--border);
+		background: var(--cds-layer);
+		border: 1px solid var(--cds-border-subtle);
 		border-radius: 6px;
 		padding: 12px;
 		box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
@@ -83,19 +83,19 @@
 	}
 
 	.popup-title {
-		font-family: var(--font-mono);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 10px;
 		font-weight: 600;
 		letter-spacing: 1.2px;
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 	}
 
 	.refresh-btn {
 		background: none;
-		border: 1px solid var(--border);
+		border: 1px solid var(--cds-border-subtle);
 		border-radius: 4px;
-		color: var(--foreground);
-		font-family: var(--font-mono);
+		color: var(--cds-text-primary);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 12px;
 		padding: 1px 6px;
 		cursor: pointer;
@@ -103,7 +103,7 @@
 	}
 
 	.refresh-btn:hover {
-		background: var(--surface-hover);
+		background: var(--cds-layer-hover);
 	}
 
 	.refresh-btn:disabled {
@@ -112,9 +112,9 @@
 	}
 
 	.empty-text {
-		font-family: var(--font-mono);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 10px;
-		color: var(--text-inactive);
+		color: var(--cds-text-disabled);
 		padding: 2px 0;
 	}
 
@@ -139,18 +139,18 @@
 	}
 
 	.server-dot.active {
-		background: var(--success);
+		background: var(--cds-support-success);
 	}
 
 	.server-dot.inactive {
-		background: var(--destructive);
+		background: var(--cds-support-error);
 	}
 
 	.server-name {
-		font-family: var(--font-mono);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 11px;
 		font-weight: 600;
-		color: var(--foreground);
+		color: var(--cds-text-primary);
 	}
 
 	.detail-grid {
@@ -161,22 +161,22 @@
 	}
 
 	.key {
-		font-family: var(--font-mono);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 10px;
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 	}
 
 	.val {
-		font-family: var(--font-mono);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 10px;
-		color: var(--foreground);
+		color: var(--cds-text-primary);
 	}
 
 	.val-ok {
-		color: var(--success);
+		color: var(--cds-support-success);
 	}
 
 	.val-err {
-		color: var(--destructive);
+		color: var(--cds-support-error);
 	}
 </style>
