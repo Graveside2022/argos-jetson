@@ -22,12 +22,12 @@ import {
 } from '../../../src/lib/server/services/gnu-radio-vnc/gnu-radio-vnc-types';
 
 describe('gnu-radio-vnc-types constants', () => {
-	it('uses display :95 to avoid collision with Wireshark/SDR++/Sparrow/WebTAK', () => {
-		expect(GNU_RADIO_VNC_DISPLAY).toBe(':95');
+	it('uses display :99 per the canonical VNC port allocation registry', () => {
+		expect(GNU_RADIO_VNC_DISPLAY).toBe(':99');
 	});
 
-	it('binds VNC TCP on port 5995', () => {
-		expect(GNU_RADIO_VNC_PORT).toBe(5995);
+	it('binds VNC TCP on port 5999', () => {
+		expect(GNU_RADIO_VNC_PORT).toBe(5999);
 	});
 
 	it('binds websockify on port 6084', () => {
