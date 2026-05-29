@@ -117,23 +117,6 @@ cleanup_orphans() {
     fi
   done < <(pgrep -f 'puppeteer_' 2>/dev/null || true)
 
-  # Orphan bun worker-service.cjs daemons (PPID=1 or parent=systemd, age > 30s)
-  while IFS= read -r pid; do
-    local ppid
-    ppid=$(awk '{print $4}' "/proc/$pid/stat" 2>/dev/null || echo "0")
-    local parent_comm
-    parent_comm=$(cat "/proc/$ppid/comm" 2>/dev/null || echo "unknown")
-    if [[ "$ppid" == "1" || "$parent_comm" == "systemd" ]]; then
-      local age_secs
-      age_secs=$(( $(date +%s) - $(stat -c %Y "/proc/$pid" 2>/dev/null || date +%s) ))
-      if (( age_secs > 30 )); then
-        log "Killing orphan bun worker (PID=$pid, PPID=$ppid, age=${age_secs}s)"
-        kill "$pid" 2>/dev/null || true
-        ((killed++)) || true
-      fi
-    fi
-  done < <(pgrep -f 'worker-service.cjs.*--daemon' 2>/dev/null || true)
-
   if (( killed > 0 )); then
     log "Cleaned $killed orphan processes"
   fi

@@ -103,7 +103,6 @@ check_memoryhigh_user() {
     fi
 }
 
-check_memoryhigh_user "chroma-server" "ChromaDB"
 check_memoryhigh_user "argos-dev-monitor" "Argos Dev Monitor"
 
 # ── L13: NODE_COMPILE_CACHE off /tmp ─────────────────────────────────────────
@@ -139,25 +138,6 @@ elif [[ "$STARTUP_STATE" = "inactive" ]]; then
     fi
 else
     fail "argos-startup.service state: $STARTUP_STATE"
-fi
-
-# ── Orphan bun workers ───────────────────────────────────────────────────────
-section "Orphan Process Check"
-
-ORPHAN_COUNT=0
-for pid in $(pgrep -f 'bun.*worker-service' 2>/dev/null); do
-    ppid=$(awk '{print $4}' /proc/"$pid"/stat 2>/dev/null || echo "0")
-    parent_comm=$(cat /proc/"$ppid"/comm 2>/dev/null || echo "")
-    if [[ "$ppid" = "1" ]] || [[ "$parent_comm" = "systemd" ]]; then
-        rss_mb=$(awk '{printf "%d", $2*4/1024}' /proc/"$pid"/statm 2>/dev/null || echo "?")
-        echo "         Found orphan bun PID $pid (${rss_mb}MB, PPID=$ppid/$parent_comm)"
-        ((ORPHAN_COUNT++))
-    fi
-done
-if [[ "$ORPHAN_COUNT" -eq 0 ]]; then
-    pass "No orphan bun workers (PPID=1 or parent=systemd)"
-else
-    fail "$ORPHAN_COUNT orphan bun worker(s) found — run .claude/hooks/cleanup-stale-daemons.sh"
 fi
 
 # ── Jaeger cgroup check ──────────────────────────────────────────────────────

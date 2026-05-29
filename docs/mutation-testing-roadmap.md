@@ -84,7 +84,7 @@ Vitest stryker config has `maxWorkers: 2`. Effective: 8 active workers on
 8-core Jetson (full utilization, no oversubscription).
 
 **Caveat:** when other CPU-heavy work runs on the box (Argos services,
-chromium-mcp, claude-mem, parallel Claude sessions), dial back to
+chromium-mcp, parallel Claude sessions), dial back to
 `concurrency: 2` to leave headroom. The 8-core full-utilization assumes
 mutation testing is the only heavy workload.
 
