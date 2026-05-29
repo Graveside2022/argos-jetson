@@ -17,7 +17,7 @@ Inherits user-global `~/.claude/CLAUDE.md` (Karpathy + per-turn disclosure + hal
 
 ## Repowise index
 
-`.repowise/` indexed in **index-only mode** (no LLM, 1454 files, 22MB `wiki.db`). MCP tools `mcp__repowise__*` add the risk / health / history / decisions lane that codegraph (structural) and semble (semantic) cannot compute. Auto-generated tool-routing card lives at `.claude/CLAUDE.md` between `<!-- REPOWISE:START -->` / `<!-- REPOWISE:END -->` markers. Recovery if `.repowise/` is missing:
+`.repowise/` indexed in **index-only mode** (no LLM, 1454 files, 22MB `wiki.db`). Repowise tools (`repowise__*`, reached via the Ratel gateway's `invoke_tool`) add the risk / health / history / decisions lane that codegraph (structural) and semble (semantic) cannot compute. Auto-generated tool-routing card lives at `.claude/CLAUDE.md` between `<!-- REPOWISE:START -->` / `<!-- REPOWISE:END -->` markers. Recovery if `.repowise/` is missing:
 
 ```bash
 repowise init --index-only -y -x "docs/carbon-design-system/" -x "docs/carbon-website/" -x "tactical/blue-dragon/"
