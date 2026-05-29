@@ -206,7 +206,7 @@
 
 		<label class="toggle-row">
 			<div class="band-label">
-				<span class="band-dot" style="background: var(--muted-foreground)"></span>
+				<span class="band-dot" style="background: var(--cds-text-helper)"></span>
 				<span class="toggle-label">No RSSI</span>
 			</div>
 			<button
