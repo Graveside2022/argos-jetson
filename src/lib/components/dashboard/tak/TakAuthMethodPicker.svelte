@@ -6,10 +6,8 @@
 	let { config = $bindable() }: { config: TakServerConfig } = $props();
 </script>
 
-<div class="rounded-lg border border-border/60 bg-card/40 p-3">
-	<span class="mb-2 block text-xs font-semibold tracking-widest text-muted-foreground">
-		AUTHENTICATION
-	</span>
+<div class="auth-section">
+	<span class="auth-label"> AUTHENTICATION </span>
 	<RadioButtonGroup
 		bind:selected={config.authMethod}
 		legendText="Authentication method"
@@ -23,6 +21,22 @@
 </div>
 
 <style>
+	.auth-section {
+		padding: 0.75rem;
+		border: 1px solid color-mix(in srgb, var(--cds-border-subtle) 60%, transparent);
+		border-radius: 0.5rem;
+		background: color-mix(in srgb, var(--cds-layer) 40%, transparent);
+	}
+
+	.auth-label {
+		display: block;
+		margin-bottom: 0.5rem;
+		font-size: 0.75rem;
+		font-weight: 600;
+		letter-spacing: 0.1em;
+		color: var(--cds-text-helper);
+	}
+
 	/* Chip-pill skin around Carbon's RadioButton wrapper.
 	   Selectors are :global because Carbon ships its own DOM that Svelte's
 	   scoped-CSS hashing cannot reach. */
@@ -31,10 +45,10 @@
 		align-items: center;
 		gap: 0.625rem;
 		padding: 0.5rem 0.75rem;
-		border: 1px solid hsl(var(--cds-border-subtle) / 0.4);
+		border: 1px solid color-mix(in srgb, var(--cds-border-subtle) 40%, transparent);
 		border-radius: 0.375rem;
-		background: hsl(var(--cds-layer) / 0.1);
-		color: hsl(var(--cds-text-helper));
+		background: color-mix(in srgb, var(--cds-layer) 10%, transparent);
+		color: var(--cds-text-helper);
 		font-size: 0.75rem;
 		font-weight: 500;
 		cursor: pointer;
@@ -45,15 +59,15 @@
 	}
 
 	:global(.auth-method-group .bx--radio-button-wrapper.auth-chip:hover) {
-		background: hsl(var(--cds-layer) / 0.3);
+		background: color-mix(in srgb, var(--cds-layer) 30%, transparent);
 	}
 
 	:global(
 		.auth-method-group .bx--radio-button-wrapper.auth-chip:has(input[type='radio']:checked)
 	) {
-		border-color: hsl(var(--cds-link-primary) / 0.6);
-		background: hsl(var(--cds-link-primary) / 0.1);
-		color: hsl(var(--cds-text-primary));
+		border-color: color-mix(in srgb, var(--cds-link-primary) 60%, transparent);
+		background: color-mix(in srgb, var(--cds-link-primary) 10%, transparent);
+		color: var(--cds-text-primary);
 	}
 
 	/* Vertical stack spacing — Carbon's default vertical group spacing */
