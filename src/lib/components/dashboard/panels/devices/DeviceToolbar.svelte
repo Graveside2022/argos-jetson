@@ -1,5 +1,8 @@
 <!-- @constitutional-exemption Article-IV-4.2 issue:#12 — Band filter chips, back button use custom 24x20px sizing incompatible with shadcn Button -->
 <script lang="ts">
+	import ChevronLeft from 'carbon-icons-svelte/lib/ChevronLeft.svelte';
+	import UserMultiple from 'carbon-icons-svelte/lib/UserMultiple.svelte';
+
 	import Search from '$lib/components/chassis/forms/Search.svelte';
 	import { kismetStore, setKismetStatus } from '$lib/stores/tactical-map/kismet-store.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
@@ -94,16 +97,7 @@
 
 	{#if isolatedMAC}
 		<button class="back-btn" onclick={onClearIsolation} title="Back to all devices">
-			<svg
-				width="14"
-				height="14"
-				viewBox="0 0 24 24"
-				fill="none"
-				stroke="currentColor"
-				stroke-width="2"
-				stroke-linecap="round"
-				stroke-linejoin="round"><polyline points="15 18 9 12 15 6" /></svg
-			>
+			<ChevronLeft size={14} />
 			All
 		</button>
 	{/if}
@@ -149,22 +143,7 @@
 				? 'Show all devices'
 				: 'Show only APs with connected clients'}
 		>
-			<svg
-				width="12"
-				height="12"
-				viewBox="0 0 24 24"
-				fill="none"
-				stroke="currentColor"
-				stroke-width="2.5"
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				><circle cx="12" cy="5" r="3" /><line x1="12" y1="8" x2="12" y2="14" /><line
-					x1="12"
-					y1="14"
-					x2="6"
-					y2="20"
-				/><line x1="12" y1="14" x2="18" y2="20" /></svg
-			>
+			<UserMultiple size={12} />
 			{#if apsWithClientsCount > 0}
 				<span class="filter-badge">{apsWithClientsCount}</span>
 			{/if}
@@ -201,29 +180,29 @@
 		align-items: center;
 		gap: var(--space-2);
 		padding: var(--space-2) var(--space-3);
-		border-bottom: 1px solid var(--border);
+		border-bottom: 1px solid var(--cds-border-subtle);
 		flex-shrink: 0;
 	}
 
 	.panel-title {
-		font-family: var(--font-mono, 'Fira Code', monospace);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 14px;
 		font-weight: 600;
 		letter-spacing: 1.5px;
-		color: var(--foreground-secondary, #888888);
+		color: var(--cds-text-helper);
 	}
 
 	.device-count {
-		font-family: var(--font-mono);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 14px;
-		color: var(--primary);
+		color: var(--cds-link-primary);
 		font-variant-numeric: tabular-nums;
 	}
 
 	.cap-badge {
-		font-family: var(--font-mono);
-		font-size: var(--text-section);
-		color: var(--foreground-secondary);
+		font-family: var(--cds-code-01-font-family);
+		font-size: 0.5625rem;
+		color: var(--cds-text-helper);
 		letter-spacing: 0.5px;
 	}
 
@@ -231,25 +210,25 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 2px;
-		background: var(--hover-tint);
-		border: 1px solid var(--border);
+		background: color-mix(in srgb, var(--cds-text-primary) 8%, transparent);
+		border: 1px solid var(--cds-border-subtle);
 		border-radius: var(--radius-sm);
-		color: var(--primary);
-		font-size: var(--text-status);
-		font-weight: var(--font-weight-semibold);
+		color: var(--cds-link-primary);
+		font-size: 0.625rem;
+		font-weight: 600;
 		padding: 2px 6px;
 		cursor: pointer;
-		letter-spacing: var(--letter-spacing-wide);
+		letter-spacing: 0.025em;
 	}
 
 	.back-btn:hover {
-		background: var(--secondary);
+		background: var(--cds-layer);
 	}
 
 	.toolbar-separator {
 		width: 1px;
 		height: 16px;
-		background: var(--border);
+		background: var(--cds-border-subtle);
 		flex-shrink: 0;
 	}
 
@@ -266,7 +245,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		border: 1px solid var(--border);
+		border: 1px solid var(--cds-border-subtle);
 		border-radius: var(--radius-sm);
 		background: transparent;
 		cursor: pointer;
@@ -288,9 +267,9 @@
 	}
 
 	.no-signal-label {
-		font-size: var(--text-status);
-		font-weight: var(--font-weight-semibold);
-		color: var(--foreground-secondary);
+		font-size: 0.625rem;
+		font-weight: 600;
+		color: var(--cds-text-helper);
 		line-height: 1;
 	}
 
@@ -299,84 +278,84 @@
 		width: auto;
 		padding: 0 4px;
 		gap: 2px;
-		color: var(--foreground-secondary);
+		color: var(--cds-text-helper);
 	}
 
 	.multi-client-chip.active-filter {
 		opacity: 1;
-		border-color: var(--primary);
-		color: var(--primary);
-		background: color-mix(in srgb, var(--primary) 10%, transparent);
+		border-color: var(--cds-link-primary);
+		color: var(--cds-link-primary);
+		background: color-mix(in srgb, var(--cds-link-primary) 10%, transparent);
 	}
 
 	.filter-badge {
-		font-family: var(--font-mono);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 8px;
-		color: var(--primary);
+		color: var(--cds-link-primary);
 		line-height: 1;
 	}
 
 	.status-chip {
 		padding: 2px 8px;
 		border-radius: 3px;
-		font-family: var(--font-mono);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 12px;
 		font-weight: 600;
 		letter-spacing: 0.8px;
-		background: var(--surface-hover);
-		color: var(--muted-foreground);
+		background: var(--cds-layer-hover);
+		color: var(--cds-text-helper);
 	}
 
 	.status-chip.chip-running {
-		background: var(--status-healthy, #8bbfa0);
-		color: var(--background);
+		background: var(--cds-support-success);
+		color: var(--cds-background);
 	}
 
 	.status-chip.chip-transition {
-		background: var(--status-warning, #d4a054);
-		color: var(--background);
+		background: var(--cds-support-warning);
+		color: var(--cds-background);
 	}
 
 	.scan-btn {
 		padding: 4px 14px;
-		font-family: var(--font-mono);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 13px;
 		font-weight: 600;
 		letter-spacing: 0.8px;
-		border: 1px solid var(--border);
+		border: 1px solid var(--cds-border-subtle);
 		border-radius: var(--radius-sm);
 		cursor: pointer;
 		flex-shrink: 0;
 	}
 
 	.scan-start {
-		background: color-mix(in srgb, var(--status-healthy, #8bbfa0) 20%, var(--card));
-		color: var(--status-healthy, #8bbfa0);
-		border-color: color-mix(in srgb, var(--status-healthy, #8bbfa0) 40%, var(--border));
+		background: color-mix(in srgb, var(--cds-support-success) 20%, var(--cds-layer));
+		color: var(--cds-support-success);
+		border-color: color-mix(in srgb, var(--cds-support-success) 40%, var(--cds-border-subtle));
 	}
 
 	.scan-start:hover:not(:disabled) {
-		background: color-mix(in srgb, var(--status-healthy, #8bbfa0) 30%, var(--card));
+		background: color-mix(in srgb, var(--cds-support-success) 30%, var(--cds-layer));
 	}
 
 	.scan-stop {
-		background: color-mix(in srgb, var(--status-error-panel, #c45b4a) 20%, var(--card));
-		color: var(--status-error-panel, #c45b4a);
-		border-color: color-mix(in srgb, var(--status-error-panel, #c45b4a) 40%, var(--border));
+		background: color-mix(in srgb, var(--cds-support-error) 20%, var(--cds-layer));
+		color: var(--cds-support-error);
+		border-color: color-mix(in srgb, var(--cds-support-error) 40%, var(--cds-border-subtle));
 	}
 
 	.scan-stop:hover:not(:disabled) {
-		background: color-mix(in srgb, var(--status-error-panel, #c45b4a) 30%, var(--card));
+		background: color-mix(in srgb, var(--cds-support-error) 30%, var(--cds-layer));
 	}
 
 	.scan-clear {
-		background: var(--card);
-		color: var(--muted-foreground);
+		background: var(--cds-layer);
+		color: var(--cds-text-helper);
 	}
 
 	.scan-clear:hover {
-		background: var(--surface-hover);
-		color: var(--foreground);
+		background: var(--cds-layer-hover);
+		color: var(--cds-text-primary);
 	}
 
 	.scan-btn:disabled {
