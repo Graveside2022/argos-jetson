@@ -297,7 +297,7 @@
 		display: flex;
 		flex-direction: column;
 		height: 100%;
-		background: var(--card);
+		background: var(--cds-layer);
 	}
 
 	.whitelist-view {
