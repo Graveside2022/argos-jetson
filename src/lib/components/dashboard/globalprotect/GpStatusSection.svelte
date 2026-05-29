@@ -1,5 +1,8 @@
 <script lang="ts">
-	import { Loader2, PlugZap, Shield, ShieldCheck, ShieldX } from '@lucide/svelte';
+	import InProgress from 'carbon-icons-svelte/lib/InProgress.svelte';
+	import Misuse from 'carbon-icons-svelte/lib/Misuse.svelte';
+	import Plug from 'carbon-icons-svelte/lib/Plug.svelte';
+	import Security from 'carbon-icons-svelte/lib/Security.svelte';
 
 	import { gpStatus } from '$lib/stores/globalprotect-store.svelte';
 
@@ -12,40 +15,32 @@
 	let { isConnecting, hasPortal, onconnect }: Props = $props();
 </script>
 
-<div class="rounded-lg border border-border/60 bg-card/40 p-4">
-	<div class="flex items-start gap-3">
-		<div class="mt-0.5">
+<div class="gp-status-card">
+	<div class="status-head">
+		<div class="icon-col">
 			{#if gpStatus.current.status === 'connected'}
-				<div
-					class="flex size-10 items-center justify-center rounded-lg bg-green-600/15 border border-green-500/30"
-				>
-					<ShieldCheck size={20} class="text-green-400" />
+				<div class="icon-box icon-connected">
+					<Security size={20} />
 				</div>
 			{:else if gpStatus.current.status === 'connecting' || isConnecting}
-				<div
-					class="flex size-10 items-center justify-center rounded-lg bg-primary/15 border border-primary/30"
-				>
-					<Loader2 size={20} class="animate-spin text-primary" />
+				<div class="icon-box icon-connecting">
+					<InProgress size={20} class="gp-spin" />
 				</div>
 			{:else if gpStatus.current.status === 'error'}
-				<div
-					class="flex size-10 items-center justify-center rounded-lg bg-red-600/15 border border-red-500/30"
-				>
-					<ShieldX size={20} class="text-red-400" />
+				<div class="icon-box icon-error">
+					<Misuse size={20} />
 				</div>
 			{:else}
-				<div
-					class="flex size-10 items-center justify-center rounded-lg bg-muted/30 border border-border/40"
-				>
-					<Shield size={20} class="text-muted-foreground" />
+				<div class="icon-box icon-default">
+					<Security size={20} />
 				</div>
 			{/if}
 		</div>
 
-		<div class="flex-1 min-w-0">
-			<div class="flex items-center justify-between">
+		<div class="status-body">
+			<div class="status-row">
 				<div>
-					<span class="text-sm font-semibold text-foreground">
+					<span class="status-name">
 						{#if gpStatus.current.status === 'connected'}
 							VPN Connected
 						{:else if gpStatus.current.status === 'connecting' || isConnecting}
@@ -57,40 +52,175 @@
 						{/if}
 					</span>
 					{#if gpStatus.current.portal}
-						<p class="mt-0.5 text-xs text-muted-foreground truncate">
-							{gpStatus.current.portal}
-						</p>
+						<p class="status-portal">{gpStatus.current.portal}</p>
 					{/if}
 				</div>
 
 				{#if !isConnecting && gpStatus.current.status !== 'connecting' && gpStatus.current.status !== 'connected'}
-					<button
-						class="inline-flex items-center gap-1.5 rounded-md border border-green-500/50 bg-green-600/20 px-3 py-1.5 text-sm font-medium text-green-400 transition-colors hover:bg-green-600/30"
-						disabled={!hasPortal}
-						onclick={onconnect}
-					>
-						<PlugZap size={12} />
+					<button class="connect-btn" disabled={!hasPortal} onclick={onconnect}>
+						<Plug size={12} />
 						Connect
 					</button>
 				{/if}
 			</div>
 
 			{#if gpStatus.current.status === 'connected'}
-				<div class="mt-2 flex gap-4 text-xs">
+				<div class="status-meta">
 					{#if gpStatus.current.assignedIp}
-						<div class="flex flex-col">
-							<span class="text-muted-foreground">Assigned IP</span>
-							<span class="font-medium text-foreground"
-								>{gpStatus.current.assignedIp}</span
-							>
+						<div class="meta-col">
+							<span class="meta-label">Assigned IP</span>
+							<span class="meta-val">{gpStatus.current.assignedIp}</span>
 						</div>
 					{/if}
 				</div>
 			{/if}
 
 			{#if gpStatus.current.lastError}
-				<p class="mt-2 text-xs text-red-400">{gpStatus.current.lastError}</p>
+				<p class="status-error-text">{gpStatus.current.lastError}</p>
 			{/if}
 		</div>
 	</div>
 </div>
+
+<style>
+	.gp-status-card {
+		padding: 1rem;
+		border: 1px solid color-mix(in srgb, var(--cds-border-subtle) 60%, transparent);
+		border-radius: 0.5rem;
+		background: color-mix(in srgb, var(--cds-layer) 40%, transparent);
+	}
+
+	.status-head {
+		display: flex;
+		align-items: flex-start;
+		gap: 0.75rem;
+	}
+
+	.icon-col {
+		margin-top: 0.125rem;
+	}
+
+	.icon-box {
+		display: flex;
+		width: 2.5rem;
+		height: 2.5rem;
+		align-items: center;
+		justify-content: center;
+		border-radius: 0.5rem;
+		border: 1px solid transparent;
+	}
+
+	.icon-connected {
+		background: color-mix(in srgb, var(--cds-support-success) 15%, transparent);
+		border-color: color-mix(in srgb, var(--cds-support-success) 30%, transparent);
+		color: var(--cds-support-success);
+	}
+
+	.icon-connecting {
+		background: color-mix(in srgb, var(--cds-link-primary) 15%, transparent);
+		border-color: color-mix(in srgb, var(--cds-link-primary) 30%, transparent);
+		color: var(--cds-link-primary);
+	}
+
+	.icon-error {
+		background: color-mix(in srgb, var(--cds-support-error) 15%, transparent);
+		border-color: color-mix(in srgb, var(--cds-support-error) 30%, transparent);
+		color: var(--cds-support-error);
+	}
+
+	.icon-default {
+		background: color-mix(in srgb, var(--cds-layer) 30%, transparent);
+		border-color: color-mix(in srgb, var(--cds-border-subtle) 40%, transparent);
+		color: var(--cds-text-helper);
+	}
+
+	.icon-connecting :global(.gp-spin) {
+		animation: gp-spin 1s linear infinite;
+	}
+
+	@keyframes gp-spin {
+		from {
+			transform: rotate(0deg);
+		}
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	.status-body {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.status-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	.status-name {
+		font-size: 0.875rem;
+		font-weight: 600;
+		color: var(--cds-text-primary);
+	}
+
+	.status-portal {
+		margin-top: 0.125rem;
+		font-size: 0.75rem;
+		color: var(--cds-text-helper);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.connect-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		border: 1px solid color-mix(in srgb, var(--cds-support-success) 50%, transparent);
+		border-radius: 0.375rem;
+		background: color-mix(in srgb, var(--cds-support-success) 20%, transparent);
+		padding: 0.375rem 0.75rem;
+		font-size: 0.875rem;
+		font-weight: 500;
+		color: var(--cds-support-success);
+		cursor: pointer;
+		transition: background-color 0.15s ease;
+	}
+
+	.connect-btn:hover:not(:disabled) {
+		background: color-mix(in srgb, var(--cds-support-success) 30%, transparent);
+	}
+
+	.connect-btn:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	.status-meta {
+		display: flex;
+		gap: 1rem;
+		margin-top: 0.5rem;
+		font-size: 0.75rem;
+	}
+
+	.meta-col {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.meta-label {
+		color: var(--cds-text-helper);
+	}
+
+	.meta-val {
+		font-weight: 500;
+		color: var(--cds-text-primary);
+	}
+
+	.status-error-text {
+		margin-top: 0.5rem;
+		font-size: 0.75rem;
+		color: var(--cds-support-error);
+	}
+</style>
