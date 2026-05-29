@@ -289,10 +289,10 @@
 		background: transparent;
 	}
 	.terminal-container :global(.xterm-viewport::-webkit-scrollbar-thumb) {
-		background: var(--hover-tint);
+		background: color-mix(in srgb, var(--cds-text-primary) 8%, transparent);
 		border-radius: 4px;
 	}
 	.terminal-container :global(.xterm-viewport::-webkit-scrollbar-thumb:hover) {
-		background: var(--secondary);
+		background: var(--cds-layer);
 	}
 </style>
