@@ -3,6 +3,8 @@
   Extracted from TakConfigView.svelte to comply with Article 2.2 (max 300 lines/file).
 -->
 <script lang="ts">
+	import Power from 'carbon-icons-svelte/lib/Power.svelte';
+
 	import { takStore } from '$lib/stores/tak-store.svelte';
 
 	interface Props {
@@ -16,74 +18,33 @@
 	let { port, isConnecting, onConnect, onDisconnect, hasHostname }: Props = $props();
 </script>
 
-<div class="rounded-lg border border-border/60 bg-card/40 p-3">
-	<span class="mb-2 block text-xs font-semibold tracking-widest text-muted-foreground"
-		>STATUS</span
-	>
-	<div class="flex items-center justify-between">
-		<div class="flex items-center gap-2 text-xs">
+<div class="tak-section">
+	<span class="tak-label">STATUS</span>
+	<div class="status-row">
+		<div class="status-info">
 			<span
-				class="size-2.5 shrink-0 rounded-full {takStore.status.status === 'connected'
-					? 'bg-green-500 shadow-[0_0_6px_theme(colors.green.500)]'
-					: takStore.status.status === 'error'
-						? 'bg-destructive'
-						: 'bg-muted-foreground'}"
+				class="status-dot"
+				class:dot-connected={takStore.status.status === 'connected'}
+				class:dot-error={takStore.status.status === 'error'}
 			></span>
-			<span class="font-semibold text-foreground">{takStore.status.status.toUpperCase()}</span
-			>
+			<span class="status-name">{takStore.status.status.toUpperCase()}</span>
 			{#if takStore.status.serverHost}
-				<span class="text-muted-foreground">{takStore.status.serverHost}:{port}</span>
+				<span class="status-host">{takStore.status.serverHost}:{port}</span>
 			{/if}
 		</div>
 		<div>
 			{#if takStore.status.status === 'connected'}
-				<button
-					onclick={onDisconnect}
-					disabled={isConnecting}
-					class="inline-flex items-center gap-1.5 rounded-md border border-red-500/50 bg-red-600/20 px-3 py-1.5 text-xs font-medium text-red-400 transition-colors hover:bg-red-600/40 disabled:opacity-50"
-				>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						width="14"
-						height="14"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						><path d="M18.36 6.64a9 9 0 1 1-12.73 0" /><line
-							x1="12"
-							y1="2"
-							x2="12"
-							y2="12"
-						/></svg
-					>
+				<button class="conn-btn conn-disconnect" onclick={onDisconnect} disabled={isConnecting}>
+					<Power size={14} />
 					{isConnecting ? 'Disconnecting...' : 'Disconnect'}
 				</button>
 			{:else}
 				<button
+					class="conn-btn conn-connect"
 					onclick={onConnect}
 					disabled={isConnecting || !hasHostname}
-					class="inline-flex items-center gap-1.5 rounded-md border border-green-500/50 bg-green-600/20 px-3 py-1.5 text-xs font-medium text-green-400 transition-colors hover:bg-green-600/40 disabled:opacity-50"
 				>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						width="14"
-						height="14"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						><path d="M18.36 6.64a9 9 0 1 1-12.73 0" /><line
-							x1="12"
-							y1="2"
-							x2="12"
-							y2="12"
-						/></svg
-					>
+					<Power size={14} />
 					{isConnecting ? 'Connecting...' : 'Connect'}
 				</button>
 			{/if}
@@ -91,23 +52,18 @@
 	</div>
 
 	{#if takStore.status.status === 'connected' && takStore.status.saBroadcast?.broadcasting}
-		<div class="mt-2 flex items-center gap-2 border-t border-border/40 pt-2">
-			<span class="relative flex size-2">
-				<span
-					class="absolute inline-flex size-full animate-ping rounded-full bg-green-400 opacity-75"
-				></span>
-				<span class="relative inline-flex size-2 rounded-full bg-green-500"></span>
+		<div class="broadcast-row">
+			<span class="ping">
+				<span class="ping-halo"></span>
+				<span class="ping-core"></span>
 			</span>
-			<span class="font-mono text-[10px] text-green-400">BROADCASTING TO NETWORK</span>
-			<span class="ml-auto font-mono text-[10px] text-muted-foreground">
+			<span class="broadcast-label">BROADCASTING TO NETWORK</span>
+			<span class="broadcast-meta">
 				{#if takStore.status.saBroadcast.lastBroadcastAt}
-					Last: {new Date(takStore.status.saBroadcast.lastBroadcastAt).toLocaleTimeString(
-						'en-US',
-						{
-							hour12: false,
-							timeZone: 'UTC'
-						}
-					)}Z
+					Last: {new Date(takStore.status.saBroadcast.lastBroadcastAt).toLocaleTimeString('en-US', {
+						hour12: false,
+						timeZone: 'UTC'
+					})}Z
 				{:else}
 					Waiting for GPS...
 				{/if}
@@ -118,3 +74,154 @@
 		</div>
 	{/if}
 </div>
+
+<style>
+	.tak-section {
+		padding: 0.75rem;
+		border: 1px solid color-mix(in srgb, var(--cds-border-subtle) 60%, transparent);
+		border-radius: 0.5rem;
+		background: color-mix(in srgb, var(--cds-layer) 40%, transparent);
+	}
+
+	.tak-label {
+		display: block;
+		margin-bottom: 0.5rem;
+		font-size: 0.75rem;
+		font-weight: 600;
+		letter-spacing: 0.1em;
+		color: var(--cds-text-helper);
+	}
+
+	.status-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	.status-info {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 0.75rem;
+	}
+
+	.status-dot {
+		width: 0.625rem;
+		height: 0.625rem;
+		flex-shrink: 0;
+		border-radius: 9999px;
+		background: var(--cds-text-helper);
+	}
+
+	.status-dot.dot-connected {
+		background: var(--cds-support-success);
+		box-shadow: 0 0 6px var(--cds-support-success);
+	}
+
+	.status-dot.dot-error {
+		background: var(--cds-support-error);
+	}
+
+	.status-name {
+		font-weight: 600;
+		color: var(--cds-text-primary);
+	}
+
+	.status-host {
+		color: var(--cds-text-helper);
+	}
+
+	.conn-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		border-radius: 0.375rem;
+		padding: 0.375rem 0.75rem;
+		font-size: 0.75rem;
+		font-weight: 500;
+		cursor: pointer;
+		transition: background-color 0.15s ease;
+	}
+
+	.conn-btn:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	.conn-disconnect {
+		border: 1px solid color-mix(in srgb, var(--cds-support-error) 50%, transparent);
+		background: color-mix(in srgb, var(--cds-support-error) 20%, transparent);
+		color: var(--cds-support-error);
+	}
+
+	.conn-disconnect:hover {
+		background: color-mix(in srgb, var(--cds-support-error) 40%, transparent);
+	}
+
+	.conn-connect {
+		border: 1px solid color-mix(in srgb, var(--cds-support-success) 50%, transparent);
+		background: color-mix(in srgb, var(--cds-support-success) 20%, transparent);
+		color: var(--cds-support-success);
+	}
+
+	.conn-connect:hover {
+		background: color-mix(in srgb, var(--cds-support-success) 40%, transparent);
+	}
+
+	.broadcast-row {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		margin-top: 0.5rem;
+		padding-top: 0.5rem;
+		border-top: 1px solid color-mix(in srgb, var(--cds-border-subtle) 40%, transparent);
+	}
+
+	.ping {
+		position: relative;
+		display: flex;
+		width: 0.5rem;
+		height: 0.5rem;
+	}
+
+	.ping-halo {
+		position: absolute;
+		display: inline-flex;
+		width: 100%;
+		height: 100%;
+		border-radius: 9999px;
+		background: var(--cds-support-success);
+		opacity: 0.75;
+		animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+	}
+
+	.ping-core {
+		position: relative;
+		display: inline-flex;
+		width: 0.5rem;
+		height: 0.5rem;
+		border-radius: 9999px;
+		background: var(--cds-support-success);
+	}
+
+	@keyframes ping {
+		75%,
+		100% {
+			transform: scale(2);
+			opacity: 0;
+		}
+	}
+
+	.broadcast-label {
+		font-family: var(--cds-code-01-font-family);
+		font-size: 0.625rem;
+		color: var(--cds-support-success);
+	}
+
+	.broadcast-meta {
+		margin-left: auto;
+		font-family: var(--cds-code-01-font-family);
+		font-size: 0.625rem;
+		color: var(--cds-text-helper);
+	}
+</style>
