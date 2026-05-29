@@ -187,32 +187,32 @@
 
 	.panel-header {
 		padding: 10px 14px;
-		border-bottom: 1px solid var(--border);
+		border-bottom: 1px solid var(--cds-border-subtle);
 		flex-shrink: 0;
 	}
 
 	.panel-title {
-		font-family: var(--font-mono, 'Fira Code', monospace);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 10px;
 		font-weight: 600;
 		letter-spacing: 1.5px;
-		color: var(--muted-foreground, #888888);
+		color: var(--cds-text-helper);
 	}
 
 	.section-label {
-		font-family: var(--font-mono, 'Fira Code', monospace);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 9px;
 		font-weight: 600;
 		letter-spacing: 1.2px;
 		text-transform: uppercase;
-		color: var(--muted-foreground, #888888);
+		color: var(--cds-text-helper);
 		margin: 0;
 	}
 
 	/* ── Tools section ── */
 	.tools-section {
 		padding: 10px 14px;
-		border-bottom: 1px solid var(--border);
+		border-bottom: 1px solid var(--cds-border-subtle);
 		display: flex;
 		flex-direction: column;
 		gap: 4px;
@@ -235,45 +235,45 @@
 		height: 6px;
 		border-radius: 50%;
 		flex-shrink: 0;
-		background: var(--muted-foreground, #555555);
+		background: var(--cds-text-helper);
 	}
 
 	.tool-dot.active {
-		background: var(--success, #8bbfa0);
+		background: var(--cds-support-success);
 	}
 
 	.tool-name {
-		font-family: var(--font-mono);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 11px;
-		color: var(--foreground);
+		color: var(--cds-text-primary);
 		flex: 1;
 	}
 
 	.tool-status {
-		font-family: var(--font-mono);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 10px;
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 	}
 
 	.tool-status.active {
-		color: var(--success, #8bbfa0);
+		color: var(--cds-support-success);
 	}
 
 	.tool-chevron {
 		font-size: 14px;
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 		flex-shrink: 0;
 	}
 
 	.tool-row:hover .tool-name,
 	.tool-row:hover .tool-chevron {
-		color: var(--foreground);
+		color: var(--cds-text-primary);
 	}
 
 	/* ── Logs section ── */
 	.logs-section {
 		padding: 10px 14px;
-		border-bottom: 1px solid var(--border);
+		border-bottom: 1px solid var(--cds-border-subtle);
 		display: flex;
 		flex-direction: column;
 		gap: 5px;
@@ -288,7 +288,7 @@
 	.logs-export {
 		margin-left: auto;
 		font-size: 11px;
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 		cursor: pointer;
 	}
 
@@ -300,27 +300,27 @@
 	}
 
 	.log-key {
-		font-family: var(--font-mono);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 11px;
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 	}
 
 	.log-val {
-		font-family: var(--font-mono);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 11px;
-		color: var(--foreground);
+		color: var(--cds-text-primary);
 		font-variant-numeric: tabular-nums;
 	}
 
 	.log-val.warn {
-		color: var(--warning, #d4a054);
+		color: var(--cds-support-warning);
 	}
 
 	.log-val.error {
-		color: var(--destructive, #ff5c33);
+		color: var(--cds-support-error);
 	}
 
 	.log-val.muted {
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 	}
 </style>

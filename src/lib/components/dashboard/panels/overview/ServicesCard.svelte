@@ -25,19 +25,19 @@
 <style>
 	.svc-section {
 		padding: 10px 14px;
-		border-bottom: 1px solid var(--border);
+		border-bottom: 1px solid var(--cds-border-subtle);
 		display: flex;
 		flex-direction: column;
 		gap: 6px;
 	}
 
 	.section-label {
-		font-family: var(--font-mono, 'Fira Code', monospace);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 9px;
 		font-weight: 600;
 		letter-spacing: 1.2px;
 		text-transform: uppercase;
-		color: var(--muted-foreground, #888888);
+		color: var(--cds-text-helper);
 		margin: 0;
 	}
 
@@ -52,24 +52,24 @@
 		height: 6px;
 		border-radius: 50%;
 		flex-shrink: 0;
-		background: var(--muted-foreground, #555555);
+		background: var(--cds-text-helper);
 	}
 
 	.svc-dot.active {
-		background: var(--success, #8bbfa0);
+		background: var(--cds-support-success);
 	}
 
 	.svc-name {
-		font-family: var(--font-mono);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 11px;
-		color: var(--foreground);
+		color: var(--cds-text-primary);
 		flex: 1;
 	}
 
 	.svc-uptime {
-		font-family: var(--font-mono);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 10px;
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 		font-variant-numeric: tabular-nums;
 	}
 </style>
