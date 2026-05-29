@@ -1,6 +1,6 @@
 # SKILL-ROUTING — which tessl skill for which situation
 
-Decision reference for the 13 tessl skills installed for the Argos v1 audit + ongoing work. **Before planning or doing any code task, match the work to a skill below and invoke it via the Skill tool.** Same discipline as the MCP-PREFLIGHT walk: route deliberately, don't guess. Skills are _guidance/knowledge overlays_ — they tell you what good looks like; the measurement engines are native MCP (sentrux / codegraph / chrome-devtools+Lighthouse / CodeQL / Sentry).
+Decision reference for the 13 tessl skills installed for the Argos v1 audit + ongoing work. **Before planning or doing any code task, match the work to a skill below and invoke it via the Skill tool.** Route deliberately, don't guess. Skills are _guidance/knowledge overlays_ — they tell you what good looks like; the measurement engines are native MCP (sentrux / codegraph / chrome-devtools+Lighthouse / CodeQL / Sentry).
 
 All 13 are quality-gated (≥75%, prefer 85/90), security-Passed, non-thin-wrapper. Bar + provenance live in the `project_v1_audit_skill_toolkit` memory.
 

@@ -1,19 +1,19 @@
 # Argos CLAUDE.md
 
-Inherits user-global `~/.claude/CLAUDE.md` (Karpathy + per-turn disclosure + halt rule + 8 workflow @-imports). Project files add invariants only — NEVER override.
+Inherits user-global `~/.claude/CLAUDE.md` (Karpathy coding guidelines + Ratel tool-routing + `@RTK.md`). Project files add invariants only — NEVER override.
 
 ## Argos invariants
 
-| Item             | Value                                                    |
-| ---------------- | -------------------------------------------------------- |
-| v1 UI port       | `:5173` (customer-facing)                                |
-| v2 Mk II UI port | `:5174`                                                  |
-| Sentry project   | `us-army-2k/argos` (id `4511395679043584`)               |
-| OTel env flag    | `OTEL_ENABLED=1`                                         |
-| GitHub repo      | `christianpeirson/argos-jetson`                          |
-| Node engine      | `>=22.11` (pinned)                                       |
-| Daily PR LOC cap | 2000 (admin override RESERVED for dev→main rollups only) |
-| Branch model     | v1=`origin/v1`, v2=`origin/main`, dev=`origin/dev`       |
+| Item             | Value                                                                                                          |
+| ---------------- | -------------------------------------------------------------------------------------------------------------- |
+| Prod UI port     | `:5173` (`argos-final.service`, customer-facing)                                                               |
+| Dev UI port      | per-worktree via `scripts/dev/port-for-worktree.sh` (main `Argos`=`:5180`); `npm run dev`, tmux, not a service |
+| Sentry project   | `us-army-2k/argos` (id `4511395679043584`)                                                                     |
+| OTel env flag    | `OTEL_ENABLED=1`                                                                                               |
+| GitHub repo      | `christianpeirson/argos-jetson`                                                                                |
+| Node engine      | `>=22.11` (pinned)                                                                                             |
+| Daily PR LOC cap | 2000 (admin override RESERVED for dev→main rollups only)                                                       |
+| Branch model     | v1=`origin/v1`, v2=`origin/main`, dev=`origin/dev`                                                             |
 
 ## Repowise index
 
@@ -30,4 +30,4 @@ repowise init --index-only -y -x "docs/carbon-design-system/" -x "docs/carbon-we
 
 ## Refs
 
-User-global: `~/.claude/CLAUDE.md` + 8 workflow files.
+User-global: `~/.claude/CLAUDE.md` + `@RTK.md`.
