@@ -1,7 +1,7 @@
 /* MapLibre GL :global() style overrides for DashboardMap */
 .map-area :global(.maplibregl-ctrl-group) {
-	background: color-mix(in srgb, var(--card) 97%, transparent) !important;
-	border: 1px solid var(--border) !important;
+	background: color-mix(in srgb, var(--cds-layer) 97%, transparent) !important;
+	border: 1px solid var(--cds-border-subtle) !important;
 	border-radius: 6px !important;
 	box-shadow: none !important;
 }
@@ -10,15 +10,15 @@
 	height: 34px !important;
 	background: transparent !important;
 	border: none !important;
-	border-bottom: 1px solid var(--border) !important;
-	color: var(--muted-foreground) !important;
+	border-bottom: 1px solid var(--cds-border-subtle) !important;
+	color: var(--cds-text-helper) !important;
 }
 .map-area :global(.maplibregl-ctrl-group button:last-child) {
 	border-bottom: none !important;
 }
 .map-area :global(.maplibregl-ctrl-group button:hover) {
-	background: var(--accent) !important;
-	color: var(--primary) !important;
+	background: var(--cds-layer) !important;
+	color: var(--cds-link-primary) !important;
 }
 .map-area :global(.maplibregl-ctrl-group button .maplibregl-ctrl-icon) {
 	filter: invert(0.85);
@@ -35,22 +35,22 @@
 	margin-bottom: 4px !important;
 }
 .map-area :global(.maplibregl-popup-content) {
-	background: var(--card);
-	color: var(--foreground);
-	border: 1px solid var(--border);
+	background: var(--cds-layer);
+	color: var(--cds-text-primary);
+	border: 1px solid var(--cds-border-subtle);
 	border-radius: 8px;
 	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 	padding: 12px;
 }
 .map-area :global(.maplibregl-popup-tip) {
-	border-top-color: var(--card);
+	border-top-color: var(--cds-layer);
 }
 .map-area :global(.maplibregl-popup-close-button) {
-	color: var(--foreground-secondary);
+	color: var(--cds-text-helper);
 	font-size: 18px;
 	padding: 2px 6px;
 }
 .map-area :global(.maplibregl-popup-close-button:hover) {
-	color: var(--foreground);
+	color: var(--cds-text-primary);
 	background: transparent;
 }
