@@ -81,7 +81,8 @@ jobs:
         # Non-blocking diagnostic upload so a failed audit can be reproduced
         # locally with the same baseline state CI used.
         if: always()
-        # actions/upload-artifact v4 (first-party, version-tagged OK)
+        # actions/upload-artifact v7 (first-party, low-risk → version tag OK;
+        # checkout/setup-node are SHA-pinned, this artifact upload is not)
         uses: actions/upload-artifact@v7
         with:
           name: fallow-baselines
