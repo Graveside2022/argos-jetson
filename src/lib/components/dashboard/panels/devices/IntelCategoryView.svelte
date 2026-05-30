@@ -263,13 +263,13 @@
 		letter-spacing: 0.05em;
 		color: var(--cds-text-helper);
 		text-align: left;
-		padding: var(--space-2) var(--space-3);
+		padding: var(--cds-spacing-03) var(--cds-spacing-04);
 		border-bottom: 1px solid var(--cds-border-subtle);
 		white-space: nowrap;
 	}
 
 	td {
-		padding: var(--space-1) var(--space-3);
+		padding: var(--cds-spacing-02) var(--cds-spacing-04);
 		border-bottom: 1px solid var(--cds-border-subtle);
 	}
 

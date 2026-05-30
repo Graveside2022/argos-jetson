@@ -83,14 +83,14 @@
 	}
 
 	.panel-header {
-		padding: var(--space-4);
+		padding: var(--cds-spacing-05);
 		border-bottom: 1px solid var(--cds-border-subtle);
 	}
 
 	.subview-header {
 		display: flex;
 		align-items: center;
-		gap: var(--space-2);
+		gap: var(--cds-spacing-03);
 	}
 
 	.panel-title {
@@ -129,8 +129,8 @@
 	.hub-card {
 		display: flex;
 		align-items: center;
-		gap: var(--space-3);
-		padding: 10px var(--space-4);
+		gap: var(--cds-spacing-04);
+		padding: 10px var(--cds-spacing-05);
 		background: transparent;
 		border: none;
 		border-bottom: 1px solid var(--cds-border-subtle);

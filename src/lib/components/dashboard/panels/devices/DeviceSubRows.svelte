@@ -146,7 +146,7 @@
 	}
 
 	.sub-cell {
-		padding-left: var(--space-4);
+		padding-left: var(--cds-spacing-05);
 	}
 
 	.sub-label {

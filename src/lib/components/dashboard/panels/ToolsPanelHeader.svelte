@@ -27,11 +27,11 @@
 
 <style>
 	.panel-header {
-		padding: var(--space-3) var(--space-4);
+		padding: var(--cds-spacing-04) var(--cds-spacing-05);
 		border-bottom: 1px solid var(--cds-border-subtle);
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-2);
+		gap: var(--cds-spacing-03);
 	}
 
 	.panel-title {
@@ -45,14 +45,14 @@
 	.back-btn {
 		display: flex;
 		align-items: center;
-		gap: var(--space-2);
+		gap: var(--cds-spacing-03);
 		background: var(--cds-layer-hover);
 		border: 1px solid var(--cds-border-subtle);
-		border-radius: var(--radius-sm);
+		border-radius: 4px;
 		color: var(--cds-link-primary);
 		font-size: 0.6875rem;
 		cursor: pointer;
-		padding: var(--space-1) var(--space-3);
+		padding: var(--cds-spacing-02) var(--cds-spacing-04);
 		transition: all 0.15s ease;
 		width: fit-content;
 	}

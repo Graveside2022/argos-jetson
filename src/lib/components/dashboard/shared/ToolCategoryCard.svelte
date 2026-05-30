@@ -42,7 +42,7 @@
 		border-radius: 0;
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-2);
+		gap: var(--cds-spacing-03);
 		width: 100%;
 		text-align: left;
 		cursor: pointer;
@@ -57,7 +57,7 @@
 	.category-header {
 		display: flex;
 		align-items: center;
-		gap: var(--space-3);
+		gap: var(--cds-spacing-04);
 	}
 
 	.category-icon {

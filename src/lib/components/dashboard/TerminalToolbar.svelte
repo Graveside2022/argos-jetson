@@ -118,7 +118,7 @@
 	.toolbar-right {
 		display: flex;
 		align-items: center;
-		gap: var(--space-1);
+		gap: var(--cds-spacing-02);
 		flex-shrink: 0;
 	}
 
@@ -131,7 +131,7 @@
 		padding: 0;
 		background: transparent;
 		border: none;
-		border-radius: var(--radius-sm);
+		border-radius: 4px;
 		color: var(--cds-text-secondary);
 		cursor: pointer;
 		transition:
@@ -155,8 +155,8 @@
 		top: calc(100% + 4px);
 		background: var(--cds-layer);
 		border: 1px solid var(--cds-border-subtle);
-		border-radius: var(--radius-md);
-		padding: var(--space-2);
+		border-radius: 6px;
+		padding: var(--cds-spacing-03);
 		box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 		z-index: 1000;
 		min-width: 140px;
@@ -170,12 +170,12 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		gap: var(--space-3);
+		gap: var(--cds-spacing-04);
 		width: 100%;
-		padding: var(--space-2) var(--space-3);
+		padding: var(--cds-spacing-03) var(--cds-spacing-04);
 		background: transparent;
 		border: none;
-		border-radius: var(--radius-sm);
+		border-radius: 4px;
 		color: var(--cds-text-secondary);
 		font-size: var(--cds-label-01-font-size);
 		text-align: left;
@@ -197,6 +197,6 @@
 	.dropdown-divider {
 		height: 1px;
 		background: var(--cds-border-subtle);
-		margin: var(--space-1) 0;
+		margin: var(--cds-spacing-02) 0;
 	}
 </style>

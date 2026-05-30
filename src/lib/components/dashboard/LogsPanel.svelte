@@ -30,7 +30,7 @@
 		justify-content: space-between;
 		height: 32px;
 		min-height: 32px;
-		padding: 0 var(--space-3);
+		padding: 0 var(--cds-spacing-04);
 		background: var(--cds-layer);
 		border-bottom: 1px solid var(--cds-border-subtle);
 	}

@@ -178,8 +178,8 @@
 	.panel-toolbar {
 		display: flex;
 		align-items: center;
-		gap: var(--space-2);
-		padding: var(--space-2) var(--space-3);
+		gap: var(--cds-spacing-03);
+		padding: var(--cds-spacing-03) var(--cds-spacing-04);
 		border-bottom: 1px solid var(--cds-border-subtle);
 		flex-shrink: 0;
 	}
@@ -212,7 +212,7 @@
 		gap: 2px;
 		background: color-mix(in srgb, var(--cds-text-primary) 8%, transparent);
 		border: 1px solid var(--cds-border-subtle);
-		border-radius: var(--radius-sm);
+		border-radius: 4px;
 		color: var(--cds-link-primary);
 		font-size: 0.625rem;
 		font-weight: 600;
@@ -234,7 +234,7 @@
 
 	.band-filters {
 		display: flex;
-		gap: var(--space-1);
+		gap: var(--cds-spacing-02);
 		align-items: center;
 		flex-shrink: 0;
 	}
@@ -246,7 +246,7 @@
 		align-items: center;
 		justify-content: center;
 		border: 1px solid var(--cds-border-subtle);
-		border-radius: var(--radius-sm);
+		border-radius: 4px;
 		background: transparent;
 		cursor: pointer;
 		transition: opacity 0.15s ease;
@@ -323,7 +323,7 @@
 		font-weight: 600;
 		letter-spacing: 0.8px;
 		border: 1px solid var(--cds-border-subtle);
-		border-radius: var(--radius-sm);
+		border-radius: 4px;
 		cursor: pointer;
 		flex-shrink: 0;
 	}

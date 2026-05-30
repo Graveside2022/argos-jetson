@@ -46,8 +46,8 @@
 		position: relative;
 		display: flex;
 		align-items: center;
-		margin-left: var(--space-1);
-		padding-left: var(--space-2);
+		margin-left: var(--cds-spacing-02);
+		padding-left: var(--cds-spacing-03);
 		border-left: 1px solid var(--cds-border-subtle);
 	}
 
@@ -60,7 +60,7 @@
 		padding: 0;
 		background: transparent;
 		border: none;
-		border-radius: var(--radius-sm);
+		border-radius: 4px;
 		color: var(--cds-text-secondary);
 		cursor: pointer;
 		transition:
@@ -79,8 +79,8 @@
 		left: 0;
 		background: var(--cds-layer);
 		border: 1px solid var(--cds-border-subtle);
-		border-radius: var(--radius-md);
-		padding: var(--space-2);
+		border-radius: 6px;
+		padding: var(--cds-spacing-03);
 		box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 		z-index: 1000;
 		min-width: 140px;
@@ -90,12 +90,12 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		gap: var(--space-3);
+		gap: var(--cds-spacing-04);
 		width: 100%;
-		padding: var(--space-2) var(--space-3);
+		padding: var(--cds-spacing-03) var(--cds-spacing-04);
 		background: transparent;
 		border: none;
-		border-radius: var(--radius-sm);
+		border-radius: 4px;
 		color: var(--cds-text-secondary);
 		font-size: var(--cds-label-01-font-size);
 		text-align: left;
@@ -117,7 +117,7 @@
 		font-size: 0.625rem;
 		padding: 1px 4px;
 		background: var(--cds-background);
-		border-radius: var(--radius-sm);
+		border-radius: 4px;
 		color: var(--cds-text-helper);
 	}
 </style>
