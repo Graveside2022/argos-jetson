@@ -7,10 +7,14 @@
 	// <html> (see src/app.html). Per-theme files (g100.css) bake literal hex and
 	// do NOT expose `--cds-*`, so they cannot back a token-based migration.
 	import 'carbon-components-svelte/css/all.css';
-	// spec 026 Phase 1 — Lunaris-on-Carbon theme overlay (currently a stub
-	// with no @carbon/styles imports; subsequent commits add per-component
-	// imports). Loaded AFTER carbon g100 so Lunaris token overrides cascade.
-	import '$lib/styles/lunaris-carbon-theme.scss';
+	// IBM Plex webfonts (ADR 0006). Carbon's all.css declares the Plex Sans/Mono
+	// font-family stack but does NOT ship the font files — without these imports
+	// the UI silently falls back to the system Helvetica/Arial stack. The
+	// `-default` bundles carry exactly the weights Carbon g100 uses (300/400/600,
+	// normal), not the 112-face `-all` set. Self-hosted woff2 (offline-capable on
+	// the Jetson; no Google Fonts CDN dependency).
+	import '@ibm/plex-sans/css/ibm-plex-sans-default.css';
+	import '@ibm/plex-mono/css/ibm-plex-mono-default.css';
 
 	import type { Snippet } from 'svelte';
 	import { onMount } from 'svelte';
