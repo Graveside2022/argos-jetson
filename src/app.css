@@ -1,88 +1,30 @@
-@import 'tailwindcss';
-@import 'tw-animate-css';
 @import './lib/styles/dashboard-utilities.css';
 
-@custom-variant dark (&:is(.dark *));
+/* ============================================================
+   Argos global styles — IBM Carbon Design System.
+   Carbon tokens (--cds-*) come from carbon-components-svelte/css/all.css
+   (imported in +layout.svelte) with theme="g100" on <html>.
+   Only data-viz/domain tokens + the MIL-STD accent palettes live here.
+   ============================================================ */
 
-/* ---- Lunaris Design System — Dark Mode Only ---- */
+/* ---- Data-viz / domain tokens (kept until the @carbon/charts phase) ---- */
 :root {
-	--radius: 0.65rem;
+	/* Chart series */
+	--chart-1: #a8b8e0;
+	--chart-2: #8bbfa0;
+	--chart-3: #d4a054;
+	--chart-4: #bdb2d4;
+	--chart-5: #c45b4a;
+	--color-chart-1: var(--chart-1);
+	--color-chart-2: var(--chart-2);
+	--color-chart-3: var(--chart-3);
+	--color-chart-4: var(--chart-4);
+	--color-chart-5: var(--chart-5);
 
-	/* Surface tokens (Layer 1) */
-	--background: #111111;
-	--foreground: #ffffff;
-	--card: #1a1a1a;
-	--card-foreground: #ffffff;
-	--popover: #1a1a1a;
-	--popover-foreground: #ffffff;
-	--border: #2e2e2e;
-	--input: #2e2e2e;
-	--secondary: #2e2e2e;
-	--secondary-foreground: #ffffff;
-	--muted: #2e2e2e;
-	--muted-foreground: #8a8a8a;
-	--accent: #2e2e2e;
-	--accent-foreground: #ffffff;
-	--sidebar: #18181b;
-	--sidebar-foreground: #ffffff;
-	--sidebar-primary: var(--primary);
-	--sidebar-primary-foreground: var(--primary-foreground);
-	--sidebar-accent: #2e2e2e;
-	--sidebar-accent-foreground: #ffffff;
-	--sidebar-border: #2e2e2e;
-	--sidebar-ring: #666666;
-
-	/* Accent tokens */
-	--primary: #a8b8e0;
-	--primary-foreground: #111111;
-	--ring: #666666;
-
-	/* Text hierarchy */
-	--text-secondary: #bbbbbb;
-	--text-tertiary: #888888;
-	--text-inactive: #555555;
-
-	/* Semantic status */
-	--success: #8bbfa0;
-	--success-foreground: #111111;
-	--warning: #d4a054;
-	--warning-foreground: #111111;
-	--destructive: #ff5c33;
-	--destructive-foreground: #ffffff;
-	--error-desat: #c45b4a;
-	--inactive: #555555;
-	--info: #a8b8e0;
-	--info-foreground: #111111;
-	--text-muted: #8a8a8a;
-
-	/* Status backgrounds */
-	--success-bg: #222924;
-	--warning-bg: #291c0f;
-	--error-bg: #24100b;
-	--info-bg: #222229;
-
-	/* Surface depth tokens (Lunaris layout structure) */
-	--surface-elevated: #151515;
-	--surface-hover: #1e1e1e;
-	--surface-header: #181818;
-	--surface-inset: #0d0d0d;
-	--surface-terminal: #0a0a0a;
-	--overlay-backdrop: #0e1116e6;
-
-	/* Foreground hierarchy (Lunaris layout structure) */
-	--foreground-secondary: #888888;
-	--foreground-tertiary: #999999;
-	--foreground-muted: #bbbbbb;
-
-	/* Interactive accent (palette-independent) */
-	--interactive: #4a8af4;
-
-	/* Widget and interaction tokens */
-	--widget-bg: #151515;
-	--hover-tint: #ffffff14;
-	--separator: #ffffff1a;
-	--bar-track: #1e1e1e;
-	--switch-off: #2a2a2a;
+	/* Feature categories */
+	--feature-rf: #d4a054;
+	--feature-drone: #809ad0;
+	--feature-radio: #bdb2d4;
 
 	/* Signal strength scale */
 	--signal-very-strong: #c45b4a;
@@ -91,253 +33,71 @@
 	--signal-fair: #8bbfa0;
 	--signal-weak: #809ad0;
 	--signal-none: #555555;
-
-	/* Chart colors */
-	--chart-1: #a8b8e0;
-	--chart-2: #8bbfa0;
-	--chart-3: #d4a054;
-	--chart-4: #bdb2d4;
-	--chart-5: #c45b4a;
-
-	/* Feature categories */
-	--feature-rf: #d4a054;
-	--feature-drone: #809ad0;
-	--feature-radio: #bdb2d4;
-
-	/* Accent derived */
-	--accent-muted: color-mix(in srgb, var(--primary) 15%, transparent);
-
-	/* Spacing scale (8px grid) */
-	--space-1: 0.25rem; /* 4px */
-	--space-2: 0.5rem; /* 8px */
-	--space-3: 0.75rem; /* 12px */
-	--space-4: 1rem; /* 16px */
-	--space-5: 1.25rem; /* 20px */
-	--space-6: 1.5rem; /* 24px */
-	--space-8: 2rem; /* 32px */
-	--space-10: 2.5rem; /* 40px */
-	--space-12: 3rem; /* 48px */
-
-	/* Typography — Lunaris 6-step scale */
-	--text-hero: 1.5rem; /* 24px */
-	--text-brand: 0.8125rem; /* 13px */
-	--text-sm: 0.75rem; /* 12px */
-	--text-xs: 0.6875rem; /* 11px */
-	--text-status: 0.625rem; /* 10px */
-	--text-section: 0.5625rem; /* 9px */
-	--text-base: 0.875rem; /* 14px */
-	--text-lg: 1rem; /* 16px */
-	--text-xl: 1.125rem; /* 18px */
-	--text-2xl: 1.5rem; /* 24px */
-	--text-3xl: 1.875rem; /* 30px */
-
-	--font-weight-normal: 400;
-	--font-weight-medium: 500;
-	--font-weight-semibold: 600;
-	--font-weight-bold: 700;
-
-	--letter-spacing-tight: -0.01em;
-	--letter-spacing-normal: 0;
-	--letter-spacing-wide: 0.025em;
-	--letter-spacing-wider: 0.05em;
-	--letter-spacing-widest: 0.1em;
-
-	/* Radius (fixed values — components built against these) */
-	--radius-sm: 4px;
-	--radius-md: 6px;
-	--radius-lg: 8px;
-	--radius-xl: 12px;
 }
 
-/* ---- Lunaris Accent Themes (13 MIL-STD palettes) ---- */
-/* Each theme only overrides --primary. All other tokens remain constant. */
+/* ---- MIL-STD accent palettes — override Carbon's link/brand accent ----
+   data-palette is set on <html> by theme-store; each palette retints the
+   Carbon interactive accent. */
 [data-palette='ash'] {
-	--primary: #aeaeb4;
+	--cds-link-primary: #aeaeb4;
 }
 [data-palette='blue'] {
-	--primary: #a8b8e0;
+	--cds-link-primary: #a8b8e0;
 }
 [data-palette='blush'] {
-	--primary: #d8bdb4;
+	--cds-link-primary: #d8bdb4;
 }
 [data-palette='iron'] {
-	--primary: #b4bbc4;
+	--cds-link-primary: #b4bbc4;
 }
 [data-palette='iris'] {
-	--primary: #acafe0;
+	--cds-link-primary: #acafe0;
 }
 [data-palette='khaki'] {
-	--primary: #ccbc9e;
+	--cds-link-primary: #ccbc9e;
 }
 [data-palette='mauve'] {
-	--primary: #d0b0c0;
+	--cds-link-primary: #d0b0c0;
 }
 [data-palette='pewter'] {
-	--primary: #c0c0c8;
+	--cds-link-primary: #c0c0c8;
 }
 [data-palette='plum'] {
-	--primary: #c4b0c8;
+	--cds-link-primary: #c4b0c8;
 }
 [data-palette='rose'] {
-	--primary: #d4b4bc;
+	--cds-link-primary: #d4b4bc;
 }
 [data-palette='sand'] {
-	--primary: #e0d4bc;
+	--cds-link-primary: #e0d4bc;
 }
 [data-palette='silver'] {
-	--primary: #b8b8c0;
+	--cds-link-primary: #b8b8c0;
 }
 [data-palette='violet'] {
-	--primary: #bdb2d4;
+	--cds-link-primary: #bdb2d4;
 }
 
-/* ---- Theme mapping for Tailwind utilities ---- */
-@theme inline {
-	--color-background: var(--background);
-	--color-foreground: var(--foreground);
-	--color-card: var(--card);
-	--color-card-foreground: var(--card-foreground);
-	--color-popover: var(--popover);
-	--color-popover-foreground: var(--popover-foreground);
-	--color-primary: var(--primary);
-	--color-primary-foreground: var(--primary-foreground);
-	--color-secondary: var(--secondary);
-	--color-secondary-foreground: var(--secondary-foreground);
-	--color-muted: var(--muted);
-	--color-muted-foreground: var(--muted-foreground);
-	--color-accent: var(--accent);
-	--color-accent-foreground: var(--accent-foreground);
-	--color-destructive: var(--destructive);
-	--color-destructive-foreground: var(--destructive-foreground);
-	--color-border: var(--border);
-	--color-input: var(--input);
-	--color-ring: var(--ring);
-	--color-chart-1: var(--chart-1);
-	--color-chart-2: var(--chart-2);
-	--color-chart-3: var(--chart-3);
-	--color-chart-4: var(--chart-4);
-	--color-chart-5: var(--chart-5);
-
-	/* Argos custom colors */
-	--color-success: var(--success);
-	--color-success-foreground: var(--success-foreground);
-	--color-warning: var(--warning);
-	--color-warning-foreground: var(--warning-foreground);
-	--color-info: var(--info);
-	--color-info-foreground: var(--info-foreground);
-	--color-text-muted: var(--text-muted);
-
-	/* Signal strength */
-	--color-signal-very-strong: var(--signal-very-strong);
-	--color-signal-strong: var(--signal-strong);
-	--color-signal-good: var(--signal-good);
-	--color-signal-fair: var(--signal-fair);
-	--color-signal-weak: var(--signal-weak);
-	--color-signal-none: var(--signal-none);
-
-	/* New Lunaris tokens */
-	--color-widget-bg: var(--widget-bg);
-	--color-hover-tint: var(--hover-tint);
-	--color-bar-track: var(--bar-track);
-	--color-switch-off: var(--switch-off);
-	--color-error-desat: var(--error-desat);
-	--color-inactive: var(--inactive);
-	--color-success-bg: var(--success-bg);
-	--color-warning-bg: var(--warning-bg);
-	--color-error-bg: var(--error-bg);
-	--color-info-bg: var(--info-bg);
-
-	/* Feature categories */
-	--color-feature-rf: var(--feature-rf);
-	--color-feature-drone: var(--feature-drone);
-	--color-feature-radio: var(--feature-radio);
-
-	/* Lunaris layout structure tokens */
-	--color-surface-elevated: var(--surface-elevated);
-	--color-surface-hover: var(--surface-hover);
-	--color-surface-header: var(--surface-header);
-	--color-surface-inset: var(--surface-inset);
-	--color-surface-terminal: var(--surface-terminal);
-	--color-overlay-backdrop: var(--overlay-backdrop);
-	--color-foreground-secondary: var(--foreground-secondary);
-	--color-foreground-tertiary: var(--foreground-tertiary);
-	--color-foreground-muted: var(--foreground-muted);
-	--color-interactive: var(--interactive);
-
-	--radius-sm: 4px;
-	--radius-md: 6px;
-	--radius-lg: 8px;
-	--radius-xl: 12px;
+/* ---- Minimal reset (replaces the removed Tailwind preflight) ---- */
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+	border-color: var(--cds-border-subtle);
 }
 
-@plugin "@tailwindcss/forms";
-@plugin "@tailwindcss/typography";
-
-@layer base {
-	* {
-		@apply border-border outline-ring/50;
-	}
-
-	button:not(:disabled),
-	[role='button']:not(:disabled) {
-		cursor: pointer;
-	}
-
-	body {
-		@apply bg-background text-foreground;
-		font-family: 'Geist', system-ui, sans-serif;
-	}
+* {
+	margin: 0;
 }
 
-@layer components {
-	/* Status indicators */
-	.status-indicator {
-		@apply w-2 h-2 rounded-full;
-	}
-
-	.status-connected {
-		background: var(--success);
-		@apply animate-pulse;
-	}
-
-	.status-disconnected {
-		background: var(--destructive);
-	}
-
-	.status-connecting {
-		background: var(--warning);
-		@apply animate-pulse;
-	}
-
-	/* Brand styles */
-	.hackrf-brand {
-		color: var(--feature-rf) !important;
-	}
-
-	.sweep-brand {
-		color: var(--foreground);
-	}
-
-	/* Spectrum display */
-	.spectrum-container {
-		@apply bg-card rounded-xl border border-border p-6;
-	}
-
-	.signal-strength-bar {
-		@apply h-full transition-all duration-300;
-	}
+button:not(:disabled),
+[role='button']:not(:disabled) {
+	cursor: pointer;
 }
 
-/* ============================================================
-   Argos V3 — NVIDIA UI token scope.  Activated via <body data-ui="v3">.
-   Dead-code residue from the removed V3 surface; kept inert until a
-   dedicated V3-residue cleanup pass. Selector inactive on :5173.
-   ============================================================ */
-[data-ui='v3'] {
-	--background: #111111;
-	--foreground: #ffffff;
-	--card: #1a1a1a;
-	--border: #2e2e2e;
-	--primary: #a8b8e0;
-	--radius: 0.65rem;
+body {
+	background: var(--cds-background);
+	color: var(--cds-text-primary);
+	font-family: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
+	-webkit-font-smoothing: antialiased;
 }
