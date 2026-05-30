@@ -214,10 +214,10 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding: 0 var(--space-2);
+		padding: 0 var(--cds-spacing-03);
 		background: var(--cds-layer);
 		border-bottom: 1px solid var(--cds-border-subtle);
-		gap: var(--space-2);
+		gap: var(--cds-spacing-03);
 	}
 
 	.terminal-content {
@@ -233,16 +233,16 @@
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		gap: var(--space-3);
+		gap: var(--cds-spacing-04);
 		color: var(--cds-text-helper);
 		font-size: var(--cds-label-01-font-size);
 	}
 
 	.create-btn {
-		padding: var(--space-2) var(--space-4);
+		padding: var(--cds-spacing-03) var(--cds-spacing-05);
 		background: var(--cds-link-primary);
 		border: none;
-		border-radius: var(--radius-md);
+		border-radius: 6px;
 		color: white;
 		font-size: var(--cds-label-01-font-size);
 		cursor: pointer;

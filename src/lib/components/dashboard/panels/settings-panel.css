@@ -7,59 +7,59 @@
 }
 
 .panel-header {
-	padding: var(--space-4);
-	border-bottom: 1px solid var(--border);
+	padding: var(--cds-spacing-05);
+	border-bottom: 1px solid var(--cds-border-subtle);
 }
 
 .panel-title {
-	font-family: var(--font-mono, 'Fira Code', monospace);
+	font-family: var(--cds-code-01-font-family);
 	font-size: 10px;
 	font-weight: 600;
 	letter-spacing: 1.5px;
-	color: var(--foreground-secondary, #888888);
+	color: var(--cds-text-helper);
 }
 
 .cards-container {
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-3);
-	padding: var(--space-4);
+	gap: var(--cds-spacing-04);
+	padding: var(--cds-spacing-05);
 	overflow-y: auto;
 }
 
 .settings-card {
 	padding: 8px 12px;
-	background: var(--surface-elevated, #151515);
+	background: var(--cds-background);
 	border: none;
-	border-bottom: 1px solid var(--border);
+	border-bottom: 1px solid var(--cds-border-subtle);
 	border-radius: 0;
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-2);
+	gap: var(--cds-spacing-03);
 }
 
 .card-header {
 	display: flex;
 	align-items: center;
-	gap: var(--space-3);
+	gap: var(--cds-spacing-04);
 }
 
 .card-icon {
 	flex-shrink: 0;
-	color: var(--foreground-secondary, #888888);
+	color: var(--cds-text-helper);
 }
 
 .card-title {
-	font-family: var(--font-mono, 'Fira Code', monospace);
-	font-size: var(--text-xs);
+	font-family: var(--cds-code-01-font-family);
+	font-size: 0.6875rem;
 	font-weight: 600;
 	letter-spacing: 1.2px;
-	color: var(--foreground);
+	color: var(--cds-text-primary);
 }
 
 .card-description {
-	font-size: var(--text-xs);
-	color: var(--foreground-secondary, #888888);
+	font-size: 0.6875rem;
+	color: var(--cds-text-helper);
 	line-height: 1.4;
 	margin: 0;
 }
@@ -67,20 +67,20 @@
 .card-body {
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-3);
-	margin-top: var(--space-1);
+	gap: var(--cds-spacing-04);
+	margin-top: var(--cds-spacing-02);
 }
 
 .setting-row {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	gap: var(--space-3);
+	gap: var(--cds-spacing-04);
 }
 
 .setting-label {
-	font-size: var(--text-sm);
-	color: var(--foreground);
+	font-size: var(--cds-label-01-font-size);
+	color: var(--cds-text-primary);
 }
 
 .open-btn {
@@ -88,18 +88,18 @@
 	align-items: center;
 	gap: 4px;
 	padding: 4px 10px;
-	font-size: var(--text-xs);
-	color: var(--interactive, #4a8af4);
+	font-size: 0.6875rem;
+	color: var(--cds-link-primary);
 	background: transparent;
-	border: 1px solid var(--border);
-	border-radius: var(--radius-sm);
+	border: 1px solid var(--cds-border-subtle);
+	border-radius: 4px;
 	cursor: pointer;
 	transition: all 0.15s ease;
 }
 
 .open-btn:hover {
-	background: var(--surface-hover, #1e1e1e);
-	border-color: var(--interactive);
+	background: var(--cds-layer-hover);
+	border-color: var(--cds-link-primary);
 }
 
 .clickable-card {
@@ -110,11 +110,11 @@
 }
 
 .clickable-card:hover {
-	background: var(--surface-hover, #1e1e1e);
+	background: var(--cds-layer-hover);
 }
 
 .card-chevron {
 	flex-shrink: 0;
-	color: var(--foreground-tertiary, #999999);
+	color: var(--cds-text-helper);
 	margin-left: auto;
 }

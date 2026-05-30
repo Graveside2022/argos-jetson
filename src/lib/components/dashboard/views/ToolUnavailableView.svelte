@@ -44,10 +44,10 @@
 		align-items: center;
 		justify-content: center;
 		height: 100%;
-		gap: var(--space-3);
+		gap: var(--cds-spacing-04);
 		color: var(--cds-text-helper);
 		text-align: center;
-		padding: var(--space-6);
+		padding: var(--cds-spacing-06);
 	}
 
 	.unavailable svg {
