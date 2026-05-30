@@ -136,6 +136,8 @@
 	},
 	"dependencies": {
 		"@armyc2.c5isr.renderer/mil-sym-ts-web": "2.6.7",
+		"@ibm/plex-mono": "^1.1.0",
+		"@ibm/plex-sans": "^1.1.0",
 		"@internationalized/date": "3.11.0",
 		"@modelcontextprotocol/sdk": "1.26.0",
 		"@novnc/novnc": "^1.6.0",
