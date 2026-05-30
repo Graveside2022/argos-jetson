@@ -130,20 +130,20 @@
 	color: var(--cds-support-warning);
 }
 .text-info {
-	color: var(--info);
+	color: var(--cds-support-info);
 }
 
 .bg-success-muted {
-	background: var(--success-bg);
+	background: color-mix(in srgb, var(--cds-support-success) 15%, transparent);
 }
 .bg-error-muted {
-	background: var(--error-bg);
+	background: color-mix(in srgb, var(--cds-support-error) 15%, transparent);
 }
 .bg-warning-muted {
-	background: var(--warning-bg);
+	background: color-mix(in srgb, var(--cds-support-warning) 15%, transparent);
 }
 .bg-info-muted {
-	background: var(--info-bg);
+	background: color-mix(in srgb, var(--cds-support-info) 15%, transparent);
 }
 
 /* Feature category utilities */
