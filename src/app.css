@@ -7,32 +7,42 @@
    Only data-viz/domain tokens + the MIL-STD accent palettes live here.
    ============================================================ */
 
-/* ---- Data-viz / domain tokens (kept until the @carbon/charts phase) ---- */
+/* ---- Data-visualization palette (IBM Carbon data-viz spec) ----
+ * Carbon treats data-viz as a SEPARATE palette from the UI theme tokens
+ * (https://carbondesignsystem.com/data-visualization/color-palettes/), so
+ * these stay named domain tokens rather than --cds-* theme vars. Argos has no
+ * @carbon/charts components (RF data is rendered by MapLibre paint expressions
+ * + CSS swatches, which @carbon/charts cannot drive), so no chart library is
+ * pulled. Every hex below is a verbatim @carbon/colors token, chosen for g100
+ * (dark) legibility (40–50 steps) and to preserve the prior semantics.
+ *
+ * Carbon-source per token noted inline. Keep TS fallback hex in
+ * map-colors.ts / map-helpers.ts / signal-utils.ts in sync with these. */
 :root {
-	/* Chart series */
-	--chart-1: #a8b8e0;
-	--chart-2: #8bbfa0;
-	--chart-3: #d4a054;
-	--chart-4: #bdb2d4;
-	--chart-5: #c45b4a;
+	/* Chart series → Carbon dark-theme categorical 1–5 */
+	--chart-1: #a56eff; /* purple-50 */
+	--chart-2: #33b1ff; /* cyan-40 */
+	--chart-3: #08bdba; /* teal-40 */
+	--chart-4: #ff7eb6; /* magenta-40 */
+	--chart-5: #ff8389; /* red-40 */
 	--color-chart-1: var(--chart-1);
 	--color-chart-2: var(--chart-2);
 	--color-chart-3: var(--chart-3);
 	--color-chart-4: var(--chart-4);
 	--color-chart-5: var(--chart-5);
 
-	/* Feature categories */
-	--feature-rf: #d4a054;
-	--feature-drone: #809ad0;
-	--feature-radio: #bdb2d4;
+	/* Feature categories → distinct Carbon categorical hues */
+	--feature-rf: #f1c21b; /* yellow-30 */
+	--feature-drone: #4589ff; /* blue-50 */
+	--feature-radio: #a56eff; /* purple-50 */
 
-	/* Signal strength scale */
-	--signal-very-strong: #c45b4a;
-	--signal-strong: #d4a054;
-	--signal-good: #c4a84a;
-	--signal-fair: #8bbfa0;
-	--signal-weak: #809ad0;
-	--signal-none: #555555;
+	/* Signal strength → ordered warm→cool ramp from Carbon palette */
+	--signal-very-strong: #fa4d56; /* red-50 */
+	--signal-strong: #ff832b; /* orange-40 */
+	--signal-good: #f1c21b; /* yellow-30 */
+	--signal-fair: #42be65; /* green-40 */
+	--signal-weak: #4589ff; /* blue-50 */
+	--signal-none: #8d8d8d; /* gray-50 */
 }
 
 /* ---- MIL-STD accent palettes — override Carbon's link/brand accent ----

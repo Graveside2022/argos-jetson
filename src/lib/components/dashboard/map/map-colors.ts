@@ -9,11 +9,11 @@ import { resolveThemeColor } from '$lib/utils/theme-colors';
 
 // ── Signal-strength band colors ──────────────────────────────────────
 export const SIGNAL_COLORS = {
-	critical: { var: '--signal-very-strong', fallback: '#c45b4a' },
-	strong: { var: '--signal-strong', fallback: '#d4a054' },
-	good: { var: '--signal-good', fallback: '#c4a84a' },
-	fair: { var: '--signal-fair', fallback: '#8bbfa0' },
-	weak: { var: '--signal-weak', fallback: '#809ad0' }
+	critical: { var: '--signal-very-strong', fallback: '#fa4d56' },
+	strong: { var: '--signal-strong', fallback: '#ff832b' },
+	good: { var: '--signal-good', fallback: '#f1c21b' },
+	fair: { var: '--signal-fair', fallback: '#42be65' },
+	weak: { var: '--signal-weak', fallback: '#4589ff' }
 } as const;
 
 // ── General map UI colors (fallbacks for CSS vars) ───────────────────
