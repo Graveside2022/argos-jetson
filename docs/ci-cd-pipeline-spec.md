@@ -605,16 +605,23 @@ Appendix B.
   CI. `test:unit` (explicit `run`) is what CI calls anyway.
 - **`upload-artifact@v7`** — current latest (`v7.0.1`); not a phantom version.
 
-### C.5 Open advisories (NOT fixed here — flagged for a future decision)
+### C.5 Advisory triage (2026-05-30 follow-up)
 
-- **`ci.yml` triggers on `main` only.** PRs into `dev` get ESLint/gitleaks from
-  `lint.yml` (`on: ['**']`) + Danger + commitlint, but NOT `ci.yml`'s
-  `format:check` / typecheck / vitest / build. Those run at the `dev → main`
-  rollup. Acceptable for the dev integration branch, but means a dev PR can be
-  green while `format:check` would fail — confirm `lint.yml` is a required check
-  on `dev` in branch protection.
-- **`pre-push` does a network `git fetch origin dev`** (freshness gate, step 1b),
-  guarded by `|| true`. Offline-fragile on the Jetson; degrades rather than
-  blocks, so low severity.
-- **trunk plugins `v1.7.6`** lags latest `v1.10.0`; renovate (enabled in
-  `.trunk/trunk.yaml`) will surface the bump.
+- **`ci.yml` triggered on `main` only — ADDRESSED.** Verified via the branch-
+  protection API that `dev` already _requires_ `lint.yml`'s **ESLint full-repo
+  scan** + **Secret scan (gitleaks)** (plus Danger "PR shape rules", "Validate
+  PR commits"/commitlint, and Fallow; `strict: true`). The gap was that
+  `format:check` / typecheck / unit+architecture tests / build ran on `dev`
+  only via the bypassable local `pre-push` hook. Fix: `dev` added to
+  `ci.yml`'s `pull_request` trigger so those run server-side on every dev PR.
+  **Still recommended:** add the "Validate Code, Tests, and Build" check to
+  `dev`'s _required_ status checks in branch protection to make it blocking
+  (running ≠ required). Left to the maintainer since it changes merge gating.
+- **`pre-push` network `git fetch origin dev`** (freshness gate) — left as-is:
+  guarded by `|| true`, degrades rather than blocks offline. Low severity.
+- **trunk plugins `v1.7.6` < `v1.10.0`** — left to renovate (enabled in
+  `.trunk/trunk.yaml`); not bumped manually to avoid surfacing new hold-the-line
+  lint findings right before the `dev → main` rollup.
+- **Fallow cutover date (2026-05-18) is stale** (see §C.2) — `fallow.yml` stays
+  `continue-on-error: true`; the three overlapping complexity gates remain by
+  choice. No action; date is just no longer meaningful.
