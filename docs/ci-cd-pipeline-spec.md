@@ -518,6 +518,11 @@ All canonical sources cited inline above. Aggregated for one-stop navigation:
 - CodeRabbit: https://docs.coderabbit.ai/
 - actions/cache@v4: https://github.com/actions/cache/blob/main/README.md
 - actions/setup-node: https://github.com/actions/setup-node/blob/main/README.md
+- Vite config / server.fs.allow: https://vite.dev/config/ , https://vite.dev/config/server-options
+- Node CLI (engines, `--run`): https://nodejs.org/docs/latest/api/cli.html
+- Trunk merge-queue / flaky-tests / action: https://docs.trunk.io/merge-queue/merge-queue , https://docs.trunk.io/flaky-tests/overview , https://github.com/trunk-io/trunk-action
+- IBM Plex (split packages): https://github.com/IBM/plex/releases/tag/@ibm/plex-sans@1.1.0
+- RTK (token-killer CLI proxy): https://github.com/rtk-ai/rtk
 - lefthook: https://lefthook.dev/
 - simple-git-hooks: https://github.com/toplenboren/simple-git-hooks
 - pre-commit framework: https://pre-commit.com/
@@ -530,3 +535,86 @@ Reference repositories surveyed (for canon-by-popularity):
 - microsoft/TypeScript (opt-in `setup-hooks`; no auto-hook)
 - vercel/next.js (`husky` + `lint-staged`; no pre-push tests)
 - carbon-design-system/carbon-components-svelte (biome only; no git hooks)
+
+---
+
+## Appendix C — 2026-05-30 Official-Docs Audit Verification
+
+Full re-audit of the local-commit → dev → merge pipeline against current
+upstream documentation (ESLint, Prettier, Danger, Vite, Husky, Node, Vitest,
+Trunk, IBM Plex). Every finding below was checked against the cited primary
+source, not from memory. Sources newly consulted this pass are appended to
+Appendix B.
+
+### C.1 Fixes applied (this PR)
+
+| File                           | Was                                                   | Now                                                                                       | Why                                                                                                                                                                                                                                                |
+| ------------------------------ | ----------------------------------------------------- | ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `.github/workflows/danger.yml` | `checkout@v6`, `setup-node@v6`, `node-version: lts/*` | `checkout@de0fac2…` (v4.2.2), `setup-node@48b55a0…` (v6.4.0), `node-version-file: .nvmrc` | danger.yml was the lone workflow floating action tags. Fleet policy = SHA-pin credential-handling actions (checkout/setup-node); pin it to match. `lts/*` also ran Danger on a different Node than the rest of CI — `.nvmrc` (22.22.2) fixes that. |
+| `.github/workflows/fallow.yml` | comment "upload-artifact v4"                          | comment "upload-artifact v7"                                                              | Stale comment only — code already used `@v7`, and `v7.0.1` is the current latest (verified via `gh release view`). `upload-artifact` is a low-risk first-party action, so the version-tag (not SHA) is intentional per fleet policy.               |
+| `.github/workflows/trunk.yml`  | header "Linters active: …gitleaks…prettier…"          | lists the 8 actually-enabled linters; notes prettier+gitleaks DISABLED                    | `.trunk/trunk.yaml` disables prettier + gitleaks (Roadmap §6 — DONE); the header comment had drifted.                                                                                                                                              |
+
+### C.2 Roadmap reconciliation (items already DONE but still marked NEW/pending in §5–6)
+
+- **§6.6 / §5 "trunk's prettier + gitleaks → disable"** — DONE. `.trunk/trunk.yaml`
+  `lint.disabled` includes both, with the same lint-staged/lint.yml ownership
+  rationale. `.trunk/configs/.prettierrc.yaml` is gitignored (the documented
+  drift source) but is now inert because prettier is disabled in trunk.
+- **§6.8 "bump setup-node @v4 → @v5"** — superseded: fleet is on `setup-node`
+  **v6.4.0** (SHA `48b55a0…`) and `checkout` **v4.2.2** (SHA `de0fac2…`).
+- **§6.12 / fallow cutover 2026-05-18** — NOT done. `fallow.yml` is still
+  `continue-on-error: true` and ESLint `complexity` + `sonarjs` remain enabled,
+  so three complexity gates still overlap (intentional belt-and-suspenders, but
+  the "2026-05-18 cutover" date is stale — treat as un-scheduled).
+
+### C.3 Gotchas (verified, action-relevant for future work)
+
+- **rtk masks `npx <gate>` summaries.** The Claude Code bash hook rewrites
+  `npx prettier …` → `rtk prettier …`, which routes through rtk's per-tool
+  built-in filter. The prettier filter prints a canned _"All files formatted
+  correctly"_ even when files are DRIFTING, and drops the exit code when piped —
+  a real failure reads as a pass. The `npm run <script>` path is unaffected (rtk
+  relays the child's raw stdout/exit). **Fix applied** in `~/.config/rtk/config.toml`
+  `[hooks] exclude_commands` (added `npx` + the gate tool names). When checking a
+  gate by hand, prefer `npm run format:check` / `npm run lint` (faithful) or
+  `rtk proxy npx …` (raw) over `npx <tool>` directly. (User-global config; not in
+  this repo.)
+- **Prettier markdown is not always idempotent.** `docs/audit/carbon-migration-plan.md`
+  needed **two** `prettier --write` passes to reach a fixpoint (blockquote +
+  nested-list structure). `npm run format` runs a single pass, so a file in that
+  state can still fail `format:check` after one `format`. If `format:check`
+  flags a markdown file that `format` just touched, run `format` again.
+- **trunk markdownlint ≠ prettier.** Reformatting a `.md` with prettier shifts
+  line numbers, so trunk's hold-the-line attributes pre-existing markdownlint
+  content findings (MD040 fence-language, MD041 first-line-heading, MD038
+  code-span-spaces) to the change as "new." These are content rules prettier
+  does not own; format-only doc PRs may need `SKIP_TRUNK=1` (trunk pre-commit is
+  advisory and `trunk.yml` is `|| true`, main-only).
+
+### C.4 Verified NON-issues (do not "fix" — flagged by tooling/audits but correct as-is)
+
+- **`.prettierrc` "duplicate"** — `.prettierrc` is a **symlink** → `config/.prettierrc`
+  (byte-identical). Not a config-drift source.
+- **ESLint `parserOptions.project: false`** — deliberate (type-aware rules off
+  for speed; documented inline). Trade-off, not a bug.
+- **`vite.config.ts` `server.fs.allow: ['..']`** — required for git-worktree dev
+  where `node_modules` resolves outside the worktree root; documented with the
+  vite.dev ref. Dev-server-only; `fs.strict` stays default-`true`.
+- **`test` script = `vitest` (watch)** — per vitest docs, bare `vitest` "falls
+  back to `vitest run` in CI or when stdin is not a TTY," so it does not hang in
+  CI. `test:unit` (explicit `run`) is what CI calls anyway.
+- **`upload-artifact@v7`** — current latest (`v7.0.1`); not a phantom version.
+
+### C.5 Open advisories (NOT fixed here — flagged for a future decision)
+
+- **`ci.yml` triggers on `main` only.** PRs into `dev` get ESLint/gitleaks from
+  `lint.yml` (`on: ['**']`) + Danger + commitlint, but NOT `ci.yml`'s
+  `format:check` / typecheck / vitest / build. Those run at the `dev → main`
+  rollup. Acceptable for the dev integration branch, but means a dev PR can be
+  green while `format:check` would fail — confirm `lint.yml` is a required check
+  on `dev` in branch protection.
+- **`pre-push` does a network `git fetch origin dev`** (freshness gate, step 1b),
+  guarded by `|| true`. Offline-fragile on the Jetson; degrades rather than
+  blocks, so low severity.
+- **trunk plugins `v1.7.6`** lags latest `v1.10.0`; renovate (enabled in
+  `.trunk/trunk.yaml`) will surface the bump.
