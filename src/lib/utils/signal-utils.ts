@@ -80,13 +80,13 @@ export function getSignalBandKey(rssi: number): string {
 
 /** Signal hex color thresholds: [minRssi, cssVar, fallbackHex]. First match wins. */
 const SIGNAL_HEX_THRESHOLDS: [number, string, string][] = [
-	[-50, '--signal-very-strong', '#c45b4a'],
-	[-60, '--signal-strong', '#d4a054'],
-	[-70, '--signal-good', '#c4a84a'],
-	[-80, '--signal-fair', '#8bbfa0']
+	[-50, '--signal-very-strong', '#fa4d56'],
+	[-60, '--signal-strong', '#ff832b'],
+	[-70, '--signal-good', '#f1c21b'],
+	[-80, '--signal-fair', '#42be65']
 ];
 
-const WEAK_SIGNAL: [string, string] = ['--signal-weak', '#809ad0'];
+const WEAK_SIGNAL: [string, string] = ['--signal-weak', '#4589ff'];
 
 /** Resolve the CSS var name and fallback hex for an RSSI value. */
 function resolveSignalPair(rssi: number): [string, string] {
@@ -96,7 +96,7 @@ function resolveSignalPair(rssi: number): [string, string] {
 
 /** Get an inline hex color for contexts where CSS vars aren't available (e.g. Leaflet markers) */
 export function getSignalHex(rssi: number): string {
-	if (rssi === 0) return resolveThemeColor('--signal-none', '#555555');
+	if (rssi === 0) return resolveThemeColor('--signal-none', '#8d8d8d');
 	const [cssVar, fallback] = resolveSignalPair(rssi);
 	return resolveThemeColor(cssVar, fallback);
 }
