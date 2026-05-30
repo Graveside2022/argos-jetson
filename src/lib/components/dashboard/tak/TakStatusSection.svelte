@@ -34,7 +34,11 @@
 		</div>
 		<div>
 			{#if takStore.status.status === 'connected'}
-				<button class="conn-btn conn-disconnect" onclick={onDisconnect} disabled={isConnecting}>
+				<button
+					class="conn-btn conn-disconnect"
+					onclick={onDisconnect}
+					disabled={isConnecting}
+				>
 					<Power size={14} />
 					{isConnecting ? 'Disconnecting...' : 'Disconnect'}
 				</button>
@@ -60,10 +64,13 @@
 			<span class="broadcast-label">BROADCASTING TO NETWORK</span>
 			<span class="broadcast-meta">
 				{#if takStore.status.saBroadcast.lastBroadcastAt}
-					Last: {new Date(takStore.status.saBroadcast.lastBroadcastAt).toLocaleTimeString('en-US', {
-						hour12: false,
-						timeZone: 'UTC'
-					})}Z
+					Last: {new Date(takStore.status.saBroadcast.lastBroadcastAt).toLocaleTimeString(
+						'en-US',
+						{
+							hour12: false,
+							timeZone: 'UTC'
+						}
+					)}Z
 				{:else}
 					Waiting for GPS...
 				{/if}

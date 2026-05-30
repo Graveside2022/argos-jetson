@@ -17,7 +17,13 @@
 
 <div class="tool-view">
 	<div class="tool-view-header">
-		<Button kind="ghost" size="small" icon={ChevronLeft} iconDescription="Back" on:click={onBack}>
+		<Button
+			kind="ghost"
+			size="small"
+			icon={ChevronLeft}
+			iconDescription="Back"
+			on:click={onBack}
+		>
 			Back
 		</Button>
 		<span class="tool-view-title">{title}</span>

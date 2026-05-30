@@ -128,7 +128,9 @@
 								<button class="sort-btn" onclick={() => handleSort(item.col)}>
 									{item.label}
 									{#if sortColumn === item.col}
-										<span class="sort-arrow">{sortDirection === 'asc' ? '▲' : '▼'}</span>
+										<span class="sort-arrow"
+											>{sortDirection === 'asc' ? '▲' : '▼'}</span
+										>
 									{/if}
 								</button>
 							</th>
@@ -155,10 +157,14 @@
 							<td class="cell-loc">
 								{#if tower.location}
 									<span class="loc-coords"
-										>{tower.location.lat.toFixed(4)}, {tower.location.lon.toFixed(4)}</span
+										>{tower.location.lat.toFixed(4)}, {tower.location.lon.toFixed(
+											4
+										)}</span
 									>
 								{:else if !towerLookupAttempted[towerId]}
-									<Tag type="outline" size="sm" class="lookup-tag">Looking up...</Tag>
+									<Tag type="outline" size="sm" class="lookup-tag"
+										>Looking up...</Tag
+									>
 								{:else}
 									<span class="cell-muted">Roaming</span>
 								{/if}
@@ -170,7 +176,9 @@
 								{tower.mccMnc}
 							</td>
 							<td class="cell-count">{tower.count}</td>
-							<td class="cell-lastseen">{formatTimestamp(tower.lastSeen.toISOString())}</td>
+							<td class="cell-lastseen"
+								>{formatTimestamp(tower.lastSeen.toISOString())}</td
+							>
 						</tr>
 						{#if isExpanded}
 							<tr class="detail-row">
@@ -184,7 +192,9 @@
 										{#each tower.devices.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()) as device (device.imsi)}
 											<div class="detail-row-item">
 												<span class="detail-imsi">{device.imsi}</span>
-												<span class="detail-tmsi">{device.tmsi || 'N/A'}</span>
+												<span class="detail-tmsi"
+													>{device.tmsi || 'N/A'}</span
+												>
 												<span class="detail-detected detail-detected-val">
 													{formatTimestamp(device.timestamp)}
 												</span>

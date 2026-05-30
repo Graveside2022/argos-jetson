@@ -117,7 +117,10 @@
 				{/if}
 			</div>
 			<div class="meter-bar">
-				<div class="meter-fill" style="width: 100%; background: var(--cds-link-primary)"></div>
+				<div
+					class="meter-fill"
+					style="width: 100%; background: var(--cds-link-primary)"
+				></div>
 			</div>
 		{/if}
 	</section>

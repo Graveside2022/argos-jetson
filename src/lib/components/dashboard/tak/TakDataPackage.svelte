@@ -76,7 +76,9 @@
 		<label class="pkg-dropzone">
 			<Archive size={16} class="pkg-icon" />
 			<span class="pkg-filename">
-				{packageFile && packageFile.length > 0 ? packageFile[0].name : 'Choose .zip file...'}
+				{packageFile && packageFile.length > 0
+					? packageFile[0].name
+					: 'Choose .zip file...'}
 			</span>
 			<input type="file" accept=".zip" bind:files={packageFile} class="sr-only" />
 		</label>

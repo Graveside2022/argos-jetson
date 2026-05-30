@@ -6,23 +6,23 @@ Scope: SvelteKit + Svelte 5 + Tailwind v4.1.18 + carbon-components-svelte, mid I
 
 ## 1. Source index
 
-| Source | URL | Role |
-| --- | --- | --- |
-| tw-sveltekit-guide | [tailwindcss.com/docs/installation/framework-guides/sveltekit](https://tailwindcss.com/docs/installation/framework-guides/sveltekit) | Canonical 7-step Tailwind v4 + SvelteKit install (happy path; no @theme) |
-| tw-vite | [tailwindcss.com/docs/installation/using-vite](https://tailwindcss.com/docs/installation/using-vite) | Canonical `@tailwindcss/vite` plugin + single `@import` setup |
-| tw-docs-home | [tailwindcss.com/docs](https://tailwindcss.com/docs) → [/docs/theme](https://tailwindcss.com/docs/theme) | **Authoritative `@theme` / `@theme inline` semantics** (var-resolution pitfall) |
-| tw-repo | [github.com/tailwindlabs/tailwindcss](https://github.com/tailwindlabs/tailwindcss) | **Source-of-truth** `theme.ts resolveWith()` (one-level inline) + `apply.ts` (unknown-utility throw) |
-| sv-cli | [svelte.dev/docs/cli/sv](https://svelte.dev/docs/cli/sv) | sv programmatic API (add-on authoring); NOT CLI overview |
-| sv-add | [svelte.dev/docs/cli/sv-add](https://svelte.dev/docs/cli/sv-add) | `sv add` retrofit command + official add-on list |
-| sv-create | [svelte.dev/docs/cli/sv-create](https://svelte.dev/docs/cli/sv-create) | `sv create` scaffolder (baseline shape) |
-| sv-check | [svelte.dev/docs/cli/sv-check](https://svelte.dev/docs/cli/sv-check) | `sv check` / svelte-check engine (type/a11y/unused-CSS only) |
-| sv-migrate | [svelte.dev/docs/cli/sv-migrate](https://svelte.dev/docs/cli/sv-migrate) | `sv migrate` codemods (Svelte/Kit syntax only) |
-| sv-utils | [svelte.dev/docs/cli/sv-utils](https://svelte.dev/docs/cli/sv-utils) | Experimental AST codemod toolkit (add-on authoring) |
-| cli-tailwind | [svelte.dev/docs/cli/tailwind](https://svelte.dev/docs/cli/tailwind) | `sv add tailwindcss` add-on (follows the Tailwind SvelteKit guide) |
-| cli-prettier | [svelte.dev/docs/cli/prettier](https://svelte.dev/docs/cli/prettier) | `sv add prettier` add-on (format lane) |
-| cli-eslint | [svelte.dev/docs/cli/eslint](https://svelte.dev/docs/cli/eslint) | `sv add eslint` add-on (lint lane) |
-| cli-vitest | [svelte.dev/docs/cli/vitest](https://svelte.dev/docs/cli/vitest) | `sv add vitest` add-on (test lane) |
-| cli-adapter | [svelte.dev/docs/cli/sveltekit-adapter](https://svelte.dev/docs/cli/sveltekit-adapter) | `sv add sveltekit-adapter` (build/deploy adapter) |
+| Source             | URL                                                                                                                                  | Role                                                                                                 |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| tw-sveltekit-guide | [tailwindcss.com/docs/installation/framework-guides/sveltekit](https://tailwindcss.com/docs/installation/framework-guides/sveltekit) | Canonical 7-step Tailwind v4 + SvelteKit install (happy path; no @theme)                             |
+| tw-vite            | [tailwindcss.com/docs/installation/using-vite](https://tailwindcss.com/docs/installation/using-vite)                                 | Canonical `@tailwindcss/vite` plugin + single `@import` setup                                        |
+| tw-docs-home       | [tailwindcss.com/docs](https://tailwindcss.com/docs) → [/docs/theme](https://tailwindcss.com/docs/theme)                             | **Authoritative `@theme` / `@theme inline` semantics** (var-resolution pitfall)                      |
+| tw-repo            | [github.com/tailwindlabs/tailwindcss](https://github.com/tailwindlabs/tailwindcss)                                                   | **Source-of-truth** `theme.ts resolveWith()` (one-level inline) + `apply.ts` (unknown-utility throw) |
+| sv-cli             | [svelte.dev/docs/cli/sv](https://svelte.dev/docs/cli/sv)                                                                             | sv programmatic API (add-on authoring); NOT CLI overview                                             |
+| sv-add             | [svelte.dev/docs/cli/sv-add](https://svelte.dev/docs/cli/sv-add)                                                                     | `sv add` retrofit command + official add-on list                                                     |
+| sv-create          | [svelte.dev/docs/cli/sv-create](https://svelte.dev/docs/cli/sv-create)                                                               | `sv create` scaffolder (baseline shape)                                                              |
+| sv-check           | [svelte.dev/docs/cli/sv-check](https://svelte.dev/docs/cli/sv-check)                                                                 | `sv check` / svelte-check engine (type/a11y/unused-CSS only)                                         |
+| sv-migrate         | [svelte.dev/docs/cli/sv-migrate](https://svelte.dev/docs/cli/sv-migrate)                                                             | `sv migrate` codemods (Svelte/Kit syntax only)                                                       |
+| sv-utils           | [svelte.dev/docs/cli/sv-utils](https://svelte.dev/docs/cli/sv-utils)                                                                 | Experimental AST codemod toolkit (add-on authoring)                                                  |
+| cli-tailwind       | [svelte.dev/docs/cli/tailwind](https://svelte.dev/docs/cli/tailwind)                                                                 | `sv add tailwindcss` add-on (follows the Tailwind SvelteKit guide)                                   |
+| cli-prettier       | [svelte.dev/docs/cli/prettier](https://svelte.dev/docs/cli/prettier)                                                                 | `sv add prettier` add-on (format lane)                                                               |
+| cli-eslint         | [svelte.dev/docs/cli/eslint](https://svelte.dev/docs/cli/eslint)                                                                     | `sv add eslint` add-on (lint lane)                                                                   |
+| cli-vitest         | [svelte.dev/docs/cli/vitest](https://svelte.dev/docs/cli/vitest)                                                                     | `sv add vitest` add-on (test lane)                                                                   |
+| cli-adapter        | [svelte.dev/docs/cli/sveltekit-adapter](https://svelte.dev/docs/cli/sveltekit-adapter)                                               | `sv add sveltekit-adapter` (build/deploy adapter)                                                    |
 
 ---
 
@@ -32,16 +32,17 @@ The official wiring (tw-vite, tw-sveltekit-guide, cli-tailwind — all agree):
 
 1. **Install** the matched peer pair: `npm install tailwindcss @tailwindcss/vite`.
 2. **Vite plugin** (`vite.config.ts`), `tailwindcss()` **before** `sveltekit()`:
-   ```ts
-   import tailwindcss from '@tailwindcss/vite';
-   export default defineConfig({ plugins: [ tailwindcss(), sveltekit() ] });
-   ```
+    ```ts
+    import tailwindcss from '@tailwindcss/vite';
+    export default defineConfig({ plugins: [tailwindcss(), sveltekit()] });
+    ```
 3. **CSS entry** — a single line, no v3 triple-directive: `@import "tailwindcss";`
 4. **Import CSS in the root layout**: `import "../app.css";` in `src/routes/+layout.svelte`.
 5. v4 is **config-as-CSS**: NO `tailwind.config.js`, NO PostCSS/autoprefixer. Plugins via `@plugin "..."`, tokens via `@theme`, custom variants via `@custom-variant`.
 6. Consuming a theme token inside a scoped/CSS-module `<style>` block requires `@reference "tailwindcss";` first (build pass resolves theme, not the cascade).
 
 **Argos match (all load-bearing points PASS):**
+
 - `tailwindcss@4.1.18` + `@tailwindcss/vite@4.1.18` (matched pair) — latest published is 4.3.0, so ~2 minors behind; the `@theme inline` + `@apply` semantics in question are stable since v4.0, so the gap is non-blocking.
 - `vite.config.ts:36` — `tailwindcss()` is the **first** plugin, ahead of `sveltekit()` (canonical relative order preserved; sentry/optimizeCss/terminal/devtoolsJson interleaved, which the guide permits).
 - `app.css:1` — `@import 'tailwindcss';` (single-quote vs docs' double-quote is cosmetic).
@@ -61,15 +62,15 @@ Argos was hand-assembled, not `sv`-generated (configs live in non-default locati
 verify = format:check  →  typecheck  →  eslint --no-cache  →  test:unit  →  build
 ```
 
-| sv lane | Doc says | Argos | Verify lane |
-| --- | --- | --- | --- |
-| `sv add tailwindcss` | `@tailwindcss/vite` + `@import "tailwindcss"` + plugin opts `typography`/`forms` | MATCHES; plugins wired v4-native via `@plugin` | (exercised only in **build**) |
-| `sv add prettier` | scripts + `.prettierrc`/`.prettierignore` + eslint integration | prettier 3.6.2 + prettier-plugin-svelte 3.4.0; configs symlinked from `config/` | `format:check` (`prettier --check .`) |
-| `sv add eslint` | `eslint.config.js` at **root** + eslint-plugin-svelte + prettier-last | eslint 9.30.1 flat config **relocated to `config/eslint.config.js`** (must pass `--config`); prettier last | `eslint . --config config/eslint.config.js --no-cache` |
-| `sv add vitest` | merges test setup **into vite.config** (client/server-aware) | **separate `vitest.config.ts`**, single jsdom env, `plugins: [sveltekit()]` only | `test:unit` (`vitest run src/ tests/unit --passWithNoTests`) |
-| `sv add sveltekit-adapter` | adapter wired in `svelte.config.js` | `@sveltejs/adapter-node` 5.5.4 wired; **`@sveltejs/adapter-auto` 6.0.1 orphaned** in devDeps (leftover scaffold) | affects **build** |
-| `sv check` | wraps svelte-check (type + a11y + unused-CSS) | `svelte-kit sync && svelte-check --tsconfig ./tsconfig.json` (svelte-check 4.2.2) | `typecheck` |
-| `sv migrate` | one-shot codemods (`svelte-5`, `app-state`, `self-closing-tags`, …) | N/A to verify; relevant for runes/$app-state cleanup, then re-run verify | not in verify |
+| sv lane                    | Doc says                                                                         | Argos                                                                                                            | Verify lane                                                  |
+| -------------------------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| `sv add tailwindcss`       | `@tailwindcss/vite` + `@import "tailwindcss"` + plugin opts `typography`/`forms` | MATCHES; plugins wired v4-native via `@plugin`                                                                   | (exercised only in **build**)                                |
+| `sv add prettier`          | scripts + `.prettierrc`/`.prettierignore` + eslint integration                   | prettier 3.6.2 + prettier-plugin-svelte 3.4.0; configs symlinked from `config/`                                  | `format:check` (`prettier --check .`)                        |
+| `sv add eslint`            | `eslint.config.js` at **root** + eslint-plugin-svelte + prettier-last            | eslint 9.30.1 flat config **relocated to `config/eslint.config.js`** (must pass `--config`); prettier last       | `eslint . --config config/eslint.config.js --no-cache`       |
+| `sv add vitest`            | merges test setup **into vite.config** (client/server-aware)                     | **separate `vitest.config.ts`**, single jsdom env, `plugins: [sveltekit()]` only                                 | `test:unit` (`vitest run src/ tests/unit --passWithNoTests`) |
+| `sv add sveltekit-adapter` | adapter wired in `svelte.config.js`                                              | `@sveltejs/adapter-node` 5.5.4 wired; **`@sveltejs/adapter-auto` 6.0.1 orphaned** in devDeps (leftover scaffold) | affects **build**                                            |
+| `sv check`                 | wraps svelte-check (type + a11y + unused-CSS)                                    | `svelte-kit sync && svelte-check --tsconfig ./tsconfig.json` (svelte-check 4.2.2)                                | `typecheck`                                                  |
+| `sv migrate`               | one-shot codemods (`svelte-5`, `app-state`, `self-closing-tags`, …)              | N/A to verify; relevant for runes/$app-state cleanup, then re-run verify                                         | not in verify                                                |
 
 **Critical lane fact (every CSS source agrees):** of the five verify lanes, **only `build` runs the Tailwind v4 CSS pipeline.** `format:check`/`typecheck`/`eslint`/`test:unit` never resolve `@theme`, expand `@apply`, or register utilities. So a broken Carbon→Tailwind token bridge (e.g. an unknown `border-border`) surfaces **only at `npm run build`** (and at runtime). A green `npm run check` does NOT prove the token wiring works.
 
@@ -86,6 +87,7 @@ This is the load-bearing section for P2. The authority is **tw-docs-home (/docs/
 ### 4.1 How `@theme inline` resolves `var()` — exactly one level, verbatim substitution
 
 From `theme.ts resolveWith()`:
+
 ```
 if (value.options & ThemeOptions.INLINE) return [value.value, extra]   // raw stored text, verbatim
 return [this.#var(themeKey)!, extra]                                    // non-inline: emits var(--key)
@@ -100,7 +102,7 @@ return [this.#var(themeKey)!, extra]                                    // non-i
 This is where Argos's `app.css:205-242` comment is **factually overstated**, though the engineering outcome is correct:
 
 - A utility like `border-border` **registers from the namespace KEY** (`--color-border` present in `@theme inline`), **regardless** of whether `--cds-border-subtle` is resolvable at build. The `:root` build shim is **NOT required to make `border-border` a known utility.**
-- `apply.ts` throws `Cannot apply unknown utility class \`border-border\`` only if `--color-border` was **never registered** — i.e. if the `@theme inline` block is missing from the Tailwind-imported CSS graph, or `@apply` runs in a scoped/CSS-module context without `@reference`. It does **not** throw merely because `--cds-border-subtle` has no build-time value.
+- `apply.ts` throws `Cannot apply unknown utility class \`border-border\``only if`--color-border`was **never registered** — i.e. if the`@theme inline`block is missing from the Tailwind-imported CSS graph, or`@apply`runs in a scoped/CSS-module context without`@reference`. It does **not** throw merely because `--cds-border-subtle` has no build-time value.
 - So the comment's claimed failure mode ("the utility won't register without the shim") is wrong. What the `:root` shim **actually** buys is a **runtime/SSR concrete value** so the inlined `var(--cds-background)` etc. has something to resolve to before/while `all.css` applies (FOUC/SSR safety). That is a runtime/cascade guarantee, not a build-registration one.
 
 ### 4.3 Why `all.css` is invisible to the build (P2's premise — CONFIRMED)
@@ -128,12 +130,15 @@ There are **two cleaner official alternatives** to the separate `:root` shim, bo
 ## 5. P1/P2 compliance verdict
 
 ### P1 — root import `all.css` + `theme="g100"`: **PASS**
+
 Implemented exactly as designed and consistent with canonical wiring:
+
 - `+layout.svelte:9` — `import 'carbon-components-svelte/css/all.css';` (correct: `all.css` exposes the `--cds-*` custom properties; per-theme `g100.css` would bake hex and not expose tokens).
 - `app.html:11` — `<html lang="en" class="dark" theme="g100">` selects the dark Carbon theme at runtime.
 - Layered on top of the canonical `@import "tailwindcss"` (not a replacement); ordering is sound (`../app.css` first at `:2`, then `all.css` at `:9`, then Lunaris SCSS at `:13` so overrides cascade last). No source contradicts P1. No required changes.
 
 ### P2 — `@theme inline` map + `:root` build shim: **PASS (functionally correct) — ADJUST comments + optional simplification**
+
 Mechanically validated by tw-repo source: one-level inline resolution confirmed, direct `--cds-*` mapping is the right choice, `all.css` invisibility to build confirmed. The implementation builds and is correct. Required/recommended adjustments:
 
 - **ADJUST (docs, required for accuracy):** Soften the `app.css:205-242` / `:236-242` comments. The shim is a **runtime/SSR value guarantee**, NOT what registers the utility. State that `border-border` registers from the `--color-border` key in `@theme inline`, and that an "unknown utility" error would mean the `@theme inline` block left the Tailwind graph or an `@apply` ran without `@reference` — not a missing `--cds-*` value.
@@ -141,10 +146,13 @@ Mechanically validated by tw-repo source: one-level inline resolution confirmed,
 - **NOTE (no action):** the `border-border` build error mentioned in context is resolved by the analysis above — it is registered correctly as-is; if it recurs, it is a graph/`@reference` issue, not a token-value issue.
 
 ### CI gating — required guardrail (both phases)
+
 Gate P1/P2 invariants on **`npm run build`**, not `npm run check`/`test:unit`:
+
 - `vitest.config.ts:6` uses `plugins: [sveltekit()]` only — it **omits `tailwindcss()`**, so the Tailwind pipeline is never exercised by `test:unit`. A regression that removes the shim/map and breaks `border-border` would still pass tests and svelte-check; it fails only at `build`.
 - svelte-check (`typecheck`) and eslint also never run Tailwind. The `build` lane (already last in `verify`) is the sole authoritative guard — ensure it is never skipped for P2 work.
 
 ### Housekeeping (out of P1/P2 scope, flagged not fixed)
+
 - `@sveltejs/adapter-auto@6.0.1` is orphaned in devDeps (adapter-node is the wired adapter) — leftover scaffold; mention to owner, do not delete unasked.
 - Version pin 4.1.18 vs latest 4.3.0 — upgrade path exists, non-blocking; the audited semantics are unchanged across that range.

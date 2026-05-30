@@ -47,7 +47,10 @@
 				</thead>
 				<tbody>
 					{#each scanResults.sort((a, b) => (b.frameCount || 0) - (a.frameCount || 0)) as result (result.frequency)}
-						<tr class="results-row" class:row-selected={selectedFrequency === result.frequency}>
+						<tr
+							class="results-row"
+							class:row-selected={selectedFrequency === result.frequency}
+						>
 							<td class="cell-freq">{result.frequency} MHz</td>
 							<td class="cell-signal">
 								{result.power !== undefined && result.power > -100
@@ -55,11 +58,16 @@
 									: result.strength || 'N/A'}
 							</td>
 							<td>
-								<span class="qual-tag {getQualityClass(result.strength)}">{result.strength}</span>
+								<span class="qual-tag {getQualityClass(result.strength)}"
+									>{result.strength}</span
+								>
 							</td>
 							<td>
 								{#if result.channelType}
-									<span class="chan-tag" class:chan-control={result.controlChannel}>
+									<span
+										class="chan-tag"
+										class:chan-control={result.controlChannel}
+									>
 										{result.channelType}
 									</span>
 								{:else}
@@ -82,7 +90,9 @@
 							</td>
 							<td>
 								<Button
-									kind={selectedFrequency === result.frequency ? 'primary' : 'tertiary'}
+									kind={selectedFrequency === result.frequency
+										? 'primary'
+										: 'tertiary'}
 									size="small"
 									on:click={() => onselect(result.frequency)}
 									disabled={selectedFrequency === result.frequency}
