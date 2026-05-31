@@ -192,7 +192,7 @@
 			fontSize: 14,
 			fontFamily: "'FiraCode Nerd Font', 'Fira Code', 'JetBrains Mono', monospace",
 			lineHeight: 1.2,
-			scrollback: 10000,
+			scrollback: 5000,
 			theme: buildTerminalTheme()
 		});
 
