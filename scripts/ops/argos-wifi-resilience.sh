@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Argos WiFi Resilience Monitor
-# Monitors wlan0 connectivity and reconnects on failure.
-# SAFETY: ONLY operates on wlan0. Never touches wlan1/wlan1mon (Kismet).
+# Monitors wlP1p1s0 (Jetson managed wifi) connectivity and reconnects on failure.
+# SAFETY: ONLY operates on wlP1p1s0. Never touches wlan1/wlan1mon (Kismet) or eno1 (ethernet).
 # Usage: argos-wifi-resilience.sh monitor
 set -euo pipefail
 
 LOG_TAG="argos-wifi-resilience"
-MANAGED_IFACE="wlan0"
+MANAGED_IFACE="wlP1p1s0"
 
 # Timing
 BASE_INTERVAL=30
@@ -63,7 +63,7 @@ attempt_reconnect() {
   case "$level" in
     1)
       log "Level 1: nmcli reconnect $MANAGED_IFACE"
-      sudo nmcli device connect "$MANAGED_IFACE" 2>/dev/null
+      sudo nmcli device connect "$MANAGED_IFACE" 2>/dev/null || true
       ;;
     2)
       log "Level 2: link bounce + nmcli reconnect"
@@ -71,13 +71,13 @@ attempt_reconnect() {
       sleep 2
       sudo ip link set "$MANAGED_IFACE" up 2>/dev/null || true
       sleep 3
-      nmcli device connect "$MANAGED_IFACE" 2>/dev/null
+      nmcli device connect "$MANAGED_IFACE" 2>/dev/null || true
       ;;
     3)
-      warn "Level 3: reapplying wlan0 connection (targeted, not full NM restart)"
+      warn "Level 3: reapplying wlP1p1s0 connection (targeted, not full NM restart)"
       sudo nmcli device reapply "$MANAGED_IFACE" 2>/dev/null || true
       sleep 5
-      # If reapply fails, try disconnect + reconnect (still wlan0-scoped)
+      # If reapply fails, try disconnect + reconnect (still wlP1p1s0-scoped)
       sudo nmcli device disconnect "$MANAGED_IFACE" 2>/dev/null || true
       sleep 2
       sudo nmcli device connect "$MANAGED_IFACE" 2>/dev/null || true
@@ -100,9 +100,9 @@ increase_backoff() {
 }
 
 monitor() {
-  # Safety: refuse to operate on anything except wlan0
-  if [[ "$MANAGED_IFACE" != "wlan0" ]]; then
-    log "FATAL: MANAGED_IFACE is '$MANAGED_IFACE', not wlan0. Refusing to run."
+  # Safety: refuse to operate on anything except wlP1p1s0
+  if [[ "$MANAGED_IFACE" != "wlP1p1s0" ]]; then
+    log "FATAL: MANAGED_IFACE is '$MANAGED_IFACE', not wlP1p1s0. Refusing to run."
     exit 1
   fi
 
