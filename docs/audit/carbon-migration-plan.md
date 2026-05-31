@@ -1,6 +1,8 @@
 <!-- Carbon migration execution guide — generated 2026-05-29 from a parallel
      pre-staging audit of all 94 remaining components. -->
 
+# Carbon Migration Execution Guide (ADR 0006)
+
 > ## ⚠️ This guide is a HYPOTHESIS — verify before every edit
 >
 > The per-component plans below were produced by audit agents and CAN be stale or
@@ -17,8 +19,6 @@
 > - `svelte-check` + `npm run build` (hard gates) + chrome-devtools e2e (novel UI) →
 >   PR → CI-green merge. Carbon component APIs verified via context7 + the package
 >   `.d.ts`; structure via codegraph/semble.
-
-# Carbon Migration Execution Guide (ADR 0006)
 
 End state: pure Svelte + IBM Carbon, zero shadcn `ui/*`, zero Lunaris `--var` tokens (all `--cds-*`). Migrate **one area per PR**, surgically, verified.
 

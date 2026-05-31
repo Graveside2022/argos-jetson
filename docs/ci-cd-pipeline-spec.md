@@ -518,11 +518,11 @@ All canonical sources cited inline above. Aggregated for one-stop navigation:
 - CodeRabbit: https://docs.coderabbit.ai/
 - actions/cache@v4: https://github.com/actions/cache/blob/main/README.md
 - actions/setup-node: https://github.com/actions/setup-node/blob/main/README.md
-- Vite config / server.fs.allow: https://vite.dev/config/ , https://vite.dev/config/server-options
-- Node CLI (engines, `--run`): https://nodejs.org/docs/latest/api/cli.html
-- Trunk merge-queue / flaky-tests / action: https://docs.trunk.io/merge-queue/merge-queue , https://docs.trunk.io/flaky-tests/overview , https://github.com/trunk-io/trunk-action
-- IBM Plex (split packages): https://github.com/IBM/plex/releases/tag/@ibm/plex-sans@1.1.0
-- RTK (token-killer CLI proxy): https://github.com/rtk-ai/rtk
+- Vite config / server.fs.allow: <https://vite.dev/config/> , <https://vite.dev/config/server-options>
+- Node CLI (engines, `--run`): <https://nodejs.org/docs/latest/api/cli.html>
+- Trunk merge-queue / flaky-tests / action: <https://docs.trunk.io/merge-queue/merge-queue> , <https://docs.trunk.io/flaky-tests/overview> , <https://github.com/trunk-io/trunk-action>
+- IBM Plex (split packages): <https://github.com/IBM/plex/releases/tag/@ibm/plex-sans@1.1.0>
+- RTK (token-killer CLI proxy): <https://github.com/rtk-ai/rtk>
 - lefthook: https://lefthook.dev/
 - simple-git-hooks: https://github.com/toplenboren/simple-git-hooks
 - pre-commit framework: https://pre-commit.com/
