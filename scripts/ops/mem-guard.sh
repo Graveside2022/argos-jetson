@@ -40,7 +40,6 @@ LOCKFILE="/tmp/argos-heavy-cmd.lock"
 
 # --- Colors ---
 RED='\033[0;31m'
-YELLOW='\033[1;33m'
 GREEN='\033[0;32m'
 DIM='\033[0;90m'
 RESET='\033[0m'

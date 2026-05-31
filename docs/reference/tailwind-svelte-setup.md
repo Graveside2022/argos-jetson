@@ -58,7 +58,7 @@ The official wiring (tw-vite, tw-sveltekit-guide, cli-tailwind — all agree):
 
 Argos was hand-assembled, not `sv`-generated (configs live in non-default locations), but its toolchain is **canonical-equivalent** to what the `sv add` add-ons produce. `npm run verify` chains exactly the lanes the add-ons install:
 
-```
+```text
 verify = format:check  →  typecheck  →  eslint --no-cache  →  test:unit  →  build
 ```
 
@@ -88,9 +88,9 @@ This is the load-bearing section for P2. The authority is **tw-docs-home (/docs/
 
 From `theme.ts resolveWith()`:
 
-```
-if (value.options & ThemeOptions.INLINE) return [value.value, extra]   // raw stored text, verbatim
-return [this.#var(themeKey)!, extra]                                    // non-inline: emits var(--key)
+```ts
+if (value.options & ThemeOptions.INLINE) return [value.value, extra]; // raw stored text, verbatim
+return [this.#var(themeKey)!, extra]; // non-inline: emits var(--key)
 ```
 
 - **`@theme inline { --color-border: var(--cds-border-subtle); }`** makes the `border-border` utility emit `border-color: var(--cds-border-subtle)` **literally** — the stored string, one level, no recursion. Tailwind does **not** chase `--cds-border-subtle` to a color, and does **not** follow multi-level `var()` chains.
@@ -102,7 +102,7 @@ return [this.#var(themeKey)!, extra]                                    // non-i
 This is where Argos's `app.css:205-242` comment is **factually overstated**, though the engineering outcome is correct:
 
 - A utility like `border-border` **registers from the namespace KEY** (`--color-border` present in `@theme inline`), **regardless** of whether `--cds-border-subtle` is resolvable at build. The `:root` build shim is **NOT required to make `border-border` a known utility.**
-- `apply.ts` throws `Cannot apply unknown utility class \`border-border\``only if`--color-border`was **never registered** — i.e. if the`@theme inline`block is missing from the Tailwind-imported CSS graph, or`@apply`runs in a scoped/CSS-module context without`@reference`. It does **not** throw merely because `--cds-border-subtle` has no build-time value.
+- `apply.ts` throws the "Cannot apply unknown utility class `border-border`" error only if `--color-border` was **never registered** — i.e. if the `@theme inline` block is missing from the Tailwind-imported CSS graph, or `@apply` runs in a scoped/CSS-module context without `@reference`. It does **not** throw merely because `--cds-border-subtle` has no build-time value.
 - So the comment's claimed failure mode ("the utility won't register without the shim") is wrong. What the `:root` shim **actually** buys is a **runtime/SSR concrete value** so the inlined `var(--cds-background)` etc. has something to resolve to before/while `all.css` applies (FOUC/SSR safety). That is a runtime/cascade guarantee, not a build-registration one.
 
 ### 4.3 Why `all.css` is invisible to the build (P2's premise — CONFIRMED)

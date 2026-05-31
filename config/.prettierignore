@@ -24,3 +24,9 @@ CHANGELOG.md
 # Vendored upstream code — keep byte-for-byte identical to noVNC/pako sources
 static/webtak/novnc/**
 static/webtak/vendor/**
+
+# Tessl tile cache — vendored plugin docs/source, not Argos-authored. Mirrors
+# the .gitignore .tessl/tiles/ + .tessl/plugins/ rules; prettier must not
+# reformat upstream tile content.
+.tessl/plugins/**
+.tessl/tiles/**
