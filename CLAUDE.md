@@ -1,19 +1,19 @@
 # Argos CLAUDE.md
 
-Inherits user-global `~/.claude/CLAUDE.md` (Karpathy + per-turn disclosure + halt rule + 8 workflow @-imports). Project files add invariants only — NEVER override.
+Inherits user-global `~/.claude/CLAUDE.md` (3 mandatory rule sets: Karpathy rules, mcpmu for ALL MCP tools, aai-gateway for ALL skills). Project files add invariants only — NEVER override.
 
 ## Argos invariants
 
 | Item             | Value                                                    |
 | ---------------- | -------------------------------------------------------- |
-| v1 UI port       | `:5173` (customer-facing)                                |
-| v2 Mk II UI port | `:5174`                                                  |
+| Prod UI port     | `:5173` (argos-final, customer-facing)                   |
+| Dev server port  | `:5193` (per-worktree; v2/:5174 retired)                 |
 | Sentry project   | `us-army-2k/argos` (id `4511395679043584`)               |
 | OTel env flag    | `OTEL_ENABLED=1`                                         |
 | GitHub repo      | `christianpeirson/argos-jetson`                          |
 | Node engine      | `>=22.11` (pinned)                                       |
 | Daily PR LOC cap | 2000 (admin override RESERVED for dev→main rollups only) |
-| Branch model     | v1=`origin/v1`, v2=`origin/main`, dev=`origin/dev`       |
+| Branch model     | prod=`origin/main`, dev=`origin/dev`                     |
 
 ## Repowise index
 
@@ -25,9 +25,8 @@ repowise init --index-only -y -x "docs/carbon-design-system/" -x "docs/carbon-we
 
 ## Argos-specific @-imports
 
-@SKILL-ROUTING.md
 @AGENTS.md
 
 ## Refs
 
-User-global: `~/.claude/CLAUDE.md` + 8 workflow files.
+User-global: `~/.claude/CLAUDE.md` (3 mandatory rule sets). Skills route through aai-gateway (`listAllAaiApps` → `enableApp` → `aai_exec`); discovery via tessl through mcpmu. Skill-routing doctrine is no longer a static doc — the gateway IS the index.
