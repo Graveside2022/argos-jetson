@@ -265,9 +265,6 @@ check_component() {
     claude_code)     sudo -u "$SETUP_USER" bash -c 'command -v claude' &>/dev/null ;;
     gemini_cli)      sudo -u "$SETUP_USER" bash -c 'command -v gemini' &>/dev/null ;;
     agent_browser)   sudo -u "$SETUP_USER" bash -c 'command -v agent-browser' &>/dev/null ;;
-    chromadb)        sudo -u "$SETUP_USER" bash -c 'command -v bun' &>/dev/null ;;
-    claude_mem)      [[ -d "$SETUP_HOME/.claude/plugins/cache/thedotmack/claude-mem" ]] && \
-                       [[ -f "$SETUP_HOME/.claude-mem/settings.json" ]] ;;
     headless_debug)  [[ -f /etc/systemd/system/argos-headless.service ]] ;;
     zsh_dotfiles)    command -v zsh &>/dev/null && [[ -d "$SETUP_HOME/.oh-my-zsh" ]] ;;
     zsh_default)     [[ "$(getent passwd "$SETUP_USER" | cut -d: -f7)" == *zsh ]] ;;
@@ -906,7 +903,7 @@ install_earlyoom() {
   # Avoid: system-critical + dev tools. Prefer: expendable heavy processes.
   # Xvfb/chromium removed from avoid — they're expendable and recoverable.
   cat > /etc/default/earlyoom << 'EARLYOOM'
-EARLYOOM_ARGS="-m 5 -s 20 -r 10 -g --avoid '(^|/)(init|sshd|tailscaled|NetworkManager|dockerd|systemd|node.*vscode|vite|chroma)$' --prefer '(^|/)(ollama|bun|svelte-check|tshark|wireshark|jaeger|puppeteer)$'"
+EARLYOOM_ARGS="-m 5 -s 20 -r 10 -g --avoid '(^|/)(init|sshd|tailscaled|NetworkManager|dockerd|systemd|node.*vscode|vite)$' --prefer '(^|/)(ollama|bun|svelte-check|tshark|wireshark|jaeger|puppeteer)$'"
 EARLYOOM
   systemctl enable earlyoom
   systemctl restart earlyoom
@@ -1509,9 +1506,9 @@ install_wigletotak() {
   # WigleToTAK = Flask app that converts Kismet wiglecsv → TAK CoT broadcast.
   # Argos spawns it directly as SETUP_USER (no systemd, no sudoers needed) —
   # sees src/lib/server/services/wigletotak/wigletotak-control-service.ts.
-  # Upstream hardcodes port=8000; Argos probes $WIGLETOTAK_PORT (default 8081)
-  # because 8000 is reserved for Chroma. We patch WigletoTAK.py post-clone so
-  # the Flask port honors the env var Argos sets at spawn time.
+  # Upstream hardcodes port=8000; Argos probes $WIGLETOTAK_PORT (default 8081).
+  # We patch WigletoTAK.py post-clone so the Flask port honors the env var
+  # Argos sets at spawn time.
 
   local WGL_HOME="$SETUP_HOME/WigleToTAK"
   local WGL_SCRIPT="$WGL_HOME/WigletoTAK.py"
@@ -1713,138 +1710,6 @@ install_claude_code() {
   fi
 }
 
-install_claude_mem() {
-  # Requires: Claude Code installed + ChromaDB component
-  if ! _user_has_cmd claude; then
-    echo "  Skipping — Claude Code not installed (required for claude-mem)"
-    return 0
-  fi
-
-  local CLAUDE_DIR="$SETUP_HOME/.claude"
-  local CLAUDE_MEM_DIR="$SETUP_HOME/.claude-mem"
-  local CLAUDE_SETTINGS="$CLAUDE_DIR/settings.json"
-  local HOOKS_DIR="$CLAUDE_DIR/hooks"
-
-  # 1. Install claude-mem plugin (if not already installed)
-  local PLUGIN_CACHE="$CLAUDE_DIR/plugins/cache/thedotmack/claude-mem"
-  if [[ -d "$PLUGIN_CACHE" ]]; then
-    echo "  claude-mem plugin already installed"
-  else
-    echo "  Installing claude-mem plugin..."
-    if sudo -u "$SETUP_USER" bash -c 'claude plugin install claude-mem@thedotmack' 2>/dev/null; then
-      echo "  claude-mem plugin installed"
-    else
-      echo "  WARNING: claude-mem install requires authenticated Claude Code."
-      echo "  Run manually after authenticating: claude plugin install claude-mem@thedotmack"
-      return 0
-    fi
-  fi
-
-  # 2. Write claude-mem settings.json (remote chroma mode)
-  sudo -u "$SETUP_USER" mkdir -p "$CLAUDE_MEM_DIR"
-  local MEM_SETTINGS="$CLAUDE_MEM_DIR/settings.json"
-  if [[ -f "$MEM_SETTINGS" ]]; then
-    echo "  claude-mem settings already exist"
-  else
-    echo "  Writing claude-mem settings (remote chroma, claude-opus-4-6)..."
-    sudo -u "$SETUP_USER" tee "$MEM_SETTINGS" > /dev/null << 'MEMSETTINGS'
-{
-  "CLAUDE_MEM_MODEL": "claude-opus-4-6",
-  "CLAUDE_MEM_CONTEXT_OBSERVATIONS": "50",
-  "CLAUDE_MEM_WORKER_PORT": "37777",
-  "CLAUDE_MEM_WORKER_HOST": "0.0.0.0",
-  "CLAUDE_MEM_SKIP_TOOLS": "ListMcpResourcesTool,SlashCommand,Skill,TodoWrite,AskUserQuestion",
-  "CLAUDE_MEM_PROVIDER": "claude",
-  "CLAUDE_MEM_CLAUDE_AUTH_METHOD": "cli",
-  "CLAUDE_MEM_DATA_DIR": "",
-  "CLAUDE_MEM_LOG_LEVEL": "INFO",
-  "CLAUDE_MEM_MODE": "code",
-  "CLAUDE_MEM_CONTEXT_SHOW_READ_TOKENS": "true",
-  "CLAUDE_MEM_CONTEXT_SHOW_WORK_TOKENS": "true",
-  "CLAUDE_MEM_CONTEXT_SHOW_SAVINGS_AMOUNT": "true",
-  "CLAUDE_MEM_CONTEXT_SHOW_SAVINGS_PERCENT": "true",
-  "CLAUDE_MEM_CONTEXT_OBSERVATION_TYPES": "bugfix,feature,refactor,discovery,decision,change",
-  "CLAUDE_MEM_CONTEXT_OBSERVATION_CONCEPTS": "how-it-works,why-it-exists,what-changed,problem-solution,gotcha,pattern,trade-off",
-  "CLAUDE_MEM_CONTEXT_FULL_COUNT": "5",
-  "CLAUDE_MEM_CONTEXT_FULL_FIELD": "narrative",
-  "CLAUDE_MEM_CONTEXT_SESSION_COUNT": "10",
-  "CLAUDE_MEM_CONTEXT_SHOW_LAST_SUMMARY": "true",
-  "CLAUDE_MEM_CONTEXT_SHOW_LAST_MESSAGE": "false",
-  "CLAUDE_MEM_FOLDER_CLAUDEMD_ENABLED": "false",
-  "CLAUDE_MEM_EXCLUDED_PROJECTS": "",
-  "CLAUDE_MEM_FOLDER_MD_EXCLUDE": "[]",
-  "CLAUDE_MEM_CHROMA_MODE": "remote",
-  "CLAUDE_MEM_CHROMA_HOST": "127.0.0.1",
-  "CLAUDE_MEM_CHROMA_PORT": "8000",
-  "CLAUDE_MEM_CHROMA_SSL": "false",
-  "CLAUDE_MEM_CHROMA_API_KEY": "",
-  "CLAUDE_MEM_CHROMA_TENANT": "default_tenant",
-  "CLAUDE_MEM_CHROMA_DATABASE": "default_database"
-}
-MEMSETTINGS
-    # Patch DATA_DIR with actual home path
-    sed -i "s|\"CLAUDE_MEM_DATA_DIR\": \"\"|\"CLAUDE_MEM_DATA_DIR\": \"$CLAUDE_MEM_DIR\"|" "$MEM_SETTINGS"
-  fi
-
-  # 3. Enable claude-mem in global settings.json
-  if [[ -f "$CLAUDE_SETTINGS" ]]; then
-    if _json_deep_has "$CLAUDE_SETTINGS" "enabledPlugins.claude-mem@thedotmack" "true" 2>/dev/null; then
-      echo "  claude-mem already enabled in settings"
-    else
-      echo "  Enabling claude-mem plugin in settings..."
-      _json_deep_set "$CLAUDE_SETTINGS" "enabledPlugins.claude-mem@thedotmack" "true"
-      chown "$SETUP_USER":"$SETUP_USER" "$CLAUDE_SETTINGS"
-    fi
-  fi
-
-  # 4. Install ensure-chroma-env.sh global hook
-  sudo -u "$SETUP_USER" mkdir -p "$HOOKS_DIR"
-  local HOOK_SCRIPT="$HOOKS_DIR/ensure-chroma-env.sh"
-  if [[ -f "$HOOK_SCRIPT" ]]; then
-    echo "  ensure-chroma-env hook already installed"
-  else
-    echo "  Installing ensure-chroma-env hook..."
-    sudo -u "$SETUP_USER" tee "$HOOK_SCRIPT" > /dev/null << 'HOOKEOF'
-#!/usr/bin/env bash
-set -u
-# Ensure running claude-mem worker has CHROMA_SSL=false.
-# Restarts any worker spawned before the env fix was in place.
-WORKER_PID=$(pgrep -f 'worker-service.cjs --daemon' 2>/dev/null | head -1)
-if [ -n "${WORKER_PID:-}" ]; then
-    if ! tr '\0' '\n' < "/proc/$WORKER_PID/environ" 2>/dev/null | grep -q '^CHROMA_SSL=false$'; then
-        kill "$WORKER_PID" 2>/dev/null
-    fi
-fi
-exit 0
-HOOKEOF
-    chmod +x "$HOOK_SCRIPT"
-  fi
-
-  # 5. Register SessionStart hook in global settings (if not already present)
-  if [[ -f "$CLAUDE_SETTINGS" ]]; then
-    if grep -q "ensure-chroma-env" "$CLAUDE_SETTINGS" 2>/dev/null; then
-      echo "  SessionStart hook already registered"
-    else
-      echo "  Registering SessionStart hook in global settings..."
-      python3 - "$CLAUDE_SETTINGS" "$HOOK_SCRIPT" << 'PYEOF'
-import json, sys
-fpath, hook_cmd = sys.argv[1], sys.argv[2]
-with open(fpath) as f:
-    s = json.load(f)
-hooks = s.setdefault("hooks", {})
-ss = hooks.setdefault("SessionStart", [])
-ss.append({"hooks": [{"type": "command", "command": hook_cmd, "timeout": 10}]})
-with open(fpath, "w") as f:
-    json.dump(s, f, indent=2)
-    f.write("\n")
-PYEOF
-      chown "$SETUP_USER":"$SETUP_USER" "$CLAUDE_SETTINGS"
-    fi
-  fi
-
-  echo "  claude-mem configured (remote chroma on port 8000)"
-}
-
 install_gemini_cli() {
   if _user_has_cmd gemini; then
     echo "  Gemini CLI already installed"
@@ -1867,190 +1732,6 @@ install_agent_browser() {
   # Always ensure Chromium is available (handles partial installs)
   echo "  Ensuring Chromium for agent-browser..."
   sudo -u "$SETUP_USER" agent-browser install
-}
-
-_install_chroma_runtimes() {
-  if _user_has_cmd bun; then
-    echo "  Bun already installed"
-  else
-    echo "  Installing Bun..."
-    sudo -u "$SETUP_USER" bash -c 'curl -fsSL https://bun.sh/install | bash'
-  fi
-  if _user_has_cmd uv; then
-    echo "  uv already installed"
-  else
-    echo "  Installing uv..."
-    sudo -u "$SETUP_USER" bash -c 'curl -LsSf https://astral.sh/uv/install.sh | sh'
-  fi
-  _user_has_cmd pipx || _ensure_pkg pipx
-  if _user_has_cmd chroma; then
-    echo "  ChromaDB already installed"
-  else
-    echo "  Installing ChromaDB via pipx..."
-    sudo -u "$SETUP_USER" pipx install chromadb
-  fi
-}
-
-_install_chroma_service() {
-  local CHROMA_DATA_DIR="$SETUP_HOME/.claude-mem/chroma"
-  sudo -u "$SETUP_USER" mkdir -p "$CHROMA_DATA_DIR"
-
-  local CHROMA_SERVICE="$SETUP_HOME/.config/systemd/user/chroma-server.service"
-  sudo -u "$SETUP_USER" mkdir -p "$SETUP_HOME/.config/systemd/user"
-  cat > "$CHROMA_SERVICE" << EOF
-[Unit]
-Description=ChromaDB Vector Database Server (claude-mem)
-After=network.target
-
-[Service]
-Type=simple
-ExecStart=$SETUP_HOME/.local/bin/chroma run --path $CHROMA_DATA_DIR --host 127.0.0.1 --port 8000
-ExecStartPost=/bin/sh -c 'for i in 1 2 3 4 5 6 7 8 9 10; do curl -sf http://127.0.0.1:8000/api/v2/heartbeat && exit 0; sleep 2; done; exit 1'
-Restart=on-failure
-RestartSec=5
-StartLimitIntervalSec=300
-StartLimitBurst=5
-StandardOutput=journal
-StandardError=journal
-OOMScoreAdjust=-200
-
-[Install]
-WantedBy=default.target
-EOF
-  chown "$SETUP_USER":"$SETUP_USER" "$CHROMA_SERVICE"
-
-  # cgroup memory limits for ChromaDB (soft 400M, hard 512M)
-  local CHROMA_DROPIN_DIR="$SETUP_HOME/.config/systemd/user/chroma-server.service.d"
-  sudo -u "$SETUP_USER" mkdir -p "$CHROMA_DROPIN_DIR"
-  cat > "$CHROMA_DROPIN_DIR/memory.conf" << 'CHROMAMEM'
-[Service]
-MemoryHigh=400M
-MemoryMax=512M
-MemorySwapMax=64M
-CHROMAMEM
-  chown -R "$SETUP_USER":"$SETUP_USER" "$CHROMA_DROPIN_DIR"
-  echo "  ChromaDB cgroup limits: MemoryHigh=400M, MemoryMax=512M."
-
-  _enable_user_service chroma-server
-}
-
-_propagate_chroma_ssl() {
-  # Layer 1: /etc/environment (PAM-level, all logins)
-  if grep -q "^CHROMA_SSL=false$" /etc/environment 2>/dev/null; then
-    echo "  CHROMA_SSL=false already in /etc/environment"
-  else
-    sed -i '/^CHROMA_SSL=/d' /etc/environment 2>/dev/null || true
-    echo 'CHROMA_SSL=false' >> /etc/environment
-    echo "  Set CHROMA_SSL=false in /etc/environment"
-  fi
-
-  # Layer 2: systemd environment.d
-  local ENVD_DIR="$SETUP_HOME/.config/environment.d"
-  sudo -u "$SETUP_USER" mkdir -p "$ENVD_DIR"
-  sudo -u "$SETUP_USER" tee "$ENVD_DIR/chroma.conf" > /dev/null <<< 'CHROMA_SSL=false'
-  local chroma_uid
-  chroma_uid=$(id -u "$SETUP_USER")
-  sudo -u "$SETUP_USER" \
-    XDG_RUNTIME_DIR="/run/user/$chroma_uid" \
-    DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$chroma_uid/bus" \
-    CHROMA_SSL=false \
-    systemctl --user import-environment CHROMA_SSL 2>/dev/null || true
-
-  # Layer 3: .zshenv (interactive shells)
-  local ZSHENV="$SETUP_HOME/.zshenv"
-  if [[ -f "$ZSHENV" ]] && grep -q "^export CHROMA_SSL=" "$ZSHENV"; then
-    echo "  CHROMA_SSL already in .zshenv"
-  else
-    echo 'export CHROMA_SSL=false' >> "$ZSHENV"
-    chown "$SETUP_USER":"$SETUP_USER" "$ZSHENV"
-  fi
-
-  # Layer 4: Claude Code settings.json env field
-  local CLAUDE_SETTINGS="$SETUP_HOME/.claude/settings.json"
-  if [[ -f "$CLAUDE_SETTINGS" ]]; then
-    if _json_deep_has "$CLAUDE_SETTINGS" "env.CHROMA_SSL" "false"; then
-      echo "  CHROMA_SSL already in Claude Code settings.json"
-    else
-      echo "  Adding CHROMA_SSL=false to Claude Code settings.json..."
-      _json_deep_set "$CLAUDE_SETTINGS" "env.CHROMA_SSL" "false"
-      chown "$SETUP_USER":"$SETUP_USER" "$CLAUDE_SETTINGS"
-    fi
-  fi
-
-  # claude-mem: switch from local to remote mode
-  local CLAUDE_MEM_SETTINGS="$SETUP_HOME/.claude-mem/settings.json"
-  if [[ -f "$CLAUDE_MEM_SETTINGS" ]] && grep -q '"CLAUDE_MEM_CHROMA_MODE": "local"' "$CLAUDE_MEM_SETTINGS"; then
-    sed -i 's/"CLAUDE_MEM_CHROMA_MODE": "local"/"CLAUDE_MEM_CHROMA_MODE": "remote"/' "$CLAUDE_MEM_SETTINGS"
-    echo "  Switched claude-mem chroma mode to remote"
-  fi
-}
-
-_install_chroma_cleanup_hook() {
-  local CLAUDE_SETTINGS="$SETUP_HOME/.claude/settings.json"
-  local CLAUDE_HOOKS_DIR="$SETUP_HOME/.claude/hooks"
-  local HOOK_SCRIPT="$CLAUDE_HOOKS_DIR/ensure-chroma-env.sh"
-  sudo -u "$SETUP_USER" mkdir -p "$CLAUDE_HOOKS_DIR"
-  sudo -u "$SETUP_USER" tee "$HOOK_SCRIPT" > /dev/null << 'HOOK_CONTENT'
-#!/usr/bin/env bash
-set -u
-# Kill stale orphaned claude-mem workers (>30s old) to prevent memory bloat.
-# Ensure surviving worker has CHROMA_SSL=false.
-MIN_AGE_SECS=30
-NOW=$(date +%s)
-for pid in $(pgrep -f 'worker-service.cjs --daemon' 2>/dev/null); do
-    ppid=$(ps -o ppid= -p "$pid" 2>/dev/null | tr -d ' ')
-    parent_comm=$(ps -o comm= -p "$ppid" 2>/dev/null | tr -d ' ')
-    if [ "$ppid" = "1" ] || [ "$parent_comm" = "systemd" ]; then
-        start_time=$(stat -c %Y "/proc/$pid" 2>/dev/null || echo "$NOW")
-        age=$((NOW - start_time))
-        [ "$age" -ge "$MIN_AGE_SECS" ] && kill "$pid" 2>/dev/null
-    fi
-done
-WORKER_PID=$(pgrep -f 'worker-service.cjs --daemon' 2>/dev/null | head -1)
-if [ -n "${WORKER_PID:-}" ]; then
-    tr '\0' '\n' < "/proc/$WORKER_PID/environ" 2>/dev/null | grep -q '^CHROMA_SSL=false$' || kill "$WORKER_PID" 2>/dev/null
-fi
-exit 0
-HOOK_CONTENT
-  chmod +x "$HOOK_SCRIPT"
-
-  # Register as SessionStart hook in Claude Code settings
-  if [[ -f "$CLAUDE_SETTINGS" ]]; then
-    if python3 -c "
-import json, sys
-with open('$CLAUDE_SETTINGS') as f:
-    s = json.load(f)
-for entry in s.get('hooks', {}).get('SessionStart', []):
-    for h in entry.get('hooks', []):
-        if 'ensure-chroma-env' in h.get('command', ''):
-            sys.exit(0)
-sys.exit(1)
-" 2>/dev/null; then
-      echo "  SessionStart hook already registered"
-    else
-      echo "  Registering cleanup hook..."
-      python3 -c "
-import json
-with open('$CLAUDE_SETTINGS') as f:
-    s = json.load(f)
-s.setdefault('hooks', {}).setdefault('SessionStart', []).append({
-    'hooks': [{'type': 'command', 'command': '$HOOK_SCRIPT', 'timeout': 10}]
-})
-with open('$CLAUDE_SETTINGS', 'w') as f:
-    json.dump(s, f, indent=2)
-    f.write('\n')
-"
-      chown "$SETUP_USER":"$SETUP_USER" "$CLAUDE_SETTINGS"
-    fi
-  fi
-}
-
-install_chromadb() {
-  _install_chroma_runtimes
-  _install_chroma_service
-  _propagate_chroma_ssl
-  _install_chroma_cleanup_hook
-  echo "  ChromaDB service installed and running on port 8000."
 }
 
 _install_zsh_plugins() {

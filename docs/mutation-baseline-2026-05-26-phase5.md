@@ -4,17 +4,6 @@
 
 **Method:** Phase 4 cheap-audit substitute methodology (per `docs/mutation-baseline-2026-05-26-phase4.md` §Methodology pivot) — selected as PRIMARY (not fallback) per 2026-05-26 user directive. NO full-module Stryker run; instead lint/review/hand-mutation/codegraph+semble discovery + targeted test additions.
 
-## Ruflo orchestration
-
-Per the 2026-05-26 directive + PR #253 (ruflo PRIMARY orchestrator doctrine), this phase walked the per-task flow:
-
-1. `memory_search` prior context (Phase 4 hardware precedent, no-existing-Phase-5-findings confirmed)
-2. `memory_store` scope in `argos-phase5-db-scope`
-3. Skills invoked: ruflo `memory_*` (primary) + tessl `sqlite-node-best-practices` (combination layer)
-4. `agentdb_pattern-store` each finding as it landed (8 entries, see below)
-5. `memory_store` pivot decision in `argos-decisions` (cheap-audit-as-primary)
-6. Phase end record (this doc + completion pattern-store)
-
 ## Source inventory (29 files)
 
 Top 5 high-risk targets selected by symbol count + criticality:
@@ -29,7 +18,7 @@ Top 5 high-risk targets selected by symbol count + criticality:
 | —    | `cleanup-service.ts`   |      31 | TESTED (pre-existing) |
 | —    | `run-migrations.ts`    |      13 | TESTED (pre-existing) |
 
-## Findings (8 — ruflo pattern-store IDs)
+## Findings (8)
 
 | #   | Severity | File:Line                    | Finding                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | In-PR action                                                                                              |
 | --- | -------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |

@@ -1,17 +1,20 @@
 <script lang="ts">
 	import '../app.css';
-	// 2026-05-13: load Carbon Components Svelte's g100 dark theme so the
-	// `bx--*` class hierarchy used by Reports / Wi-Fi tabs / Bluetooth toolbar
-	// / Modal renders styled. Spec-026 Phase 0 left the Lunaris-Carbon overlay
-	// scaffold empty (per-component @use migrations are Phase 1+), but Carbon
-	// components are already in use across the dashboard — without this global
-	// import they render as unstyled HTML with `bx--*` classes that resolve to
-	// no rules. See design-system rules + memory project_argos_unified_source_tree.md.
-	import 'carbon-components-svelte/css/g100.css';
-	// spec 026 Phase 1 — Lunaris-on-Carbon theme overlay (currently a stub
-	// with no @carbon/styles imports; subsequent commits add per-component
-	// imports). Loaded AFTER carbon g100 so Lunaris token overrides cascade.
-	import '$lib/styles/lunaris-carbon-theme.scss';
+	// 2026-05-29 (ADR 0006 — full IBM Carbon adoption): load Carbon's `all.css`
+	// (NOT a per-theme file). all.css defines the 457 `--cds-*` custom properties
+	// on :root + `[theme=...]` overrides, so the whole app can consume
+	// `var(--cds-*)` directly. The dark theme is selected via `theme="g100"` on
+	// <html> (see src/app.html). Per-theme files (g100.css) bake literal hex and
+	// do NOT expose `--cds-*`, so they cannot back a token-based migration.
+	import 'carbon-components-svelte/css/all.css';
+	// IBM Plex webfonts (ADR 0006). Carbon's all.css declares the Plex Sans/Mono
+	// font-family stack but does NOT ship the font files — without these imports
+	// the UI silently falls back to the system Helvetica/Arial stack. The
+	// `-default` bundles carry exactly the weights Carbon g100 uses (300/400/600,
+	// normal), not the 112-face `-all` set. Self-hosted woff2 (offline-capable on
+	// the Jetson; no Google Fonts CDN dependency).
+	import '@ibm/plex-sans/css/ibm-plex-sans-default.css';
+	import '@ibm/plex-mono/css/ibm-plex-mono-default.css';
 
 	import type { Snippet } from 'svelte';
 	import { onMount } from 'svelte';

@@ -1,5 +1,9 @@
 <script lang="ts">
-	import { ChevronLeft, ChevronRight, Globe, Layers, Radio } from '@lucide/svelte';
+	import ChevronLeft from 'carbon-icons-svelte/lib/ChevronLeft.svelte';
+	import ChevronRight from 'carbon-icons-svelte/lib/ChevronRight.svelte';
+	import Globe from 'carbon-icons-svelte/lib/Globe.svelte';
+	import Layers from 'carbon-icons-svelte/lib/Layers.svelte';
+	import Radio from 'carbon-icons-svelte/lib/Radio.svelte';
 
 	import {
 		mapSettingsView,
@@ -79,22 +83,22 @@
 	}
 
 	.panel-header {
-		padding: var(--space-4);
-		border-bottom: 1px solid var(--border);
+		padding: var(--cds-spacing-05);
+		border-bottom: 1px solid var(--cds-border-subtle);
 	}
 
 	.subview-header {
 		display: flex;
 		align-items: center;
-		gap: var(--space-2);
+		gap: var(--cds-spacing-03);
 	}
 
 	.panel-title {
-		font-family: var(--font-mono, 'Fira Code', monospace);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 10px;
 		font-weight: 600;
 		letter-spacing: 1.5px;
-		color: var(--foreground-secondary, #888888);
+		color: var(--cds-text-helper);
 	}
 
 	.back-btn {
@@ -106,15 +110,15 @@
 		padding: 0;
 		border: none;
 		background: transparent;
-		color: var(--foreground-secondary, #888888);
+		color: var(--cds-text-helper);
 		cursor: pointer;
 		border-radius: 4px;
 		transition: all 0.15s ease;
 	}
 
 	.back-btn:hover {
-		background: var(--surface-hover, #1e1e1e);
-		color: var(--foreground);
+		background: var(--cds-layer-hover);
+		color: var(--cds-text-primary);
 	}
 
 	.hub-cards {
@@ -125,11 +129,11 @@
 	.hub-card {
 		display: flex;
 		align-items: center;
-		gap: var(--space-3);
-		padding: 10px var(--space-4);
+		gap: var(--cds-spacing-04);
+		padding: 10px var(--cds-spacing-05);
 		background: transparent;
 		border: none;
-		border-bottom: 1px solid var(--border);
+		border-bottom: 1px solid var(--cds-border-subtle);
 		cursor: pointer;
 		text-align: left;
 		width: 100%;
@@ -137,7 +141,7 @@
 	}
 
 	.hub-card:hover {
-		background: var(--surface-hover, #1e1e1e);
+		background: var(--cds-layer-hover);
 	}
 
 	.hub-card-icon {
@@ -147,8 +151,8 @@
 		align-items: center;
 		justify-content: center;
 		border-radius: 6px;
-		background: var(--surface-elevated, #151515);
-		color: var(--foreground-secondary, #888888);
+		background: var(--cds-background);
+		color: var(--cds-text-helper);
 		flex-shrink: 0;
 	}
 
@@ -160,19 +164,19 @@
 	}
 
 	.hub-card-name {
-		font-family: var(--font-mono, 'Fira Code', monospace);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 11px;
 		font-weight: 500;
-		color: var(--foreground);
+		color: var(--cds-text-primary);
 	}
 
 	.hub-card-desc {
 		font-size: 10px;
-		color: var(--foreground-tertiary, #666666);
+		color: var(--cds-text-helper);
 	}
 
 	.hub-card :global(.hub-chevron) {
-		color: var(--foreground-tertiary, #666666);
+		color: var(--cds-text-helper);
 		flex-shrink: 0;
 	}
 

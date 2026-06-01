@@ -2,7 +2,8 @@
 <!-- @constitutional-exemption Article-IV-4.2 issue:#12 — Button pattern extraction deferred to component library refactor -->
 <!-- @audit-svelte-no-at-html-tags 2026-05-05 — getWeatherIcon() returns hard-coded SVG strings keyed off weather code; rule disabled for this file via config/eslint.config.js files-pattern override; no user input vector. -->
 <script lang="ts">
-	import { Network, Signal } from '@lucide/svelte';
+	import ConnectionSignal from 'carbon-icons-svelte/lib/ConnectionSignal.svelte';
+	import Network_3 from 'carbon-icons-svelte/lib/Network_3.svelte';
 	import { onMount, tick } from 'svelte';
 
 	import { gpsStore } from '$lib/stores/tactical-map/gps-store.svelte';
@@ -285,7 +286,7 @@
 				class="segment segment-latency segment-btn"
 				onclick={() => toggleDropdown('latency')}
 			>
-				<Signal size={12} class="segment-icon" />
+				<ConnectionSignal size={12} class="segment-icon" />
 				{latencyMs ?? '--'}ms
 			</button>
 			{#if openDropdown === 'latency'}
@@ -300,7 +301,7 @@
 		</div>
 		<div class="device-wrapper">
 			<button class="segment segment-mesh segment-btn" onclick={() => toggleDropdown('mesh')}>
-				<Network size={12} class="segment-icon" />
+				<Network_3 size={12} class="segment-icon" />
 				{meshDisplay}
 			</button>
 			{#if openDropdown === 'mesh'}

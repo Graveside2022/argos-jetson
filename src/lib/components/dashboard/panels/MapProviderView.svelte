@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Input from '$lib/components/ui/input/input.svelte';
+	import TextInput from '$lib/components/chassis/forms/TextInput.svelte';
 	import {
 		DEFAULT_SATELLITE_SOURCE,
 		DEFAULT_VECTOR_SOURCE,
@@ -53,12 +53,15 @@
 		</div>
 
 		<div class="custom-input-row">
-			<Input
-				type="text"
-				placeholder="Custom XYZ URL..."
-				bind:value={customUrl}
-				class="flex-1 h-7 text-xs"
-			/>
+			<div class="custom-input-grow">
+				<TextInput
+					labelText="Custom XYZ URL"
+					hideLabel
+					placeholder="Custom XYZ URL..."
+					bind:value={customUrl}
+					size="sm"
+				/>
+			</div>
 			<button class="apply-btn" onclick={applyCustom}>Set</button>
 		</div>
 	</section>
@@ -70,5 +73,9 @@
 	.provider-view {
 		display: flex;
 		flex-direction: column;
+	}
+
+	.custom-input-grow {
+		flex: 1;
 	}
 </style>

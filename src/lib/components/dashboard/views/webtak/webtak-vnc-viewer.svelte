@@ -76,7 +76,7 @@
 		instance.focusOnClick = true;
 		instance.qualityLevel = 6;
 		instance.compressionLevel = 2;
-		instance.background = 'var(--background)';
+		instance.background = 'var(--cds-background)';
 	}
 
 	function wireRfbEvents(instance: RfbLike): void {
@@ -188,7 +188,7 @@
 		position: relative;
 		width: 100%;
 		height: 100%;
-		background: var(--background);
+		background: var(--cds-background);
 		overflow: hidden;
 	}
 
@@ -215,12 +215,12 @@
 		align-items: center;
 		gap: 6px;
 		padding: 4px 10px;
-		background: var(--card);
-		border: 1px solid var(--border);
+		background: var(--cds-layer);
+		border: 1px solid var(--cds-border-subtle);
 		font-family: 'Fira Code', monospace;
 		font-size: 9px;
 		letter-spacing: 1px;
-		color: var(--text-secondary);
+		color: var(--cds-text-secondary);
 		pointer-events: none;
 	}
 
@@ -228,7 +228,7 @@
 		width: 6px;
 		height: 6px;
 		border-radius: 50%;
-		background: var(--success, #8bbfa0);
-		box-shadow: 0 0 6px var(--success, #8bbfa0);
+		background: var(--cds-support-success);
+		box-shadow: 0 0 6px var(--cds-support-success);
 	}
 </style>

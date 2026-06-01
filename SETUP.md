@@ -7,10 +7,6 @@
 - **Node.js 22.x** (LTS)
 - **npm 10.x** (comes with Node.js)
 - **Git**
-- **Bun** (claude-mem worker daemon runtime)
-- **uv** (Python package runner -- provides `uvx` for chroma-mcp)
-- **pipx** (installs ChromaDB CLI in isolated venv)
-- **ChromaDB** (vector database for claude-mem semantic search)
 
 All of the above are installed automatically by `scripts/ops/setup-host.sh`.
 
@@ -37,7 +33,7 @@ sudo bash scripts/ops/setup-host.sh
 npm run dev
 ```
 
-The provisioning script handles: Node.js, Bun, uv, Kismet, gpsd, Docker (for third-party tools), udev rules, npm dependencies, `.env` generation, Claude Code, Gemini CLI, agent-browser (browser automation), and ChromaDB (with systemd service).
+The provisioning script handles: Node.js, Kismet, gpsd, Docker (for third-party tools), udev rules, npm dependencies, `.env` generation, Claude Code, Gemini CLI, and agent-browser (browser automation).
 
 ### Manual Setup
 

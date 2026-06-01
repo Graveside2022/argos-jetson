@@ -1,5 +1,7 @@
 <!-- @constitutional-exemption Article-IV-4.3 issue:#11 — Component state handling (loading/error/empty UI) deferred to UX improvement phase -->
 <script lang="ts">
+	import InProgress from 'carbon-icons-svelte/lib/InProgress.svelte';
+	import SendAlt from 'carbon-icons-svelte/lib/SendAlt.svelte';
 	import { onMount } from 'svelte';
 
 	import { lastInteractionEvent } from '$lib/stores/dashboard/agent-context-store.svelte';
@@ -103,30 +105,9 @@
 			title="Send message"
 		>
 			{#if isStreaming}
-				<svg
-					width="16"
-					height="16"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					class="spin"
-				>
-					<circle cx="12" cy="12" r="10" />
-					<path d="M12 6v6l4 2" />
-				</svg>
+				<InProgress size={16} class="spin" />
 			{:else}
-				<svg
-					width="16"
-					height="16"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-				>
-					<line x1="22" y1="2" x2="11" y2="13" />
-					<polygon points="22 2 15 22 11 13 2 9 22 2" />
-				</svg>
+				<SendAlt size={16} />
 			{/if}
 		</button>
 	</div>
@@ -137,10 +118,10 @@
 		display: flex;
 		flex-direction: column;
 		height: 100%;
-		background: var(--background);
-		color: var(--foreground);
-		font-family: var(--font-primary, monospace);
-		font-size: var(--text-brand);
+		background: var(--cds-background);
+		color: var(--cds-text-primary);
+		font-family: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
+		font-size: 0.8125rem;
 	}
 
 	.chat-messages {
@@ -162,7 +143,7 @@
 		width: 6px;
 		height: 6px;
 		border-radius: 50%;
-		background: var(--muted-foreground);
+		background: var(--cds-text-helper);
 		animation: pulse 1.4s infinite;
 	}
 
@@ -189,26 +170,26 @@
 		display: flex;
 		gap: 8px;
 		padding: 8px 12px;
-		background: var(--card);
-		border-top: 1px solid var(--border);
+		background: var(--cds-layer);
+		border-top: 1px solid var(--cds-border-subtle);
 	}
 
 	.chat-input {
 		flex: 1;
 		height: 32px;
-		background: var(--background);
-		border: 1px solid var(--border);
+		background: var(--cds-background);
+		border: 1px solid var(--cds-border-subtle);
 		border-radius: 4px;
-		color: var(--foreground);
+		color: var(--cds-text-primary);
 		padding: 6px 12px;
-		font-family: var(--font-sans, 'Geist', system-ui, sans-serif);
+		font-family: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
 		font-size: 13px;
 		resize: none;
 		outline: none;
 	}
 
 	.chat-input:focus {
-		border-color: var(--ring);
+		border-color: var(--cds-border-strong);
 	}
 
 	.chat-input:disabled {
@@ -222,7 +203,7 @@
 		justify-content: center;
 		width: 32px;
 		height: 32px;
-		background: var(--interactive, #4a8af4);
+		background: var(--cds-link-primary);
 		border: none;
 		border-radius: 4px;
 		color: white;
@@ -232,7 +213,7 @@
 	}
 
 	.send-btn:hover:not(:disabled) {
-		background: color-mix(in srgb, var(--interactive, #4a8af4) 85%, white);
+		background: color-mix(in srgb, var(--cds-link-primary) 85%, white);
 	}
 
 	.send-btn:disabled {
@@ -258,15 +239,15 @@
 	}
 
 	.chat-messages::-webkit-scrollbar-track {
-		background: var(--background);
+		background: var(--cds-background);
 	}
 
 	.chat-messages::-webkit-scrollbar-thumb {
-		background: var(--muted);
+		background: var(--cds-layer);
 		border-radius: 5px;
 	}
 
 	.chat-messages::-webkit-scrollbar-thumb:hover {
-		background: color-mix(in srgb, var(--muted-foreground) 50%, transparent);
+		background: color-mix(in srgb, var(--cds-text-helper) 50%, transparent);
 	}
 </style>

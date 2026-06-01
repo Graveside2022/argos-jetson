@@ -1,8 +1,8 @@
 .command-bar {
 	height: var(--top-bar-height);
 	min-height: var(--top-bar-height);
-	background: var(--card);
-	border-bottom: 1px solid var(--border);
+	background: var(--cds-layer);
+	border-bottom: 1px solid var(--cds-border-subtle);
 	display: flex;
 	align-items: center;
 	padding: 0 16px;
@@ -19,11 +19,11 @@
 }
 
 .brand-mark {
-	font-family: var(--font-mono);
+	font-family: var(--cds-code-01-font-family);
 	font-size: 16px;
 	font-weight: 700;
 	letter-spacing: 2.5px;
-	color: var(--primary);
+	color: var(--cds-link-primary);
 }
 
 .rec-indicator {
@@ -37,16 +37,16 @@
 	width: 8px;
 	height: 8px;
 	border-radius: 50%;
-	background: var(--destructive);
+	background: var(--cds-support-error);
 	flex-shrink: 0;
 }
 
 .callsign {
-	font-family: var(--font-mono);
+	font-family: var(--cds-code-01-font-family);
 	font-size: 14px;
 	font-weight: 600;
 	letter-spacing: 1.5px;
-	color: var(--foreground);
+	color: var(--cds-text-primary);
 	max-width: 180px;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -54,8 +54,8 @@
 }
 
 .rec-badge {
-	color: var(--destructive);
-	font-family: var(--font-mono);
+	color: var(--cds-support-error);
+	font-family: var(--cds-code-01-font-family);
 	font-size: 11px;
 	font-weight: 700;
 	letter-spacing: 1.2px;
@@ -65,7 +65,7 @@
 .bar-divider {
 	width: 1px;
 	height: 20px;
-	background: var(--border);
+	background: var(--cds-border-subtle);
 	flex-shrink: 0;
 }
 
@@ -81,15 +81,15 @@
 }
 
 .segment {
-	font-family: var(--font-mono);
+	font-family: var(--cds-code-01-font-family);
 	font-size: 12px;
-	color: var(--foreground);
+	color: var(--cds-text-primary);
 	white-space: nowrap;
 	font-variant-numeric: tabular-nums;
 }
 
 .segment-coords {
-	color: var(--foreground-secondary);
+	color: var(--cds-text-secondary);
 }
 
 .segment-btn {
@@ -102,7 +102,7 @@
 }
 
 .segment-btn:hover {
-	background: var(--surface-hover);
+	background: var(--cds-layer-hover);
 }
 
 .segment-mesh {
@@ -110,7 +110,7 @@
 }
 
 :global(.segment-icon) {
-	color: var(--success);
+	color: var(--cds-support-success);
 	flex-shrink: 0;
 }
 
@@ -123,24 +123,24 @@
 	border-radius: 4px;
 	background: transparent;
 	border: none;
-	font-family: var(--font-mono);
+	font-family: var(--cds-code-01-font-family);
 	font-size: 12px;
-	color: var(--foreground);
+	color: var(--cds-text-primary);
 }
 
 .segment-weather:hover {
-	background: var(--surface-hover);
+	background: var(--cds-layer-hover);
 }
 
 .weather-icon {
 	display: flex;
 	align-items: center;
-	color: var(--foreground-secondary);
+	color: var(--cds-text-secondary);
 }
 
 .segment-muted {
-	color: var(--muted-foreground);
-	font-family: var(--font-mono);
+	color: var(--cds-text-helper);
+	font-family: var(--cds-code-01-font-family);
 	font-size: 12px;
 }
 
@@ -152,16 +152,16 @@
 }
 
 .segment-latency {
-	color: var(--foreground-secondary);
+	color: var(--cds-text-secondary);
 	font-variant-numeric: tabular-nums;
 }
 
 .weather-desc {
-	color: var(--foreground-muted);
+	color: var(--cds-text-helper);
 }
 
 .segment-date {
-	color: var(--muted-foreground);
+	color: var(--cds-text-helper);
 	font-size: 11px;
 	letter-spacing: 0.5px;
 }

@@ -98,7 +98,7 @@
 	:global(
 		.bx--tabs__nav-item.lunaris-has-items:not(.bx--tabs__nav-item--selected) .bx--tabs__nav-link
 	) {
-		color: var(--warning);
+		color: var(--cds-support-warning);
 	}
 
 	.lunaris-tab-with-badge {

@@ -6,7 +6,14 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+    # `dev` added 2026-05-30: typecheck / unit + architecture tests / build /
+    # format:check now run server-side on every dev PR, not only at the
+    # dev → main rollup. Previously these were enforced on dev solely by the
+    # local `.husky/pre-push` hook, which is bypassable (`--no-verify`,
+    # `SKIP_*`). ESLint + gitleaks were already required on dev via `lint.yml`.
+    # To make these blocking on dev too, add "Validate Code, Tests, and Build"
+    # to dev's required status checks in branch protection.
+    branches: [main, dev]
   # NOTE: no `merge_group:` trigger. A GitHub merge queue was evaluated and
   # declined — `commitlint.yml` ("Validate PR commits") and `danger.yml`
   # ("PR shape rules") are intrinsically PR-scoped and can't run on the

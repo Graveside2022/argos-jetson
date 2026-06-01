@@ -1,5 +1,7 @@
 # Auto-MCP Integration for Context B/C
 
+> **⚠️ Dev-phase status (2026-05-29):** this auto-MCP layer is **coded but not yet installed/deployed** and is expected to be **redesigned** before the final product. Design intent, not shipped behavior.
+
 Automatically generates and manages MCP (Model Context Protocol) servers that expose Argos tools and hardware to Claude CLI instances (Context B and C).
 
 ## How It Works

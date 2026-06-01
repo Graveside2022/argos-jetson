@@ -1,4 +1,6 @@
 <script lang="ts">
+	import Renew from 'carbon-icons-svelte/lib/Renew.svelte';
+
 	import InlineLoading from '$lib/components/chassis/forms/InlineLoading.svelte';
 	import type { SystemInfo } from '$lib/types/system';
 
@@ -11,9 +13,9 @@
 	let { systemInfo }: Props = $props();
 
 	function meterColor(value: number, warn: number, crit: number): string {
-		if (value > crit) return 'var(--status-error, #C45B4A)';
-		if (value > warn) return 'var(--status-warning, #D4A054)';
-		return 'var(--primary)';
+		if (value > crit) return 'var(--cds-support-error)';
+		if (value > warn) return 'var(--cds-support-warning)';
+		return 'var(--cds-link-primary)';
 	}
 
 	let memFreeGB = $derived(
@@ -115,7 +117,10 @@
 				{/if}
 			</div>
 			<div class="meter-bar">
-				<div class="meter-fill" style="width: 100%; background: var(--primary)"></div>
+				<div
+					class="meter-fill"
+					style="width: 100%; background: var(--cds-link-primary)"
+				></div>
 			</div>
 		{/if}
 	</section>
@@ -143,19 +148,7 @@
 			<span class="net-uptime">{formatUptime(systemInfo.uptime)}</span>
 		</div>
 		<button class="speed-test-btn">
-			<svg
-				width="12"
-				height="12"
-				viewBox="0 0 24 24"
-				fill="none"
-				stroke="currentColor"
-				stroke-width="2"
-				stroke-linecap="round"
-				stroke-linejoin="round"
-			>
-				<polyline points="23 4 23 10 17 10" /><polyline points="1 20 1 14 7 14" />
-				<path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
-			</svg>
+			<Renew size={12} />
 			Speed Test
 		</button>
 	</section>
@@ -170,19 +163,19 @@
 	/* ── Metric sections (CPU / Disk / Memory / Power) ── */
 	.metric-section {
 		padding: 10px 14px;
-		border-bottom: 1px solid var(--border);
+		border-bottom: 1px solid var(--cds-border-subtle);
 		display: flex;
 		flex-direction: column;
 		gap: 6px;
 	}
 
 	.section-label {
-		font-family: var(--font-mono, 'Fira Code', monospace);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 9px;
 		font-weight: 600;
 		letter-spacing: 1.2px;
 		text-transform: uppercase;
-		color: var(--muted-foreground, #888888);
+		color: var(--cds-text-helper);
 		margin: 0;
 	}
 
@@ -193,10 +186,10 @@
 	}
 
 	.metric-primary {
-		font-family: var(--font-mono, 'Fira Code', monospace);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 24px;
 		font-weight: 600;
-		color: var(--foreground);
+		color: var(--cds-text-primary);
 		line-height: 1.1;
 		font-variant-numeric: tabular-nums;
 	}
@@ -206,16 +199,16 @@
 	}
 
 	.metric-secondary {
-		font-family: var(--font-mono, 'Fira Code', monospace);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 12px;
-		color: var(--muted-foreground, #888888);
+		color: var(--cds-text-helper);
 		font-variant-numeric: tabular-nums;
 	}
 
 	.meter-bar {
 		width: 100%;
 		height: 3px;
-		background: var(--surface-elevated, #151515);
+		background: var(--cds-layer);
 		border-radius: 2px;
 		overflow: hidden;
 	}
@@ -229,7 +222,7 @@
 	/* ── Network Status section ── */
 	.net-section {
 		padding: 10px 14px;
-		border-bottom: 1px solid var(--border);
+		border-bottom: 1px solid var(--cds-border-subtle);
 		display: flex;
 		flex-direction: column;
 		gap: 5px;
@@ -246,15 +239,15 @@
 		width: 6px;
 		height: 6px;
 		border-radius: 50%;
-		background: var(--success, #8bbfa0);
+		background: var(--cds-support-success);
 		margin-left: auto;
 		flex-shrink: 0;
 	}
 
 	.net-status-text {
-		font-family: var(--font-mono);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 10px;
-		color: var(--success, #8bbfa0);
+		color: var(--cds-support-success);
 	}
 
 	.net-row {
@@ -264,27 +257,27 @@
 	}
 
 	.net-key {
-		font-family: var(--font-mono);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 11px;
-		color: var(--foreground);
+		color: var(--cds-text-primary);
 		flex-shrink: 0;
 	}
 
 	.net-key-muted {
-		color: var(--muted-foreground, #888888);
+		color: var(--cds-text-helper);
 	}
 
 	.net-val {
-		font-family: var(--font-mono);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 11px;
-		color: var(--foreground);
+		color: var(--cds-text-primary);
 		font-variant-numeric: tabular-nums;
 	}
 
 	.net-uptime {
-		font-family: var(--font-mono);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 10px;
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 		margin-left: auto;
 	}
 
@@ -296,18 +289,18 @@
 		width: 100%;
 		margin-top: 4px;
 		padding: 6px;
-		background: var(--surface-elevated, #151515);
-		border: 1px solid var(--border, #2e2e2e);
+		background: var(--cds-layer);
+		border: 1px solid var(--cds-border-subtle);
 		border-radius: 4px;
-		color: var(--muted-foreground);
-		font-family: var(--font-mono);
+		color: var(--cds-text-helper);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 11px;
 		cursor: pointer;
 		transition: background 0.15s;
 	}
 
 	.speed-test-btn:hover {
-		background: var(--surface-hover, #2a2a2a);
-		color: var(--foreground);
+		background: var(--cds-layer-hover);
+		color: var(--cds-text-primary);
 	}
 </style>

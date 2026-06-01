@@ -81,12 +81,12 @@
 		width: 100%;
 		height: 100%;
 		padding: 24px;
-		background: var(--background);
+		background: var(--cds-background);
 	}
 
 	.url-form-card {
-		background: var(--card);
-		border: 1px solid var(--border);
+		background: var(--cds-layer);
+		border: 1px solid var(--cds-border-subtle);
 		padding: 28px 32px;
 		max-width: 520px;
 		width: 100%;
@@ -97,7 +97,7 @@
 		font-size: 11px;
 		font-weight: 600;
 		letter-spacing: 1.2px;
-		color: var(--primary);
+		color: var(--cds-link-primary);
 		margin: 0 0 12px;
 		text-transform: uppercase;
 	}
@@ -105,7 +105,7 @@
 	.url-form-desc {
 		font-size: 10px;
 		line-height: 1.6;
-		color: var(--text-secondary);
+		color: var(--cds-text-secondary);
 		margin: 0 0 16px;
 	}
 
@@ -118,16 +118,16 @@
 		flex: 1;
 		height: 32px;
 		padding: 0 10px;
-		background: var(--background);
-		border: 1px solid var(--border);
-		color: var(--foreground);
+		background: var(--cds-background);
+		border: 1px solid var(--cds-border-subtle);
+		color: var(--cds-text-primary);
 		font-family: 'Fira Code', monospace;
 		font-size: 11px;
 		outline: none;
 	}
 
 	.url-input:focus {
-		border-color: var(--primary);
+		border-color: var(--cds-link-primary);
 	}
 
 	.url-input:disabled {
@@ -138,8 +138,8 @@
 	.go-btn {
 		height: 32px;
 		padding: 0 16px;
-		background: var(--primary);
-		color: var(--background);
+		background: var(--cds-link-primary);
+		color: var(--cds-background);
 		border: none;
 		font-family: 'Fira Code', monospace;
 		font-size: 10px;

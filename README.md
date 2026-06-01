@@ -39,7 +39,7 @@ sudo bash scripts/ops/setup-host.sh
 npm run dev
 ```
 
-The setup script installs Node.js, Bun, uv, Kismet, gpsd, Docker (for third-party tools only), ChromaDB, configures udev rules, GPS, npm dependencies, and generates `.env`. Open `http://<your-pi-ip>:5173` in a browser.
+The setup script installs Node.js, Kismet, gpsd, Docker (for third-party tools only), configures udev rules, GPS, npm dependencies, and generates `.env`. Open `http://<your-pi-ip>:5173` in a browser.
 
 ## Architecture
 

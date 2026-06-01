@@ -66,19 +66,19 @@
 <style>
 	.overlay-controls {
 		padding: 10px 14px;
-		border-bottom: 1px solid var(--border);
+		border-bottom: 1px solid var(--cds-border-subtle);
 		display: flex;
 		flex-direction: column;
 		gap: 8px;
 	}
 
 	.section-label {
-		font-family: var(--font-mono, 'Fira Code', monospace);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 9px;
 		font-weight: 600;
 		letter-spacing: 1.2px;
 		text-transform: uppercase;
-		color: var(--foreground-secondary, #888888);
+		color: var(--cds-text-helper);
 		margin: 0;
 	}
 
@@ -90,11 +90,11 @@
 	.mode-btn {
 		flex: 1;
 		padding: 4px 8px;
-		font-family: var(--font-mono, 'Fira Code', monospace);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 10px;
-		color: var(--foreground-secondary, #888888);
-		background: var(--surface-elevated, #151515);
-		border: 1px solid var(--border);
+		color: var(--cds-text-helper);
+		background: var(--cds-background);
+		border: 1px solid var(--cds-border-subtle);
 		border-radius: 4px;
 		cursor: pointer;
 		transition:
@@ -103,13 +103,13 @@
 	}
 
 	.mode-btn:hover {
-		color: var(--foreground);
+		color: var(--cds-text-primary);
 	}
 
 	.mode-btn.active {
-		background: var(--primary);
-		color: var(--primary-foreground, #ffffff);
-		border-color: var(--primary);
+		background: var(--cds-link-primary);
+		color: var(--cds-text-on-color);
+		border-color: var(--cds-link-primary);
 	}
 
 	.field {
@@ -119,12 +119,12 @@
 	}
 
 	.field-label {
-		font-family: var(--font-mono, 'Fira Code', monospace);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 9px;
 		font-weight: 500;
 		letter-spacing: 1.2px;
 		text-transform: uppercase;
-		color: var(--foreground-secondary, #888888);
+		color: var(--cds-text-helper);
 	}
 
 	.slider-row {
@@ -137,7 +137,7 @@
 		flex: 1;
 		height: 4px;
 		appearance: none;
-		background: var(--border);
+		background: var(--cds-border-subtle);
 		border-radius: 2px;
 		cursor: pointer;
 	}
@@ -147,14 +147,14 @@
 		width: 12px;
 		height: 12px;
 		border-radius: 50%;
-		background: var(--primary);
+		background: var(--cds-link-primary);
 		cursor: pointer;
 	}
 
 	.opacity-value {
-		font-family: var(--font-mono, 'Fira Code', monospace);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 10px;
-		color: var(--foreground);
+		color: var(--cds-text-primary);
 		min-width: 32px;
 		text-align: right;
 	}
@@ -166,18 +166,18 @@
 	}
 
 	.overlay-count {
-		font-family: var(--font-mono, 'Fira Code', monospace);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 10px;
-		color: var(--foreground-secondary, #888888);
+		color: var(--cds-text-helper);
 	}
 
 	.clear-btn {
 		padding: 3px 8px;
-		font-family: var(--font-mono, 'Fira Code', monospace);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 10px;
-		color: var(--foreground-secondary, #888888);
-		background: var(--surface-elevated, #151515);
-		border: 1px solid var(--border);
+		color: var(--cds-text-helper);
+		background: var(--cds-background);
+		border: 1px solid var(--cds-border-subtle);
 		border-radius: 4px;
 		cursor: pointer;
 		transition:
@@ -186,8 +186,8 @@
 	}
 
 	.clear-btn:hover:not(:disabled) {
-		color: var(--error, #ff5c33);
-		border-color: var(--error, #ff5c33);
+		color: var(--cds-support-error);
+		border-color: var(--cds-support-error);
 	}
 
 	.clear-btn:disabled {

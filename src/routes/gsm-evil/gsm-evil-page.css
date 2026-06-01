@@ -4,14 +4,14 @@
 	display: flex;
 	flex-direction: column;
 	min-height: 100vh;
-	background: var(--background);
-	color: var(--foreground);
+	background: var(--cds-background);
+	color: var(--cds-text-primary);
 }
 
 .scan-results-panel {
 	flex: 1;
-	background: var(--surface-inset, #0d0d0d);
-	border: 1px solid var(--border);
+	background: var(--cds-background);
+	border: 1px solid var(--cds-border-subtle);
 	margin: 0 8px;
 	overflow-y: auto;
 }
@@ -26,17 +26,17 @@
 	display: flex;
 	align-items: center;
 	padding: 0 12px;
-	background: var(--card);
-	font-family: var(--font-mono, 'Fira Code', monospace);
-	font-size: var(--text-status, 10px);
+	background: var(--cds-layer);
+	font-family: var(--cds-code-01-font-family);
+	font-size: 0.625rem;
 	font-weight: 600;
 	letter-spacing: 1.2px;
-	color: var(--foreground-secondary, #888888);
+	color: var(--cds-text-helper);
 }
 
 .console-body {
 	min-height: 140px;
-	background: var(--surface-terminal, #0a0a0a);
+	background: var(--cds-background);
 }
 
 .imsi-capture-panel {
@@ -54,10 +54,10 @@
 	display: flex;
 	align-items: center;
 	padding: 0 12px;
-	background: var(--card);
-	font-family: var(--font-mono, 'Fira Code', monospace);
-	font-size: var(--text-status, 10px);
+	background: var(--cds-layer);
+	font-family: var(--cds-code-01-font-family);
+	font-size: 0.625rem;
 	font-weight: 600;
 	letter-spacing: 1.2px;
-	color: var(--foreground-secondary, #888888);
+	color: var(--cds-text-helper);
 }

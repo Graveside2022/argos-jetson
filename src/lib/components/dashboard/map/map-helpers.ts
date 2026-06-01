@@ -143,11 +143,11 @@ export function buildConeSVG(heading: number): string {
 
 /** Radio type → [CSS variable, fallback hex]. */
 const RADIO_COLOR_MAP: Record<string, [string, string]> = {
-	LTE: ['--chart-1', '#a8b8e0'],
-	NR: ['--chart-5', '#c45b4a'],
-	UMTS: ['--chart-2', '#8bbfa0'],
-	GSM: ['--chart-3', '#d4a054'],
-	CDMA: ['--chart-4', '#bdb2d4']
+	LTE: ['--chart-1', '#a56eff'],
+	NR: ['--chart-5', '#ff8389'],
+	UMTS: ['--chart-2', '#33b1ff'],
+	GSM: ['--chart-3', '#08bdba'],
+	CDMA: ['--chart-4', '#ff7eb6']
 };
 
 /**

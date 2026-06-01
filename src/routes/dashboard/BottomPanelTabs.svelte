@@ -4,6 +4,9 @@
   Always visible — chevron toggles collapse/expand (panel never fully disappears).
 -->
 <script lang="ts">
+	import Add from 'carbon-icons-svelte/lib/Add.svelte';
+	import ChevronDown from 'carbon-icons-svelte/lib/ChevronDown.svelte';
+	import Terminal from 'carbon-icons-svelte/lib/Terminal.svelte';
 	import { onMount } from 'svelte';
 
 	import {
@@ -23,15 +26,15 @@
 
 	type TabId = 'terminal' | 'chat' | 'logs' | 'captures' | 'dashboard' | 'bluetooth' | 'uas';
 
-	// Lucide path data for tab icons — only Terminal keeps the >_ icon; others are text-only
-	const tabs: { id: TabId; label: string; icon: string | null }[] = [
-		{ id: 'terminal', label: 'Terminal', icon: 'M4 17l6-6-6-6M12 19h8' },
-		{ id: 'chat', label: 'Chat', icon: null },
-		{ id: 'logs', label: 'Logs', icon: null },
-		{ id: 'captures', label: 'IMSI Captures', icon: null },
-		{ id: 'dashboard', label: 'Wi-Fi', icon: null },
-		{ id: 'bluetooth', label: 'Bluetooth', icon: null },
-		{ id: 'uas', label: 'UAS', icon: null }
+	// Only the Terminal tab carries an icon (the Carbon Terminal glyph); others are text-only
+	const tabs: { id: TabId; label: string }[] = [
+		{ id: 'terminal', label: 'Terminal' },
+		{ id: 'chat', label: 'Chat' },
+		{ id: 'logs', label: 'Logs' },
+		{ id: 'captures', label: 'IMSI Captures' },
+		{ id: 'dashboard', label: 'Wi-Fi' },
+		{ id: 'bluetooth', label: 'Bluetooth' },
+		{ id: 'uas', label: 'UAS' }
 	];
 
 	// Shell-picker state — mirrors TerminalShellDropdown so the tab-bar "+" offers
@@ -73,19 +76,8 @@
 				class:active={activeTab === tab.id}
 				onclick={() => activeBottomTab.set(tab.id)}
 			>
-				{#if tab.icon}
-					<svg
-						width="14"
-						height="14"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-					>
-						<path d={tab.icon} />
-					</svg>
+				{#if tab.id === 'terminal'}
+					<Terminal size={14} />
 				{/if}
 				{tab.label}
 			</button>
@@ -102,23 +94,7 @@
 						aria-expanded={showShellDropdown}
 						onclick={() => (showShellDropdown = !showShellDropdown)}
 					>
-						<svg
-							width="12"
-							height="12"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="2"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-						>
-							<line x1="12" y1="5" x2="12" y2="19" /><line
-								x1="5"
-								y1="12"
-								x2="19"
-								y2="12"
-							/>
-						</svg>
+						<Add size={12} />
 					</button>
 					{#if showShellDropdown}
 						<div class="shell-dropdown-menu" role="menu">
@@ -164,19 +140,8 @@
 		title={isBottomPanelOpen.current ? 'Collapse panel' : 'Expand panel'}
 		onclick={toggleCollapse}
 	>
-		<svg
-			width="14"
-			height="14"
-			viewBox="0 0 24 24"
-			fill="none"
-			stroke="currentColor"
-			stroke-width="2"
-			stroke-linecap="round"
-			stroke-linejoin="round"
-		>
-			<!-- Chevron-down by default; CSS rotates 180° when collapsed to show chevron-up -->
-			<polyline points="6 9 12 15 18 9" />
-		</svg>
+		<!-- Chevron-down by default; CSS rotates 180° when collapsed to show chevron-up -->
+		<ChevronDown size={14} />
 	</button>
 </div>
 
@@ -186,8 +151,8 @@
 		align-items: center;
 		height: 40px;
 		min-height: 40px;
-		background: var(--background);
-		border-bottom: 1px solid var(--border);
+		background: var(--cds-background);
+		border-bottom: 1px solid var(--cds-border-subtle);
 		padding: 4px 12px;
 		gap: 4px;
 	}
@@ -210,7 +175,7 @@
 		height: 24px;
 		background: transparent;
 		border: none;
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 		cursor: pointer;
 		border-radius: 4px;
 		flex-shrink: 0;
@@ -220,16 +185,16 @@
 	}
 
 	.tab-new-btn:hover {
-		background: var(--surface-hover);
-		color: var(--foreground-muted);
+		background: var(--cds-layer-hover);
+		color: var(--cds-text-secondary);
 	}
 
 	.shell-dropdown-menu {
 		position: absolute;
 		top: calc(100% + 4px);
 		left: 0;
-		background: var(--card, #1a1a1a);
-		border: 1px solid var(--border);
+		background: var(--cds-layer);
+		border: 1px solid var(--cds-border-subtle);
 		border-radius: 6px;
 		padding: 4px;
 		box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
@@ -247,7 +212,7 @@
 		background: transparent;
 		border: none;
 		border-radius: 4px;
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 		font-size: 13px;
 		text-align: left;
 		cursor: pointer;
@@ -256,8 +221,8 @@
 	}
 
 	.dropdown-item:hover {
-		background: var(--surface-hover);
-		color: var(--foreground);
+		background: var(--cds-layer-hover);
+		color: var(--cds-text-primary);
 	}
 
 	.dropdown-item__name {
@@ -267,9 +232,9 @@
 	.default-badge {
 		font-size: 10px;
 		padding: 1px 4px;
-		background: var(--surface-hover);
+		background: var(--cds-layer-hover);
 		border-radius: 4px;
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 	}
 
 	.tab-list {
@@ -290,11 +255,11 @@
 		background: transparent;
 		border: none;
 		border-bottom: 2px solid transparent;
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 		font-size: 14px;
 		font-weight: 500;
 		line-height: 1;
-		font-family: var(--font-sans, 'Geist', system-ui, sans-serif);
+		font-family: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
 		cursor: pointer;
 		white-space: nowrap;
 		transition:
@@ -303,13 +268,13 @@
 	}
 
 	.panel-tab:hover {
-		color: var(--foreground-muted);
-		background: var(--surface-hover);
+		color: var(--cds-text-secondary);
+		background: var(--cds-layer-hover);
 	}
 
 	.panel-tab.active {
-		color: var(--primary);
-		border-bottom-color: var(--primary);
+		color: var(--cds-link-primary);
+		border-bottom-color: var(--cds-link-primary);
 		padding: 6px 12px 4px 12px;
 	}
 
@@ -326,7 +291,7 @@
 		height: 24px;
 		background: transparent;
 		border: none;
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 		cursor: pointer;
 		border-radius: 4px;
 		transition:
@@ -341,7 +306,7 @@
 	}
 
 	.tab-collapse-btn:hover {
-		background: var(--surface-hover);
-		color: var(--foreground-muted);
+		background: var(--cds-layer-hover);
+		color: var(--cds-text-secondary);
 	}
 </style>

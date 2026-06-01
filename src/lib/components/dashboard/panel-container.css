@@ -4,7 +4,7 @@
 .drag-handle {
 	height: 6px;
 	min-height: 6px;
-	background: var(--surface-elevated, #151515);
+	background: var(--cds-background);
 	cursor: ns-resize;
 	display: flex;
 	align-items: center;
@@ -13,32 +13,32 @@
 }
 
 .panel-container[data-position='top'] .drag-handle {
-	border-top: 1px solid var(--border);
+	border-top: 1px solid var(--cds-border-subtle);
 }
 
 .panel-container[data-position='bottom'] .drag-handle {
-	border-bottom: 1px solid var(--border);
+	border-bottom: 1px solid var(--cds-border-subtle);
 }
 
 .drag-handle:hover,
 .drag-handle:focus {
-	background: var(--surface-hover, #1e1e1e);
+	background: var(--cds-layer-hover);
 }
 
 .drag-handle:focus {
 	outline: none;
-	box-shadow: inset 0 0 0 2px var(--interactive);
+	box-shadow: inset 0 0 0 2px var(--cds-link-primary);
 }
 
 .drag-indicator {
 	width: 40px;
 	height: 3px;
-	background: var(--border);
+	background: var(--cds-border-subtle);
 	border-radius: 2px;
 	transition: background 0.15s ease;
 }
 
 .drag-handle:hover .drag-indicator,
 .drag-handle:focus .drag-indicator {
-	background: var(--foreground-tertiary, #999999);
+	background: var(--cds-text-helper);
 }

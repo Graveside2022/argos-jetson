@@ -1,6 +1,9 @@
 <script lang="ts">
+	import CheckmarkOutline from 'carbon-icons-svelte/lib/CheckmarkOutline.svelte';
+
 	import NumberInput from '$lib/components/chassis/forms/NumberInput.svelte';
-	import Input from '$lib/components/ui/input/input.svelte';
+	import PasswordInput from '$lib/components/chassis/forms/PasswordInput.svelte';
+	import TextInput from '$lib/components/chassis/forms/TextInput.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
 	import type { TakServerConfig } from '$lib/types/tak';
 
@@ -66,26 +69,22 @@
 	}
 </script>
 
-<div class="flex flex-col gap-2.5">
-	<span class="text-xs font-semibold tracking-widest text-muted-foreground">ENROLLMENT</span>
-	<label class="flex flex-col gap-1 text-[11px] font-medium text-muted-foreground">
-		Username
-		<Input
-			type="text"
-			bind:value={config.enrollmentUser}
-			placeholder="tak-user"
-			class="h-8 text-xs"
-		/>
-	</label>
-	<label class="flex flex-col gap-1 text-[11px] font-medium text-muted-foreground">
-		Password
-		<Input
-			type="password"
-			bind:value={config.enrollmentPass}
-			placeholder="Enrollment password"
-			class="h-8 text-xs"
-		/>
-	</label>
+<div class="enroll-section">
+	<span class="enroll-label">ENROLLMENT</span>
+	<TextInput
+		labelText="Username"
+		placeholder="tak-user"
+		value={config.enrollmentUser ?? ''}
+		onInput={(v) => (config.enrollmentUser = v)}
+		size="sm"
+	/>
+	<PasswordInput
+		labelText="Password"
+		placeholder="Enrollment password"
+		value={config.enrollmentPass ?? ''}
+		onInput={(v) => (config.enrollmentPass = v)}
+		size="sm"
+	/>
 	<NumberInput
 		labelText="Enrollment Port"
 		bind:value={config.enrollmentPort}
@@ -97,30 +96,63 @@
 		hideSteppers
 		disableWheel
 	/>
-	<div class="flex items-center gap-2">
-		<button
-			onclick={enrollCertificate}
-			disabled={isEnrolling}
-			class="inline-flex items-center gap-1.5 rounded-md border border-primary/50 bg-primary/15 px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-primary/30 disabled:opacity-50"
-		>
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				width="14"
-				height="14"
-				viewBox="0 0 24 24"
-				fill="none"
-				stroke="currentColor"
-				stroke-width="2"
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline
-					points="22 4 12 14.01 9 11.01"
-				/></svg
-			>
+	<div class="enroll-actions">
+		<button class="enroll-btn" onclick={enrollCertificate} disabled={isEnrolling}>
+			<CheckmarkOutline size={14} />
 			{isEnrolling ? 'Enrolling...' : 'Enroll Now'}
 		</button>
 		{#if enrollStatus}
-			<span class="text-[10px] text-muted-foreground">{enrollStatus}</span>
+			<span class="enroll-status">{enrollStatus}</span>
 		{/if}
 	</div>
 </div>
+
+<style>
+	.enroll-section {
+		display: flex;
+		flex-direction: column;
+		gap: 0.625rem;
+	}
+
+	.enroll-label {
+		font-size: 0.75rem;
+		font-weight: 600;
+		letter-spacing: 0.1em;
+		color: var(--cds-text-helper);
+	}
+
+	.enroll-actions {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.enroll-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		border: 1px solid color-mix(in srgb, var(--cds-link-primary) 50%, transparent);
+		border-radius: 0.375rem;
+		background: color-mix(in srgb, var(--cds-link-primary) 15%, transparent);
+		padding: 0.375rem 0.75rem;
+		font-size: 0.75rem;
+		font-weight: 500;
+		color: var(--cds-text-primary);
+		cursor: pointer;
+		transition: background-color 0.15s ease;
+	}
+
+	.enroll-btn:hover:not(:disabled) {
+		background: color-mix(in srgb, var(--cds-link-primary) 30%, transparent);
+	}
+
+	.enroll-btn:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	.enroll-status {
+		font-size: 0.625rem;
+		color: var(--cds-text-helper);
+	}
+</style>

@@ -5,8 +5,10 @@
 # Only new issues on changed lines (relative to main) produce annotations.
 #
 # Install + config: .trunk/trunk.yaml + .trunk/configs/
-# Linters active: actionlint, gitleaks, markdownlint, prettier, renovate,
-# ruff, shellcheck, svgo, taplo, yamllint.
+# Linters active: actionlint, markdownlint, renovate, ruff, shellcheck, svgo,
+# taplo, yamllint. prettier + gitleaks are DISABLED in .trunk/trunk.yaml — they
+# are canonically owned elsewhere (prettier → lint-staged + ci.yml::format:check;
+# gitleaks → lint.yml::gitleaks) to avoid double-running with drifting configs.
 
 name: 'CI: Trunk Code Quality'
 

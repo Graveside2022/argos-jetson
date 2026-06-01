@@ -45,29 +45,29 @@
 		justify-content: center;
 		width: 100%;
 		height: 100%;
-		font-family: var(--font-mono, 'Fira Code', monospace);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 12px;
-		color: var(--muted-foreground, #888);
+		color: var(--cds-text-helper);
 	}
 
 	.view-error-action {
 		font: inherit;
 		padding: 6px 14px;
-		color: var(--foreground, #ddd);
-		background: var(--secondary, #1f1f1f);
-		border: 1px solid var(--border, #333);
+		color: var(--cds-text-primary);
+		background: var(--cds-layer);
+		border: 1px solid var(--cds-border-subtle);
 		border-radius: 4px;
 		cursor: pointer;
 	}
 
 	.view-error-action:hover {
-		background: var(--accent, #2a2a2a);
+		background: var(--cds-layer);
 	}
 
 	.tool-iframe {
 		width: 100%;
 		height: 100%;
 		border: none;
-		background: var(--background);
+		background: var(--cds-background);
 	}
 </style>

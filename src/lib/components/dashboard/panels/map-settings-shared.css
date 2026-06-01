@@ -1,39 +1,39 @@
 /* Map Settings shared styles — used by MapSettingsPanel, MapProviderView, MapLayersView, LineOfSightView */
 
 .panel-section {
-	padding: var(--space-4);
-	border-bottom: 1px solid var(--border);
+	padding: var(--cds-spacing-05);
+	border-bottom: 1px solid var(--cds-border-subtle);
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-3);
+	gap: var(--cds-spacing-04);
 }
 
 .section-label {
-	font-family: var(--font-mono, 'Fira Code', monospace);
+	font-family: var(--cds-code-01-font-family);
 	font-size: 9px;
 	font-weight: 600;
 	letter-spacing: 1.2px;
 	text-transform: uppercase;
-	color: var(--foreground-secondary, #888888);
+	color: var(--cds-text-helper);
 }
 
 .toggle-row {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	gap: var(--space-2);
+	gap: var(--cds-spacing-03);
 	cursor: pointer;
 }
 
 .toggle-label {
-	font-size: var(--text-sm);
-	color: var(--foreground);
+	font-size: var(--cds-label-01-font-size);
+	color: var(--cds-text-primary);
 }
 
 .band-label {
 	display: flex;
 	align-items: center;
-	gap: var(--space-2);
+	gap: var(--cds-spacing-03);
 }
 
 .band-dot {
@@ -44,8 +44,8 @@
 }
 
 .band-range {
-	font-size: var(--text-xs);
-	color: var(--foreground-tertiary, #999999);
+	font-size: 0.6875rem;
+	color: var(--cds-text-helper);
 }
 
 /* Toggle switch */
@@ -53,8 +53,8 @@
 	width: 32px;
 	height: 18px;
 	border-radius: 9px;
-	background: var(--surface-elevated, #151515);
-	border: 1px solid var(--border);
+	background: var(--cds-background);
+	border: 1px solid var(--cds-border-subtle);
 	cursor: pointer;
 	position: relative;
 	transition: all 0.15s ease;
@@ -63,8 +63,8 @@
 }
 
 .toggle-switch.on {
-	background: var(--primary);
-	border-color: var(--primary);
+	background: var(--cds-link-primary);
+	border-color: var(--cds-link-primary);
 }
 
 .toggle-knob {
@@ -74,7 +74,7 @@
 	width: 12px;
 	height: 12px;
 	border-radius: 50%;
-	background: var(--foreground-secondary, #888888);
+	background: var(--cds-text-helper);
 	transition:
 		transform 0.15s ease,
 		background 0.15s ease;
@@ -82,14 +82,14 @@
 
 .toggle-switch.on .toggle-knob {
 	transform: translateX(14px);
-	background: var(--foreground);
+	background: var(--cds-text-primary);
 }
 
 /* Map Provider Styles */
 .provider-grid {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
-	gap: var(--space-2);
+	gap: var(--cds-spacing-03);
 }
 
 .provider-btn {
@@ -98,15 +98,15 @@
 	align-items: center;
 	gap: 6px;
 	padding: 8px;
-	background: var(--card);
-	border: 1px solid var(--border);
+	background: var(--cds-layer);
+	border: 1px solid var(--cds-border-subtle);
 	border-radius: 4px;
 	cursor: pointer;
 	transition: all 0.2s;
 }
 
 .provider-btn:hover:not(:disabled) {
-	background: var(--surface-hover, #1e1e1e);
+	background: var(--cds-layer-hover);
 }
 
 .provider-btn:disabled {
@@ -115,8 +115,8 @@
 }
 
 .provider-btn.active {
-	background: color-mix(in srgb, var(--primary) 15%, transparent);
-	border: 2px solid var(--primary);
+	background: color-mix(in srgb, var(--cds-link-primary) 15%, transparent);
+	border: 2px solid var(--cds-link-primary);
 }
 
 .provider-icon {
@@ -124,20 +124,20 @@
 	height: 32px;
 	border-radius: 4px;
 	background-size: cover;
-	border: 1px solid var(--border);
+	border: 1px solid var(--cds-border-subtle);
 }
 
 .provider-icon.vector {
-	background: linear-gradient(135deg, var(--color-card) 0%, var(--color-muted) 100%);
+	background: linear-gradient(135deg, var(--cds-layer) 0%, var(--cds-layer) 100%);
 }
 
 .provider-icon.satellite {
-	background: linear-gradient(135deg, var(--color-muted) 0%, var(--color-primary) 100%);
+	background: linear-gradient(135deg, var(--cds-layer) 0%, var(--cds-link-primary) 100%);
 }
 
 .provider-name {
-	font-size: var(--text-status);
-	color: var(--foreground);
+	font-size: 0.625rem;
+	color: var(--cds-text-primary);
 }
 
 .custom-input-row {
@@ -148,19 +148,19 @@
 
 .custom-input-row input {
 	flex: 1;
-	background: var(--background);
-	border: 1px solid var(--border);
+	background: var(--cds-background);
+	border: 1px solid var(--cds-border-subtle);
 	border-radius: 4px;
 	padding: 4px 8px;
 	font-size: 11px;
-	color: var(--foreground);
+	color: var(--cds-text-primary);
 }
 
 .apply-btn {
-	background: var(--surface-elevated, #151515);
-	border: 1px solid var(--border);
-	color: var(--foreground);
-	font-size: var(--text-status);
+	background: var(--cds-background);
+	border: 1px solid var(--cds-border-subtle);
+	color: var(--cds-text-primary);
+	font-size: 0.625rem;
 	padding: 0 8px;
 	border-radius: 4px;
 	cursor: pointer;
@@ -180,44 +180,44 @@
 	gap: 4px;
 	padding: 6px;
 	background: transparent;
-	border: 1px solid var(--border);
+	border: 1px solid var(--cds-border-subtle);
 	border-radius: 4px;
 	cursor: pointer;
 	transition: all 0.2s;
 }
 
 .vis-btn:hover {
-	background: var(--surface-hover, #1e1e1e);
+	background: var(--cds-layer-hover);
 }
 
 .vis-btn.active {
-	background: color-mix(in srgb, var(--interactive) 15%, transparent);
-	border-color: var(--interactive);
+	background: color-mix(in srgb, var(--cds-link-primary) 15%, transparent);
+	border-color: var(--cds-link-primary);
 }
 
 .vis-icon {
 	width: 20px;
 	height: 20px;
 	border-radius: 4px;
-	background: var(--surface-elevated, #151515);
-	color: var(--foreground-secondary, #888888);
+	background: var(--cds-background);
+	color: var(--cds-text-helper);
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	font-size: var(--text-status);
+	font-size: 0.625rem;
 	font-weight: 700;
 }
 
 .vis-btn.active .vis-icon {
-	background: var(--interactive);
-	color: var(--foreground);
+	background: var(--cds-link-primary);
+	color: var(--cds-text-primary);
 }
 
 .vis-name {
-	font-size: var(--text-section);
-	color: var(--foreground-secondary, #888888);
+	font-size: 0.5625rem;
+	color: var(--cds-text-helper);
 }
 
 .vis-btn.active .vis-name {
-	color: var(--foreground);
+	color: var(--cds-text-primary);
 }

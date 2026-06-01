@@ -158,35 +158,21 @@ check_vite() {
 # check_socat() removed — depended on keepalive Chromium (port 9224) which was removed.
 # check_chromium() removed — Chrome DevTools MCP handles all browser debugging on demand.
 
-check_claude_mem() {
-    # Run the fix script which checks for updates/patches and applies them if needed.
-    # It only restarts processes if a patch was applied.
-    bash "./scripts/ops/fix-claude-mem.sh" > /dev/null 2>&1
-}
-
 log "Starting Argos Dev Keepalive Monitor..."
-log "Monitoring Vite (5173) and Claude Mem."
+log "Monitoring Vite (5173)."
 
 # Boot delay: wait for system to stabilize before starting heavy processes.
 # On cold boot, systemd starts dozens of services simultaneously. Launching
 # Vite + Chromium (~750 MB combined) during this window causes OOM crashes.
 UPTIME_SECS=$(awk '{printf "%d", $1}' /proc/uptime)
-BOOT_DELAY=45  # seconds — enough for systemd, network, chroma to settle
+BOOT_DELAY=45  # seconds — enough for systemd and network to settle
 if [[ "$UPTIME_SECS" -lt "$BOOT_DELAY" ]]; then
     WAIT=$(( BOOT_DELAY - UPTIME_SECS ))
     log "System booted ${UPTIME_SECS}s ago. Waiting ${WAIT}s for services to stabilize..."
     sleep "$WAIT"
 fi
 
-LOOP_COUNT=0
 while true; do
     check_vite
-
-    # Check claude-mem every 6 iterations (approx 60 seconds)
-    if [[ $((LOOP_COUNT % 6)) -eq 0 ]]; then
-        check_claude_mem
-    fi
-
     sleep "$CHECK_INTERVAL"
-    LOOP_COUNT=$((LOOP_COUNT + 1))
 done

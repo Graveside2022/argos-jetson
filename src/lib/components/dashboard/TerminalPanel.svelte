@@ -199,7 +199,7 @@
 		display: flex;
 		flex-direction: column;
 		height: 100%;
-		background: var(--card);
+		background: var(--cds-layer);
 	}
 
 	.terminal-panel.maximized {
@@ -214,10 +214,10 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding: 0 var(--space-2);
-		background: var(--card);
-		border-bottom: 1px solid var(--border);
-		gap: var(--space-2);
+		padding: 0 var(--cds-spacing-03);
+		background: var(--cds-layer);
+		border-bottom: 1px solid var(--cds-border-subtle);
+		gap: var(--cds-spacing-03);
 	}
 
 	.terminal-content {
@@ -233,24 +233,24 @@
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		gap: var(--space-3);
-		color: var(--foreground-secondary);
-		font-size: var(--text-sm);
+		gap: var(--cds-spacing-04);
+		color: var(--cds-text-helper);
+		font-size: var(--cds-label-01-font-size);
 	}
 
 	.create-btn {
-		padding: var(--space-2) var(--space-4);
-		background: var(--primary);
+		padding: var(--cds-spacing-03) var(--cds-spacing-05);
+		background: var(--cds-link-primary);
 		border: none;
-		border-radius: var(--radius-md);
+		border-radius: 6px;
 		color: white;
-		font-size: var(--text-sm);
+		font-size: var(--cds-label-01-font-size);
 		cursor: pointer;
 		transition: background 0.15s ease;
 	}
 
 	.create-btn:hover {
-		background: var(--ring);
+		background: var(--cds-border-strong);
 	}
 
 	.split-container {
@@ -268,13 +268,13 @@
 
 	.split-divider {
 		width: 4px;
-		background: var(--border);
+		background: var(--cds-border-subtle);
 		cursor: col-resize;
 		flex-shrink: 0;
 		transition: background 0.15s ease;
 	}
 
 	.split-divider:hover {
-		background: var(--primary);
+		background: var(--cds-link-primary);
 	}
 </style>

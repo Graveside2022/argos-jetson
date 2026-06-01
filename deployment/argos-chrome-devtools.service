@@ -1,0 +1,20 @@
+[Unit]
+Description=Argos Chrome DevTools Endpoint (:9222 for Claude Code chrome-devtools MCP)
+After=network.target
+
+[Service]
+Type=simple
+User=__SETUP_USER__
+Group=__SETUP_USER__
+WorkingDirectory=__PROJECT_DIR__
+ExecStart=/usr/local/bin/argos-chrome-devtools.sh monitor
+Restart=on-failure
+RestartSec=15
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=argos-chrome-devtools
+NoNewPrivileges=true
+PrivateTmp=false
+
+[Install]
+WantedBy=multi-user.target

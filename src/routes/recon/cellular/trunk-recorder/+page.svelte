@@ -284,16 +284,16 @@
 		flex-direction: column;
 		height: 100%;
 		min-height: 0;
-		background: var(--background);
-		color: var(--foreground);
+		background: var(--cds-background);
+		color: var(--cds-text-primary);
 	}
 	.control-strip {
 		display: flex;
 		align-items: center;
 		gap: 1rem;
 		padding: 0.75rem 1rem;
-		border-bottom: 1px solid var(--border);
-		background: var(--card);
+		border-bottom: 1px solid var(--cds-border-subtle);
+		background: var(--cds-layer);
 		flex-wrap: wrap;
 	}
 	.preset-select {
@@ -303,8 +303,8 @@
 	}
 	.btn-ghost {
 		background: transparent;
-		border: 1px dashed var(--border);
-		color: var(--muted-foreground);
+		border: 1px dashed var(--cds-border-subtle);
+		color: var(--cds-text-helper);
 		padding: 0.25rem 0.75rem;
 		font-family: 'Fira Code', monospace;
 		font-size: 11px;
@@ -315,8 +315,8 @@
 		cursor: not-allowed;
 	}
 	.btn-ghost.danger:not(:disabled) {
-		border-color: var(--error-desat);
-		color: var(--error-desat);
+		border-color: var(--cds-support-error);
+		color: var(--cds-support-error);
 	}
 	.status {
 		display: flex;
@@ -329,17 +329,17 @@
 		width: 8px;
 		height: 8px;
 		border-radius: 50%;
-		background: var(--inactive);
+		background: var(--cds-text-disabled);
 	}
 	.status-dot.on {
-		background: var(--success);
+		background: var(--cds-support-success);
 	}
 	.status-text {
 		font-weight: 600;
 		letter-spacing: 1.2px;
 	}
 	.status-meta {
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 		font-size: 10px;
 	}
 	.actions {
@@ -353,9 +353,9 @@
 		font-size: 11px;
 		text-transform: uppercase;
 		letter-spacing: 1px;
-		border: 1px solid var(--border);
-		background: var(--card);
-		color: var(--foreground);
+		border: 1px solid var(--cds-border-subtle);
+		background: var(--cds-layer);
+		color: var(--cds-text-primary);
 		cursor: pointer;
 	}
 	.btn:disabled {
@@ -363,27 +363,27 @@
 		cursor: not-allowed;
 	}
 	.btn-start:not(:disabled) {
-		border-color: var(--success);
-		color: var(--success);
+		border-color: var(--cds-support-success);
+		color: var(--cds-support-success);
 	}
 	.btn-stop:not(:disabled) {
-		border-color: var(--warning);
-		color: var(--warning);
+		border-color: var(--cds-support-warning);
+		color: var(--cds-support-warning);
 	}
 	.error {
 		padding: 0.5rem 1rem;
-		background: color-mix(in srgb, var(--error-desat) 15%, transparent);
-		color: var(--destructive);
+		background: color-mix(in srgb, var(--cds-support-error) 15%, transparent);
+		color: var(--cds-support-error);
 		font-family: 'Fira Code', monospace;
 		font-size: 11px;
 	}
 	.form-drawer {
 		padding: 1rem;
-		border-bottom: 1px solid var(--border);
+		border-bottom: 1px solid var(--cds-border-subtle);
 	}
 	.preset-summary {
 		padding: 1rem;
-		border-bottom: 1px solid var(--border);
+		border-bottom: 1px solid var(--cds-border-subtle);
 	}
 	.preset-summary h3 {
 		font-family: 'Fira Code', monospace;
@@ -401,7 +401,7 @@
 	.preset-summary dt {
 		text-transform: uppercase;
 		letter-spacing: 1.2px;
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 	}
 	.preset-summary dd {
 		margin: 0;
@@ -415,7 +415,7 @@
 		width: 100%;
 		height: 100%;
 		border: 0;
-		background: var(--background);
+		background: var(--cds-background);
 	}
 	.iframe-placeholder {
 		display: flex;
@@ -426,6 +426,6 @@
 		gap: 0.5rem;
 		font-family: 'Fira Code', monospace;
 		font-size: 11px;
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 	}
 </style>

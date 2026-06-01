@@ -29,16 +29,16 @@
 		min-height: 100vh;
 		padding: 24px;
 		text-align: center;
-		font-family: var(--font-mono, 'Fira Code', monospace);
-		background: var(--background, #0a0a0a);
-		color: var(--foreground, #e0e0e0);
+		font-family: var(--cds-code-01-font-family);
+		background: var(--cds-background);
+		color: var(--cds-text-primary);
 	}
 
 	.error-status {
 		font-size: 48px;
 		font-weight: 700;
 		margin: 0;
-		color: var(--muted-foreground, #888);
+		color: var(--cds-text-helper);
 	}
 
 	.error-title {
@@ -50,7 +50,7 @@
 
 	.error-message {
 		font-size: 12px;
-		color: var(--muted-foreground, #888);
+		color: var(--cds-text-helper);
 		max-width: 480px;
 		margin: 0 0 12px;
 	}
@@ -62,8 +62,8 @@
 	}
 
 	.error-btn {
-		background: var(--primary, #4a90d9);
-		color: #fff;
+		background: var(--cds-link-primary);
+		color: var(--cds-text-on-color);
 		border: none;
 		padding: 6px 16px;
 		font-family: inherit;
@@ -72,12 +72,12 @@
 	}
 
 	.error-btn:focus-visible {
-		outline: 2px solid var(--foreground, #fff);
+		outline: 2px solid var(--cds-text-primary);
 		outline-offset: 2px;
 	}
 
 	.error-link {
-		color: var(--muted-foreground, #888);
+		color: var(--cds-text-helper);
 		font-size: 12px;
 	}
 </style>

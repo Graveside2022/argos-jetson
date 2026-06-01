@@ -1,23 +1,8 @@
 <script lang="ts">
+	import { Tag } from 'carbon-components-svelte';
 	import { onDestroy, onMount } from 'svelte';
 
-	import Badge from '$lib/components/ui/badge/badge.svelte';
-	import Button from '$lib/components/ui/button/button.svelte';
 	import PanelEmptyState from '$lib/components/ui/PanelEmptyState.svelte';
-	import TableRoot from '$lib/components/ui/table/table.svelte';
-	import TableBody from '$lib/components/ui/table/table-body.svelte';
-	import TableCell from '$lib/components/ui/table/table-cell.svelte';
-	import TableHead from '$lib/components/ui/table/table-head.svelte';
-	import TableHeader from '$lib/components/ui/table/table-header.svelte';
-	import TableRow from '$lib/components/ui/table/table-row.svelte';
-	const Table = {
-		Root: TableRoot,
-		Body: TableBody,
-		Cell: TableCell,
-		Head: TableHead,
-		Header: TableHeader,
-		Row: TableRow
-	};
 	import type { TowerGroup } from '$lib/utils/gsm-tower-utils';
 	import { sortTowers } from '$lib/utils/gsm-tower-utils';
 
@@ -130,136 +115,98 @@
 	}
 </script>
 
-<div class="mx-4 mt-2 bg-black/30 border border-border rounded-lg p-4">
-	<h4 class="mb-4 text-center text-base font-semibold uppercase tracking-wide text-foreground">
-		<span class="text-destructive">IMSI</span> Capture
-	</h4>
-	<div class="overflow-x-auto rounded border border-border">
+<div class="tower-card">
+	<h4 class="tower-title"><span class="tower-title-accent">IMSI</span> Capture</h4>
+	<div class="tower-table-wrap">
 		{#if sortedTowers.length > 0}
-			<Table.Root>
-				<Table.Header>
-					<Table.Row>
-						<Table.Head class="w-8"></Table.Head>
+			<table class="tower-table">
+				<thead>
+					<tr>
+						<th class="col-expand"></th>
 						{#each columns as item (item.col)}
-							<Table.Head class="text-xs uppercase tracking-wide">
-								<Button
-									variant="ghost"
-									size="sm"
-									class="h-auto px-1 py-0 font-mono text-xs font-bold"
-									onclick={() => handleSort(item.col)}
-								>
+							<th class="col-head">
+								<button class="sort-btn" onclick={() => handleSort(item.col)}>
 									{item.label}
 									{#if sortColumn === item.col}
-										<span class="ml-1 text-blue-400 text-[0.7rem]"
+										<span class="sort-arrow"
 											>{sortDirection === 'asc' ? '▲' : '▼'}</span
 										>
 									{/if}
-								</Button>
-							</Table.Head>
+								</button>
+							</th>
 						{/each}
-					</Table.Row>
-				</Table.Header>
-				<Table.Body>
+					</tr>
+				</thead>
+				<tbody>
 					{#each sortedTowers as tower (`${tower.mccMnc}-${tower.lac}-${tower.ci}`)}
 						{@const towerId = `${tower.mccMnc}-${tower.lac}-${tower.ci}`}
 						{@const isExpanded = expandedTowers.has(towerId)}
-						<Table.Row
-							class="cursor-pointer transition-colors border-l-[3px] {isExpanded
-								? 'border-l-blue-500 bg-blue-500/15'
-								: 'border-l-transparent'} hover:bg-muted/30 hover:border-l-blue-500"
+						<tr
+							class="tower-row"
+							class:expanded={isExpanded}
 							onclick={() => toggleTowerExpansion(towerId)}
 						>
-							<Table.Cell class="w-8 text-blue-500 text-[0.7rem]">
-								{isExpanded ? '▼' : '▶'}
-							</Table.Cell>
-							<Table.Cell
-								class="font-mono font-medium text-foreground {tower.carrier ===
-								'Unknown'
-									? 'text-yellow-500'
-									: ''}"
-							>
+							<td class="cell-expand">{isExpanded ? '▼' : '▶'}</td>
+							<td class="cell-carrier" class:unknown={tower.carrier === 'Unknown'}>
 								{tower.carrier}
-							</Table.Cell>
-							<Table.Cell class="text-xs text-foreground">
+							</td>
+							<td class="cell-country">
 								{tower.country.flag}
 								{tower.country.code}
-							</Table.Cell>
-							<Table.Cell class="font-mono text-xs text-muted-foreground">
+							</td>
+							<td class="cell-loc">
 								{#if tower.location}
-									<span class="text-green-400"
+									<span class="loc-coords"
 										>{tower.location.lat.toFixed(4)}, {tower.location.lon.toFixed(
 											4
 										)}</span
 									>
 								{:else if !towerLookupAttempted[towerId]}
-									<Badge
-										variant="outline"
-										class="text-yellow-500 border-yellow-500/30"
-										>Looking up...</Badge
+									<Tag type="outline" size="sm" class="lookup-tag"
+										>Looking up...</Tag
 									>
 								{:else}
-									<span class="text-muted-foreground text-xs">Roaming</span>
+									<span class="cell-muted">Roaming</span>
 								{/if}
-							</Table.Cell>
-							<Table.Cell
-								class="font-mono text-xs text-muted-foreground {tower.carrier ===
-								'Unknown'
-									? 'text-yellow-500'
-									: ''}"
-							>
+							</td>
+							<td class="cell-lacci" class:unknown={tower.carrier === 'Unknown'}>
 								{tower.lac}/{tower.ci}
-							</Table.Cell>
-							<Table.Cell
-								class="text-xs text-muted-foreground {tower.carrier === 'Unknown'
-									? 'text-yellow-500'
-									: ''}"
-							>
+							</td>
+							<td class="cell-mccmnc" class:unknown={tower.carrier === 'Unknown'}>
 								{tower.mccMnc}
-							</Table.Cell>
-							<Table.Cell class="font-semibold text-blue-500">
-								{tower.count}
-							</Table.Cell>
-							<Table.Cell class="font-mono text-xs text-muted-foreground">
-								{formatTimestamp(tower.lastSeen.toISOString())}
-							</Table.Cell>
-						</Table.Row>
+							</td>
+							<td class="cell-count">{tower.count}</td>
+							<td class="cell-lastseen"
+								>{formatTimestamp(tower.lastSeen.toISOString())}</td
+							>
+						</tr>
 						{#if isExpanded}
-							<Table.Row class="bg-black/30 hover:bg-black/30">
-								<Table.Cell colspan={8} class="p-0">
-									<div
-										class="ml-6 my-2 rounded border-l-[3px] border-l-blue-500 p-3"
-									>
-										<div
-											class="flex items-center gap-4 border-b border-border pb-2 mb-2 text-xs font-semibold text-muted-foreground"
-										>
-											<span class="flex-[2] text-emerald-500">IMSI</span>
-											<span class="flex-1 text-blue-400">TMSI</span>
-											<span class="flex-1 text-right">Detected</span>
+							<tr class="detail-row">
+								<td colspan={8} class="detail-cell">
+									<div class="detail-box">
+										<div class="detail-head">
+											<span class="detail-imsi">IMSI</span>
+											<span class="detail-tmsi">TMSI</span>
+											<span class="detail-detected">Detected</span>
 										</div>
 										{#each tower.devices.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()) as device (device.imsi)}
-											<div
-												class="flex items-center gap-4 py-2 font-mono text-xs border-b border-border/30 last:border-b-0"
-											>
-												<span class="flex-[2] text-emerald-500"
-													>{device.imsi}</span
-												>
-												<span class="flex-1 text-blue-400"
+											<div class="detail-row-item">
+												<span class="detail-imsi">{device.imsi}</span>
+												<span class="detail-tmsi"
 													>{device.tmsi || 'N/A'}</span
 												>
-												<span
-													class="flex-1 text-right text-muted-foreground"
-												>
+												<span class="detail-detected detail-detected-val">
 													{formatTimestamp(device.timestamp)}
 												</span>
 											</div>
 										{/each}
 									</div>
-								</Table.Cell>
-							</Table.Row>
+								</td>
+							</tr>
 						{/if}
 					{/each}
-				</Table.Body>
-			</Table.Root>
+				</tbody>
+			</table>
 		{:else}
 			<PanelEmptyState
 				title="No IMSIs captured yet"
@@ -268,3 +215,217 @@
 		{/if}
 	</div>
 </div>
+
+<style>
+	/* Domain data colors (carrier/IMSI/TMSI/location categorization) are kept
+	   as literal hex per the data-viz domain rule (charts phase). */
+	.tower-card {
+		margin: 0.5rem 1rem 0;
+		padding: 1rem;
+		background: var(--cds-layer);
+		border: 1px solid var(--cds-border-subtle);
+		border-radius: 0.5rem;
+	}
+
+	.tower-title {
+		margin: 0 0 1rem;
+		text-align: center;
+		font-size: 1rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.025em;
+		color: var(--cds-text-primary);
+	}
+
+	.tower-title-accent {
+		color: var(--cds-support-error);
+	}
+
+	.tower-table-wrap {
+		overflow-x: auto;
+		border: 1px solid var(--cds-border-subtle);
+		border-radius: 0.25rem;
+	}
+
+	.tower-table {
+		width: 100%;
+		border-collapse: collapse;
+	}
+
+	.col-expand {
+		width: 2rem;
+	}
+
+	.col-head {
+		text-align: left;
+		font-size: 0.75rem;
+		text-transform: uppercase;
+		letter-spacing: 0.025em;
+		padding: 0.25rem 0.5rem;
+	}
+
+	.sort-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		padding: 0 0.25rem;
+		background: transparent;
+		border: none;
+		font-family: var(--cds-code-01-font-family);
+		font-size: 0.75rem;
+		font-weight: 700;
+		color: var(--cds-text-helper);
+		cursor: pointer;
+	}
+
+	.sort-btn:hover {
+		color: var(--cds-text-primary);
+	}
+
+	.sort-arrow {
+		font-size: 0.7rem;
+		color: #60a5fa;
+	}
+
+	.tower-row {
+		cursor: pointer;
+		border-left: 3px solid transparent;
+		transition:
+			background-color 0.15s ease,
+			border-color 0.15s ease;
+	}
+
+	.tower-row:hover {
+		background: color-mix(in srgb, var(--cds-layer) 30%, transparent);
+		border-left-color: #3b82f6;
+	}
+
+	.tower-row.expanded {
+		border-left-color: #3b82f6;
+		background: color-mix(in srgb, #3b82f6 15%, transparent);
+	}
+
+	.tower-row td {
+		padding: 0.375rem 0.5rem;
+	}
+
+	.cell-expand {
+		width: 2rem;
+		color: #3b82f6;
+		font-size: 0.7rem;
+	}
+
+	.cell-carrier {
+		font-family: var(--cds-code-01-font-family);
+		font-weight: 500;
+		color: var(--cds-text-primary);
+	}
+
+	.cell-country {
+		font-size: 0.75rem;
+		color: var(--cds-text-primary);
+	}
+
+	.cell-loc {
+		font-family: var(--cds-code-01-font-family);
+		font-size: 0.75rem;
+		color: var(--cds-text-helper);
+	}
+
+	.loc-coords {
+		color: #4ade80;
+	}
+
+	.cell-muted {
+		color: var(--cds-text-helper);
+		font-size: 0.75rem;
+	}
+
+	.cell-lacci,
+	.cell-mccmnc {
+		font-family: var(--cds-code-01-font-family);
+		font-size: 0.75rem;
+		color: var(--cds-text-helper);
+	}
+
+	.cell-mccmnc {
+		font-family: inherit;
+	}
+
+	.cell-carrier.unknown,
+	.cell-lacci.unknown,
+	.cell-mccmnc.unknown {
+		color: #eab308;
+	}
+
+	.cell-count {
+		font-weight: 600;
+		color: #3b82f6;
+	}
+
+	.cell-lastseen {
+		font-family: var(--cds-code-01-font-family);
+		font-size: 0.75rem;
+		color: var(--cds-text-helper);
+	}
+
+	.detail-row {
+		background: color-mix(in srgb, var(--cds-background) 50%, transparent);
+	}
+
+	.detail-cell {
+		padding: 0;
+	}
+
+	.detail-box {
+		margin: 0.5rem 0 0.5rem 1.5rem;
+		padding: 0.75rem;
+		border-left: 3px solid #3b82f6;
+		border-radius: 0.25rem;
+	}
+
+	.detail-head {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		padding-bottom: 0.5rem;
+		margin-bottom: 0.5rem;
+		border-bottom: 1px solid var(--cds-border-subtle);
+		font-size: 0.75rem;
+		font-weight: 600;
+		color: var(--cds-text-helper);
+	}
+
+	.detail-row-item {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		padding: 0.5rem 0;
+		font-family: var(--cds-code-01-font-family);
+		font-size: 0.75rem;
+		border-bottom: 1px solid color-mix(in srgb, var(--cds-border-subtle) 30%, transparent);
+	}
+
+	.detail-row-item:last-child {
+		border-bottom: 0;
+	}
+
+	.detail-imsi {
+		flex: 2;
+		color: #10b981;
+	}
+
+	.detail-tmsi {
+		flex: 1;
+		color: #60a5fa;
+	}
+
+	.detail-detected {
+		flex: 1;
+		text-align: right;
+	}
+
+	.detail-detected-val {
+		color: var(--cds-text-helper);
+	}
+</style>

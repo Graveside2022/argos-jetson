@@ -100,23 +100,23 @@
 	.session-label {
 		font-size: 0.68em;
 		letter-spacing: 0.08em;
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 	}
 	.live-chip {
 		font-family: 'Fira Code', ui-monospace, monospace;
 		font-size: 0.62em;
 		letter-spacing: 0.12em;
-		color: var(--success);
+		color: var(--cds-support-success);
 		padding: 0.08em 0.4em;
-		border: 1px solid var(--success);
+		border: 1px solid var(--cds-support-success);
 		border-radius: 3px;
 	}
 	.session-status {
 		font-size: 0.78em;
 		padding: 0.35em 0.5em;
-		color: var(--muted-foreground);
-		background: var(--card);
-		border: 1px solid var(--border);
+		color: var(--cds-text-helper);
+		background: var(--cds-layer);
+		border: 1px solid var(--cds-border-subtle);
 		border-radius: 4px;
 	}
 	.session-retry {
@@ -131,7 +131,7 @@
 		cursor: pointer;
 	}
 	.session-retry:hover {
-		background: var(--destructive);
-		color: var(--destructive-foreground);
+		background: var(--cds-support-error);
+		color: var(--cds-text-on-color);
 	}
 </style>

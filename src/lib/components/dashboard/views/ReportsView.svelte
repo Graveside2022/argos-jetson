@@ -1,16 +1,14 @@
 <script lang="ts">
-	import {
-		Eye,
-		FileText,
-		Maximize2,
-		Minimize2,
-		Plus,
-		Presentation,
-		RefreshCw,
-		Trash2,
-		X
-	} from '@lucide/svelte';
 	import { SelectItem } from 'carbon-components-svelte';
+	import Add from 'carbon-icons-svelte/lib/Add.svelte';
+	import Close from 'carbon-icons-svelte/lib/Close.svelte';
+	import Document from 'carbon-icons-svelte/lib/Document.svelte';
+	import Maximize from 'carbon-icons-svelte/lib/Maximize.svelte';
+	import Minimize from 'carbon-icons-svelte/lib/Minimize.svelte';
+	import Renew from 'carbon-icons-svelte/lib/Renew.svelte';
+	import Report from 'carbon-icons-svelte/lib/Report.svelte';
+	import TrashCan from 'carbon-icons-svelte/lib/TrashCan.svelte';
+	import View from 'carbon-icons-svelte/lib/View.svelte';
 
 	import Checkbox from '$lib/components/chassis/forms/Checkbox.svelte';
 	import InlineNotification from '$lib/components/chassis/forms/InlineNotification.svelte';
@@ -293,7 +291,7 @@
 			onclick={openNewMissionModal}
 			aria-label="New Mission"
 		>
-			<Plus size={12} />
+			<Add size={12} />
 			<span>NEW MISSION</span>
 		</button>
 
@@ -333,7 +331,7 @@
 			aria-label="Refresh"
 			title="Refresh"
 		>
-			<RefreshCw size={12} />
+			<Renew size={12} />
 		</button>
 
 		{#if selectedReportId}
@@ -345,9 +343,9 @@
 				title={fullScreen ? 'Exit full screen' : 'Full screen'}
 			>
 				{#if fullScreen}
-					<Minimize2 size={12} />
+					<Minimize size={12} />
 				{:else}
-					<Maximize2 size={12} />
+					<Maximize size={12} />
 				{/if}
 			</button>
 		{/if}
@@ -363,7 +361,7 @@
 			<PanelStatus state="error" title="ERROR LOADING REPORTS" detail={error}>
 				{#snippet action()}
 					<button class="btn" type="button" onclick={() => void fetchReports()}>
-						<RefreshCw size={12} />
+						<Renew size={12} />
 						<span>RETRY</span>
 					</button>
 				{/snippet}
@@ -446,7 +444,7 @@
 								title="View"
 								onclick={() => viewReport(r.id)}
 							>
-								<Eye size={12} />
+								<View size={12} />
 							</button>
 							<button
 								class="icon-btn"
@@ -456,7 +454,7 @@
 								disabled={!r.pdf_path}
 								onclick={() => openExternal(r.id, 'pdf')}
 							>
-								<FileText size={12} />
+								<Document size={12} />
 							</button>
 							<button
 								class="icon-btn icon-btn-danger"
@@ -465,7 +463,7 @@
 								title="Delete"
 								onclick={() => void deleteReport(r.id)}
 							>
-								<Trash2 size={12} />
+								<TrashCan size={12} />
 							</button>
 						</div>
 					</div>
@@ -499,7 +497,7 @@
 					type="button"
 					onclick={() => openExternal(selectedReportId ?? '', 'pdf')}
 				>
-					<FileText size={12} />
+					<Document size={12} />
 					<span>PDF</span>
 				</button>
 				<button
@@ -507,7 +505,7 @@
 					type="button"
 					onclick={() => openExternal(selectedReportId ?? '', 'revealjs')}
 				>
-					<Presentation size={12} />
+					<Report size={12} />
 					<span>SLIDES HTML</span>
 				</button>
 				<button
@@ -515,11 +513,11 @@
 					type="button"
 					onclick={() => openExternal(selectedReportId ?? '', 'slides-pdf')}
 				>
-					<Presentation size={12} />
+					<Report size={12} />
 					<span>SLIDES PDF</span>
 				</button>
 				<button class="btn" type="button" onclick={closePreview} aria-label="Close preview">
-					<X size={12} />
+					<Close size={12} />
 					<span>CLOSE</span>
 				</button>
 			</div>
@@ -614,8 +612,8 @@
 		grid-template-rows: auto 1fr auto;
 		width: 100%;
 		height: 100%;
-		background: var(--background);
-		color: var(--foreground);
+		background: var(--cds-background);
+		color: var(--cds-text-primary);
 		font-family: 'Fira Code', monospace;
 		overflow: hidden;
 	}
@@ -625,8 +623,8 @@
 		align-items: center;
 		gap: 12px;
 		padding: 8px 16px;
-		border-bottom: 1px solid var(--border);
-		background: var(--card);
+		border-bottom: 1px solid var(--cds-border-subtle);
+		background: var(--cds-layer);
 		min-height: 40px;
 	}
 
@@ -636,7 +634,7 @@
 		font-weight: 600;
 		letter-spacing: 1.2px;
 		text-transform: uppercase;
-		color: var(--foreground);
+		color: var(--cds-text-primary);
 		margin: 0;
 	}
 
@@ -646,7 +644,7 @@
 		font-weight: 600;
 		letter-spacing: 1.2px;
 		text-transform: uppercase;
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 	}
 
 	.toolbar-group {
@@ -665,8 +663,8 @@
 		gap: 4px;
 		padding: 4px 10px;
 		background: transparent;
-		color: var(--foreground);
-		border: 1px solid var(--border);
+		color: var(--cds-text-primary);
+		border: 1px solid var(--cds-border-subtle);
 		border-radius: 0;
 		font-family: 'Fira Code', monospace;
 		font-size: 10px;
@@ -680,8 +678,8 @@
 	}
 
 	.btn:hover:not(:disabled) {
-		background: var(--surface-hover, #ffffff0a);
-		border-color: var(--primary);
+		background: var(--cds-layer-hover);
+		border-color: var(--cds-link-primary);
 	}
 
 	.btn:disabled {
@@ -690,14 +688,14 @@
 	}
 
 	.btn-primary {
-		border-color: var(--primary);
-		color: var(--primary);
+		border-color: var(--cds-link-primary);
+		color: var(--cds-link-primary);
 	}
 
 	.input {
-		background: var(--background);
-		color: var(--foreground);
-		border: 1px solid var(--border);
+		background: var(--cds-background);
+		color: var(--cds-text-primary);
+		border: 1px solid var(--cds-border-subtle);
 		border-radius: 0;
 		padding: 4px 8px;
 		font-family: 'Fira Code', monospace;
@@ -708,7 +706,7 @@
 	}
 
 	.input:focus {
-		border-color: var(--primary);
+		border-color: var(--cds-link-primary);
 	}
 
 	.grid-wrap {
@@ -737,9 +735,9 @@
 		font-weight: 600;
 		letter-spacing: 1.2px;
 		text-transform: uppercase;
-		color: var(--muted-foreground);
-		background: var(--card);
-		border-bottom: 1px solid var(--border);
+		color: var(--cds-text-helper);
+		background: var(--cds-layer);
+		border-bottom: 1px solid var(--cds-border-subtle);
 		padding: 10px 12px;
 		position: sticky;
 		top: 0;
@@ -753,8 +751,8 @@
 	.grid-row .col {
 		font-size: 13px;
 		padding: 10px 12px;
-		border-bottom: 1px solid var(--border);
-		color: var(--foreground);
+		border-bottom: 1px solid var(--cds-border-subtle);
+		color: var(--cds-text-primary);
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -764,11 +762,11 @@
 	}
 
 	.grid-row.selected .col:first-child {
-		border-left: 2px solid var(--primary);
+		border-left: 2px solid var(--cds-link-primary);
 	}
 
 	.grid-row:hover .col {
-		background: #ffffff06;
+		background: color-mix(in srgb, var(--cds-text-primary) 2%, transparent);
 	}
 
 	.col-title {
@@ -787,15 +785,15 @@
 	}
 
 	.count-danger {
-		color: #ff5c33;
+		color: var(--cds-support-error);
 	}
 
 	.count-warning {
-		color: #d4a054;
+		color: var(--cds-support-warning);
 	}
 
 	.count-zero {
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 	}
 
 	.col-actions {
@@ -811,7 +809,7 @@
 		padding: 0;
 		background: transparent;
 		border: 1px solid transparent;
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 		cursor: pointer;
 		border-radius: 0;
 		transition:
@@ -820,8 +818,8 @@
 	}
 
 	.icon-btn:hover:not(:disabled) {
-		color: var(--primary);
-		border-color: var(--border);
+		color: var(--cds-link-primary);
+		border-color: var(--cds-border-subtle);
 	}
 
 	.icon-btn:disabled {
@@ -830,7 +828,7 @@
 	}
 
 	.icon-btn-danger:hover:not(:disabled) {
-		color: #ff5c33;
+		color: var(--cds-support-error);
 	}
 
 	/* States */
@@ -845,15 +843,15 @@
 	.preview-resize-handle {
 		height: 8px;
 		cursor: ns-resize;
-		background: var(--border);
-		border-top: 1px solid var(--border);
-		border-bottom: 1px solid var(--border);
+		background: var(--cds-border-subtle);
+		border-top: 1px solid var(--cds-border-subtle);
+		border-bottom: 1px solid var(--cds-border-subtle);
 		transition: background 0.15s ease;
 		flex-shrink: 0;
 	}
 
 	.preview-resize-handle:hover {
-		background: var(--primary);
+		background: var(--cds-link-primary);
 	}
 
 	.reports-view.fullscreen .preview-resize-handle {
@@ -863,7 +861,7 @@
 	.preview-pane {
 		display: flex;
 		flex-direction: column;
-		border-top: 1px solid var(--border);
+		border-top: 1px solid var(--cds-border-subtle);
 		background: #ffffff;
 		min-height: 180px;
 		flex-shrink: 0;
@@ -879,10 +877,10 @@
 		align-items: center;
 		gap: 6px;
 		padding: 6px 12px;
-		border-bottom: 1px solid var(--border);
+		border-bottom: 1px solid var(--cds-border-subtle);
 		min-height: 36px;
-		background: var(--card);
-		color: var(--foreground);
+		background: var(--cds-layer);
+		color: var(--cds-text-primary);
 	}
 
 	.report-iframe {

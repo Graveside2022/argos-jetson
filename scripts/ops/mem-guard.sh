@@ -2,10 +2,9 @@
 # scripts/ops/mem-guard.sh
 # Memory-safe wrapper for heavy dev commands (build, lint, typecheck, test).
 #
-# Three protections:
+# Two protections:
 #   1. Pre-flight memory check — refuses to start if RAM > threshold
 #   2. Concurrency lock — only one heavy command at a time
-#   3. Automatic cleanup — kills stale MCP/bun processes if memory is tight
 #
 # Usage: ./scripts/ops/mem-guard.sh <command> [args...]
 # Example: ./scripts/ops/mem-guard.sh npx vite build
@@ -41,7 +40,6 @@ LOCKFILE="/tmp/argos-heavy-cmd.lock"
 
 # --- Colors ---
 RED='\033[0;31m'
-YELLOW='\033[1;33m'
 GREEN='\033[0;32m'
 DIM='\033[0;90m'
 RESET='\033[0m'
@@ -54,37 +52,6 @@ mem_pct() {
 
 mem_available_mb() {
     awk '/MemAvailable/{printf "%d", $2/1024}' /proc/meminfo 2>/dev/null
-}
-
-cleanup_if_tight() {
-    local pct
-    pct=$(mem_pct)
-    if [[ "$pct" -lt 75 ]]; then
-        return  # Plenty of memory, skip cleanup
-    fi
-
-    echo -e "${YELLOW}Memory at ${pct}%. Running pre-flight cleanup...${RESET}"
-
-    # Kill stale bun workers (claude-mem daemon orphans)
-    local killed=0 freed_mb=0
-    while read -r pid; do
-        local ppid parent_comm
-        ppid=$(awk '{print $4}' "/proc/$pid/stat" 2>/dev/null) || continue
-        parent_comm=$(cat "/proc/$ppid/comm" 2>/dev/null) || parent_comm="unknown"
-        if [[ "$ppid" = "1" ]] || [[ "$parent_comm" = "systemd" ]]; then
-            local rss_mb
-            rss_mb=$(awk '{printf "%d", $2*4/1024}' "/proc/$pid/statm" 2>/dev/null) || continue
-            if [[ "$rss_mb" -gt 30 ]]; then
-                kill "$pid" 2>/dev/null && killed=$((killed + 1)) && freed_mb=$((freed_mb + rss_mb))
-                echo -e "  ${DIM}Killed orphan bun worker PID $pid (${rss_mb}MB)${RESET}"
-            fi
-        fi
-    done < <(pgrep -f "bun.*worker-service" 2>/dev/null || true)
-
-    if [[ "$killed" -gt 0 ]]; then
-        sleep 1  # Let memory reclaim
-        echo -e "  ${GREEN}Freed ~${freed_mb}MB (killed $killed orphan workers)${RESET}"
-    fi
 }
 
 acquire_lock() {
@@ -134,10 +101,7 @@ if ! acquire_lock; then
     exit 1
 fi
 
-# Step 2: Pre-flight cleanup if memory is getting tight
-cleanup_if_tight
-
-# Step 3: Memory pre-check
+# Step 2: Memory pre-check
 MEM_PCT=$(mem_pct)
 MEM_AVAIL=$(mem_available_mb)
 
@@ -152,7 +116,7 @@ if [[ "$MEM_PCT" -ge "$THRESHOLD" ]]; then
     exit 1
 fi
 
-# Step 4: Run the command with memory status
+# Step 3: Run the command with memory status
 echo -e "${GREEN}Memory: ${MEM_PCT}% used (${MEM_AVAIL}MB available) — threshold ${THRESHOLD}%${RESET}"
 echo -e "${DIM}Running: $*${RESET}"
 echo ""
@@ -160,7 +124,7 @@ echo ""
 "$@"
 EXIT_CODE=$?
 
-# Step 5: Post-run memory report
+# Step 4: Post-run memory report
 MEM_AFTER=$(mem_pct)
 MEM_AVAIL_AFTER=$(mem_available_mb)
 echo ""

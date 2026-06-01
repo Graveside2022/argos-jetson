@@ -2,7 +2,7 @@
 <!-- @constitutional-exemption Article-IV-4.2 issue:#12 — Button pattern extraction deferred to component library refactor -->
 <!-- @audit-svelte-no-at-html-tags 2026-05-05 — `icon` prop is a hard-coded SVG string from $lib/data/tool-icons.ts upstream; rule disabled for this file via config/eslint.config.js files-pattern override; no user input vector. -->
 <script lang="ts">
-	import Button from '$lib/components/ui/button/button.svelte';
+	import { Button } from 'carbon-components-svelte';
 
 	interface Props {
 		name: string;
@@ -83,31 +83,30 @@
 			{#if canOpen}
 				{#if externalUrl}
 					<Button
-						variant="outline"
-						size="sm"
+						kind="tertiary"
+						size="small"
 						href={externalUrl}
 						target="_blank"
 						rel="noopener noreferrer">Open</Button
 					>
 				{:else}
-					<Button variant="outline" size="sm" onclick={() => onOpen?.()}>Open</Button>
+					<Button kind="tertiary" size="small" on:click={() => onOpen?.()}>Open</Button>
 				{/if}
 			{/if}
 			{#if shouldShowControls}
 				{#if isRunning}
 					<Button
-						variant="destructive"
-						size="sm"
+						kind="danger"
+						size="small"
 						disabled={isTransitioning}
-						onclick={() => onStop?.()}>Stop</Button
+						on:click={() => onStop?.()}>Stop</Button
 					>
 				{:else}
 					<Button
-						variant="default"
-						size="sm"
-						class="bg-green-600 hover:bg-green-700 text-white"
+						kind="primary"
+						size="small"
 						disabled={isTransitioning}
-						onclick={() => onStart?.()}>Start</Button
+						on:click={() => onStart?.()}>Start</Button
 					>
 				{/if}
 			{/if}
@@ -117,18 +116,18 @@
 
 <style>
 	.tool-card {
-		padding: var(--space-3);
-		background: var(--surface-elevated);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-md);
+		padding: var(--cds-spacing-04);
+		background: var(--cds-layer);
+		border: 1px solid var(--cds-border-subtle);
+		border-radius: 6px;
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-2);
+		gap: var(--cds-spacing-03);
 		transition: border-color 0.15s ease;
 	}
 
 	.tool-card.isRunning {
-		border-color: var(--border);
+		border-color: var(--cds-border-subtle);
 	}
 
 	.tool-card.not-installed {
@@ -136,24 +135,24 @@
 	}
 
 	.tool-card.not-installed .tool-name {
-		color: var(--foreground-secondary);
+		color: var(--cds-text-secondary);
 	}
 
 	.tool-header {
 		display: flex;
 		align-items: center;
-		gap: var(--space-3);
+		gap: var(--cds-spacing-04);
 	}
 
 	.tool-icon {
 		width: 20px;
 		height: 20px;
 		flex-shrink: 0;
-		color: var(--foreground-muted);
+		color: var(--cds-text-secondary);
 	}
 
 	.tool-card.isRunning .tool-icon {
-		color: var(--primary);
+		color: var(--cds-link-primary);
 	}
 
 	.tool-info {
@@ -165,15 +164,15 @@
 	}
 
 	.tool-name {
-		font-size: var(--text-sm);
-		font-weight: var(--font-weight-medium);
-		color: var(--foreground);
+		font-size: var(--cds-label-01-font-size);
+		font-weight: 500;
+		color: var(--cds-text-primary);
 	}
 
 	.tool-status-row {
 		display: flex;
 		align-items: center;
-		gap: var(--space-2);
+		gap: var(--cds-spacing-03);
 	}
 
 	.tool-status-dot {
@@ -184,51 +183,51 @@
 	}
 
 	.dot-active {
-		background: var(--success);
-		box-shadow: 0 0 4px color-mix(in srgb, var(--success) 50%, transparent);
+		background: var(--cds-support-success);
+		box-shadow: 0 0 4px color-mix(in srgb, var(--cds-support-success) 50%, transparent);
 	}
 
 	.dot-transition {
-		background: var(--warning);
+		background: var(--cds-support-warning);
 		animation: pulse 1s infinite;
 	}
 
 	.dot-stopped {
-		background: var(--foreground-secondary);
+		background: var(--cds-text-secondary);
 	}
 
 	.tool-status-label {
-		font-size: var(--text-xs);
-		color: var(--foreground-secondary);
-		letter-spacing: var(--letter-spacing-wide);
+		font-size: var(--cds-label-01-font-size);
+		color: var(--cds-text-secondary);
+		letter-spacing: 0.025em;
 	}
 
 	.tool-count {
-		font-family: var(--font-mono);
-		font-size: var(--text-xs);
-		color: var(--primary);
+		font-family: var(--cds-code-01-font-family);
+		font-size: var(--cds-label-01-font-size);
+		color: var(--cds-link-primary);
 		font-variant-numeric: tabular-nums;
 		margin-left: auto;
 	}
 
 	.tool-description {
-		font-size: var(--text-xs);
-		color: var(--foreground-secondary);
+		font-size: var(--cds-label-01-font-size);
+		color: var(--cds-text-secondary);
 		line-height: 1.4;
 		margin: 0;
 	}
 
 	.installation-badge {
-		font-size: var(--text-xs);
-		color: var(--foreground-secondary);
-		padding: 2px var(--space-2);
-		border: 1px dashed var(--border);
-		border-radius: var(--radius-sm);
+		font-size: var(--cds-label-01-font-size);
+		color: var(--cds-text-secondary);
+		padding: 2px var(--cds-spacing-03);
+		border: 1px dashed var(--cds-border-subtle);
+		border-radius: 4px;
 	}
 
 	.tool-actions {
 		display: flex;
-		gap: var(--space-2);
+		gap: var(--cds-spacing-03);
 	}
 
 	@keyframes pulse {

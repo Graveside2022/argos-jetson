@@ -1,18 +1,16 @@
 <!-- @constitutional-exemption Article-IV-4.3 issue:#11 — Component state handling (loading/error/empty UI) deferred to UX improvement phase -->
 <!-- @constitutional-exemption Article-IV-4.2 issue:#12 — Button pattern extraction deferred to component library refactor -->
 <script lang="ts">
-	import {
-		FileText,
-		House,
-		List,
-		Map,
-		Radar,
-		RadioTower,
-		Satellite,
-		Settings,
-		Waypoints,
-		Zap
-	} from '@lucide/svelte';
+	import Document from 'carbon-icons-svelte/lib/Document.svelte';
+	import Flash from 'carbon-icons-svelte/lib/Flash.svelte';
+	import Home from 'carbon-icons-svelte/lib/Home.svelte';
+	import List from 'carbon-icons-svelte/lib/List.svelte';
+	import Map from 'carbon-icons-svelte/lib/Map.svelte';
+	import Radar from 'carbon-icons-svelte/lib/Radar.svelte';
+	import RadioPushToTalk from 'carbon-icons-svelte/lib/RadioPushToTalk.svelte';
+	import Roadmap from 'carbon-icons-svelte/lib/Roadmap.svelte';
+	import Satellite from 'carbon-icons-svelte/lib/Satellite.svelte';
+	import Settings from 'carbon-icons-svelte/lib/Settings.svelte';
 
 	import {
 		activeBottomTab,
@@ -48,7 +46,7 @@
 			aria-pressed={activePanel.current === 'overview'}
 			onclick={() => handleClick('overview')}
 		>
-			<House size={18} />
+			<Home size={20} />
 		</button>
 		<!-- Dashboard (list) -->
 		<button
@@ -59,7 +57,7 @@
 			aria-pressed={activeBottomTab.current === 'dashboard'}
 			onclick={() => handleClick('dashboard')}
 		>
-			<List size={18} />
+			<List size={20} />
 		</button>
 		<!-- Tools (zap) -->
 		<button
@@ -70,7 +68,7 @@
 			aria-pressed={activePanel.current === 'tools'}
 			onclick={() => handleClick('tools')}
 		>
-			<Zap size={18} />
+			<Flash size={20} />
 		</button>
 		<!-- Reports -->
 		<button
@@ -81,7 +79,7 @@
 			aria-pressed={activePanel.current === 'reports'}
 			onclick={() => handleClick('reports')}
 		>
-			<FileText size={18} />
+			<Document size={20} />
 		</button>
 	</div>
 
@@ -97,7 +95,7 @@
 			aria-pressed={activeView.current === 'webtak'}
 			onclick={() => handleClick('webtak')}
 		>
-			<Radar size={18} />
+			<Radar size={20} />
 		</button>
 		<!-- UAS Scan (live log terminal view) -->
 		<button
@@ -108,7 +106,7 @@
 			aria-pressed={activeView.current === 'uas-scan'}
 			onclick={() => handleClick('uas-scan')}
 		>
-			<RadioTower size={18} />
+			<RadioPushToTalk size={20} />
 		</button>
 		<!-- GNSS-SDR (software GNSS receiver + RTKLIB sky-plot / nav iframe) -->
 		<button
@@ -119,7 +117,7 @@
 			aria-pressed={activeView.current === 'gnss-sdr'}
 			onclick={() => handleClick('gnss-sdr')}
 		>
-			<Satellite size={18} />
+			<Satellite size={20} />
 		</button>
 		<!-- Logo (waypoints) — brand mark, always white -->
 		<button
@@ -128,7 +126,7 @@
 			aria-label="Argos"
 			onclick={() => handleClick('overview')}
 		>
-			<Waypoints size={20} />
+			<Roadmap size={20} />
 		</button>
 		<!-- Map Settings -->
 		<button
@@ -139,7 +137,7 @@
 			aria-pressed={activePanel.current === 'map-settings'}
 			onclick={() => handleClick('map-settings')}
 		>
-			<Map size={18} />
+			<Map size={20} />
 		</button>
 		<!-- Separator -->
 		<div class="rail-separator"></div>
@@ -152,7 +150,7 @@
 			aria-pressed={activePanel.current === 'settings'}
 			onclick={() => handleClick('settings')}
 		>
-			<Settings size={18} />
+			<Settings size={20} />
 		</button>
 	</div>
 </nav>
@@ -164,8 +162,8 @@
 		width: var(--icon-rail-width);
 		min-width: var(--icon-rail-width);
 		flex-shrink: 0;
-		background: var(--sidebar);
-		border-right: 1px solid var(--border);
+		background: var(--cds-background);
+		border-right: 1px solid var(--cds-border-subtle);
 		display: flex;
 		flex-direction: column;
 		align-items: center;
@@ -201,7 +199,7 @@
 		justify-content: center;
 		border: none;
 		background: transparent;
-		color: var(--foreground-secondary);
+		color: var(--cds-text-secondary);
 		cursor: pointer;
 		border-radius: 4px;
 		position: relative;
@@ -214,29 +212,29 @@
 	}
 
 	.rail-btn:hover {
-		background-color: var(--surface-hover);
-		color: var(--foreground-muted);
+		background-color: var(--cds-layer-hover);
+		color: var(--cds-text-helper);
 	}
 
 	.rail-btn.active {
-		color: var(--primary);
-		background-color: color-mix(in srgb, var(--foreground) 8%, transparent);
+		color: var(--cds-link-primary);
+		background-color: color-mix(in srgb, var(--cds-text-primary) 8%, transparent);
 	}
 
 	/* Logo icon — always foreground, no active state */
 	.rail-logo {
-		color: var(--foreground);
+		color: var(--cds-text-primary);
 	}
 
 	.rail-logo:hover {
-		color: var(--foreground);
+		color: var(--cds-text-primary);
 	}
 
 	/* Separator line between Layers and Settings */
 	.rail-separator {
 		width: 24px;
 		height: 1px;
-		background: color-mix(in srgb, var(--foreground) 10%, transparent);
+		background: color-mix(in srgb, var(--cds-text-primary) 10%, transparent);
 		margin: 2px 0;
 	}
 </style>

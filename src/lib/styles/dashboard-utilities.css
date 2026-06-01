@@ -8,41 +8,41 @@
 
 /* ---- Map Popup ---- */
 .map-popup {
-	background: var(--card);
-	border: 1px solid var(--border);
-	border-radius: var(--radius-lg);
-	padding: var(--space-3);
-	color: var(--foreground);
-	font-size: var(--text-sm);
+	background: var(--cds-layer);
+	border: 1px solid var(--cds-border-subtle);
+	border-radius: 8px;
+	padding: var(--cds-spacing-04);
+	color: var(--cds-text-primary);
+	font-size: var(--cds-label-01-font-size);
 	box-shadow: 0 4px 16px #00000066;
 }
 
 .popup-title {
-	font-size: var(--text-base);
-	font-weight: var(--font-weight-semibold);
-	color: var(--foreground);
-	margin-bottom: var(--space-2);
-	padding-bottom: var(--space-2);
-	border-bottom: 1px solid var(--border);
+	font-size: var(--cds-body-compact-01-font-size);
+	font-weight: 600;
+	color: var(--cds-text-primary);
+	margin-bottom: var(--cds-spacing-03);
+	padding-bottom: var(--cds-spacing-03);
+	border-bottom: 1px solid var(--cds-border-subtle);
 }
 
 .popup-row {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	padding: var(--space-1) 0;
+	padding: var(--cds-spacing-02) 0;
 }
 
 .popup-label {
-	font-size: var(--text-xs);
-	color: var(--foreground-secondary);
+	font-size: 0.6875rem;
+	color: var(--cds-text-helper);
 	text-transform: uppercase;
-	letter-spacing: var(--letter-spacing-wider);
+	letter-spacing: 0.05em;
 }
 
 .popup-value {
-	font-size: var(--text-sm);
-	color: var(--foreground);
+	font-size: var(--cds-label-01-font-size);
+	color: var(--cds-text-primary);
 	font-variant-numeric: tabular-nums;
 }
 
@@ -83,67 +83,67 @@
 }
 
 .status-dot-online {
-	background: var(--success);
+	background: var(--cds-support-success);
 }
 
 .status-dot-offline {
-	background: var(--destructive);
+	background: var(--cds-support-error);
 }
 
 .status-dot-warning {
-	background: var(--warning);
+	background: var(--cds-support-warning);
 }
 
 /* ---- Utility Classes ---- */
 .bg-surface {
-	background: var(--card);
+	background: var(--cds-layer);
 }
 .bg-elevated {
-	background: var(--surface-elevated);
+	background: var(--cds-background);
 }
 .bg-app {
-	background: var(--background);
+	background: var(--cds-background);
 }
 
 .text-tertiary {
-	color: var(--foreground-secondary);
+	color: var(--cds-text-helper);
 }
 .text-brand {
 	color: var(--signal-strong);
 }
 
 .border-subtle {
-	border-color: var(--border);
+	border-color: var(--cds-border-subtle);
 }
 .border-strong {
-	border-color: var(--border);
+	border-color: var(--cds-border-subtle);
 }
 
 /* Status color utilities */
 .text-success {
-	color: var(--success);
+	color: var(--cds-support-success);
 }
 .text-error {
-	color: var(--destructive);
+	color: var(--cds-support-error);
 }
 .text-warning {
-	color: var(--warning);
+	color: var(--cds-support-warning);
 }
 .text-info {
-	color: var(--info);
+	color: var(--cds-support-info);
 }
 
 .bg-success-muted {
-	background: var(--success-bg);
+	background: color-mix(in srgb, var(--cds-support-success) 15%, transparent);
 }
 .bg-error-muted {
-	background: var(--error-bg);
+	background: color-mix(in srgb, var(--cds-support-error) 15%, transparent);
 }
 .bg-warning-muted {
-	background: var(--warning-bg);
+	background: color-mix(in srgb, var(--cds-support-warning) 15%, transparent);
 }
 .bg-info-muted {
-	background: var(--info-bg);
+	background: color-mix(in srgb, var(--cds-support-info) 15%, transparent);
 }
 
 /* Feature category utilities */
@@ -161,21 +161,21 @@
 .metric-group {
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-1);
+	gap: var(--cds-spacing-02);
 }
 
 .metric-row {
 	display: flex;
 	justify-content: space-between;
 	align-items: baseline;
-	gap: var(--space-2);
+	gap: var(--cds-spacing-03);
 }
 
 /* ---- Sidebar Layout Patterns ---- */
 .tactical-sidebar {
 	width: 280px;
-	background: var(--card);
-	border-right: 1px solid var(--border);
+	background: var(--cds-layer);
+	border-right: 1px solid var(--cds-border-subtle);
 	display: flex;
 	flex-direction: column;
 	overflow-y: auto;
@@ -183,11 +183,11 @@
 }
 
 .tactical-sidebar-section {
-	padding: var(--space-4);
-	border-bottom: 1px solid var(--border);
+	padding: var(--cds-spacing-05);
+	border-bottom: 1px solid var(--cds-border-subtle);
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-3);
+	gap: var(--cds-spacing-04);
 }
 
 .tactical-sidebar-section-scrollable {

@@ -20,14 +20,14 @@
 .gp-drag-handle {
 	width: 4px;
 	cursor: col-resize;
-	background: var(--border, #2e2e2e);
+	background: var(--cds-border-subtle);
 	flex-shrink: 0;
 	transition: background 0.15s;
 }
 
 .gp-drag-handle:hover,
 .gp-drag-handle.dragging {
-	background: var(--primary);
+	background: var(--cds-link-primary);
 }
 
 .gp-right-panel {
@@ -42,7 +42,7 @@
 .loading-text {
 	padding: 20px 0;
 	font-size: 13px;
-	color: var(--muted-foreground);
+	color: var(--cds-text-helper);
 }
 
 .save-row {
@@ -59,7 +59,7 @@
 	font-size: 14px;
 	font-weight: 500;
 	color: white;
-	background: var(--primary);
+	background: var(--cds-link-primary);
 	border: none;
 	border-radius: 6px;
 	cursor: pointer;
@@ -68,7 +68,7 @@
 }
 
 .save-btn:hover:not(:disabled) {
-	background: color-mix(in srgb, var(--primary) 85%, white);
+	background: color-mix(in srgb, var(--cds-link-primary) 85%, white);
 }
 
 .save-btn:disabled {
@@ -81,11 +81,11 @@
 }
 
 .save-message.success {
-	color: var(--status-healthy, #8bbfa0);
+	color: var(--cds-support-success);
 }
 
 .save-message.error {
-	color: var(--destructive);
+	color: var(--cds-support-error);
 }
 
 .startup-toggle {
@@ -97,15 +97,15 @@
 	padding: 8px 12px;
 	font-size: 14px;
 	font-weight: 500;
-	color: var(--foreground);
+	color: var(--cds-text-primary);
 	background: none;
-	border: 1px solid var(--border, #2e2e2e);
+	border: 1px solid var(--cds-border-subtle);
 	border-radius: 6px;
 	transition: background 0.15s;
 }
 
 .startup-toggle:hover {
-	background: var(--muted, #1a1a1a);
+	background: var(--cds-layer);
 }
 
 .toggle-track {
@@ -116,11 +116,11 @@
 	border-radius: 9999px;
 	padding: 0 2px;
 	transition: background 0.15s;
-	background: color-mix(in srgb, var(--muted-foreground) 30%, transparent);
+	background: color-mix(in srgb, var(--cds-text-helper) 30%, transparent);
 }
 
 .toggle-track.active {
-	background: var(--primary);
+	background: var(--cds-link-primary);
 }
 
 .toggle-thumb {
@@ -134,4 +134,23 @@
 
 .toggle-thumb.active {
 	transform: translateX(12px);
+}
+
+.disconnect-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.375rem;
+	border: 1px solid color-mix(in srgb, var(--cds-support-error) 50%, transparent);
+	border-radius: 0.375rem;
+	background: color-mix(in srgb, var(--cds-support-error) 20%, transparent);
+	padding: 0.375rem 0.75rem;
+	font-size: 0.875rem;
+	font-weight: 500;
+	color: var(--cds-support-error);
+	cursor: pointer;
+	transition: background-color 0.15s ease;
+}
+
+.disconnect-btn:hover {
+	background: color-mix(in srgb, var(--cds-support-error) 30%, transparent);
 }

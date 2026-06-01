@@ -319,23 +319,23 @@
 	.tools-navigation-view {
 		flex: 1;
 		overflow-y: auto;
-		padding: var(--space-3);
+		padding: var(--cds-spacing-04);
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-3);
+		gap: var(--cds-spacing-04);
 	}
 
 	.category-description {
-		font-size: var(--text-xs);
-		color: var(--foreground-secondary, #888888);
+		font-size: 0.6875rem;
+		color: var(--cds-text-helper);
 		line-height: 1.4;
 		margin: 0;
-		padding: 0 var(--space-1);
+		padding: 0 var(--cds-spacing-02);
 	}
 
 	.items-list {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-2);
+		gap: var(--cds-spacing-03);
 	}
 </style>

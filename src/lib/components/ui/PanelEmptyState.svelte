@@ -58,18 +58,13 @@
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		gap: 8px;
-		padding: 24px 16px;
+		gap: var(--cds-spacing-03);
+		padding: var(--cds-spacing-06) var(--cds-spacing-05);
 		min-height: 120px;
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 		text-align: center;
 		/* Chrome text in Lunaris = Geist. Fall back to system sans-serif so
 		   the primitive still renders correctly if Geist fails to load. */
-		font-family:
-			'Geist',
-			system-ui,
-			-apple-system,
-			sans-serif;
 	}
 
 	.icon-slot {
@@ -78,23 +73,23 @@
 		justify-content: center;
 		width: 28px;
 		height: 28px;
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 	}
 
 	.title {
 		margin: 0;
-		font-size: 12px;
+		font-size: var(--cds-label-01-font-size);
 		font-weight: 500;
-		color: var(--foreground-muted, var(--foreground));
+		color: var(--cds-text-primary);
 		letter-spacing: 0.2px;
 	}
 
 	.description {
 		margin: 0;
 		max-width: 32ch;
-		font-size: 11px;
+		font-size: var(--cds-label-01-font-size);
 		line-height: 1.45;
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 	}
 
 	.action-slot {

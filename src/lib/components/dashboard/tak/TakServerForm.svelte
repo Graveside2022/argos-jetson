@@ -1,39 +1,31 @@
 <script lang="ts">
 	import NumberInput from '$lib/components/chassis/forms/NumberInput.svelte';
+	import TextInput from '$lib/components/chassis/forms/TextInput.svelte';
 	import Toggle from '$lib/components/chassis/forms/Toggle.svelte';
-	import Input from '$lib/components/ui/input/input.svelte';
 	import type { TakServerConfig } from '$lib/types/tak';
 
 	let { config = $bindable() }: { config: TakServerConfig } = $props();
 </script>
 
-<div class="rounded-lg border border-border/60 bg-card/40 p-3">
-	<span class="mb-2 block text-xs font-semibold tracking-widest text-muted-foreground"
-		>SERVER</span
-	>
-	<div class="flex flex-col gap-2">
-		<label class="flex flex-col gap-1 text-[11px] font-medium text-muted-foreground">
-			Description
-			<Input
-				type="text"
-				bind:value={config.name}
-				placeholder="Unit TAK Server"
-				class="h-8 text-xs"
-			/>
-		</label>
-		<div class="flex gap-2">
-			<label
-				class="flex flex-[2] flex-col gap-1 text-[11px] font-medium text-muted-foreground"
-			>
-				Hostname / IP
-				<Input
-					type="text"
-					bind:value={config.hostname}
+<div class="tak-section">
+	<span class="tak-label">SERVER</span>
+	<div class="tak-fields">
+		<TextInput
+			labelText="Description"
+			placeholder="Unit TAK Server"
+			bind:value={config.name}
+			size="sm"
+		/>
+		<div class="field-row">
+			<div class="field-grow">
+				<TextInput
+					labelText="Hostname / IP"
 					placeholder="192.168.1.100"
-					class="h-8 text-xs"
+					bind:value={config.hostname}
+					size="sm"
 				/>
-			</label>
-			<div class="flex-1">
+			</div>
+			<div class="field-port">
 				<NumberInput
 					labelText="Port"
 					bind:value={config.port}
@@ -47,9 +39,7 @@
 				/>
 			</div>
 		</div>
-		<div
-			class="flex flex-row items-center gap-2 rounded-md border border-border/40 bg-muted/20 px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-muted/40"
-		>
+		<div class="startup-row">
 			<Toggle
 				bind:toggled={config.shouldConnectOnStartup}
 				labelText="Connect on startup"
@@ -58,3 +48,59 @@
 		</div>
 	</div>
 </div>
+
+<style>
+	.tak-section {
+		padding: 0.75rem;
+		border: 1px solid color-mix(in srgb, var(--cds-border-subtle) 60%, transparent);
+		border-radius: 0.5rem;
+		background: color-mix(in srgb, var(--cds-layer) 40%, transparent);
+	}
+
+	.tak-label {
+		display: block;
+		margin-bottom: 0.5rem;
+		font-size: 0.75rem;
+		font-weight: 600;
+		letter-spacing: 0.1em;
+		color: var(--cds-text-helper);
+	}
+
+	.tak-fields {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.field-row {
+		display: flex;
+		align-items: flex-end;
+		gap: 0.5rem;
+	}
+
+	.field-grow {
+		flex: 2;
+	}
+
+	.field-port {
+		flex: 1;
+	}
+
+	.startup-row {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.5rem 0.75rem;
+		border: 1px solid color-mix(in srgb, var(--cds-border-subtle) 40%, transparent);
+		border-radius: 0.375rem;
+		background: color-mix(in srgb, var(--cds-layer) 20%, transparent);
+		font-size: 0.75rem;
+		font-weight: 500;
+		color: var(--cds-text-primary);
+		transition: background-color 0.15s ease;
+	}
+
+	.startup-row:hover {
+		background: color-mix(in srgb, var(--cds-layer) 40%, transparent);
+	}
+</style>

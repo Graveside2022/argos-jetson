@@ -1,8 +1,8 @@
 <script lang="ts">
+	import { Button } from 'carbon-components-svelte';
 	import { onMount } from 'svelte';
 
 	import PanelStatus from '$lib/components/chassis/PanelStatus.svelte';
-	import Button from '$lib/components/ui/button/button.svelte';
 	import { activeView } from '$lib/stores/dashboard/dashboard-store.svelte';
 
 	import ToolViewWrapper from './ToolViewWrapper.svelte';
@@ -176,33 +176,33 @@
 			<span class="tc-status" title={telecommandStatus}>{telecommandStatus}</span>
 		{/if}
 		<Button
-			variant="outline"
-			size="sm"
-			onclick={handleTelecommand('standby')}
+			kind="tertiary"
+			size="small"
+			on:click={handleTelecommand('standby')}
 			disabled={telecommanding}
 			title="Pause acquisition + tracking (front-end keeps streaming; saves CPU)"
 		>
 			Standby
 		</Button>
 		<Button
-			variant="outline"
-			size="sm"
-			onclick={handleTelecommand('coldstart')}
+			kind="tertiary"
+			size="small"
+			on:click={handleTelecommand('coldstart')}
 			disabled={telecommanding}
 			title="Resume from standby and search all SVs"
 		>
 			Cold Start
 		</Button>
 		<Button
-			variant="outline"
-			size="sm"
-			onclick={handleTelecommand('reset')}
+			kind="tertiary"
+			size="small"
+			on:click={handleTelecommand('reset')}
 			disabled={telecommanding}
 			title="Full receiver reset (no iframe disconnect; harness respawns gnss-sdr)"
 		>
 			Reset
 		</Button>
-		<Button variant="outline" size="sm" onclick={handleStop} disabled={stopping}>
+		<Button kind="tertiary" size="small" on:click={handleStop} disabled={stopping}>
 			{stopping ? 'Stopping…' : 'Stop'}
 		</Button>
 	{/if}
@@ -226,7 +226,7 @@
 					<li>Locks the B205 — other SDR tools blocked until you press Stop</li>
 					<li>First fix typically &lt;120&nbsp;s outdoors with an active L1 antenna</li>
 				</ul>
-				<Button onclick={handleStart} disabled={starting}>
+				<Button on:click={handleStart} disabled={starting}>
 					{starting ? 'Starting…' : 'Start GNSS-SDR'}
 				</Button>
 			</div>
@@ -264,12 +264,12 @@
 		width: 100%;
 		height: 100%;
 		padding: 24px;
-		background: var(--background);
+		background: var(--cds-background);
 	}
 
 	.start-card {
-		background: var(--card);
-		border: 1px solid var(--border);
+		background: var(--cds-layer);
+		border: 1px solid var(--cds-border-subtle);
 		padding: 28px 32px;
 		max-width: 560px;
 		width: 100%;
@@ -280,7 +280,7 @@
 		font-size: 11px;
 		font-weight: 600;
 		letter-spacing: 1.2px;
-		color: var(--primary);
+		color: var(--cds-link-primary);
 		margin: 0 0 12px;
 		text-transform: uppercase;
 	}
@@ -288,14 +288,14 @@
 	.start-desc {
 		font-size: 10px;
 		line-height: 1.6;
-		color: var(--text-secondary);
+		color: var(--cds-text-secondary);
 		margin: 0 0 16px;
 	}
 
 	.start-list {
 		font-size: 10px;
 		line-height: 1.7;
-		color: var(--text-secondary);
+		color: var(--cds-text-secondary);
 		margin: 0 0 20px;
 		padding-left: 16px;
 	}
@@ -307,9 +307,9 @@
 	.tc-status {
 		font-family: 'Fira Code', monospace;
 		font-size: 10px;
-		color: var(--text-secondary);
+		color: var(--cds-text-secondary);
 		padding: 2px 8px;
-		border: 1px solid var(--border);
+		border: 1px solid var(--cds-border-subtle);
 		border-radius: 2px;
 		max-width: 220px;
 		overflow: hidden;

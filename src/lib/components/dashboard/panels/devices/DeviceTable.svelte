@@ -178,31 +178,31 @@
 	}
 
 	th {
-		background: var(--surface-header, #181818);
-		font-family: var(--font-mono, 'Fira Code', monospace);
+		background: var(--cds-background);
+		font-family: var(--cds-code-01-font-family);
 		font-size: 13px;
 		font-weight: 600;
-		letter-spacing: var(--letter-spacing-wider);
-		color: var(--foreground-secondary, #888888);
+		letter-spacing: 0.05em;
+		color: var(--cds-text-helper);
 		text-align: left;
-		padding: var(--space-2) var(--space-3);
-		border-bottom: 1px solid var(--border);
+		padding: var(--cds-spacing-03) var(--cds-spacing-04);
+		border-bottom: 1px solid var(--cds-border-subtle);
 		white-space: nowrap;
 	}
 
 	td {
-		padding: var(--space-1) var(--space-3);
+		padding: var(--cds-spacing-02) var(--cds-spacing-04);
 		font-size: 16px;
-		border-bottom: 1px solid var(--border);
+		border-bottom: 1px solid var(--cds-border-subtle);
 	}
 
 	tbody tr:hover {
-		background: var(--surface-hover, #1e1e1e);
+		background: var(--cds-layer-hover);
 	}
 
 	tbody tr.selected {
-		background: var(--surface-hover, #1e1e1e);
-		border-left: 2px solid var(--interactive, #4a8af4);
+		background: var(--cds-layer-hover);
+		border-left: 2px solid var(--cds-link-primary);
 	}
 
 	.sortable {
@@ -211,13 +211,13 @@
 	}
 
 	.sortable:hover {
-		color: var(--foreground-muted);
+		color: var(--cds-text-secondary);
 	}
 
 	.row-chevron {
 		display: inline-block;
 		font-size: 11px;
-		color: var(--foreground-secondary);
+		color: var(--cds-text-helper);
 		transition: transform 0.15s ease;
 		margin-right: 2px;
 	}
@@ -227,10 +227,10 @@
 	}
 
 	.client-count {
-		font-family: var(--font-mono);
-		font-size: var(--text-section);
-		color: var(--primary);
-		background: color-mix(in srgb, var(--primary) 15%, transparent);
+		font-family: var(--cds-code-01-font-family);
+		font-size: 0.5625rem;
+		color: var(--cds-link-primary);
+		background: color-mix(in srgb, var(--cds-link-primary) 15%, transparent);
 		padding: 0 4px;
 		border-radius: 3px;
 		margin-left: 4px;
@@ -238,14 +238,14 @@
 	}
 
 	.isolated-parent {
-		background: color-mix(in srgb, var(--primary) 6%, transparent);
-		border-bottom: 1px solid color-mix(in srgb, var(--primary) 15%, transparent);
+		background: color-mix(in srgb, var(--cds-link-primary) 6%, transparent);
+		border-bottom: 1px solid color-mix(in srgb, var(--cds-link-primary) 15%, transparent);
 	}
 
 	.empty-row {
 		text-align: center;
-		color: var(--foreground-secondary);
+		color: var(--cds-text-helper);
 		font-style: italic;
-		padding: var(--space-6) var(--space-3) !important;
+		padding: var(--cds-spacing-06) var(--cds-spacing-04) !important;
 	}
 </style>

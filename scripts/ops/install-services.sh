@@ -57,7 +57,7 @@ echo ""
 
 # Install operational monitor scripts to /usr/local/bin/
 echo "Installing operational scripts..."
-MONITOR_SCRIPTS=(argos-cpu-protector.sh argos-wifi-resilience.sh argos-process-manager.sh)
+MONITOR_SCRIPTS=(argos-cpu-protector.sh argos-wifi-resilience.sh argos-process-manager.sh argos-chrome-devtools.sh)
 for script in "${MONITOR_SCRIPTS[@]}"; do
   src="$SCRIPT_DIR/$script"
   if [[ -f "$src" ]]; then
@@ -85,6 +85,7 @@ SYSTEM_SERVICES=(
   argos-cpu-protector.service
   argos-wifi-resilience.service
   argos-process-manager.service
+  argos-chrome-devtools.service
   argos-headless.service
   argos-droneid.service
   gsmevil-patch.service
@@ -145,7 +146,7 @@ systemctl enable argos-final.service 2>/dev/null || true
 systemctl enable argos-kismet.service 2>/dev/null || true
 systemctl enable argos-dev.service 2>/dev/null || true
 # Enable monitor services only if their binaries were installed
-for bin in argos-cpu-protector argos-wifi-resilience argos-process-manager; do
+for bin in argos-cpu-protector argos-wifi-resilience argos-process-manager argos-chrome-devtools; do
   if [[ -x "/usr/local/bin/${bin}.sh" ]]; then
     systemctl enable "${bin}.service" 2>/dev/null || true
   fi

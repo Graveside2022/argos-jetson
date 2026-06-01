@@ -3,7 +3,6 @@ import { resolve } from 'node:path';
 
 import { sentrySvelteKit } from '@sentry/sveltekit';
 import { sveltekit } from '@sveltejs/kit/vite';
-import tailwindcss from '@tailwindcss/vite';
 import { optimizeCss } from 'carbon-preprocess-svelte';
 import { defineConfig, loadEnv, searchForWorkspaceRoot } from 'vite';
 import devtoolsJson from 'vite-plugin-devtools-json';
@@ -33,7 +32,6 @@ export default defineConfig(({ mode }) => {
 
 	return {
 		plugins: [
-			tailwindcss(),
 			sentrySvelteKit({
 				org: 'us-army-2k',
 				project: 'argos',

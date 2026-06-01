@@ -138,26 +138,26 @@
 	@import './device-table-cells.css';
 
 	.sub-row {
-		background: var(--surface-elevated);
+		background: var(--cds-background);
 	}
 
 	.sub-row :global(td) {
-		border-top: 1px solid var(--separator);
+		border-top: 1px solid color-mix(in srgb, var(--cds-text-primary) 10%, transparent);
 	}
 
 	.sub-cell {
-		padding-left: var(--space-4);
+		padding-left: var(--cds-spacing-05);
 	}
 
 	.sub-label {
-		font-size: var(--text-section);
-		font-weight: var(--font-weight-semibold);
-		letter-spacing: var(--letter-spacing-wide);
-		color: var(--foreground-secondary);
+		font-size: 0.5625rem;
+		font-weight: 600;
+		letter-spacing: 0.025em;
+		color: var(--cds-text-helper);
 		text-transform: uppercase;
 	}
 
 	.sub-row-parent {
-		border-top: 1px dashed var(--separator);
+		border-top: 1px dashed color-mix(in srgb, var(--cds-text-primary) 10%, transparent);
 	}
 </style>

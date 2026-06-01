@@ -19,7 +19,7 @@
 	}
 
 	.placeholder-text {
-		font-size: var(--text-sm);
-		color: var(--foreground-secondary);
+		font-size: var(--cds-label-01-font-size);
+		color: var(--cds-text-secondary);
 	}
 </style>

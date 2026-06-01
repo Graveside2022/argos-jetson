@@ -44,10 +44,10 @@
 		align-items: center;
 		justify-content: center;
 		height: 100%;
-		gap: var(--space-3);
-		color: var(--foreground-secondary);
+		gap: var(--cds-spacing-04);
+		color: var(--cds-text-helper);
 		text-align: center;
-		padding: var(--space-6);
+		padding: var(--cds-spacing-06);
 	}
 
 	.unavailable svg {
@@ -56,20 +56,20 @@
 
 	.unavailable h3 {
 		margin: 0;
-		font-size: var(--text-base);
-		color: var(--foreground-muted);
-		font-weight: var(--font-weight-semibold);
+		font-size: var(--cds-body-compact-01-font-size);
+		color: var(--cds-text-secondary);
+		font-weight: 600;
 	}
 
 	.unavailable p {
 		margin: 0;
-		font-size: var(--text-sm);
+		font-size: var(--cds-label-01-font-size);
 		line-height: 1.5;
 		max-width: 360px;
 	}
 
 	.hint {
-		font-size: var(--text-xs);
+		font-size: 0.6875rem;
 		opacity: 0.7;
 	}
 </style>

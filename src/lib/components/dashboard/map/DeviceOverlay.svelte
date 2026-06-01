@@ -1,6 +1,7 @@
 <!-- @constitutional-exemption Article-IV-4.2 — overlay-close button uses custom micro icon, shadcn Button not appropriate for 12px close control -->
 <script lang="ts">
 	import { SelectItem } from 'carbon-components-svelte';
+	import Close from 'carbon-icons-svelte/lib/Close.svelte';
 
 	import Select from '$lib/components/chassis/forms/Select.svelte';
 	import { isolateDevice } from '$lib/stores/dashboard/dashboard-store.svelte';
@@ -38,15 +39,7 @@
 			isolateDevice(null);
 		}}
 	>
-		<svg
-			width="12"
-			height="12"
-			viewBox="0 0 24 24"
-			fill="none"
-			stroke="currentColor"
-			stroke-width="2"
-			><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg
-		>
+		<Close size={12} />
 	</button>
 	<div class="overlay-title">{content.ssid}</div>
 	<div class="overlay-row">
@@ -127,8 +120,8 @@
 		top: 10px;
 		right: 10px;
 		z-index: 10;
-		background: var(--card);
-		border: 1px solid var(--border);
+		background: var(--cds-layer);
+		border: 1px solid var(--cds-border-subtle);
 		border-radius: 8px;
 		padding: 10px 12px;
 		min-width: 180px;
@@ -143,7 +136,7 @@
 		right: 6px;
 		background: none;
 		border: none;
-		color: var(--foreground-secondary);
+		color: var(--cds-text-helper);
 		cursor: pointer;
 		padding: 2px;
 		display: flex;
@@ -151,15 +144,15 @@
 	}
 
 	.overlay-close:hover {
-		color: var(--foreground);
+		color: var(--cds-text-primary);
 	}
 
 	.overlay-title {
 		font-weight: 600;
-		font-size: var(--text-brand);
+		font-size: 0.8125rem;
 		margin-bottom: 6px;
 		padding-right: 16px;
-		color: var(--foreground);
+		color: var(--cds-text-primary);
 	}
 
 	.overlay-row {
@@ -170,38 +163,38 @@
 	}
 
 	.overlay-label {
-		color: var(--foreground-secondary);
+		color: var(--cds-text-helper);
 		letter-spacing: 0.05em;
 	}
 
 	.overlay-value {
-		color: var(--foreground-muted);
-		font-family: var(--font-mono, monospace);
-		font-size: var(--text-status);
+		color: var(--cds-text-secondary);
+		font-family: var(--cds-code-01-font-family);
+		font-size: 0.625rem;
 	}
 
 	.overlay-accent {
-		color: var(--primary);
+		color: var(--cds-link-primary);
 	}
 
 	.overlay-mono {
-		font-size: var(--text-section);
+		font-size: 0.5625rem;
 		word-break: break-all;
 	}
 
 	.overlay-divider {
-		border-top: 1px solid var(--border);
+		border-top: 1px solid var(--cds-border-subtle);
 		margin: 3px 0;
 	}
 
 	/* Affiliation dropdown */
 	.affil-select {
-		background: var(--card);
-		color: var(--foreground-muted);
-		border: 1px solid var(--border);
+		background: var(--cds-layer);
+		color: var(--cds-text-secondary);
+		border: 1px solid var(--cds-border-subtle);
 		border-radius: 3px;
-		font-family: var(--font-mono, monospace);
-		font-size: var(--text-status);
+		font-family: var(--cds-code-01-font-family);
+		font-size: 0.625rem;
 		padding: 1px 4px;
 		cursor: pointer;
 		outline: none;
@@ -214,12 +207,12 @@
 	}
 
 	.affil-select:hover {
-		border-color: var(--primary);
+		border-color: var(--cds-link-primary);
 	}
 
 	.affil-select:focus {
-		border-color: var(--primary);
-		box-shadow: 0 0 0 1px var(--primary);
+		border-color: var(--cds-link-primary);
+		box-shadow: 0 0 0 1px var(--cds-link-primary);
 	}
 
 	.affil-indicator {
@@ -232,14 +225,14 @@
 	}
 
 	.affil-unknown {
-		background: var(--color-warning);
+		background: var(--cds-support-warning);
 	}
 
 	.affil-friendly {
-		background: var(--color-info);
+		background: var(--cds-support-info);
 	}
 
 	.affil-hostile {
-		background: var(--color-destructive);
+		background: var(--cds-support-error);
 	}
 </style>

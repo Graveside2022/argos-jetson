@@ -58,18 +58,18 @@
 <style>
 	.rf-status {
 		padding: 10px 14px;
-		border-bottom: 1px solid var(--border);
+		border-bottom: 1px solid var(--cds-border-subtle);
 		display: flex;
 		flex-direction: column;
 		gap: 6px;
-		font-family: var(--font-mono, 'Fira Code', monospace);
+		font-family: var(--cds-code-01-font-family);
 	}
 	.section-label {
 		font-size: 9px;
 		font-weight: 600;
 		letter-spacing: 1.2px;
 		text-transform: uppercase;
-		color: var(--muted-foreground, #888888);
+		color: var(--cds-text-helper);
 		margin: 0;
 	}
 	.status-row {
@@ -82,39 +82,39 @@
 		height: 6px;
 		border-radius: 50%;
 		flex-shrink: 0;
-		background: var(--muted-foreground, #555555);
+		background: var(--cds-text-helper);
 	}
 	.dot.active {
-		background: #8bbfa0;
+		background: var(--cds-support-success);
 	}
 	.dot.computing {
-		background: #d4a054;
+		background: var(--cds-support-warning);
 		animation: pulse 1.2s ease-in-out infinite;
 	}
 	.label {
 		font-size: 11px;
-		color: var(--foreground);
+		color: var(--cds-text-primary);
 		flex: 1;
 	}
 	.value {
 		font-size: 10px;
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 	}
 	.value.active {
-		color: #8bbfa0;
+		color: var(--cds-support-success);
 	}
 	.status-text {
 		font-size: 11px;
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 		font-style: italic;
 	}
 	.status-text.error {
-		color: #ff5c33;
+		color: var(--cds-support-error);
 		font-style: normal;
 	}
 	.progress-text {
 		font-size: 10px;
-		color: #d4a054;
+		color: var(--cds-support-warning);
 	}
 	@keyframes pulse {
 		0%,

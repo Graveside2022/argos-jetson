@@ -70,7 +70,7 @@
 		width: 100%;
 		height: 100%;
 		border: none;
-		background: var(--background);
+		background: var(--cds-background);
 	}
 
 	.service-status {
@@ -87,14 +87,14 @@
 		font-size: 11px;
 		font-weight: 600;
 		letter-spacing: 1.2px;
-		color: var(--color-warning, #d4a054);
+		color: var(--cds-support-warning);
 		text-transform: uppercase;
 	}
 
 	.status-detail {
 		font-family: 'Fira Code', monospace;
 		font-size: 10px;
-		color: var(--muted-foreground);
+		color: var(--cds-text-helper);
 		text-align: center;
 	}
 </style>
